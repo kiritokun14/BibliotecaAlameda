@@ -1,0 +1,25 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="420" height="200" viewBox="0 0 420 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Textura &#194;&#183; libros" clip-path="url(#clip0_0_26)">
+<path id="Vector" d="M0 196H420" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="#E6D194" stroke-opacity="0.38"/>
+<path id="Vector_2" d="M15 46H49C51.7614 46 54 48.2386 54 51V191C54 193.761 51.7614 196 49 196H15C12.2386 196 10 193.761 10 191V51C10 48.2386 12.2386 46 15 46Z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.22"/>
+<path id="Vector_3" d="M10 76H54M10 158.5H54" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="#E6D194" stroke-opacity="0.38"/>
+<path id="Vector_4" d="M67 76H93C95.7614 76 98 78.2386 98 81V191C98 193.761 95.7614 196 93 196H67C64.2386 196 62 193.761 62 191V81C62 78.2386 64.2386 76 67 76Z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.22"/>
+<path id="Vector_5" d="M62 100H98M62 166H98" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="#E6D194" stroke-opacity="0.38"/>
+<path id="Vector_6" d="M109 26H149C151.761 26 154 28.2386 154 31V191C154 193.761 151.761 196 149 196H109C106.239 196 104 193.761 104 191V31C104 28.2386 106.239 26 109 26Z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.22"/>
+<path id="Vector_7" d="M104 60H154M104 153.5H154" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="#E6D194" stroke-opacity="0.38"/>
+<path id="Vector_8" d="M165 66H193C195.761 66 198 68.2386 198 71V191C198 193.761 195.761 196 193 196H165C162.239 196 160 193.761 160 191V71C160 68.2386 162.239 66 165 66Z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.22"/>
+<path id="Vector_9" d="M160 92H198M160 163.5H198" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="#E6D194" stroke-opacity="0.38"/>
+<path id="Vector_10" d="M211 41H247C249.761 41 252 43.2386 252 46V191C252 193.761 249.761 196 247 196H211C208.239 196 206 193.761 206 191V46C206 43.2386 208.239 41 211 41Z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.22"/>
+<path id="Vector_11" d="M206 72H252M206 157.25H252" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="#E6D194" stroke-opacity="0.38"/>
+<path id="Vector_12" d="M263 86H293C295.761 86 298 88.2386 298 91V191C298 193.761 295.761 196 293 196H263C260.239 196 258 193.761 258 191V91C258 88.2386 260.239 86 263 86Z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.22"/>
+<path id="Vector_13" d="M258 108H298M258 168.5H298" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="#E6D194" stroke-opacity="0.38"/>
+<g id="Group">
+<path id="Vector_14" d="M360.89 39.7035L397.418 50.1777C400.073 50.9389 401.608 53.7078 400.846 56.3622L360.603 196.706C359.842 199.361 357.073 200.896 354.419 200.135L317.891 189.66C315.237 188.899 313.702 186.13 314.463 183.476L354.706 43.1316C355.467 40.4772 358.236 38.9424 360.89 39.7035Z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.22"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_26">
+<rect width="420" height="200" fill="white"/>
+</clipPath>
+</defs>
+</svg>

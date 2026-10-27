@@ -1,0 +1,113 @@
+.navegacion {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  height: 96px;
+  padding: 0 clamp(24px, 12.5vw, 240px);
+  box-sizing: border-box;
+  background: #fff;
+  box-shadow: 0 8px 12px rgba(23, 79, 69, 0.1);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.navegacion__marca {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+}
+
+.navegacion__sello {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #164f44;
+}
+
+.navegacion__sello img {
+  width: 26px;
+  height: 26px;
+}
+
+.navegacion__nombre {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.navegacion__nombre strong {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 22px;
+  letter-spacing: -0.44px;
+  color: #161a1d;
+}
+
+.navegacion__nombre small {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b4f12;
+}
+
+.navegacion__enlaces {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navegacion__enlace {
+  display: block;
+  padding: 11px 18px;
+  border-radius: 999px;
+  color: #161a1d;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navegacion__enlace:hover {
+  background: #f7f5f0;
+}
+
+.navegacion__enlace.active {
+  background: #e4efeb;
+  color: #164f44;
+  font-weight: 700;
+}
+
+.navegacion__cuenta {
+  display: flex;
+  gap: 12px;
+}
+
+.navegacion__boton {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  padding: 0 28px;
+  box-sizing: border-box;
+  border: 1.5px solid #161a1d;
+  border-radius: 999px;
+  color: #161a1d;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navegacion__boton--relleno {
+  border-color: #164f44;
+  background: #164f44;
+  color: #fff;
+  box-shadow: 0 8px 8px rgba(23, 79, 69, 0.28);
+}
