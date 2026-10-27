@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Icono robot">
+<circle id="Punta antena" cx="17" cy="2.83333" r="2.83333" fill="#0B3B33"/>
+<rect id="Antena" x="15.5833" y="4.25" width="2.83333" height="5.66667" rx="1.41667" fill="#0B3B33"/>
+<rect id="Cabeza" x="4.25" y="9.91667" width="25.5" height="19.8333" rx="5.66667" fill="#0B3B33"/>
+<rect id="Oreja izquierda" y="15.5833" width="4.25" height="8.5" rx="1.41667" fill="#0B3B33"/>
+<rect id="Oreja derecha" x="29.75" y="15.5833" width="4.25" height="8.5" rx="1.41667" fill="#0B3B33"/>
+<circle id="Ojo izquierdo" cx="11.6875" cy="19.4792" r="2.47917" fill="#E6D194"/>
+<circle id="Ojo derecho" cx="22.3125" cy="19.4792" r="2.47917" fill="#E6D194"/>
+<rect id="Boca" x="12.75" y="24.0833" width="8.5" height="2.83333" rx="1.41667" fill="#E6D194"/>
+</g>
+</svg>
