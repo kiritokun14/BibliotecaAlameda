@@ -7,11 +7,13 @@ from Back.conexion import crear_cliente
 from Back.registro import router as registro_router
 from Back.administracion import router as administracion_router
 from Back.solicitudes import router as solicitudes_router
+from Back.alta_asistida import router as alta_asistida_router
 
 app = FastAPI(title='Biblioteca Alameda', version='0.1.0')
 app.include_router(registro_router)
 app.include_router(administracion_router)
 app.include_router(solicitudes_router)
+app.include_router(alta_asistida_router)
 
 
 @app.exception_handler(RequestValidationError)
