@@ -13,6 +13,13 @@ import NuevaContrasena from "./pages/recuperar/NuevaContrasena.tsx";
 import ContrasenaActualizada from "./pages/recuperar/ContrasenaActualizada.tsx";
 import EnlaceVencido from "./pages/recuperar/EnlaceVencido.tsx";
 import RecuperacionAsistida from "./pages/recuperar/RecuperacionAsistida.tsx";
+import Credenciales from "./pages/admin/atencion/credenciales/Credenciales.tsx";
+import DetalleCredencial from "./pages/admin/atencion/credenciales/DetalleCredencial.tsx";
+import Espacios from "./pages/admin/atencion/espacios/Espacios.tsx";
+import DetalleEspacio from "./pages/admin/atencion/espacios/DetalleEspacio.tsx";
+import Propuestas from "./pages/admin/atencion/propuestas/Propuestas.tsx";
+import DetallePropuesta from "./pages/admin/atencion/propuestas/DetallePropuesta.tsx";
+import VistaPrevia from "./pages/admin/atencion/propuestas/VistaPrevia.tsx";
 
 function App() {
   return (
@@ -35,6 +42,20 @@ function App() {
         <Route path="/recuperar/listo" element={<ContrasenaActualizada />} />
         <Route path="/recuperar/enlace-vencido" element={<EnlaceVencido />} />
         <Route path="/recuperar/asistida" element={<RecuperacionAsistida />} />
+
+        {/* Panel de administración · Atención (por ahora solo estas tres secciones) */}
+        <Route path="/admin" element={<Navigate to="/admin/atencion/credenciales" replace />} />
+        {/* key distinta para que al cambiar entre bandeja y "todas" se reinicien los filtros */}
+        <Route path="/admin/atencion/credenciales" element={<Credenciales key="bandeja" vista="bandeja" />} />
+        <Route path="/admin/atencion/credenciales/todas" element={<Credenciales key="todas" vista="todas" />} />
+        <Route path="/admin/atencion/credenciales/:folio" element={<DetalleCredencial />} />
+        <Route path="/admin/atencion/espacios" element={<Espacios key="bandeja" vista="bandeja" />} />
+        <Route path="/admin/atencion/espacios/todas" element={<Espacios key="todas" vista="todas" />} />
+        <Route path="/admin/atencion/espacios/:folio" element={<DetalleEspacio />} />
+        <Route path="/admin/atencion/propuestas" element={<Propuestas key="bandeja" vista="bandeja" />} />
+        <Route path="/admin/atencion/propuestas/todas" element={<Propuestas key="todas" vista="todas" />} />
+        <Route path="/admin/atencion/propuestas/:folio" element={<DetallePropuesta />} />
+        <Route path="/admin/atencion/propuestas/:folio/publicar" element={<VistaPrevia />} />
 
         {/* Cualquier dirección que no exista todavía (/contacto, /credencial...) regresa a Inicio */}
         <Route path="*" element={<Navigate to="/" replace />} />
