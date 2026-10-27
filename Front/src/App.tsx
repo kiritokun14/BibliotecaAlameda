@@ -1,3 +1,4 @@
+import RetornoAuth from "./pages/RetornoAuth";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import Inicio from "./pages/inicio/Inicio.tsx";
 import Login from "./pages/Login.tsx";
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Inicio />} />
 
+        <Route path="/auth/retorno" element={<RetornoAuth />} />
         <Route path="/iniciar-sesion" element={<Login />} />
         <Route path="/cuenta-deshabilitada" element={<CuentaDeshabilitada />} />
         <Route path="/sesion-iniciada" element={<SesionIniciada />} />

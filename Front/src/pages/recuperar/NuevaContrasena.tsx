@@ -1,8 +1,10 @@
-import { useState, type SubmitEvent } from "react";
+import Aviso from "../../components/Aviso";
+import { mensajeError, ErrorServicio } from "../../servicios/api";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router";
 import AccesoLayout from "../../components/AccesoLayout";
 import { CampoContrasena } from "../../components/Campo";
-import { guardarNuevaContrasena } from "../../servicios/auth";
+import { guardarNuevaContrasena, puedeRestablecerContrasena } from "../../servicios/auth";
 import iconoFlechaDer from "../../assets/login/icono-flecha-der.svg";
 
 type Errores = { contrasena?: string; confirmar?: string };
@@ -14,6 +16,16 @@ function NuevaContrasena() {
     const [errores, setErrores] = useState<Errores>({});
     const [enviando, setEnviando] = useState(false);
     const navigate = useNavigate();
+    const [errorServicio, setErrorServicio] = useState("");
+    const [valido, setValido] = useState(false);
+    useEffect(() => {
+        let activo = true;
+        puedeRestablecerContrasena().then(ok => {
+            if (!activo) return;
+            if (ok) setValido(true); else navigate('/recuperar/enlace-vencido', { replace: true });
+        }).catch(error => { if (activo) setErrorServicio(mensajeError(error)); });
+        return () => { activo = false; };
+    }, [navigate]);
 
     async function enviar(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -24,9 +36,12 @@ function NuevaContrasena() {
         if (Object.keys(nuevosErrores).length > 0) return;
 
         setEnviando(true);
-        await guardarNuevaContrasena(contrasena);
-        setEnviando(false);
-        navigate("/recuperar/listo");
+        setErrorServicio("");
+        try { await guardarNuevaContrasena(contrasena); navigate("/recuperar/listo", { replace: true }); }
+        catch (error) {
+            if (error instanceof ErrorServicio && error.estado === 401) navigate('/recuperar/enlace-vencido', { replace: true });
+            else setErrorServicio(mensajeError(error));
+        } finally { setEnviando(false); }
     }
 
     return (
@@ -41,6 +56,7 @@ function NuevaContrasena() {
                     <p>Elige una contraseña que no hayas usado antes.</p>
                 </div>
 
+                {errorServicio && <Aviso tipo="error" titulo="No se pudo guardar">{errorServicio}</Aviso>}
                 <div className="campos">
                     <CampoContrasena id="contrasena" etiqueta="Nueva contraseña" placeholder="Mínimo 8 caracteres"
                         ayuda="Al menos 8 caracteres." error={errores.contrasena}
@@ -50,7 +66,7 @@ function NuevaContrasena() {
                         value={confirmar} onChange={(e) => setConfirmar(e.target.value)} />
                 </div>
 
-                <button type="submit" className="boton-principal" disabled={enviando}>
+                <button type="submit" className="boton-principal" disabled={enviando || !valido}>
                     {enviando ? "Guardando…" : "Guardar contraseña"}
                     <img src={iconoFlechaDer} alt="" />
                 </button>

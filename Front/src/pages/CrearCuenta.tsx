@@ -3,9 +3,10 @@ import { Link, useNavigate } from "react-router";
 import AccesoLayout from "../components/AccesoLayout";
 import Aviso from "../components/Aviso";
 import { Campo, CampoContrasena, CampoSelect } from "../components/Campo";
-import { VistaMenor, VistaSolicitudEnviada } from "./CrearCuentaMenor";
-import { crearCuenta } from "../servicios/auth";
+import { VistaMenor } from "./CrearCuentaMenor";
+import { crearCuenta, type SolicitudRegistro } from "../servicios/auth";
 import { calcularEdad, esCorreoValido, tieneDigitos, MENSAJE_CORREO, MENSAJE_OBLIGATORIO } from "../servicios/validaciones";
+import { mensajeError } from "../servicios/api";
 import iconoFlechaDer from "../assets/login/icono-flecha-der.svg";
 import iconoCargando from "../assets/login/icono-cargando.svg";
 import iconoErrorCampo from "../assets/login/icono-error-campo.svg";
@@ -36,6 +37,8 @@ const datosIniciales = {
     tutorTelefono: "",
     tutorCorreo: "",
     tutorRelacion: "",
+    tutorCalle: "", tutorNumeroExterior: "", tutorNumeroInterior: "", tutorColonia: "",
+    tutorCodigoPostal: "", tutorMunicipio: "", tutorEstado: "Nayarit",
     correo: "",
     contrasena: "",
     confirmarContrasena: "",
@@ -52,7 +55,7 @@ const obligatoriosTutor: (keyof Datos)[] = [
     "tutorNombre", "tutorApellidos", "tutorTelefono", "tutorCorreo", "tutorRelacion",
 ];
 
-function validar(datos: Datos, aceptaPrivacidad: boolean, conTutor: boolean): Errores {
+function validar(datos: Datos, aceptaPrivacidad: boolean, conTutor: boolean, mismoDomicilio: boolean): Errores {
     const errores: Errores = {};
 
     // Primero: ¿falta algo obligatorio?
@@ -61,6 +64,14 @@ function validar(datos: Datos, aceptaPrivacidad: boolean, conTutor: boolean): Er
         if (datos[campo].trim() === "") errores[campo] = MENSAJE_OBLIGATORIO;
     }
 
+    if (conTutor && !mismoDomicilio) {
+        for (const campo of ['tutorCalle','tutorNumeroExterior','tutorColonia','tutorCodigoPostal','tutorMunicipio','tutorEstado'] as (keyof Datos)[]) {
+            if (!datos[campo].trim()) errores[campo] = MENSAJE_OBLIGATORIO;
+        }
+        if (datos.tutorCodigoPostal && !tieneDigitos(datos.tutorCodigoPostal, 5)) errores.tutorCodigoPostal = 'El código postal debe tener 5 dígitos.';
+    }
+    if (datos.fechaNacimiento && (!Number.isFinite(calcularEdad(datos.fechaNacimiento)) || calcularEdad(datos.fechaNacimiento) < 0)) errores.fechaNacimiento = 'Revisa tu fecha de nacimiento.';
+    if (datos.contrasena.length > 128) errores.contrasena = 'Máximo 128 caracteres.';
     // Después: ¿lo que escribió tiene el formato correcto?
     if (datos.telefono && !tieneDigitos(datos.telefono, 10)) errores.telefono = "El teléfono debe tener 10 dígitos.";
     if (datos.codigoPostal && !tieneDigitos(datos.codigoPostal, 5)) errores.codigoPostal = "El código postal debe tener 5 dígitos.";
@@ -79,11 +90,13 @@ function validar(datos: Datos, aceptaPrivacidad: boolean, conTutor: boolean): Er
 }
 
 // Qué se ve: el formulario, el aviso de "eres menor" o "solicitud enviada al tutor"
-type Vista = "formulario" | "menor" | "solicitud-enviada";
+type Vista = "formulario" | "menor";
 
 function CrearCuenta() {
     const [datos, setDatos] = useState(datosIniciales);
     const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
+    const [mismoDomicilio, setMismoDomicilio] = useState(false);
+    const [errorServidor, setErrorServidor] = useState("");
     const [errores, setErrores] = useState<Errores>({});
     const [enviando, setEnviando] = useState(false);
     const [vista, setVista] = useState<Vista>("formulario");
@@ -109,7 +122,7 @@ function CrearCuenta() {
     async function enviar(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        const nuevosErrores = validar(datos, aceptaPrivacidad, conTutor);
+        const nuevosErrores = validar(datos, aceptaPrivacidad, conTutor, mismoDomicilio);
         setErrores(nuevosErrores);
         if (Object.keys(nuevosErrores).length > 0) {
             window.scrollTo({ top: 0, behavior: "smooth" }); // para que vea el aviso rojo
@@ -123,12 +136,35 @@ function CrearCuenta() {
         }
 
         setEnviando(true);
-        const resultado = await crearCuenta(datos.correo);
-        setEnviando(false);
-
-        if (resultado === "correo-registrado") navigate("/crear-cuenta/correo-registrado");
-        else if (conTutor) irA("solicitud-enviada");
-        else navigate("/confirma-tu-correo", { state: { correo: datos.correo } });
+        setErrorServidor("");
+        const domicilio = {
+            calle: datos.calle.trim(), numeroExterior: datos.numeroExterior.trim(),
+            ...(datos.numeroInterior.trim() ? { numeroInterior: datos.numeroInterior.trim() } : {}),
+            coloniaLocalidad: datos.colonia.trim(), codigoPostal: datos.codigoPostal.trim(),
+            municipio: datos.municipio.trim(), estadoProvincia: datos.estado.trim(),
+        };
+        const solicitud: SolicitudRegistro = {
+            nombres: datos.nombre.trim(), primerApellido: datos.primerApellido.trim(),
+            ...(datos.segundoApellido.trim() ? { segundoApellido: datos.segundoApellido.trim() } : {}),
+            fechaNacimiento: datos.fechaNacimiento, telefono: datos.telefono.trim(), domicilio,
+            correo: datos.correo.trim(), contrasena: datos.contrasena, aceptaAviso: true,
+            ...(conTutor ? { tutor: {
+                nombres: datos.tutorNombre.trim(), apellidos: datos.tutorApellidos.trim(),
+                telefono: datos.tutorTelefono.trim(), correo: datos.tutorCorreo.trim(),
+                relacion: datos.tutorRelacion === 'Madre' ? 'madre' : datos.tutorRelacion === 'Padre' ? 'padre' : 'tutor',
+                domicilio: mismoDomicilio ? { ...domicilio } : {
+                    calle: datos.tutorCalle.trim(), numeroExterior: datos.tutorNumeroExterior.trim(),
+                    ...(datos.tutorNumeroInterior.trim() ? { numeroInterior: datos.tutorNumeroInterior.trim() } : {}),
+                    coloniaLocalidad: datos.tutorColonia.trim(), codigoPostal: datos.tutorCodigoPostal.trim(),
+                    municipio: datos.tutorMunicipio.trim(), estadoProvincia: datos.tutorEstado.trim(),
+                },
+            } } : {}),
+        };
+        try {
+            await crearCuenta(solicitud);
+            navigate("/confirma-tu-correo", { state: { correo: datos.correo.trim() } });
+        } catch (error) { setErrorServidor(mensajeError(error)); }
+        finally { setEnviando(false); }
     }
 
     if (vista === "menor") {
@@ -143,9 +179,6 @@ function CrearCuenta() {
         );
     }
 
-    if (vista === "solicitud-enviada") {
-        return <VistaSolicitudEnviada onCorregirTutor={() => irA("formulario", "tutorNombre")} />;
-    }
 
     return (
         <AccesoLayout
@@ -159,6 +192,7 @@ function CrearCuenta() {
                     <p>Completa tus datos. Los campos obligatorios están marcados.</p>
                 </div>
 
+                {errorServidor && <Aviso tipo="error" titulo="No se pudo completar el registro">{errorServidor}</Aviso>}
                 {Object.keys(errores).length > 0 && (
                     <Aviso tipo="error" titulo="Revisa los datos marcados">
                         Corrígelos y vuelve a enviar. Lo que escribiste se conserva.
@@ -234,6 +268,20 @@ function CrearCuenta() {
                         <CampoSelect id="tutorRelacion" etiqueta="Relación con la persona menor"
                             opciones={["Madre", "Padre", "Tutor o tutora"]} ayuda="Madre, padre o tutor."
                             value={datos.tutorRelacion} onChange={cambiar} error={errores.tutorRelacion} required />
+                        <p className="seccion">DOMICILIO DEL RESPONSABLE</p>
+                        <label className="casilla">
+                            <input type="checkbox" checked={mismoDomicilio} onChange={e => setMismoDomicilio(e.target.checked)} />
+                            El responsable vive en el mismo domicilio que la persona menor.
+                        </label>
+                        {!mismoDomicilio && <div className="campos">
+                            <Campo id="tutorCalle" etiqueta="Calle" value={datos.tutorCalle} onChange={cambiar} error={errores.tutorCalle} required />
+                            <Campo id="tutorNumeroExterior" etiqueta="Número exterior" value={datos.tutorNumeroExterior} onChange={cambiar} error={errores.tutorNumeroExterior} required />
+                            <Campo id="tutorNumeroInterior" etiqueta="Número interior (opcional)" value={datos.tutorNumeroInterior} onChange={cambiar} error={errores.tutorNumeroInterior} />
+                            <Campo id="tutorColonia" etiqueta="Colonia o localidad" value={datos.tutorColonia} onChange={cambiar} error={errores.tutorColonia} required />
+                            <Campo id="tutorCodigoPostal" etiqueta="Código postal" value={datos.tutorCodigoPostal} onChange={cambiar} error={errores.tutorCodigoPostal} required />
+                            <Campo id="tutorMunicipio" etiqueta="Municipio" value={datos.tutorMunicipio} onChange={cambiar} error={errores.tutorMunicipio} required />
+                            <Campo id="tutorEstado" etiqueta="Estado" value={datos.tutorEstado} onChange={cambiar} error={errores.tutorEstado} required />
+                        </div>}
                     </>
                 )}
 

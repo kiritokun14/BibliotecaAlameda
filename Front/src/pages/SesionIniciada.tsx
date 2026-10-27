@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { consultarMiAcceso } from "../servicios/auth";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import "./Acceso.css";
 import { FranjaInstitucional, PieInstitucional } from "../components/Institucional";
@@ -9,12 +10,22 @@ const SEGUNDOS_PARA_REDIRIGIR = 3;
 
 function SesionIniciada() {
     const navigate = useNavigate();
+    const [verificada, setVerificada] = useState(false);
 
     // "Te llevamos de vuelta al inicio": después de unos segundos se va solo
     useEffect(() => {
-        const temporizador = setTimeout(() => navigate("/"), SEGUNDOS_PARA_REDIRIGIR * 1000);
-        return () => clearTimeout(temporizador); // si sale antes, cancelamos
+        let activo = true;
+        let temporizador: ReturnType<typeof setTimeout>;
+        consultarMiAcceso().then(() => {
+            if (activo) {
+                setVerificada(true);
+                temporizador = setTimeout(() => navigate("/"), SEGUNDOS_PARA_REDIRIGIR * 1000);
+            }
+        }).catch(() => { if (activo) navigate('/iniciar-sesion?motivo=sesion-caducada', { replace: true }); });
+        return () => { activo = false; clearTimeout(temporizador); };
     }, [navigate]);
+
+    if (!verificada) return <main className="confirmacion" role="status">Comprobando tu sesión…</main>;
 
     return (
         <div className="pagina-acceso">
