@@ -28,7 +28,7 @@ beforeEach(() => {
         : responder({ usuarioId: 'persona', roles: [{ rolCodigo: 'usuario' }], permisosAdicionales: [] }));
     vi.stubGlobal('fetch', peticiones);
     simulado.auth.signInWithPassword.mockResolvedValue({ error: null });
-    simulado.auth.getSession.mockResolvedValue({ data: { session: { access_token: 'token-simulado' } }, error: null });
+    simulado.auth.getSession.mockResolvedValue({ data: { session: { access_token: 'token-simulado', refresh_token: 'renovacion-simulada' } }, error: null });
     simulado.auth.getUser.mockResolvedValue({ data: { user: { id: 'persona' } }, error: null });
     simulado.auth.signOut.mockResolvedValue({ error: null });
     simulado.auth.exchangeCodeForSession.mockResolvedValue({ error: null });
@@ -78,7 +78,9 @@ describe('Integración de pantallas con servicios reales (transporte simulado)',
         expect(window.history.replaceState).toHaveBeenCalledWith(null, '', '/auth/retorno');
         expect(sessionStorage.getItem('biblioteca-recuperacion')).toBe('persona');
         await guardarNuevaContrasena('Nueva-contraseña-123');
-        expect(simulado.auth.updateUser).toHaveBeenCalledWith({ password: 'Nueva-contraseña-123' });
+        const llamada = peticiones.mock.calls.find(([ruta]) => ruta === '/api/auth/restablecer')!;
+        expect(JSON.parse(llamada[1].body)).toEqual({ access_token: 'token-simulado', refresh_token: 'renovacion-simulada', nueva_password: 'Nueva-contraseña-123' });
+        expect(simulado.auth.updateUser).not.toHaveBeenCalled();
         expect(sessionStorage.getItem('biblioteca-recuperacion')).toBeNull();
     });
     it('un enlace inválido nunca habilita recuperar la contraseña', async () => {
@@ -96,12 +98,26 @@ describe('Integración de pantallas con servicios reales (transporte simulado)',
         await expect(reenviarConfirmacion('prueba@example.invalid')).rejects.toMatchObject({ estado: 429 });
     });
     it('solicita recuperación con la URL real del frontend sin revelar cuentas inexistentes', async () => {
-        simulado.auth.resetPasswordForEmail.mockResolvedValue({ error: { code: 'user_not_found' } });
         await expect(enviarEnlaceRecuperacion('prueba@example.invalid')).resolves.toBeUndefined();
-        expect(simulado.auth.resetPasswordForEmail).toHaveBeenCalledWith('prueba@example.invalid', { redirectTo: 'http://localhost:5173/auth/retorno?flujo=recuperacion' });
+        const llamada = peticiones.mock.calls.find(([ruta]) => ruta === '/api/auth/recuperar')!;
+        expect(JSON.parse(llamada[1].body)).toEqual({ correo: 'prueba@example.invalid' });
+        expect(simulado.auth.resetPasswordForEmail).not.toHaveBeenCalled();
     });
     it('un backend inaccesible no se interpreta como registro exitoso', async () => {
         peticiones.mockRejectedValue(new TypeError('fallo de red'));
         await expect(crearCuenta({} as never)).rejects.toMatchObject({ estado: 0 });
     });
+});
+
+it('no presenta como enviada una recuperación limitada o fallida', async () => {
+    for (const estado of [429, 503]) {
+        peticiones.mockResolvedValue(responder({ detail: 'Intenta más tarde.' }, estado));
+        await expect(enviarEnlaceRecuperacion('prueba@example.invalid')).rejects.toMatchObject({ estado });
+    }
+});
+it('no borra el contexto de recuperación si el backend rechaza el cambio', async () => {
+    sessionStorage.setItem('biblioteca-recuperacion', 'persona');
+    peticiones.mockResolvedValue(responder({ detail: 'Sesión inválida.' }, 401));
+    await expect(guardarNuevaContrasena('Nueva-contraseña-123')).rejects.toMatchObject({ estado: 401 });
+    expect(simulado.auth.signOut).not.toHaveBeenCalled();
 });

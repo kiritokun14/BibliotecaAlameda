@@ -1,0 +1,85 @@
+/* Alta asistida (T-033): reutiliza las tarjetas de Acceso.css y agrega la lista de pendientes. */
+.alta-asistida {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    width: 100%;
+}
+
+.pendiente {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px 24px;
+    border: 1px solid #e2ded5;
+    border-radius: 24px;
+}
+
+.pendiente__encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.pendiente__nombre {
+    font-weight: 700;
+    color: #164f44;
+}
+
+.pendiente__subtitulo {
+    font-size: 14px;
+    font-weight: 700;
+    color: #6b675e;
+}
+
+.pendiente__dato {
+    font-size: 14px;
+    color: #6b675e;
+}
+
+.pendiente__candidatos {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: #fbf6e9;
+}
+
+.pendiente__estado {
+    flex-shrink: 0;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.pendiente__estado--en_revision {
+    background: #fbf0d4;
+    color: #7a5a00;
+}
+
+.pendiente__estado--lista {
+    background: #e3f1ec;
+    color: #164f44;
+}
+
+.pendiente__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.pendiente__acciones .boton-secundario {
+    flex: 1 1 200px;
+    width: auto;
+    height: 48px;
+    font-size: 15px;
+}
+
+.pendiente__acciones .pendiente__cancelar {
+    border-color: #9b2247;
+    color: #9b2247;
+}

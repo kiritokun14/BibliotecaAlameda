@@ -63,3 +63,29 @@ Se incorporó únicamente la consulta de solicitudes propias de la rama Stephani
 - Devuelve solicitudes y estados actuales ordenados por creación; no se afirma que exista una bitácora de transiciones ni se añadieron tablas para inventarla.
 - Verificación: 43 pruebas de backend correctas (11 nuevas de T-034). Comprobación adicional contra Supabase real con la cuenta de prueba: dos páginas vacías respondieron 200 y acceso anónimo respondió 401; se cerró únicamente la sesión abierta para esa prueba. No se crearon ni modificaron solicitudes.
 - El frontend no cambió. La pantalla para mostrar estas solicitudes queda pendiente; el endpoint se puede consultar desde /docs. Se incorporó únicamente este módulo de Stephanie, sin fusionar su rama completa. La entrega del avance se realiza en Roberto.
+
+## Adaptación de recuperación de BOBA
+
+- Revisé y adapté el módulo de recuperación del commit 0c7c1b4 de BOBA en Roberto, conservando la autoría de su aportación. No se fusionó el resto de la rama ni se reemplazó main.py por su versión anterior.
+- POST /auth/recuperar solicita el enlace por Supabase y responde de forma genérica para correos registrados o inexistentes. El límite de envíos devuelve 429; los fallos del servicio devuelven 503, sin fingir éxito ni exponer errores internos.
+- El correo vuelve a FRONTEND_URL/auth/retorno?flujo=recuperacion. Se reutiliza FRONTEND_URL; no se requiere RESET_REDIRECT_URL ni se copió la clave publicable concreta de BOBA al archivo de ejemplo.
+- POST /auth/restablecer recibe tokens y una contraseña de 8 a 128 caracteres, verifica la identidad con Supabase y actualiza únicamente esa cuenta. Es una operación autenticada: no afirma distinguir en el servidor una sesión de recuperación de una sesión normal. La pantalla conserva su comprobación del retorno de recuperación.
+- Después del cambio intenta cerrar globalmente las sesiones de Auth. La respuesta sesionesCerradas informa si este cierre tuvo éxito; un fallo al cerrar no se presenta como un fallo de la contraseña ya guardada. El navegador también cierra y limpia su sesión local. La revocación de tokens de actualización no implica invalidar inmediatamente todos los JWT ya emitidos.
+- Conecté las pantallas existentes a ambos endpoints mediante el proxy /api, manteniendo su diseño. El retorno sigue admitiendo código PKCE y tokens en fragmento; el envío desde el SDK Python usa el retorno con fragmento que ya contempla el frontend.
+- Verificación: 53 pruebas de backend y 14 de frontend correctas, lint y compilación correctos. Las pruebas nuevas simulan Supabase: no enviaron correos ni cambiaron contraseñas de cuentas reales.
+- Pendiente: prueba completa de correo → enlace → nueva contraseña → inicio de sesión. El límite compartido de correo continúa aplicando. Estos cambios permanecen locales en Roberto, sin commit ni push nuevo.
+
+## Integración de Valeria
+
+- Incorporé el trabajo de Valeria desde b73bdb9: T-033 (backend, pantalla de personal, validación de menores, revisión de duplicados, cancelación y reintento de invitación) y T-026 (receta de esquema, semillas y limpieza). Se mantiene su autoría; mi aportación es la integración y los ajustes.
+- Conservé la recuperación de BOBA y nuestros módulos de registro, permisos y solicitudes. No se fusionaron versiones antiguas de archivos compartidos ni cambios de otras ramas.
+- El acceso a alta asistida se muestra según la capacidad validada, sin forzar al personal a esa pantalla después de iniciar sesión. Los fallos del servicio se distinguen de la falta de permiso.
+- Evité interpretar todos los errores 422 de invitación como correo duplicado: únicamente los códigos específicos de cuenta existente producen ese conflicto.
+- Acoté la limpieza a identificadores de semilla explícitos y siete pares exactos UUID/correo; no selecciona la cuenta prueba.integracion@biblioteca.test. El script no se ejecutó: requiere copia de prueba y revisión de dependencias/cascadas.
+- Consulté CECANbd: la tabla altaAsistida, RPC y soporte del trigger ya están presentes. No reconstruí, limpié ni sembré la base y no modifiqué roles ni usuarios.
+- El módulo permanece desactivado localmente hasta configurar SUPABASE_SECRET_KEY en Back/.env y ALTA_ASISTIDA_HABILITADA=true. La clave de Brevo no sirve para este propósito. Queda pendiente probar una invitación real y su elección de contraseña.
+- Los cambios continúan locales en Roberto, sin commit ni push de esta integración.
+
+Verificación final de la integración de Valeria: 67 pruebas de backend y 18 de frontend correctas; lint, compilación y git diff --check correctos. Las pruebas usan transporte simulado y no envían invitaciones reales.
+
+Configuración posterior: se comprobó SUPABASE_SECRET_KEY en Back/.env sin mostrar su valor y ALTA_ASISTIDA_HABILITADA=true. Auth Admin aceptó la clave mediante consulta de solo lectura. El backend activo incluye alta asistida y rechaza el acceso anónimo con 401. Back/.env está excluido de Git. No se enviaron invitaciones ni se crearon cuentas; queda pendiente la prueba completa con personal autorizado.

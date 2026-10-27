@@ -73,9 +73,7 @@ export async function reenviarConfirmacion(correo: string) {
     falloAuth(error);
 }
 export async function enviarEnlaceRecuperacion(correo: string) {
-    const { error } = await (await obtenerSupabase()).auth.resetPasswordForEmail(correo.trim(), { redirectTo: retorno('recuperacion') });
-    if (error?.code === 'user_not_found') return;
-    falloAuth(error);
+    await pedirApi('/auth/recuperar', { method: 'POST', body: JSON.stringify({ correo: correo.trim() }) });
 }
 
 // Una sola ejecución por enlace: StrictMode puede montar el componente dos veces.
@@ -115,7 +113,13 @@ export async function puedeRestablecerContrasena() {
 export async function guardarNuevaContrasena(contrasena: string) {
     if (!(await puedeRestablecerContrasena())) throw new ErrorServicio('Solicita un nuevo enlace de recuperación.', 401);
     if (contrasena.length < 8 || contrasena.length > 128) throw new ErrorServicio('La contraseña debe tener entre 8 y 128 caracteres.', 422);
-    const { error } = await (await obtenerSupabase()).auth.updateUser({ password: contrasena });
-    falloAuth(error);
+    const supabase = await obtenerSupabase();
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session) throw new ErrorServicio('Solicita un nuevo enlace de recuperación.', 401);
+    await pedirApi('/auth/restablecer', { method: 'POST', body: JSON.stringify({
+        access_token: data.session.access_token, refresh_token: data.session.refresh_token,
+        nueva_password: contrasena,
+    }) });
+    // El servidor intenta revocar todas las sesiones; retirar también la copia del navegador.
     await cerrarSesion();
 }

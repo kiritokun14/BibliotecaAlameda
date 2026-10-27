@@ -84,3 +84,23 @@ Pruebas: npm test, npm run build y npm run lint dentro de Front; python -m unitt
 Los scripts de Supabase incluidos son el historial de cambios ya aplicados en CECANbd, no una exportación completa de la base ni un instalador para ejecutar sin revisión. Requieren el esquema inicial de la base compartida. El orden histórico fue registro_usuarios.sql, administracion_cuentas.sql, endurecimiento_administracion.sql, corregir_roles_y_capacidades.sql y alinear_actores_documentados.sql. El último define el catálogo vigente; los anteriores contienen modelos provisionales ya sustituidos. No volver a ejecutar los scripts antiguos sobre CECANbd. Las suites pruebas_registro.sql y pruebas_administracion.sql usan ROLLBACK y no dejan sus registros ficticios.
 
 T-034, adaptada del trabajo de Stephanie: GET /mis-solicitudes requiere un Bearer token válido y devuelve solicitudes de espacios, credenciales y propuestas de eventos del titular. limite y desplazamiento se aplican por categoría; los totales incluyen todos los registros propios. No exige rol Administrador. Devuelve estados actuales, no una bitácora de transiciones. La pantalla de seguimiento todavía no está implementada.
+
+### Recuperación de contraseña adaptada de BOBA
+
+El frontend utiliza POST /auth/recuperar y POST /auth/restablecer del backend (a través del proxy /api). No hace falta una variable RESET_REDIRECT_URL: FRONTEND_URL define el origen del frontend, por defecto http://localhost:5173. Autorizar en Supabase Auth el retorno http://localhost:5173/auth/retorno?flujo=recuperacion, o su equivalente del entorno. El envío sigue sujeto al límite de correos del proyecto.
+
+La contraseña debe tener entre 8 y 128 caracteres. El cambio requiere una sesión validada por Supabase y solo modifica al titular de esa sesión. Después intenta cerrar todas las sesiones; sesionesCerradas indica el resultado del cierre, independientemente del cambio ya realizado. Los JWT existentes pueden seguir vigentes hasta su vencimiento. La pantalla limpia además la sesión local.
+
+Verificación de esta integración: 53 pruebas de backend, 14 de frontend, lint y compilación. La entrega y uso del enlace de correo todavía requieren comprobación real; estas pruebas usan servicios simulados.
+
+### Alta asistida de Valeria (T-033 / HU-09)
+
+Se incorporaron el backend y la pantalla /personal/alta-asistida de la rama Valeria (b73bdb9). El personal con capacidad alta_asistida verá un acceso en la navegación; se mantiene el retorno habitual al inicio después de iniciar sesión. La BD vuelve a comprobar la capacidad en cada operación. El operador no captura contraseñas: el titular las elige desde una invitación de Auth, que utiliza el retorno de recuperación ya integrado.
+
+Para habilitar el módulo localmente: configurar SUPABASE_SECRET_KEY con una clave secreta del mismo proyecto en Back/.env y establecer ALTA_ASISTIDA_HABILITADA=true, después de comprobar la migración. Nunca poner esta clave en el frontend, archivos de ejemplo, mensajes o Git. Sin esa configuración el módulo responde 503 y permanece desactivado. La clave SMTP de Brevo es distinta y se conserva únicamente en la configuración de Supabase.
+
+En CECANbd se comprobó que altaAsistida, la RPC y el trigger correspondiente ya existen: no se ejecutaron scripts de reconstrucción, semillas ni limpieza. La receta para una base nueva está en Supabase/README.md; los scripts históricos de esta carpeta no se deben repetir sobre CECANbd.
+
+### Configuración al actualizar el equipo
+
+Copiar Back/.env.example a Back/.env solo si todavía no existe y completar las claves del mismo proyecto CECANbd. Para alta asistida configurar SUPABASE_SECRET_KEY y ALTA_ASISTIDA_HABILITADA=true; mantener la clave secreta exclusivamente en el backend. El SMTP de Brevo ya está configurado en Supabase y no requiere copiar su contraseña a las computadoras. No ejecutar reconstrucción, semillas ni limpieza sobre CECANbd: su estructura de alta asistida ya está aplicada. Instalar dependencias de Back/requirements.txt y ejecutar npm ci en Front con Vite detenido.

@@ -15,12 +15,15 @@ import ContrasenaActualizada from "./pages/recuperar/ContrasenaActualizada.tsx";
 import EnlaceVencido from "./pages/recuperar/EnlaceVencido.tsx";
 import RecuperacionAsistida from "./pages/recuperar/RecuperacionAsistida.tsx";
 
+import AltaAsistida from "./pages/personal/AltaAsistida";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Inicio />} />
 
+        <Route path="/personal/alta-asistida" element={<AltaAsistida />} />
         <Route path="/auth/retorno" element={<RetornoAuth />} />
         <Route path="/iniciar-sesion" element={<Login />} />
         <Route path="/cuenta-deshabilitada" element={<CuentaDeshabilitada />} />
