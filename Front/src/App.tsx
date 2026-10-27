@@ -14,6 +14,7 @@ import NuevaContrasena from "./pages/recuperar/NuevaContrasena.tsx";
 import ContrasenaActualizada from "./pages/recuperar/ContrasenaActualizada.tsx";
 import EnlaceVencido from "./pages/recuperar/EnlaceVencido.tsx";
 import RecuperacionAsistida from "./pages/recuperar/RecuperacionAsistida.tsx";
+import AltaAsistida from "./pages/personal/AltaAsistida.tsx";
 
 function App() {
   return (
@@ -37,6 +38,8 @@ function App() {
         <Route path="/recuperar/listo" element={<ContrasenaActualizada />} />
         <Route path="/recuperar/enlace-vencido" element={<EnlaceVencido />} />
         <Route path="/recuperar/asistida" element={<RecuperacionAsistida />} />
+
+        <Route path="/personal/alta-asistida" element={<AltaAsistida />} />
 
         {/* Cualquier dirección que no exista todavía (/contacto, /credencial...) regresa a Inicio */}
         <Route path="*" element={<Navigate to="/" replace />} />

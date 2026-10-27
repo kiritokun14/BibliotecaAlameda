@@ -1,4 +1,5 @@
 import { consultarMiAcceso } from "../servicios/auth";
+import { CAPACIDAD_ALTA_ASISTIDA, tieneCapacidad } from "../servicios/altaAsistida";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import "./Acceso.css";
@@ -11,15 +12,19 @@ const SEGUNDOS_PARA_REDIRIGIR = 3;
 function SesionIniciada() {
     const navigate = useNavigate();
     const [verificada, setVerificada] = useState(false);
+    // El personal con alta asistida (T-033) entra directo a su pantalla de trabajo.
+    const [destino, setDestino] = useState("/");
 
     // "Te llevamos de vuelta al inicio": después de unos segundos se va solo
     useEffect(() => {
         let activo = true;
         let temporizador: ReturnType<typeof setTimeout>;
-        consultarMiAcceso().then(() => {
+        consultarMiAcceso().then((acceso) => {
             if (activo) {
+                const siguiente = tieneCapacidad(acceso, CAPACIDAD_ALTA_ASISTIDA) ? "/personal/alta-asistida" : "/";
+                setDestino(siguiente);
                 setVerificada(true);
-                temporizador = setTimeout(() => navigate("/"), SEGUNDOS_PARA_REDIRIGIR * 1000);
+                temporizador = setTimeout(() => navigate(siguiente), SEGUNDOS_PARA_REDIRIGIR * 1000);
             }
         }).catch(() => { if (activo) navigate('/iniciar-sesion?motivo=sesion-caducada', { replace: true }); });
         return () => { activo = false; clearTimeout(temporizador); };
@@ -41,11 +46,11 @@ function SesionIniciada() {
                 <div className="confirmacion__textos">
                     <p className="confirmacion__etiqueta">SESIÓN INICIADA</p>
                     <h1>Te damos la bienvenida</h1>
-                    <p>Te llevamos de vuelta al inicio de la biblioteca.</p>
+                    <p>{destino === "/" ? "Te llevamos de vuelta al inicio de la biblioteca." : "Te llevamos al alta asistida de cuentas."}</p>
                 </div>
 
-                <Link to="/" className="boton-principal boton-principal--compacto">
-                    Continuar al inicio
+                <Link to={destino} className="boton-principal boton-principal--compacto">
+                    {destino === "/" ? "Continuar al inicio" : "Ir al alta asistida"}
                     <img src={iconoFlechaDer} alt="" />
                 </Link>
             </main>
