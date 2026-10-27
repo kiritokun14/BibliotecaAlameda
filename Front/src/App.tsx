@@ -17,6 +17,15 @@ import RecuperacionAsistida from "./pages/recuperar/RecuperacionAsistida.tsx";
 
 import AltaAsistida from "./pages/personal/AltaAsistida";
 
+import Credenciales from "./pages/admin/atencion/credenciales/Credenciales.tsx";
+import DetalleCredencial from "./pages/admin/atencion/credenciales/DetalleCredencial.tsx";
+import Espacios from "./pages/admin/atencion/espacios/Espacios.tsx";
+import DetalleEspacio from "./pages/admin/atencion/espacios/DetalleEspacio.tsx";
+import Propuestas from "./pages/admin/atencion/propuestas/Propuestas.tsx";
+import DetallePropuesta from "./pages/admin/atencion/propuestas/DetallePropuesta.tsx";
+import VistaPrevia from "./pages/admin/atencion/propuestas/VistaPrevia.tsx";
+import AccesoPanel from "./pages/admin/AccesoPanel";
+
 function App() {
   return (
     <BrowserRouter>
@@ -40,6 +49,20 @@ function App() {
         <Route path="/recuperar/listo" element={<ContrasenaActualizada />} />
         <Route path="/recuperar/enlace-vencido" element={<EnlaceVencido />} />
         <Route path="/recuperar/asistida" element={<RecuperacionAsistida />} />
+
+        {/* Panel de administración · Atención (por ahora solo estas tres secciones) */}
+        <Route path="/admin" element={<AccesoPanel><Navigate to="/admin/atencion/credenciales" replace /></AccesoPanel>} />
+        {/* key distinta para que al cambiar entre bandeja y "todas" se reinicien los filtros */}
+        <Route path="/admin/atencion/credenciales" element={<AccesoPanel><Credenciales key="bandeja" vista="bandeja" /></AccesoPanel>} />
+        <Route path="/admin/atencion/credenciales/todas" element={<AccesoPanel><Credenciales key="todas" vista="todas" /></AccesoPanel>} />
+        <Route path="/admin/atencion/credenciales/:folio" element={<AccesoPanel><DetalleCredencial /></AccesoPanel>} />
+        <Route path="/admin/atencion/espacios" element={<AccesoPanel><Espacios key="bandeja" vista="bandeja" /></AccesoPanel>} />
+        <Route path="/admin/atencion/espacios/todas" element={<AccesoPanel><Espacios key="todas" vista="todas" /></AccesoPanel>} />
+        <Route path="/admin/atencion/espacios/:folio" element={<AccesoPanel><DetalleEspacio /></AccesoPanel>} />
+        <Route path="/admin/atencion/propuestas" element={<AccesoPanel><Propuestas key="bandeja" vista="bandeja" /></AccesoPanel>} />
+        <Route path="/admin/atencion/propuestas/todas" element={<AccesoPanel><Propuestas key="todas" vista="todas" /></AccesoPanel>} />
+        <Route path="/admin/atencion/propuestas/:folio" element={<AccesoPanel><DetallePropuesta /></AccesoPanel>} />
+        <Route path="/admin/atencion/propuestas/:folio/publicar" element={<AccesoPanel><VistaPrevia /></AccesoPanel>} />
 
         {/* Cualquier dirección que no exista todavía (/contacto, /credencial...) regresa a Inicio */}
         <Route path="*" element={<Navigate to="/" replace />} />

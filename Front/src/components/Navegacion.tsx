@@ -1,3 +1,4 @@
+import { tienePanel } from "../servicios/accesoPanel";
 import { useEffect, useState } from "react";
 import { tieneCapacidad } from "../servicios/altaAsistida";
 import { cerrarSesion, consultarMiAcceso } from "../servicios/auth";
@@ -20,6 +21,7 @@ const enlaces = [
 function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | null) => void }) {
     const [correo, setCorreo] = useState("");
     const [altaAsistida, setAltaAsistida] = useState(false);
+    const [panel, setPanel] = useState(false);
     const [error, setError] = useState("");
     const [cerrando, setCerrando] = useState(false);
     useEffect(() => {
@@ -33,15 +35,16 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
                 // Evita reentrar al cliente Auth mientras emite el evento.
                 setTimeout(() => {
                     if (!activo || actual !== generacion) return;
-                    if (!sesion) { setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); return; }
+                    if (!sesion) { setPanel(false); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); return; }
                     consultarMiAcceso().then((acceso) => {
                         if (activo && actual === generacion) {
+                            setPanel(tienePanel(acceso));
                             setAltaAsistida(tieneCapacidad(acceso, "alta_asistida"));
                             setCorreo(sesion.user.email ?? "Cuenta activa");
                             alCambiarSesion?.(true);
                         }
                     }).catch(() => {
-                        if (activo && actual === generacion) { setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(null); }
+                        if (activo && actual === generacion) { setPanel(false); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(null); }
                     });
                 }, 0);
             });
@@ -51,7 +54,7 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
     }, [alCambiarSesion]);
     async function salir() {
         setCerrando(true); setError("");
-        try { await cerrarSesion(); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); }
+        try { await cerrarSesion(); setPanel(false); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); }
         catch (error) { setError(mensajeError(error)); }
         finally { setCerrando(false); }
     }
@@ -81,6 +84,7 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
             <div className="navegacion__cuenta">
                 {correo ? <>
                     <span className="navegacion__enlace">Sesión activa</span>
+                    {panel && <Link to="/admin" className="navegacion__boton">Panel del personal</Link>}
                     {altaAsistida && <Link to="/personal/alta-asistida" className="navegacion__boton">Alta asistida</Link>}
                     <button type="button" className="navegacion__boton" onClick={salir} disabled={cerrando}>
                         {cerrando ? 'Cerrando…' : 'Cerrar sesión'}

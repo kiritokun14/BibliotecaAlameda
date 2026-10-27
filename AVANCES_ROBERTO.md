@@ -89,3 +89,17 @@ Se incorporó únicamente la consulta de solicitudes propias de la rama Stephani
 Verificación final de la integración de Valeria: 67 pruebas de backend y 18 de frontend correctas; lint, compilación y git diff --check correctos. Las pruebas usan transporte simulado y no envían invitaciones reales.
 
 Configuración posterior: se comprobó SUPABASE_SECRET_KEY en Back/.env sin mostrar su valor y ALTA_ASISTIDA_HABILITADA=true. Auth Admin aceptó la clave mediante consulta de solo lectura. El backend activo incluye alta asistida y rechaza el acceso anónimo con 401. Back/.env está excluido de Git. No se enviaron invitaciones ni se crearon cuentas; queda pendiente la prueba completa con personal autorizado.
+
+## Pantallas nuevas de Aldahir
+
+Se incorporó el commit 1541774 de Aldahir mediante sus archivos nuevos de panel, componentes, recursos y rutas, conservando las rutas previas de Roberto. Incluye bandejas y detalles de credenciales, espacios y propuestas, modales, filtros y vista previa. Se conserva su diseño.
+
+Se agregó comprobación de sesión y capacidades desde FastAPI antes de montar las pantallas. Administrar cuentas no concede atención ni publicación automáticamente; publicar requiere publicar_contenidos. Se muestran solo enlaces de atención autorizados y el enlace al alta asistida existente. El encabezado muestra correo y roles de la sesión; se retiraron el texto de acceso total y el contador ficticio de notificaciones.
+
+Las listas, resoluciones, cotejos y publicación de Atención siguen siendo simulaciones en memoria de Aldahir, claramente identificadas en pantalla: no guardan en Supabase. Esta integración no agrega backend de credenciales, espacios o propuestas ni el panel de cuentas de HU-10. Las comprobaciones de interfaz no reemplazan la autorización que deberán tener los futuros endpoints. Los permisos limitados a una actividad no abren bandejas globales.
+
+Cambios locales en Roberto, sin commit ni push. No se modificó la base ni se enviaron correos.
+
+Verificación: 23 pruebas de frontend correctas, lint y compilación correctos. No se ejecutaron operaciones reales de Atención.
+
+Entrega del avance integrado: se prepara la publicación de las pantallas de Aldahir y sus controles de acceso en main, con autorización de Roberto. Las referencias anteriores a cambios locales describen el estado previo a esta entrega. Las operaciones de Atención continúan con datos de ejemplo. La cuenta ficticia prueba.panel@biblioteca.test tiene los tres permisos globales autorizados para esta prueba; su contraseña no se guarda en el repositorio.
