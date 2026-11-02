@@ -15,8 +15,8 @@ import {
     type FiltroEstado,
 } from "./datos";
 import { tituloDe } from "./esquemas";
-import circulo1 from "../../../assets/admin/circulo-1.svg";
-import circulo2 from "../../../assets/admin/circulo-2.svg";
+import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
+import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import flechaResumen from "../../../assets/admin/resumen-flecha.svg";
 import iconoLapiz from "../../../assets/admin/contenidos/resumen-lapiz.svg";
 import iconoReloj from "../../../assets/admin/resumen-clock.svg";

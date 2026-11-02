@@ -1,3 +1,6 @@
+// Guardia del panel de administración: comprueba la sesión y el permiso de la sección (servicios/accesoPanel.ts).
+// Sin sesión → iniciar sesión; sin permiso → mensaje; en /admin → primera sección permitida.
+// En desarrollo, VITE_PANEL_COMPLETO=true abre todas las secciones (ver Front/README.md).
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, Navigate } from 'react-router';
 import { consultarMiAcceso } from '../../servicios/auth';

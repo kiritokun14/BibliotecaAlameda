@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { prepararEnvio, validarMensaje, type MensajeContacto } from '../src/pages/contacto/datos';
+import { prepararEnvio, validarMensaje, type MensajeContacto } from '../src/pages/publico/contacto/datos';
 
 const valido: MensajeContacto = {
     tipo: 'contacto',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { areas, separarAreas } from '../src/pages/espacios/datos';
+import { areas, separarAreas } from '../src/pages/publico/espacios/datos';
 
 describe('Agenda de espacios (visitante)', () => {
     it('separa las áreas que se pueden solicitar de las que no', () => {

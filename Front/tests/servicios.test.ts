@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buscarPublicado, servicios, soloPublicados, type Servicio } from '../src/pages/servicios/datos';
+import { buscarPublicado, servicios, soloPublicados, type Servicio } from '../src/pages/publico/servicios/datos';
 
 const base: Omit<Servicio, 'id' | 'estado'> = { tipo: 'servicio', titulo: 'Ejemplo', descripcion: 'Ejemplo', icono: 'libro' };
 

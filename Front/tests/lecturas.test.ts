@@ -11,7 +11,7 @@ import {
     porTema,
     resenas,
     visibles,
-} from '../src/pages/lecturas/datos';
+} from '../src/pages/publico/lecturas/datos';
 
 describe('Lecturas: solo se lista lo publicado y público', () => {
     it('las listas no incluyen lo que está en revisión ni lo privado', () => {

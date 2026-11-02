@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { actividadElegida, partirFecha } from '../src/pages/eventos/datos';
+import { actividadElegida, partirFecha } from '../src/pages/publico/eventos/datos';
 
 describe('Eventos para visitante (T-052)', () => {
     it('sin elegir en el carrusel no se muestra ninguna actividad', () => {

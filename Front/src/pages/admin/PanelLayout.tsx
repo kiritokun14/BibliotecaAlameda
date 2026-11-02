@@ -2,7 +2,7 @@ import { useContext, type ReactNode } from "react";
 import { ContextoPanel, capacidadPanel, permisoGlobal, nombresRoles } from "../../servicios/accesoPanel";
 import { Link, NavLink, useLocation } from "react-router";
 import "./Panel.css";
-import logoGobierno from "../../assets/admin/logo-gobierno.png";
+import logoGobierno from "../../assets/comun/logos/logo-gobierno-mexico.png";
 import iconoLibro from "../../assets/admin/menu-book.svg";
 import iconoLista from "../../assets/admin/menu-list.svg";
 import iconoArchivo from "../../assets/admin/menu-file.svg";

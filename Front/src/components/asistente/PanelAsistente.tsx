@@ -32,10 +32,10 @@ import iconoAlerta from "../../assets/asistente/aviso-alerta.svg";
 import iconoCandado from "../../assets/asistente/aviso-candado.svg";
 import iconoCorreo from "../../assets/asistente/boton-correo.svg";
 import iconoCheck from "../../assets/asistente/enviada-check.svg";
-import iconoReintentar from "../../assets/servicios/boton-reintentar.svg";
+import iconoReintentar from "../../assets/comun/iconos/reintentar-blanco.svg";
 import temaLibro from "../../assets/asistente/tema-libro.svg";
 import temaCalendario from "../../assets/asistente/tema-calendario.svg";
-import temaPersona from "../../assets/acerca/pestana-persona.svg";
+import temaPersona from "../../assets/comun/iconos/persona-verde.svg";
 import notaInfo from "../../assets/asistente/nota-info.svg";
 
 type Modo = "compacto" | "expandido";

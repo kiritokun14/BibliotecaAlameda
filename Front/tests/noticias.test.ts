@@ -11,7 +11,7 @@ import {
     paginasVisibles,
     soloPublicadas,
     type Noticia,
-} from '../src/pages/noticias/datos';
+} from '../src/pages/publico/noticias/datos';
 
 const base: Omit<Noticia, 'id' | 'estado' | 'categoria' | 'fecha' | 'titulo'> = {
     minutosLectura: 1,
