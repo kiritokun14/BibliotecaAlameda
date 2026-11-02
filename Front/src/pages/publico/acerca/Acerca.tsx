@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Navigate, NavLink, useParams } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
+import EstadoPagina from "../../../components/portal/EstadoPagina";
+import { simulacion } from "../../../servicios/simulacion";
 import "./Acerca.css";
 import type { SeccionAcerca } from "./datos";
 import Historia from "./Historia";
@@ -68,23 +70,37 @@ function Acerca() {
 
     const actual = secciones[seccion];
     const Contenido = actual.Contenido;
+    // TODO backend: cuando el contenido venga del servidor, este estado se muestra si la carga falla.
+    // Mientras tanto se puede ver con ?simular=error (solo en desarrollo).
+    const fallo = simulacion() === "error";
 
     return (
         <PaginaPublica>
             <EncabezadoPublico etiqueta={actual.etiqueta} titulo={actual.titulo} texto={actual.texto} />
 
-            <div className="acerca">
-                <nav className="pestanas-acerca" aria-label="Secciones de Acerca de">
-                    {(Object.keys(secciones) as SeccionAcerca[]).map((clave) => (
-                        <NavLink key={clave} to={`/acerca/${clave}`} className="pestana-acerca">
-                            <img src={secciones[clave].icono} alt="" />
-                            {secciones[clave].pestana}
-                        </NavLink>
-                    ))}
-                </nav>
+            {fallo ? (
+                <EstadoPagina
+                    nivel="h2"
+                    etiqueta="ERROR AL CARGAR"
+                    titulo="No pudimos cargar esta página"
+                    texto="Revisa tu conexión e inténtalo de nuevo. Si el problema continúa, escríbenos desde el Buzón de sugerencias."
+                    principal={{ texto: "Intentar de nuevo", ruta: `/acerca/${seccion}` }}
+                    secundario={{ texto: "Ir al Buzón de sugerencias", ruta: "/contacto?tipo=sugerencia" }}
+                />
+            ) : (
+                <div className="acerca">
+                    <nav className="pestanas-acerca" aria-label="Secciones de Acerca de">
+                        {(Object.keys(secciones) as SeccionAcerca[]).map((clave) => (
+                            <NavLink key={clave} to={`/acerca/${clave}`} className="pestana-acerca">
+                                <img src={secciones[clave].icono} alt="" />
+                                {secciones[clave].pestana}
+                            </NavLink>
+                        ))}
+                    </nav>
 
-                <Contenido />
-            </div>
+                    <Contenido />
+                </div>
+            )}
         </PaginaPublica>
     );
 }

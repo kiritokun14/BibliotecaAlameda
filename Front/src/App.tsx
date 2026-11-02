@@ -10,6 +10,7 @@ import Noticias from "./pages/publico/noticias/Noticias.tsx";
 import TodasNoticias from "./pages/publico/noticias/TodasNoticias.tsx";
 import DetalleNoticia from "./pages/publico/noticias/DetalleNoticia.tsx";
 import AbrirAsistente from "./pages/publico/asistente/AbrirAsistente.tsx";
+import { ErrorServidor, Mantenimiento, NoEncontrada, SinConexion } from "./pages/publico/estados/Estados.tsx";
 import Eventos from "./pages/publico/eventos/Eventos.tsx";
 import Credencial from "./pages/publico/credencial/Credencial.tsx";
 import EspaciosPublico from "./pages/publico/espacios/Espacios.tsx";
@@ -117,8 +118,12 @@ function App() {
         <Route path="/admin/contenidos/editor/:folio/vista-previa" element={<AccesoPanel><VistaPreviaContenido /></AccesoPanel>} />
         <Route path="/admin/contenidos/editor/:folio/enviado" element={<AccesoPanel><EnviadoContenido /></AccesoPanel>} />
 
-        {/* Cualquier dirección que no exista todavía (/contacto, /credencial...) regresa a Inicio */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Estados del sistema: a donde se manda a la persona cuando algo falla */}
+        <Route path="/error" element={<ErrorServidor />} />
+        <Route path="/sin-conexion" element={<SinConexion />} />
+        <Route path="/mantenimiento" element={<Mantenimiento />} />
+        {/* Cualquier dirección que no existe muestra «No encontramos esa página» (404) */}
+        <Route path="*" element={<NoEncontrada />} />
       </Routes>
     </BrowserRouter>
   );

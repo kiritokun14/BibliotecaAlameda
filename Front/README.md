@@ -102,6 +102,11 @@ tests/                  pruebas (vitest), una por tema
 - **Datos de ejemplo:** mientras no exista el backend, cada página tiene su `datos.ts` con un
   comentario `TODO backend` que dice qué se espera. En desarrollo, `?simular=error` o
   `?simular=cargando` (según la página) muestran esos estados.
+- **Estados del sistema:** `components/portal/EstadoPagina` es la tarjeta de error (anillo dorado).
+  Rutas: cualquier dirección desconocida muestra la 404; `/error`, `/sin-conexion` y `/mantenimiento`
+  existen para redirigir ahí cuando backend lo indique. `?simular=error` muestra el «error al cargar»
+  en Acerca y Eventos, y `/?simular=aviso` el aviso del portal en Inicio. Para simular en una página
+  nueva usa `simulacion()` de `servicios/simulacion.ts`.
 
 ## Pendientes de backend (`TODO backend`)
 

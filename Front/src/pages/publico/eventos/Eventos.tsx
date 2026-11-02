@@ -1,5 +1,7 @@
 import { Link, useParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
+import EstadoPagina from "../../../components/portal/EstadoPagina";
+import { simulacion } from "../../../servicios/simulacion";
 import {
     AvisoCuenta,
     EncabezadoVisitante,
@@ -22,6 +24,9 @@ import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 function Eventos() {
     const { id } = useParams();
     const actividad = actividadElegida(id);
+    // TODO backend: si la consulta de eventos falla se muestra «No pudimos cargar los eventos».
+    // Mientras tanto se puede ver con ?simular=error (solo en desarrollo).
+    const fallo = simulacion() === "error";
 
     return (
         <PaginaPublica>
@@ -36,46 +41,57 @@ function Eventos() {
                 }
             />
 
-            <SeccionVisitante
-                fondo="blanco"
-                sobretitulo="TU ACTIVIDAD"
-                titulo={actividad ? "Esta es la actividad que elegiste" : "Aún no eliges una actividad"}
-            >
-                {actividad ? <TarjetaElegida actividad={actividad} /> : <SinActividad idDesconocido={Boolean(id)} />}
-                <p className="nota-actividad">
-                    <img src={iconoInfo} alt="" />
-                    Para inscribirte solo necesitas una cuenta: participar en actividades no exige la credencial.
-                </p>
-            </SeccionVisitante>
-
-            <SeccionVisitante fondo="crema">
-                <AvisoCuenta
-                    titulo={actividad ? "Inicia sesión o crea una cuenta para inscribirte a esta actividad" : "Inicia sesión o crea una cuenta para inscribirte a una actividad"}
-                    texto="Sin cuenta puedes consultar todo. La inscripción se hace con tu cuenta de la biblioteca."
-                    sinCuenta={["Consultar noticias, listados y calendario", "Ver el detalle de cada actividad"]}
-                    conCuenta={["Inscribirte a una actividad"]}
+            {fallo ? (
+                <EstadoPagina
+                    nivel="h2"
+                    etiqueta="ERROR AL CARGAR"
+                    titulo="No pudimos cargar los eventos"
+                    texto="Revisa tu conexión e inténtalo de nuevo. Si el problema continúa, escríbenos desde el Buzón de sugerencias."
+                    principal={{ texto: "Intentar de nuevo", ruta: id ? `/eventos/${id}` : "/eventos" }}
+                    secundario={{ texto: "Ir al Buzón de sugerencias", ruta: "/contacto?tipo=sugerencia" }}
                 />
-            </SeccionVisitante>
+            ) : (<>
+                <SeccionVisitante
+                    fondo="blanco"
+                    sobretitulo="TU ACTIVIDAD"
+                    titulo={actividad ? "Esta es la actividad que elegiste" : "Aún no eliges una actividad"}
+                >
+                    {actividad ? <TarjetaElegida actividad={actividad} /> : <SinActividad idDesconocido={Boolean(id)} />}
+                    <p className="nota-actividad">
+                        <img src={iconoInfo} alt="" />
+                        Para inscribirte solo necesitas una cuenta: participar en actividades no exige la credencial.
+                    </p>
+                </SeccionVisitante>
 
-            <SeccionVisitante
-                fondo="verde"
-                sobretitulo="EL PROCESO"
-                titulo="Cómo te inscribes a una actividad"
-            >
-                <PasosVisitante
-                    pasos={[
-                        { titulo: "Elige una actividad", texto: "Búscala en el carrusel de actividades de Inicio." },
-                        { titulo: "Entra con tu cuenta", texto: "Inicia sesión o crea tu cuenta; no necesitas credencial." },
-                        { titulo: "Confirma tu lugar", texto: "Revisa fecha y horario y confirma tu inscripción." },
-                        { titulo: "Asiste", texto: "Llega unos minutos antes. Si hay cambios, te avisamos." },
-                    ]}
+                <SeccionVisitante fondo="crema">
+                    <AvisoCuenta
+                        titulo={actividad ? "Inicia sesión o crea una cuenta para inscribirte a esta actividad" : "Inicia sesión o crea una cuenta para inscribirte a una actividad"}
+                        texto="Sin cuenta puedes consultar todo. La inscripción se hace con tu cuenta de la biblioteca."
+                        sinCuenta={["Consultar noticias, listados y calendario", "Ver el detalle de cada actividad"]}
+                        conCuenta={["Inscribirte a una actividad"]}
+                    />
+                </SeccionVisitante>
+
+                <SeccionVisitante
+                    fondo="verde"
+                    sobretitulo="EL PROCESO"
+                    titulo="Cómo te inscribes a una actividad"
+                >
+                    <PasosVisitante
+                        pasos={[
+                            { titulo: "Elige una actividad", texto: "Búscala en el carrusel de actividades de Inicio." },
+                            { titulo: "Entra con tu cuenta", texto: "Inicia sesión o crea tu cuenta; no necesitas credencial." },
+                            { titulo: "Confirma tu lugar", texto: "Revisa fecha y horario y confirma tu inscripción." },
+                            { titulo: "Asiste", texto: "Llega unos minutos antes. Si hay cambios, te avisamos." },
+                        ]}
+                    />
+                </SeccionVisitante>
+
+                <LlamadoVisitante
+                    titulo="Aparta tu lugar en la actividad"
+                    texto="Solo necesitas una cuenta. Participar en actividades no exige tener credencial."
                 />
-            </SeccionVisitante>
-
-            <LlamadoVisitante
-                titulo="Aparta tu lugar en la actividad"
-                texto="Solo necesitas una cuenta. Participar en actividades no exige tener credencial."
-            />
+            </>)}
         </PaginaPublica>
     );
 }

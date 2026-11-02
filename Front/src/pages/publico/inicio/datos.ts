@@ -3,10 +3,7 @@
 import actividad1 from "../../../assets/comun/fotos/noticia-3.jpg";
 import actividad2 from "../../../assets/comun/fotos/noticia-2.jpg";
 import actividad3 from "../../../assets/comun/fotos/foto-biblioteca.jpg";
-import noticia1 from "../../../assets/comun/fotos/noticia-1.jpg";
-import noticia2 from "../../../assets/comun/fotos/noticia-2.jpg";
-import noticia3 from "../../../assets/comun/fotos/noticia-3.jpg";
-import noticia4 from "../../../assets/comun/fotos/foto-biblioteca.jpg";
+import { fechaLarga, filtrarNoticias, noticias as todasLasNoticias, type Categoria } from "../noticias/datos";
 
 // ---------- Lecturas ----------
 // Lo que el backend debe mandar por cada libro de "Para leer esta semana".
@@ -60,9 +57,12 @@ export const actividades: Actividad[] = [
 ];
 
 // ---------- Noticias ----------
+// El carrusel muestra las 4 noticias más recientes de la página de Noticias (misma fuente),
+// así "Leer noticia completa" abre esa misma noticia en /noticias/:id.
 export type CategoriaNoticia = "Institucional" | "Aviso" | "Actividades" | "Comunidad";
 
 export type Noticia = {
+    id: string; // /noticias/:id
     categoria: CategoriaNoticia;
     fecha: string;
     titulo: string;
@@ -71,37 +71,32 @@ export type Noticia = {
     imagen: string;
 };
 
-export const noticias: Noticia[] = [
-    {
-        categoria: "Institucional",
-        fecha: "Nov 2026",
-        titulo: "La biblioteca amplía su programa de lectura en voz alta",
-        resumen: "Cada semana habrá sesiones para niñas, niños y familias en la sala infantil, con libros seleccionados por el personal bibliotecario.",
-        enlace: "Leer noticia completa",
-        imagen: noticia1,
-    },
-    {
-        categoria: "Aviso",
-        fecha: "Nov 2026",
-        titulo: "Horario especial de la hemeroteca regional en noviembre",
-        resumen: "Durante noviembre la hemeroteca ajustará su atención por trabajos de conservación del acervo. Consulta los días y horarios disponibles.",
-        enlace: "Leer aviso completo",
-        imagen: noticia2,
-    },
-    {
-        categoria: "Actividades",
-        fecha: "Nov 2026",
-        titulo: "Abre la convocatoria al taller de escritura creativa",
-        resumen: "Jóvenes y adultos podrán inscribirse a sesiones semanales de escritura guiada. Los cupos son limitados y el registro se hace con tu credencial.",
-        enlace: "Ver convocatoria",
-        imagen: noticia3,
-    },
-    {
-        categoria: "Comunidad",
-        fecha: "Nov 2026",
-        titulo: "Lectores comparten sus recomendaciones del mes",
-        resumen: "Usuarios de la biblioteca eligieron los títulos que más disfrutaron. Conoce sus reseñas y súmate con la tuya.",
-        enlace: "Leer más reseñas",
-        imagen: noticia4,
-    },
-];
+const CATEGORIA_INICIO: Record<Categoria, CategoriaNoticia> = {
+    institucional: "Institucional",
+    avisos: "Aviso",
+    actividades: "Actividades",
+    comunidad: "Comunidad",
+};
+
+export const noticias: Noticia[] = filtrarNoticias(todasLasNoticias, {}).slice(0, 4).map((noticia) => ({
+    id: noticia.id,
+    categoria: CATEGORIA_INICIO[noticia.categoria],
+    fecha: fechaLarga(noticia.fecha),
+    titulo: noticia.titulo,
+    resumen: noticia.resumen,
+    enlace: noticia.categoria === "avisos" ? "Leer aviso completo" : "Leer noticia completa",
+    imagen: noticia.imagen,
+}));
+
+// ---------- Aviso del portal ----------
+// Franja dorada arriba de la portada (Figma 584:48667). null = no hay aviso.
+// TODO backend: el aviso vigente lo publica el personal; debe traer un id para recordar si ya se cerró.
+export type AvisoPortal = { id: string; texto: string };
+
+export function avisoPortal(): AvisoPortal | null {
+    // Para verlo sin backend: /?simular=aviso (solo en desarrollo)
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get("simular") === "aviso") {
+        return { id: "ejemplo-mantenimiento", texto: "Cierre por mantenimiento el sábado 31 de octubre. Reabrimos el lunes." };
+    }
+    return null;
+}

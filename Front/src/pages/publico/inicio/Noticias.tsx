@@ -45,7 +45,7 @@ function Noticias() {
                             {/* Todas las fotos están encimadas; solo la activa se ve (cambio con desvanecido) */}
                             {noticias.map((noticia, i) => (
                                 <img
-                                    key={noticia.titulo}
+                                    key={noticia.id}
                                     src={noticia.imagen}
                                     alt=""
                                     className={i === activa ? "noticia-destacada__foto noticia-destacada__foto--activa" : "noticia-destacada__foto"}
@@ -67,8 +67,7 @@ function Noticias() {
                             </p>
                             <h3>{destacada.titulo}</h3>
                             <p>{destacada.resumen}</p>
-                            {/* TODO: página de cada noticia */}
-                            <Link to="/noticias" className="enlace-flecha">
+                            <Link to={`/noticias/${destacada.id}`} className="enlace-flecha">
                                 {destacada.enlace}
                                 <img src={flechaVerde} alt="" />
                             </Link>
@@ -77,7 +76,7 @@ function Noticias() {
 
                     <ul className="otras-noticias">
                         {noticias.map((noticia, i) => (
-                            <li key={noticia.titulo}>
+                            <li key={noticia.id}>
                                 <button
                                     type="button"
                                     className={i === activa ? "noticia-mini noticia-mini--activa" : "noticia-mini"}

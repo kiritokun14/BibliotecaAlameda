@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
+import AvisoPortal from "./AvisoPortal";
 import Portada from "./Portada";
 import Accesos from "./Accesos";
 import Lecturas from "./Lecturas";
@@ -16,6 +17,7 @@ function Inicio() {
     const [sesionActiva, setSesionActiva] = useState<boolean | null>(null);
     return (
         <PaginaPublica alCambiarSesion={setSesionActiva}>
+            <AvisoPortal />
             <Portada />
             <Accesos />
             <Lecturas />
