@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
-import { Link } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import "./BotonAsistente.css";
+import PanelAsistente from "./asistente/PanelAsistente";
+import { useConversacion } from "./asistente/conversacion";
 import haloExterior from "../assets/inicio/asistente-halo-exterior.svg";
 import haloInterior from "../assets/inicio/asistente-halo-interior.svg";
 import robot from "../assets/inicio/asistente-robot.svg";
@@ -9,6 +11,18 @@ import flecha from "../assets/inicio/asistente-flecha.svg";
 import destello from "../assets/inicio/asistente-destello.svg";
 
 type Posicion = { x: number; y: number } | null; // null = esquina inferior derecha (posición inicial)
+type Ventana = "cerrada" | "compacta" | "expandida"; // panel del asistente
+
+// La ventana abierta se recuerda en esta pestaña para que siga abierta al cambiar de página
+const CLAVE_VENTANA = "biblioteca-asistente-ventana";
+
+function leerVentana(): Ventana {
+    try {
+        const guardada = sessionStorage.getItem(CLAVE_VENTANA);
+        if (guardada === "compacta" || guardada === "expandida") return guardada;
+    } catch { /* sin almacenamiento: empieza cerrada */ }
+    return "cerrada";
+}
 
 const CLAVE = "biblioteca-asistente"; // aquí se recuerda dónde lo dejó la persona
 const MARGEN = 12; // distancia mínima a la orilla de la pantalla
@@ -38,8 +52,16 @@ function pegadaAlCostado(centroX: number, centroY: number) {
     return dentroDePantalla(x, centroY - TAM_BURBUJA / 2, TAM_BURBUJA, TAM_BURBUJA);
 }
 
-// Botón flotante del asistente: se puede arrastrar con el mouse y minimizar a una burbuja
+// Botón flotante del asistente: se puede arrastrar con el mouse y minimizar a una burbuja.
+// Al presionarlo abre el panel del asistente (compacto o expandido).
 function BotonAsistente() {
+    const ubicacion = useLocation();
+    const navegar = useNavigate();
+    // /asistente redirige a Inicio con { abrirAsistente: true } para abrir la ventana grande
+    const pedidoAbrir = Boolean((ubicacion.state as { abrirAsistente?: boolean } | null)?.abrirAsistente);
+    const [ventana, setVentana] = useState<Ventana>(() => (pedidoAbrir ? "expandida" : leerVentana()));
+    const conversacion = useConversacion();
+    const enCurso = conversacion.mensajes.length > 0;
     const [inicial] = useState(leerPreferencias);
     const [posicion, setPosicion] = useState<Posicion>(inicial.posicion);
     const [minimizado, setMinimizado] = useState(inicial.minimizado);
@@ -52,6 +74,17 @@ function BotonAsistente() {
     // Para quitar las escuchas de la ventana si la página cambia a mitad de un arrastre
     const quitarEscuchas = useRef<(() => void) | null>(null);
     useEffect(() => () => quitarEscuchas.current?.(), []);
+
+    // Se quita el aviso de la dirección para que al recargar no se vuelva a abrir
+    useEffect(() => {
+        if (pedidoAbrir) navegar(ubicacion.pathname + ubicacion.search, { replace: true, state: null });
+    }, [pedidoAbrir, navegar, ubicacion.pathname, ubicacion.search]);
+
+    useEffect(() => {
+        try {
+            sessionStorage.setItem(CLAVE_VENTANA, ventana);
+        } catch { /* no pasa nada si no se puede guardar */ }
+    }, [ventana]);
 
     // Guardar posición y estado
     useEffect(() => {
@@ -144,6 +177,22 @@ function BotonAsistente() {
         return false;
     }
 
+    // ---------- Panel abierto ----------
+    if (ventana !== "cerrada") {
+        return (
+            <PanelAsistente
+                modo={ventana === "expandida" ? "expandido" : "compacto"}
+                conversacion={conversacion}
+                alExpandir={() => setVentana("expandida")}
+                alContraer={() => setVentana("compacta")}
+                // Minimizar conserva la conversación y deja la burbuja en la orilla
+                alMinimizar={() => { setVentana("cerrada"); setMinimizado(true); }}
+                // Cerrar termina la conversación y regresa la pastilla
+                alCerrar={() => { conversacion.nuevaConsulta(); setVentana("cerrada"); setMinimizado(false); }}
+            />
+        );
+    }
+
     const clases = ["asistente", minimizado && "asistente--minimizado", arrastrando && "asistente--arrastrando"]
         .filter(Boolean)
         .join(" ");
@@ -161,8 +210,13 @@ function BotonAsistente() {
                 <button
                     type="button"
                     className="asistente__burbuja"
-                    aria-label="Mostrar el asistente"
-                    onClick={(e) => { if (!evitarClicTrasArrastre(e)) setMinimizado(false); }}
+                    aria-label={enCurso ? "Volver a la conversación con el asistente" : "Mostrar el asistente"}
+                    onClick={(e) => {
+                        if (evitarClicTrasArrastre(e)) return;
+                        // Con una conversación en curso se abre directo el panel
+                        if (enCurso) setVentana("compacta");
+                        else setMinimizado(false);
+                    }}
                 >
                     <img className="asistente__halo asistente__halo--exterior" src={haloExterior} alt="" draggable={false} />
                     <img className="asistente__halo asistente__halo--interior" src={haloInterior} alt="" draggable={false} />
@@ -170,6 +224,7 @@ function BotonAsistente() {
                         <img src={robot} alt="" draggable={false} />
                     </span>
                     <img className="asistente__en-linea" src={enLinea} alt="" draggable={false} />
+                    {enCurso && <span className="asistente__en-curso" aria-hidden="true" />}
                 </button>
             ) : (
                 <>
@@ -189,12 +244,12 @@ function BotonAsistente() {
                     )}
 
                     <div className="asistente__pastilla">
-                        {/* TODO: la página del asistente (RAG) todavía no existe */}
-                        <Link
-                            to="/asistente"
+                        <button
+                            type="button"
                             className="asistente__boton"
                             draggable={false}
-                            onClick={evitarClicTrasArrastre}
+                            aria-haspopup="dialog"
+                            onClick={(e) => { if (!evitarClicTrasArrastre(e)) setVentana("compacta"); }}
                         >
                             <img className="asistente__halo asistente__halo--exterior" src={haloExterior} alt="" draggable={false} />
                             <img className="asistente__halo asistente__halo--interior" src={haloInterior} alt="" draggable={false} />
@@ -209,7 +264,7 @@ function BotonAsistente() {
                             <span className="asistente__flecha">
                                 <img src={flecha} alt="" draggable={false} />
                             </span>
-                        </Link>
+                        </button>
                         <button
                             type="button"
                             className="asistente__minimizar asistente__sin-arrastre"

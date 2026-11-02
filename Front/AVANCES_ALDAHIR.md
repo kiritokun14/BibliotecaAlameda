@@ -95,6 +95,16 @@ npm run build
 - Datos de ejemplo y reglas en `src/pages/lecturas/datos.ts` (`TODO backend`); pruebas en `tests/lecturas.test.ts`.
 - Ojo: las tarjetas «Para leer esta semana» de Inicio enlazan a `/lecturas/lectura-1…8`, que no existen en estos datos → muestran «Recurso no disponible» hasta que backend unifique los ids.
 
+### Panel › Contenidos › Editor de contenidos (HU-12, parte 1 de 2): terminado
+- Figma `557:16084`. Rutas: `/admin/contenidos/editor` (bandeja «Mis contenidos»), `/editor/nuevo` (¿Qué quieres redactar?), `/editor/:folio` (formulario), `/editor/:folio/vista-previa` y `/editor/:folio/enviado`.
+- Cuatro tipos: Noticia, Reseña, Acerca de y Memoria pública. Los campos de cada uno se definen en `src/pages/admin/contenidos/esquemas.ts` (formulario, validación y vista previa salen de ahí).
+- Estados: borrador → por autorizar → (con observaciones) → publicado / rechazado. Solo se editan borradores y con observaciones; lo demás abre la vista de consulta.
+- Pantallas de estado: faltan campos obligatorios, error al guardar (con Reintentar; se simula con `?simular=error-guardar`), con observaciones, bandeja vacía y sin resultados. Confirmación de envío en ventana con nota opcional.
+- Datos simulados en memoria (`datos.ts`, `TODO backend`); se reinician al recargar. Las imágenes no se suben: solo se valida JPG/PNG ≤ 5 MB y se guarda el nombre.
+- Permisos: `/admin/contenidos/editor` exige `preparar_contenidos`; `/admin/contenidos/revision` exigirá `publicar_contenidos` (agregado en `src/servicios/accesoPanel.ts`). El menú lateral muestra Contenidos solo con esos permisos.
+- Pruebas: `tests/contenidos.test.ts`.
+- **Falta (parte 2):** Revisión y publicación (`560:17409`): bandeja por autorizar, revisar, pedir cambios, rechazar, confirmar y publicar, historial y retirar.
+
 ## 5. Pendientes por tarjeta del sprint
 
 Todas las tarjetas vencieron el 30 de octubre.

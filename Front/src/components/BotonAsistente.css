@@ -117,6 +117,14 @@
 
 .asistente__boton:hover { transform: translateY(-3px); }
 
+/* Ahora es un <button> (abre el panel): se quitan los estilos propios del navegador */
+button.asistente__boton {
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: inherit;
+}
+
 .asistente--arrastrando .asistente__boton,
 .asistente--arrastrando .asistente__burbuja {
   transform: scale(1.04);
@@ -212,6 +220,19 @@
   width: 24px;
   height: 24px;
   animation: robot-saluda 5s ease-in-out infinite;
+}
+
+/* Marca dorada en la burbuja: hay una conversación en curso */
+.asistente__en-curso {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: #c9a24a;
 }
 
 .asistente__en-linea {

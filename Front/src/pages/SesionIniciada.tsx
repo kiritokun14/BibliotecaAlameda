@@ -1,4 +1,5 @@
 import { consultarMiAcceso } from "../servicios/auth";
+import { tienePanel } from "../servicios/accesoPanel";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import "./Acceso.css";
@@ -11,15 +12,19 @@ const SEGUNDOS_PARA_REDIRIGIR = 3;
 function SesionIniciada() {
     const navigate = useNavigate();
     const [verificada, setVerificada] = useState(false);
+    // El personal con permisos de administración va al panel; las demás cuentas, al inicio
+    const [destino, setDestino] = useState<"/" | "/admin">("/");
 
-    // "Te llevamos de vuelta al inicio": después de unos segundos se va solo
+    // Después de unos segundos se va solo al destino
     useEffect(() => {
         let activo = true;
         let temporizador: ReturnType<typeof setTimeout>;
-        consultarMiAcceso().then(() => {
+        consultarMiAcceso().then((acceso) => {
             if (activo) {
+                const ruta = tienePanel(acceso) ? "/admin" : "/";
+                setDestino(ruta);
                 setVerificada(true);
-                temporizador = setTimeout(() => navigate("/"), SEGUNDOS_PARA_REDIRIGIR * 1000);
+                temporizador = setTimeout(() => navigate(ruta), SEGUNDOS_PARA_REDIRIGIR * 1000);
             }
         }).catch(() => { if (activo) navigate('/iniciar-sesion?motivo=sesion-caducada', { replace: true }); });
         return () => { activo = false; clearTimeout(temporizador); };
@@ -41,11 +46,11 @@ function SesionIniciada() {
                 <div className="confirmacion__textos">
                     <p className="confirmacion__etiqueta">SESIÓN INICIADA</p>
                     <h1>Te damos la bienvenida</h1>
-                    <p>Te llevamos de vuelta al inicio de la biblioteca.</p>
+                    <p>{destino === "/admin" ? "Te llevamos al panel de administración." : "Te llevamos de vuelta al inicio de la biblioteca."}</p>
                 </div>
 
-                <Link to="/" className="boton-principal boton-principal--compacto">
-                    Continuar al inicio
+                <Link to={destino} className="boton-principal boton-principal--compacto">
+                    {destino === "/admin" ? "Ir al panel" : "Continuar al inicio"}
                     <img src={iconoFlechaDer} alt="" />
                 </Link>
             </main>

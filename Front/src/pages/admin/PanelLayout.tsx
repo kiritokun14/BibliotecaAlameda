@@ -1,6 +1,6 @@
 import { useContext, type ReactNode } from "react";
 import { ContextoPanel, capacidadPanel, permisoGlobal, nombresRoles } from "../../servicios/accesoPanel";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useLocation } from "react-router";
 import "./Panel.css";
 import logoGobierno from "../../assets/admin/logo-gobierno.png";
 import iconoLibro from "../../assets/admin/menu-book.svg";
@@ -18,9 +18,13 @@ import iconoUsuario from "../../assets/admin/icono-user.svg";
 
 // Secciones del menú que todavía no tienen pantalla (por eso no son enlaces)
 const SECCIONES_PENDIENTES = [
-    { texto: "Contenidos", icono: iconoArchivo },
     { texto: "Actividades", icono: iconoCalendario },
     { texto: "Participantes", icono: iconoUsuarios },
+];
+
+const SUBMENU_CONTENIDOS = [
+    { texto: "Editor de contenidos", ruta: "/admin/contenidos/editor" },
+    { texto: "Revisión y publicación", ruta: "/admin/contenidos/revision" },
 ];
 
 const SUBMENU_ATENCION = [
@@ -37,6 +41,11 @@ const SUBMENU_ATENCION = [
 
 function BarraLateral() {
     const identidad = useContext(ContextoPanel);
+    const { pathname } = useLocation();
+    const enContenidos = pathname.startsWith("/admin/contenidos");
+    const contenidosPermitidos = SUBMENU_CONTENIDOS.filter(
+        (subitem) => !!identidad && permisoGlobal(identidad.acceso, capacidadPanel(subitem.ruta)!),
+    );
     return (
         <nav className="panel-lateral" aria-label="Menú del panel">
             <div className="panel-marca">
@@ -60,6 +69,24 @@ function BarraLateral() {
                 <img src={iconoLista} alt="" />
                 <span>Resumen</span>
             </span>
+            {contenidosPermitidos.length > 0 && (
+                <>
+                    <span className={`panel-menu__item ${enContenidos ? "panel-menu__item--abierto" : ""}`}>
+                        <img src={iconoArchivo} alt="" />
+                        <span>Contenidos</span>
+                        <img src={enContenidos ? iconoContraer : iconoExpandir} alt="" />
+                    </span>
+                    {enContenidos && (
+                        <ul className="panel-submenu">
+                            {contenidosPermitidos.map((subitem) => (
+                                <li key={subitem.ruta}>
+                                    <NavLink to={subitem.ruta} className="panel-submenu__item">{subitem.texto}</NavLink>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </>
+            )}
             {SECCIONES_PENDIENTES.map((seccion) => (
                 <span key={seccion.texto} className="panel-menu__item">
                     <img src={seccion.icono} alt="" />
@@ -68,11 +95,12 @@ function BarraLateral() {
                 </span>
             ))}
 
-            <span className="panel-menu__item panel-menu__item--abierto">
+            <span className={`panel-menu__item ${enContenidos ? "" : "panel-menu__item--abierto"}`}>
                 <img src={iconoCorreo} alt="" />
                 <span>Atención</span>
-                <img src={iconoContraer} alt="" />
+                <img src={enContenidos ? iconoExpandir : iconoContraer} alt="" />
             </span>
+            {!enContenidos && (
             <ul className="panel-submenu">
                 {SUBMENU_ATENCION.filter(subitem => {
                     if (!subitem.ruta) return true;
@@ -95,6 +123,7 @@ function BarraLateral() {
                     ),
                 )}
             </ul>
+            )}
 
             <span className="panel-menu__item">
                 <img src={iconoAjustes} alt="" />

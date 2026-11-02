@@ -9,6 +9,7 @@ import Contacto from "./pages/contacto/Contacto.tsx";
 import Noticias from "./pages/noticias/Noticias.tsx";
 import TodasNoticias from "./pages/noticias/TodasNoticias.tsx";
 import DetalleNoticia from "./pages/noticias/DetalleNoticia.tsx";
+import AbrirAsistente from "./pages/asistente/AbrirAsistente.tsx";
 import Eventos from "./pages/eventos/Eventos.tsx";
 import Credencial from "./pages/credencial/Credencial.tsx";
 import EspaciosPublico from "./pages/espacios/Espacios.tsx";
@@ -41,6 +42,11 @@ import Propuestas from "./pages/admin/atencion/propuestas/Propuestas.tsx";
 import DetallePropuesta from "./pages/admin/atencion/propuestas/DetallePropuesta.tsx";
 import VistaPrevia from "./pages/admin/atencion/propuestas/VistaPrevia.tsx";
 import AccesoPanel from "./pages/admin/AccesoPanel";
+import MisContenidos from "./pages/admin/contenidos/MisContenidos.tsx";
+import NuevoContenido from "./pages/admin/contenidos/NuevoContenido.tsx";
+import EditarContenido from "./pages/admin/contenidos/EditarContenido.tsx";
+import VistaPreviaContenido from "./pages/admin/contenidos/VistaPreviaContenido.tsx";
+import EnviadoContenido from "./pages/admin/contenidos/EnviadoContenido.tsx";
 
 function App() {
   return (
@@ -58,6 +64,8 @@ function App() {
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/noticias/todas" element={<TodasNoticias />} />
         <Route path="/noticias/:id" element={<DetalleNoticia />} />
+        {/* El asistente es una ventana del botón flotante; /asistente la abre sobre Inicio */}
+        <Route path="/asistente" element={<AbrirAsistente />} />
         {/* Eventos (visitante): /eventos/:id viene del carrusel de Inicio; /eventos sin elegir no muestra ninguna */}
         <Route path="/eventos" element={<Eventos />} />
         <Route path="/eventos/:id" element={<Eventos />} />
@@ -101,6 +109,13 @@ function App() {
         <Route path="/admin/atencion/propuestas/todas" element={<AccesoPanel><Propuestas key="todas" vista="todas" /></AccesoPanel>} />
         <Route path="/admin/atencion/propuestas/:folio" element={<AccesoPanel><DetallePropuesta /></AccesoPanel>} />
         <Route path="/admin/atencion/propuestas/:folio/publicar" element={<AccesoPanel><VistaPrevia /></AccesoPanel>} />
+
+        {/* Panel · Contenidos (HU-12): Editor de contenidos */}
+        <Route path="/admin/contenidos/editor" element={<AccesoPanel><MisContenidos /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/nuevo" element={<AccesoPanel><NuevoContenido /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/:folio" element={<AccesoPanel><EditarContenido /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/:folio/vista-previa" element={<AccesoPanel><VistaPreviaContenido /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/:folio/enviado" element={<AccesoPanel><EnviadoContenido /></AccesoPanel>} />
 
         {/* Cualquier dirección que no exista todavía (/contacto, /credencial...) regresa a Inicio */}
         <Route path="*" element={<Navigate to="/" replace />} />
