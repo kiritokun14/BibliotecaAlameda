@@ -25,6 +25,13 @@ import Propuestas from "./pages/admin/atencion/propuestas/Propuestas.tsx";
 import DetallePropuesta from "./pages/admin/atencion/propuestas/DetallePropuesta.tsx";
 import VistaPrevia from "./pages/admin/atencion/propuestas/VistaPrevia.tsx";
 import AccesoPanel from "./pages/admin/AccesoPanel";
+import EditorContenidos from "./pages/admin/contenidos/EditorContenidos.tsx";
+import NuevoContenido from "./pages/admin/contenidos/NuevoContenido.tsx";
+import RedactarNoticia from "./pages/admin/contenidos/RedactarNoticia.tsx";
+import RedactarResena from "./pages/admin/contenidos/RedactarResena.tsx";
+import EditarAcerca from "./pages/admin/contenidos/EditarAcerca.tsx";
+import EnviadoAutorizacion from "./pages/admin/contenidos/EnviadoAutorizacion.tsx";
+import CorregirNoticia from "./pages/admin/contenidos/CorregirNoticia.tsx";
 
 function App() {
   return (
@@ -63,6 +70,16 @@ function App() {
         <Route path="/admin/atencion/propuestas/todas" element={<AccesoPanel><Propuestas key="todas" vista="todas" /></AccesoPanel>} />
         <Route path="/admin/atencion/propuestas/:folio" element={<AccesoPanel><DetallePropuesta /></AccesoPanel>} />
         <Route path="/admin/atencion/propuestas/:folio/publicar" element={<AccesoPanel><VistaPrevia /></AccesoPanel>} />
+
+        {/* Panel de administración · Contenidos (HU-11). Por ahora solo el diseño, sin datos */}
+        <Route path="/admin/contenidos" element={<Navigate to="/admin/contenidos/editor" replace />} />
+        <Route path="/admin/contenidos/editor" element={<AccesoPanel><EditorContenidos /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/nuevo" element={<AccesoPanel><NuevoContenido /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/nuevo/noticia" element={<AccesoPanel><RedactarNoticia /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/nuevo/resena" element={<AccesoPanel><RedactarResena /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/acerca" element={<AccesoPanel><EditarAcerca /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/enviado" element={<AccesoPanel><EnviadoAutorizacion /></AccesoPanel>} />
+        <Route path="/admin/contenidos/editor/:folio/corregir" element={<AccesoPanel><CorregirNoticia /></AccesoPanel>} />
 
         {/* Cualquier dirección que no exista todavía (/contacto, /credencial...) regresa a Inicio */}
         <Route path="*" element={<Navigate to="/" replace />} />

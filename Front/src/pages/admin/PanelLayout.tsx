@@ -1,8 +1,11 @@
 import { useContext, type ReactNode } from "react";
 import { ContextoPanel, capacidadPanel, permisoGlobal, nombresRoles } from "../../servicios/accesoPanel";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useLocation } from "react-router";
 import "./Panel.css";
+import "./PanelSolon.css";
 import logoGobierno from "../../assets/admin/logo-gobierno.png";
+import logoSolonBlanco from "../../assets/contenidos/logo-solon-blanco.png";
+import logoNayaritBlanco from "../../assets/contenidos/logo-nayarit-cultura-blanco.png";
 import iconoLibro from "../../assets/admin/menu-book.svg";
 import iconoLista from "../../assets/admin/menu-list.svg";
 import iconoArchivo from "../../assets/admin/menu-file.svg";
@@ -18,9 +21,13 @@ import iconoUsuario from "../../assets/admin/icono-user.svg";
 
 // Secciones del menú que todavía no tienen pantalla (por eso no son enlaces)
 const SECCIONES_PENDIENTES = [
-    { texto: "Contenidos", icono: iconoArchivo },
     { texto: "Actividades", icono: iconoCalendario },
     { texto: "Participantes", icono: iconoUsuarios },
+];
+
+const SUBMENU_CONTENIDOS = [
+    { texto: "Editor de contenidos", ruta: "/admin/contenidos/editor" },
+    { texto: "Revisión y publicación" },
 ];
 
 const SUBMENU_ATENCION = [
@@ -37,6 +44,11 @@ const SUBMENU_ATENCION = [
 
 function BarraLateral() {
     const identidad = useContext(ContextoPanel);
+    const { pathname } = useLocation();
+    // Se despliega la sección en la que está la pantalla; Atención queda abierta en el resto, como antes
+    const contenidosAbierto = pathname.startsWith("/admin/contenidos");
+    const atencionAbierto = !contenidosAbierto;
+    const puedeContenidos = !!identidad && permisoGlobal(identidad.acceso, "preparar_contenidos");
     return (
         <nav className="panel-lateral" aria-label="Menú del panel">
             <div className="panel-marca">
@@ -60,6 +72,34 @@ function BarraLateral() {
                 <img src={iconoLista} alt="" />
                 <span>Resumen</span>
             </span>
+            {puedeContenidos && !contenidosAbierto ? (
+                <Link to="/admin/contenidos/editor" className="panel-menu__item">
+                    <img src={iconoArchivo} alt="" />
+                    <span>Contenidos</span>
+                    <img src={iconoExpandir} alt="" />
+                </Link>
+            ) : (
+                <span className={`panel-menu__item${contenidosAbierto ? " panel-menu__item--abierto" : ""}`}>
+                    <img src={iconoArchivo} alt="" />
+                    <span>Contenidos</span>
+                    <img src={contenidosAbierto ? iconoContraer : iconoExpandir} alt="" />
+                </span>
+            )}
+            {contenidosAbierto && (
+                <ul className="panel-submenu">
+                    {SUBMENU_CONTENIDOS.map((subitem) => (
+                        <li key={subitem.texto}>
+                            {subitem.ruta ? (
+                                <NavLink to={subitem.ruta} className="panel-submenu__item">
+                                    {subitem.texto}
+                                </NavLink>
+                            ) : (
+                                <span className="panel-submenu__item">{subitem.texto}</span>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            )}
             {SECCIONES_PENDIENTES.map((seccion) => (
                 <span key={seccion.texto} className="panel-menu__item">
                     <img src={seccion.icono} alt="" />
@@ -68,12 +108,12 @@ function BarraLateral() {
                 </span>
             ))}
 
-            <span className="panel-menu__item panel-menu__item--abierto">
+            <span className={`panel-menu__item${atencionAbierto ? " panel-menu__item--abierto" : ""}`}>
                 <img src={iconoCorreo} alt="" />
                 <span>Atención</span>
-                <img src={iconoContraer} alt="" />
+                <img src={atencionAbierto ? iconoContraer : iconoExpandir} alt="" />
             </span>
-            <ul className="panel-submenu">
+            {atencionAbierto && <ul className="panel-submenu">
                 {SUBMENU_ATENCION.filter(subitem => {
                     if (!subitem.ruta) return true;
                     const capacidad = subitem.ruta === "/personal/alta-asistida" ? "alta_asistida" : capacidadPanel(subitem.ruta);
@@ -94,7 +134,7 @@ function BarraLateral() {
                         </li>
                     ),
                 )}
-            </ul>
+            </ul>}
 
             <span className="panel-menu__item">
                 <img src={iconoAjustes} alt="" />
@@ -132,6 +172,43 @@ function Cabecera({ titulo }: { titulo: string }) {
     );
 }
 
+// Pie con la identidad de la biblioteca (material oficial que entregó la biblioteca)
+function PieSolon() {
+    return (
+        <footer className="panel-pie panel-pie--solon">
+            <div className="panel-pie__logos">
+                <p className="panel-pie__etiqueta">Federación</p>
+                <img src={logoGobierno} alt="Gobierno de México" className="panel-logo" />
+                <p className="panel-pie__etiqueta">Estado</p>
+                <img src={logoNayaritBlanco} alt="Nayarit · Consejo Estatal para la Cultura y las Artes" className="panel-pie__logo-nayarit" />
+                <p className="panel-pie__etiqueta">Biblioteca</p>
+                <img src={logoSolonBlanco} alt="Solón Argüello · Biblioteca Pública Central Estatal" className="panel-pie__logo-solon" />
+            </div>
+            <div className="panel-pie__columna">
+                <p className="panel-pie__titulo">Servicios de la biblioteca</p>
+                <p>Actividades y eventos</p>
+                <p>Credencial de la biblioteca</p>
+                <p>Agenda de espacios</p>
+                <p>Proponer un evento</p>
+                <p>Catálogo de la biblioteca</p>
+            </div>
+            <div className="panel-pie__columna">
+                <p className="panel-pie__titulo">Información</p>
+                <p>Declaración de accesibilidad</p>
+                <p>Términos y condiciones</p>
+                <p>Alerta</p>
+            </div>
+            <div className="panel-pie__columna">
+                <p className="panel-pie__titulo">Biblioteca</p>
+                <p>Biblioteca Pública Central Estatal</p>
+                <p>Solón Argüello</p>
+                <p>Tepic, Nayarit</p>
+                <p>Contacto y ubicación</p>
+            </div>
+        </footer>
+    );
+}
+
 function PieGobierno() {
     return (
         <footer className="panel-pie">
@@ -162,15 +239,28 @@ function PieGobierno() {
 type PanelLayoutProps = {
     titulo: string; // el de la cabecera blanca, p. ej. "Atención"
     children: ReactNode;
+    // "solon": colores, letra y logos oficiales de la biblioteca (por ahora solo en Contenidos)
+    tema?: "solon";
 };
 
-function PanelLayout({ titulo, children }: PanelLayoutProps) {
+function PanelLayout({ titulo, children, tema }: PanelLayoutProps) {
+    const solon = tema === "solon";
     return (
-        <div className="panel">
+        <div className={solon ? "panel panel--solon" : "panel"}>
             <div className="panel-gobierno">
-                <img src={logoGobierno} alt="Gobierno de México" className="panel-logo" />
+                {solon ? (
+                    <span className="panel-gobierno__logos">
+                        <img src={logoGobierno} alt="Gobierno de México" className="panel-logo" />
+                        <span className="panel-gobierno__separador" />
+                        <img src={logoNayaritBlanco} alt="Nayarit · Consejo Estatal para la Cultura y las Artes" className="panel-gobierno__logo-nayarit" />
+                        <span className="panel-gobierno__separador" />
+                        <img src={logoSolonBlanco} alt="Solón Argüello · Biblioteca Pública Central Estatal" className="panel-gobierno__logo-solon" />
+                    </span>
+                ) : (
+                    <img src={logoGobierno} alt="Gobierno de México" className="panel-logo" />
+                )}
                 <p className="panel-gobierno__textos">
-                    Biblioteca Solón Argüello
+                    {solon ? "Biblioteca Pública Central Estatal Solón Argüello" : "Biblioteca Solón Argüello"}
                     <span className="panel-gobierno__separador" />
                     <strong>Panel de administración</strong>
                 </p>
@@ -181,16 +271,16 @@ function PanelLayout({ titulo, children }: PanelLayoutProps) {
                 <div className="panel-principal">
                     <Cabecera titulo={titulo} />
                     <main className="panel-contenido">
-                        <p role="status" className="panel-nota">Vista de demostración: los datos son de ejemplo. Las decisiones no se guardan en la base y se reinician al recargar.</p>
+                        {!solon && <p role="status" className="panel-nota">Vista de demostración: los datos son de ejemplo. Las decisiones no se guardan en la base y se reinician al recargar.</p>}
                         {children}
                         <p className="panel-nota">
-                            Biblioteca Solón Argüello · Panel del personal · Datos de ejemplo · Logotipo provisional
+                            {solon ? "Biblioteca Solón Argüello · Panel del personal" : "Biblioteca Solón Argüello · Panel del personal · Datos de ejemplo · Logotipo provisional"}
                         </p>
                     </main>
                 </div>
             </div>
 
-            <PieGobierno />
+            {solon ? <PieSolon /> : <PieGobierno />}
         </div>
     );
 }

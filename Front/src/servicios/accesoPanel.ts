@@ -7,6 +7,7 @@ export function capacidadPanel(ruta: string): string | null {
     if (ruta.startsWith('/admin/atencion/espacios')) return 'registrar_resoluciones_actividades';
     if (ruta.startsWith('/admin/atencion/propuestas'))
         return ruta.endsWith('/publicar') ? 'publicar_contenidos' : 'registrar_resoluciones_actividades';
+    if (ruta.startsWith('/admin/contenidos')) return 'preparar_contenidos';
     return null;
 }
 export function permisoGlobal(acceso: AccesoCuenta, capacidad: string): boolean {
@@ -14,7 +15,7 @@ export function permisoGlobal(acceso: AccesoCuenta, capacidad: string): boolean 
         acceso.permisosAdicionales.some(p => p.capacidad === capacidad && p.ambito === 'global' && !p.actividadId);
 }
 export function tienePanel(acceso: AccesoCuenta): boolean {
-    return ['validar_credenciales', 'registrar_resoluciones_actividades'].some(c => permisoGlobal(acceso, c));
+    return ['validar_credenciales', 'registrar_resoluciones_actividades', 'preparar_contenidos'].some(c => permisoGlobal(acceso, c));
 }
 export function nombresRoles(acceso: AccesoCuenta): string {
     const nombres: Record<string,string> = { usuario: 'Usuario / Cliente', editor: 'Editor',
@@ -22,6 +23,6 @@ export function nombresRoles(acceso: AccesoCuenta): string {
     return acceso.roles.map(r => nombres[r.rolCodigo] ?? r.rolCodigo).join(', ');
 }
 export function rutaInicialPanel(acceso: AccesoCuenta): string | null {
-    return ['/admin/atencion/credenciales', '/admin/atencion/espacios', '/admin/atencion/propuestas']
+    return ['/admin/atencion/credenciales', '/admin/atencion/espacios', '/admin/atencion/propuestas', '/admin/contenidos/editor']
         .find(ruta => permisoGlobal(acceso, capacidadPanel(ruta)!)) ?? null;
 }

@@ -178,6 +178,14 @@
     flex: 1;
 }
 
+a.panel-menu__item {
+    text-decoration: none;
+}
+
+a.panel-menu__item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
 .panel-menu__item--abierto {
     background: #164f44;
     font-weight: 700;
