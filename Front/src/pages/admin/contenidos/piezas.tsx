@@ -77,7 +77,15 @@ export function SubirImagen({ id, archivo, detalle, alCambiar }: { id: string; a
 }
 
 // Tarjeta "Estado" con los botones del borrador
-export function PanelEstado({ id, detalle = "Sin guardar", alVistaPrevia }: { id: string; detalle?: string; alVistaPrevia?: () => void }) {
+type PanelEstadoProps = {
+    id: string;
+    detalle?: string;
+    ocupado?: boolean;
+    error?: string;
+    alVistaPrevia?: () => void;
+    alGuardar?: () => void;
+};
+export function PanelEstado({ id, detalle = "Sin guardar", ocupado, error, alVistaPrevia, alGuardar }: PanelEstadoProps) {
     return (
         <section className="contenidos-panel contenidos-panel--estado" aria-labelledby={id}>
             <div className="contenidos-lista__cabecera">
@@ -86,12 +94,14 @@ export function PanelEstado({ id, detalle = "Sin guardar", alVistaPrevia }: { id
             </div>
             <p className="contenidos-estado-linea">
                 <span className="contenidos-estado contenidos-estado--borrador">Borrador</span>
-                <span>{detalle}</span>
+                <span>{ocupado ? "Guardando…" : detalle}</span>
             </p>
-            {/* TODO: conectar con el backend (guardar, vista previa y enviar) */}
-            <button type="submit" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho">Enviar a autorización</button>
-            <button type="button" className="contenidos-boton contenidos-boton--suave contenidos-boton--ancho" onClick={alVistaPrevia}>Vista previa</button>
-            <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--ancho">Guardar borrador</button>
+            {error && <p className="contenidos-error" role="alert">{error}</p>}
+            <button type="submit" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho" disabled={ocupado}>Enviar a autorización</button>
+            {alVistaPrevia && (
+                <button type="button" className="contenidos-boton contenidos-boton--suave contenidos-boton--ancho" onClick={alVistaPrevia}>Vista previa</button>
+            )}
+            <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--ancho" onClick={alGuardar} disabled={ocupado}>Guardar borrador</button>
             <p className="contenidos-nota">Solo el Administrador autoriza y publica. Tu contenido no se verá en el portal hasta entonces.</p>
         </section>
     );

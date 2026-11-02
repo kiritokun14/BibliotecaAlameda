@@ -1,23 +1,43 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { IconoAviso, IconoBuscar, IconoDocumento, IconoLapiz, IconoLista, IconoMas, IconoReloj, Migas } from "./piezas";
 import PanelLayout from "../PanelLayout";
+import { mensajeError } from "../../../servicios/api";
+import {
+    consultarResumen, listarContenidos, type EstadoContenidoApi, type ListaContenidos, type ResumenContenidos, type TipoContenidoApi,
+} from "../../../servicios/contenidos";
 import "./Contenidos.css";
 
 // Pantalla de inicio del Editor de contenidos (HU-11 / T-054).
-// Por ahora solo es el diseño: no hay datos. La lista y las cifras se llenarán
-// cuando conectemos el backend de contenidos.
+// Las cifras y la lista vienen del backend (/contenidos/editor) y solo incluyen lo propio.
 
 export type EstadoContenido = "borrador" | "por_autorizar" | "con_observaciones" | "publicado";
 
-export type FilaContenido = {
-    folio: string;
-    titulo: string;
-    tipo: string;
-    autoria: string;
-    estado: EstadoContenido;
-    actualizado: string;
+// La base llama "en_revision" a lo que aquí se muestra como "Por autorizar"
+const ESTADO_API: Record<EstadoContenido, EstadoContenidoApi> = {
+    borrador: "borrador",
+    por_autorizar: "en_revision",
+    con_observaciones: "con_observaciones",
+    publicado: "publicado",
 };
+const ESTADO_PANTALLA: Partial<Record<EstadoContenidoApi, EstadoContenido>> = {
+    borrador: "borrador",
+    en_revision: "por_autorizar",
+    con_observaciones: "con_observaciones",
+    publicado: "publicado",
+};
+const NOMBRE_TIPO: Record<TipoContenidoApi, string> = {
+    noticia: "Noticia",
+    resena: "Reseña",
+    acerca: "Acerca de",
+    memoria: "Memoria pública",
+    servicio: "Servicio",
+    programa: "Programa",
+    recurso: "Recurso",
+};
+const POR_PAGINA = 10;
+
+const formatoFecha = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", year: "numeric" });
 
 const ESTADOS: Record<EstadoContenido, { texto: string; accion: string }> = {
     borrador: { texto: "Borrador", accion: "Editar" },
@@ -63,18 +83,56 @@ function TarjetaResumen({ tono, icono, cifra, titulo, texto, enlace, alPresionar
 }
 
 function EditorContenidos() {
-    // TODO: traer del backend los contenidos de la cuenta (más reciente primero)
-    const contenidos: FilaContenido[] = [];
     const [filtro, setFiltro] = useState<Filtro>("todos");
     const [busqueda, setBusqueda] = useState("");
+    const [busquedaAplicada, setBusquedaAplicada] = useState("");
+    const [pagina, setPagina] = useState(0);
+    const [resumen, setResumen] = useState<ResumenContenidos | null>(null);
+    const [lista, setLista] = useState<ListaContenidos | null>(null);
+    const [error, setError] = useState("");
 
-    const cuenta = (estado: EstadoContenido) => contenidos.filter((c) => c.estado === estado).length;
-    const texto = busqueda.trim().toLowerCase();
-    const visibles = contenidos.filter(
-        (c) =>
-            (filtro === "todos" || c.estado === filtro) &&
-            (!texto || c.folio.toLowerCase().includes(texto) || c.titulo.toLowerCase().includes(texto)),
-    );
+    useEffect(() => {
+        let activo = true;
+        consultarResumen()
+            .then((r) => { if (activo) setResumen(r); })
+            .catch((e) => { if (activo) setError(mensajeError(e)); });
+        return () => { activo = false; };
+    }, []);
+
+    // Espera a que dejes de escribir antes de buscar
+    useEffect(() => {
+        const espera = setTimeout(() => {
+            setBusquedaAplicada(busqueda.trim());
+            setPagina(0);
+        }, 300);
+        return () => clearTimeout(espera);
+    }, [busqueda]);
+
+    useEffect(() => {
+        let activo = true;
+        listarContenidos({
+            estado: filtro === "todos" ? undefined : ESTADO_API[filtro],
+            busqueda: busquedaAplicada,
+            limite: POR_PAGINA,
+            desplazamiento: pagina * POR_PAGINA,
+        })
+            .then((l) => { if (activo) { setLista(l); setError(""); } })
+            .catch((e) => { if (activo) setError(mensajeError(e)); });
+        return () => { activo = false; };
+    }, [filtro, busquedaAplicada, pagina]);
+
+    const elegirFiltro = (f: Filtro) => {
+        setFiltro(f);
+        setPagina(0);
+    };
+    const cuenta = (estado: EstadoContenido) => resumen?.[ESTADO_API[estado] as keyof ResumenContenidos] ?? 0;
+    const total = resumen?.total ?? 0;
+    const visibles = (lista?.contenidos ?? []).map((c) => ({
+        ...c,
+        estadoPantalla: ESTADO_PANTALLA[c.estado] ?? "borrador",
+    }));
+    const totalFiltrado = lista?.total ?? 0;
+    const paginas = Math.max(1, Math.ceil(totalFiltrado / POR_PAGINA));
 
     return (
         <PanelLayout titulo="Contenidos" tema="solon">
@@ -99,7 +157,7 @@ function EditorContenidos() {
                 <h2 id="contenidos-resumen-titulo">
                     ¿Cómo van tus <span>contenidos</span>?
                 </h2>
-                <p className="contenidos-resumen__subtitulo">Tu actividad en el Editor esta semana.</p>
+                <p className="contenidos-resumen__subtitulo">Tu actividad en el Editor.</p>
                 <div className="contenidos-resumen__tarjetas">
                     <TarjetaResumen
                         tono="azul"
@@ -108,7 +166,7 @@ function EditorContenidos() {
                         titulo="Borradores"
                         texto="Aún no los has enviado a autorización."
                         enlace="Ver borradores"
-                        alPresionar={() => setFiltro("borrador")}
+                        alPresionar={() => elegirFiltro("borrador")}
                     />
                     <TarjetaResumen
                         tono="gris"
@@ -117,7 +175,7 @@ function EditorContenidos() {
                         titulo="Por autorizar"
                         texto="Esperan la decisión del Administrador."
                         enlace="Ver en autorización"
-                        alPresionar={() => setFiltro("por_autorizar")}
+                        alPresionar={() => elegirFiltro("por_autorizar")}
                     />
                     <TarjetaResumen
                         tono="guinda"
@@ -126,7 +184,7 @@ function EditorContenidos() {
                         titulo="Con observaciones"
                         texto="Corrige y vuelve a enviar."
                         enlace="Ver observaciones"
-                        alPresionar={() => setFiltro("con_observaciones")}
+                        alPresionar={() => elegirFiltro("con_observaciones")}
                     />
                 </div>
             </section>
@@ -149,9 +207,9 @@ function EditorContenidos() {
                                 role="tab"
                                 aria-selected={filtro === f.valor}
                                 className={`contenidos-filtro${filtro === f.valor ? " contenidos-filtro--activo" : ""}`}
-                                onClick={() => setFiltro(f.valor)}
+                                onClick={() => elegirFiltro(f.valor)}
                             >
-                                {f.texto} ({f.valor === "todos" ? contenidos.length : cuenta(f.valor)})
+                                {f.texto} ({f.valor === "todos" ? total : cuenta(f.valor)})
                             </button>
                         ))}
                     </div>
@@ -181,31 +239,37 @@ function EditorContenidos() {
                     {visibles.map((c) => (
                         <div key={c.folio} className="contenidos-tabla__fila" role="row">
                             <span role="cell" className="contenidos-tabla__folio">{c.folio}</span>
-                            <span role="cell" className="contenidos-tabla__titulo">{c.titulo}</span>
-                            <span role="cell">{c.tipo}</span>
-                            <span role="cell">{c.autoria}</span>
+                            <span role="cell" className="contenidos-tabla__titulo">{c.titulo || "Sin título"}</span>
+                            <span role="cell">{NOMBRE_TIPO[c.tipo] ?? c.tipo}</span>
+                            <span role="cell">Tú</span>
                             <span role="cell">
-                                <span className={`contenidos-estado contenidos-estado--${c.estado}`}>{ESTADOS[c.estado].texto}</span>
+                                <span className={`contenidos-estado contenidos-estado--${c.estadoPantalla}`}>{ESTADOS[c.estadoPantalla].texto}</span>
                             </span>
-                            <span role="cell">{c.actualizado}</span>
+                            <span role="cell">{formatoFecha.format(new Date(c.actualizadoEn))}</span>
                             <span role="cell">
-                                {c.estado === "con_observaciones" ? (
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/corregir`} className="contenidos-tabla__accion">{ESTADOS[c.estado].accion} →</Link>
+                                {c.estadoPantalla === "con_observaciones" ? (
+                                    <Link to={`/admin/contenidos/editor/${c.folio}/corregir`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion} →</Link>
+                                ) : c.estadoPantalla === "borrador" ? (
+                                    <Link to={`/admin/contenidos/editor/${c.folio}/editar`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion} →</Link>
                                 ) : (
-                                    // TODO: abrir para editar (borrador) o ver (por autorizar / publicado)
-                                    <button type="button" className="contenidos-tabla__accion">{ESTADOS[c.estado].accion} →</button>
+                                    // TODO: pantalla para ver un contenido enviado o publicado
+                                    <button type="button" className="contenidos-tabla__accion" disabled title="Disponible pronto">{ESTADOS[c.estadoPantalla].accion} →</button>
                                 )}
                             </span>
                         </div>
                     ))}
 
-                    {visibles.length === 0 && (
+                    {error && (
+                        <p className="contenidos-error" role="alert">{error}</p>
+                    )}
+
+                    {!error && lista && visibles.length === 0 && (
                         <div className="contenidos-vacio" role="row">
                             <span role="cell">
                                 <span className="contenidos-vacio__icono"><IconoDocumento /></span>
-                                <strong>{contenidos.length === 0 ? "Todavía no tienes contenidos" : "No hay contenidos con este filtro"}</strong>
+                                <strong>{total === 0 ? "Todavía no tienes contenidos" : "No hay contenidos con este filtro"}</strong>
                                 <span>
-                                    {contenidos.length === 0
+                                    {total === 0
                                         ? "Cuando crees un borrador aparecerá aquí. Empieza con «Nuevo contenido»."
                                         : "Prueba con otro estado o cambia la búsqueda."}
                                 </span>
@@ -215,14 +279,19 @@ function EditorContenidos() {
                 </div>
 
                 <div className="contenidos-lista__pie">
-                    <p>Mostrando {visibles.length} de {contenidos.length} contenidos</p>
-                    <button type="button" className="contenidos-boton contenidos-boton--oscuro" disabled={contenidos.length === 0}>
+                    <p>Mostrando {visibles.length} de {totalFiltrado} contenidos</p>
+                    <button
+                        type="button"
+                        className="contenidos-boton contenidos-boton--oscuro"
+                        disabled={total === 0 || (filtro === "todos" && !busqueda)}
+                        onClick={() => { elegirFiltro("todos"); setBusqueda(""); }}
+                    >
                         Ver todos mis contenidos
                     </button>
                     <div className="contenidos-paginas" aria-label="Páginas">
-                        <button type="button" disabled>‹ Anterior</button>
-                        <button type="button" className="contenidos-paginas__actual" aria-current="page">1</button>
-                        <button type="button" disabled>Siguiente ›</button>
+                        <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>‹ Anterior</button>
+                        <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
+                        <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(pagina + 1)}>Siguiente ›</button>
                     </div>
                 </div>
             </section>

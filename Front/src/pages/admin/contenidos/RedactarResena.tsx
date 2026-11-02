@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { Campo, IconoBandera, IconoDocumento, IconoFlechaIzq, IconoLapiz, Interruptor, Migas, PanelEstado, SubirImagen } from "./piezas";
 import ConfirmarEnvio from "./ConfirmarEnvio";
+import { datoSiNo, datoTexto, useBorrador } from "./usarBorrador";
+import type { Contenido } from "../../../servicios/contenidos";
 import "./Contenidos.css";
 
-// Formulario para redactar una reseña bibliográfica nueva. Por ahora solo es el diseño:
-// los botones no guardan nada todavía.
+// Formulario para redactar una reseña bibliográfica nueva o seguir un borrador (inicial).
+// El título del libro es el título del contenido.
+// TODO: la portada todavía no se sube (falta el almacenamiento de archivos).
 
 const MAX_RESUMEN = 160;
 // TODO: confirmar con la biblioteca los géneros, las vistas y los temas de Lecturas y reseñas
@@ -16,20 +19,32 @@ const TEMAS: string[] = [];
 // TODO: el área que firma la reseña la confirma la biblioteca
 const FIRMA = "Equipo de la biblioteca · Área por confirmar";
 
-function RedactarResena() {
+function RedactarResena({ inicial }: { inicial?: Contenido }) {
     const [confirmando, setConfirmando] = useState(false);
-    const navegar = useNavigate();
-    const [titulo, setTitulo] = useState("");
-    const [autoria, setAutoria] = useState("");
-    const [genero, setGenero] = useState("");
-    const [anio, setAnio] = useState("");
-    const [clasificacion, setClasificacion] = useState("");
-    const [resumen, setResumen] = useState("");
-    const [texto, setTexto] = useState("");
+    const borrador = useBorrador("resena", inicial);
+    const dato = (clave: string) => datoTexto(inicial?.datos, clave);
+    const [titulo, setTitulo] = useState(inicial?.titulo ?? "");
+    const [autoria, setAutoria] = useState(dato("autoria"));
+    const [genero, setGenero] = useState(dato("genero"));
+    const [anio, setAnio] = useState(dato("anio"));
+    const [clasificacion, setClasificacion] = useState(dato("clasificacion"));
+    const [resumen, setResumen] = useState(inicial?.resumen ?? "");
+    const [texto, setTexto] = useState(inicial?.cuerpo ?? "");
     const [portada, setPortada] = useState<File | null>(null);
-    const [vista, setVista] = useState("");
-    const [tema, setTema] = useState("");
-    const [memoria, setMemoria] = useState(false);
+    const [vista, setVista] = useState(dato("vista"));
+    const [tema, setTema] = useState(dato("tema"));
+    const [memoria, setMemoria] = useState(datoSiNo(inicial?.datos, "memoriaPublica", false));
+
+    const cambios = () => ({
+        titulo,
+        resumen,
+        cuerpo: texto,
+        datos: { autoria, genero, anio, clasificacion, vista, tema, memoriaPublica: memoria },
+    });
+    const enviar = (nota: string) => {
+        setConfirmando(false);
+        borrador.enviar(cambios(), nota, { tipo: "Reseña bibliográfica", queSeEnvia: "la reseña", titulo });
+    };
 
     return (
         <PanelLayout titulo="Contenidos" tema="solon">
@@ -42,7 +57,7 @@ function RedactarResena() {
                         Volver a Mis contenidos
                     </Link>
                     {/* El folio (CN-0000) lo asigna la base al guardar el primer borrador */}
-                    <p className="contenidos-etiqueta">Contenidos · Editor · Reseña nueva</p>
+                    <p className="contenidos-etiqueta">Contenidos · Editor · {borrador.folio ? `Reseña ${borrador.folio}` : "Reseña nueva"}</p>
                     <h1>Redactar reseña bibliográfica</h1>
                     <p className="contenidos-encabezado__texto">La reseña la firma el equipo de la biblioteca. Los campos con * son obligatorios.</p>
                 </div>
@@ -140,7 +155,13 @@ function RedactarResena() {
                         </div>
                     </section>
 
-                    <PanelEstado id="resena-estado" />
+                    <PanelEstado
+                        id="resena-estado"
+                        detalle={borrador.detalle}
+                        ocupado={borrador.ocupado}
+                        error={borrador.error}
+                        alGuardar={() => borrador.guardarBorrador(cambios())}
+                    />
                 </aside>
             </form>
             <ConfirmarEnvio
@@ -149,8 +170,8 @@ function RedactarResena() {
                 queSeEnvia="la reseña"
                 titulo={titulo}
                 alCerrar={() => setConfirmando(false)}
-                // TODO: guardar en el backend como por_autorizar (con la nota) antes de navegar
-                alConfirmar={() => navegar("/admin/contenidos/editor/enviado", { state: { tipo: "Reseña bibliográfica", queSeEnvia: "la reseña", titulo: titulo, enviadoEn: new Date().toISOString() } })}
+                folio={borrador.folio ?? undefined}
+                alConfirmar={enviar}
             />
         </PanelLayout>
     );

@@ -1,7 +1,7 @@
 // Tipos de contenido que puede redactar el Editor
 export type TipoContenido = "noticia" | "resena" | "acerca" | "memoria";
 
-// ruta: formulario de redacción (Memoria pública todavía no tiene)
+// ruta: formulario de redacción
 export const TIPOS_CONTENIDO: { valor: TipoContenido; letra: string; nombre: string; descripcion: string; ruta?: string }[] = [
     {
         valor: "noticia",
@@ -28,6 +28,7 @@ export const TIPOS_CONTENIDO: { valor: TipoContenido; letra: string; nombre: str
         valor: "memoria",
         letra: "M",
         nombre: "Memoria pública",
+        ruta: "/admin/contenidos/editor/nuevo/memoria",
         descripcion: "Fotografías y piezas del archivo de memoria de la biblioteca. Aparece en Memoria pública.",
     },
 ];

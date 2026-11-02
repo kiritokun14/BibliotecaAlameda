@@ -1,31 +1,44 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { Campo, IconoBandera, IconoFlechaIzq, IconoLapiz, Interruptor, Migas, PanelEstado, SubirImagen } from "./piezas";
 import VistaPreviaNoticia from "./VistaPreviaNoticia";
 import ConfirmarEnvio from "./ConfirmarEnvio";
+import { datoSiNo, datoTexto, useBorrador } from "./usarBorrador";
+import type { Contenido } from "../../../servicios/contenidos";
 import "./Contenidos.css";
 
-// Formulario para redactar una noticia nueva. Por ahora solo es el diseño:
-// los botones no guardan nada todavía.
+// Formulario para redactar una noticia nueva o seguir un borrador (inicial).
+// TODO: la imagen todavía no se sube (falta el almacenamiento de archivos).
 
 const MAX_TITULO = 90;
 const MAX_RESUMEN = 160;
 // TODO: confirmar con la biblioteca las categorías de noticias
 const CATEGORIAS = ["Avisos", "Convocatorias", "Novedades"];
 
-function RedactarNoticia() {
+function RedactarNoticia({ inicial }: { inicial?: Contenido }) {
     const [confirmando, setConfirmando] = useState(false);
-    const navegar = useNavigate();
-    const [titulo, setTitulo] = useState("");
-    const [resumen, setResumen] = useState("");
-    const [texto, setTexto] = useState("");
+    const borrador = useBorrador("noticia", inicial);
+    const [titulo, setTitulo] = useState(inicial?.titulo ?? "");
+    const [resumen, setResumen] = useState(inicial?.resumen ?? "");
+    const [texto, setTexto] = useState(inicial?.cuerpo ?? "");
     const [imagen, setImagen] = useState<File | null>(null);
-    const [textoAlternativo, setTextoAlternativo] = useState("");
-    const [categoria, setCategoria] = useState("");
-    const [fecha, setFecha] = useState("");
-    const [destacar, setDestacar] = useState(false);
-    const [verMas, setVerMas] = useState(true);
+    const [textoAlternativo, setTextoAlternativo] = useState(datoTexto(inicial?.datos, "textoAlternativo"));
+    const [categoria, setCategoria] = useState(datoTexto(inicial?.datos, "categoria"));
+    const [fecha, setFecha] = useState(datoTexto(inicial?.datos, "fecha"));
+    const [destacar, setDestacar] = useState(datoSiNo(inicial?.datos, "destacar", false));
+    const [verMas, setVerMas] = useState(datoSiNo(inicial?.datos, "verMas", true));
+
+    const cambios = () => ({
+        titulo,
+        resumen,
+        cuerpo: texto,
+        datos: { categoria, fecha, destacar, verMas, textoAlternativo },
+    });
+    const enviar = (nota: string) => {
+        setConfirmando(false);
+        borrador.enviar(cambios(), nota, { tipo: "Noticia", queSeEnvia: "la noticia", titulo });
+    };
     // La vista previa se muestra en esta misma pantalla para no perder lo escrito
     const [vistaPrevia, setVistaPrevia] = useState(false);
 
@@ -42,14 +55,15 @@ function RedactarNoticia() {
                     alVolver={() => cambiarVista(false)}
                     alEnviar={() => setConfirmando(true)}
                 />
+                {borrador.error && <p className="contenidos-error" role="alert">{borrador.error}</p>}
                 <ConfirmarEnvio
                     abierto={confirmando}
                     tipo="Noticia"
                     queSeEnvia="la noticia"
                     titulo={titulo}
                     alCerrar={() => setConfirmando(false)}
-                    // TODO: guardar en el backend como por_autorizar (con la nota) antes de navegar
-                    alConfirmar={() => navegar("/admin/contenidos/editor/enviado", { state: { tipo: "Noticia", queSeEnvia: "la noticia", titulo: titulo, enviadoEn: new Date().toISOString() } })}
+                    folio={borrador.folio ?? undefined}
+                    alConfirmar={enviar}
                 />
             </PanelLayout>
         );
@@ -66,7 +80,7 @@ function RedactarNoticia() {
                         Volver a Mis contenidos
                     </Link>
                     {/* El folio (CN-0000) lo asigna la base al guardar el primer borrador */}
-                    <p className="contenidos-etiqueta">Contenidos · Editor · Noticia nueva</p>
+                    <p className="contenidos-etiqueta">Contenidos · Editor · {borrador.folio ? `Noticia ${borrador.folio}` : "Noticia nueva"}</p>
                     <h1>Redactar noticia</h1>
                     <p className="contenidos-encabezado__texto">Los campos con * son obligatorios. Se guarda como borrador.</p>
                 </div>
@@ -132,7 +146,14 @@ function RedactarNoticia() {
                         <Interruptor id="noticia-ver-mas" titulo="Mostrar en «Ver más noticias»" activo={verMas} alCambiar={setVerMas} />
                     </section>
 
-                    <PanelEstado id="noticia-estado" alVistaPrevia={() => cambiarVista(true)} />
+                    <PanelEstado
+                        id="noticia-estado"
+                        detalle={borrador.detalle}
+                        ocupado={borrador.ocupado}
+                        error={borrador.error}
+                        alVistaPrevia={() => cambiarVista(true)}
+                        alGuardar={() => borrador.guardarBorrador(cambios())}
+                    />
                 </aside>
             </form>
             <ConfirmarEnvio
@@ -141,8 +162,8 @@ function RedactarNoticia() {
                 queSeEnvia="la noticia"
                 titulo={titulo}
                 alCerrar={() => setConfirmando(false)}
-                // TODO: guardar en el backend como por_autorizar (con la nota) antes de navegar
-                alConfirmar={() => navegar("/admin/contenidos/editor/enviado", { state: { tipo: "Noticia", queSeEnvia: "la noticia", titulo: titulo, enviadoEn: new Date().toISOString() } })}
+                folio={borrador.folio ?? undefined}
+                alConfirmar={enviar}
             />
         </PanelLayout>
     );

@@ -4,7 +4,7 @@ import { IconoMas } from "./piezas";
 import "./Contenidos.css";
 
 // Pantalla que aparece después de confirmar "Enviar a autorización".
-// Recibe lo enviado por el estado de la navegación (todavía no hay backend).
+// Recibe lo enviado (con el folio que dio la base) por el estado de la navegación.
 
 export type DatosEnvio = {
     tipo: string; // "Noticia", "Reseña bibliográfica"...
@@ -95,8 +95,8 @@ function EnviadoAutorizacion() {
 
             <div className="contenidos-previa__acciones">
                 <Link to="/admin/contenidos/editor" className="contenidos-boton contenidos-boton--principal">Volver a Mis contenidos</Link>
-                {/* TODO: abrir el contenido enviado (solo lectura) cuando exista en la base */}
-                <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled title="Disponible cuando se guarde en la base">
+                {/* TODO: pantalla de solo lectura para un contenido enviado */}
+                <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled title="Disponible pronto">
                     Ver el contenido enviado
                 </button>
                 <Link to="/admin/contenidos/editor/nuevo" className="contenidos-boton contenidos-boton--suave-azul">

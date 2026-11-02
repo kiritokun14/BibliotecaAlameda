@@ -1,30 +1,38 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { Campo, IconoAviso, IconoFlechaIzq, IconoLapiz, IconoReloj } from "./piezas";
 import ConfirmarEnvio from "./ConfirmarEnvio";
+import CargarContenido from "./CargarContenido";
+import { datoTexto, useBorrador } from "./usarBorrador";
+import type { Contenido } from "../../../servicios/contenidos";
 import "./Contenidos.css";
 
 // Corregir una noticia que el Administrador regresó con observaciones.
-// Se llega desde "Corregir →" en Mis contenidos. Por ahora solo es el diseño:
-// el texto y las observaciones se cargarán del backend con el folio.
+// Se llega desde "Corregir →" en Mis contenidos; la noticia y las observaciones
+// se cargan de la base con el folio de la ruta.
 
-type Observacion = { id: string; texto: string };
+const formatoFecha = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long", year: "numeric" });
 
-function CorregirNoticia() {
-    const { folio } = useParams();
-    const navegar = useNavigate();
+function Correccion({ contenido }: { contenido: Contenido }) {
+    const folio = contenido.folio;
+    const borrador = useBorrador("noticia", contenido);
+    const observaciones = contenido.observaciones?.lista ?? [];
+    const fechaObservaciones = contenido.observaciones ? formatoFecha.format(new Date(contenido.observaciones.realizadoEn)) : null;
 
-    // TODO: traer del backend la noticia y las observaciones de este folio
-    const observaciones: Observacion[] = [];
-    const fechaObservaciones: string | null = null;
-
-    const [titulo, setTitulo] = useState("");
-    const [resumen, setResumen] = useState("");
-    const [texto, setTexto] = useState("");
-    const [textoAlternativo, setTextoAlternativo] = useState("");
+    const [titulo, setTitulo] = useState(contenido.titulo);
+    const [resumen, setResumen] = useState(contenido.resumen);
+    const [texto, setTexto] = useState(contenido.cuerpo);
+    const [textoAlternativo, setTextoAlternativo] = useState(datoTexto(contenido.datos, "textoAlternativo"));
     const [faltaAlternativo, setFaltaAlternativo] = useState(false);
     const [confirmando, setConfirmando] = useState(false);
+
+    // Conserva los demás datos de la noticia (categoría, fecha…)
+    const cambios = () => ({ titulo, resumen, cuerpo: texto, datos: { ...contenido.datos, textoAlternativo } });
+    const enviar = (nota: string) => {
+        setConfirmando(false);
+        borrador.enviar(cambios(), nota, { tipo: "Noticia", queSeEnvia: "la noticia", titulo });
+    };
 
     return (
         <PanelLayout titulo="Contenidos" tema="solon">
@@ -53,20 +61,22 @@ function CorregirNoticia() {
                     <span className="contenidos-observaciones__icono"><IconoAviso /></span>
                     <div>
                         <h2 id="observaciones-titulo">Observaciones del Administrador</h2>
-                        <p>{fechaObservaciones ? `Dejadas el ${fechaObservaciones}` : "Fecha por cargar"}</p>
+                        <p>{fechaObservaciones ? `Dejadas el ${fechaObservaciones}` : "Sin fecha registrada"}</p>
                     </div>
                 </div>
                 {observaciones.length ? (
                     <ol className="contenidos-observaciones__lista">
-                        {observaciones.map((o, i) => (
-                            <li key={o.id}>
+                        {observaciones.map((texto, i) => (
+                            <li key={i}>
                                 <span className="contenidos-observaciones__numero">{i + 1}</span>
-                                {o.texto}
+                                {texto}
                             </li>
                         ))}
                     </ol>
                 ) : (
-                    <p className="contenidos-observaciones__vacio">Aquí aparecerán las observaciones cuando se carguen de la base.</p>
+                    <p className="contenidos-observaciones__vacio">
+                        {contenido.observaciones?.nota ?? "El Administrador no dejó observaciones por escrito."}
+                    </p>
                 )}
             </section>
 
@@ -124,10 +134,18 @@ function CorregirNoticia() {
                         </div>
                         <p className="contenidos-estado-linea">
                             <span className="contenidos-estado contenidos-estado--con_observaciones">Con observaciones</span>
+                            <span>{borrador.ocupado ? "Guardando…" : borrador.detalle}</span>
                         </p>
-                        <button type="submit" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho">Enviar de nuevo a autorización</button>
-                        {/* TODO: guardar los cambios como borrador */}
-                        <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--ancho">Guardar borrador</button>
+                        {borrador.error && <p className="contenidos-error" role="alert">{borrador.error}</p>}
+                        <button type="submit" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho" disabled={borrador.ocupado}>Enviar de nuevo a autorización</button>
+                        <button
+                            type="button"
+                            className="contenidos-boton contenidos-boton--contorno contenidos-boton--ancho"
+                            disabled={borrador.ocupado}
+                            onClick={() => borrador.guardarBorrador(cambios())}
+                        >
+                            Guardar borrador
+                        </button>
                     </section>
                 </aside>
             </form>
@@ -139,11 +157,14 @@ function CorregirNoticia() {
                 titulo={titulo}
                 folio={folio}
                 alCerrar={() => setConfirmando(false)}
-                // TODO: guardar en el backend como por_autorizar (con la nota) antes de navegar
-                alConfirmar={() => navegar("/admin/contenidos/editor/enviado", { state: { tipo: "Noticia", queSeEnvia: "la noticia", titulo, folio, enviadoEn: new Date().toISOString() } })}
+                alConfirmar={enviar}
             />
         </PanelLayout>
     );
+}
+
+function CorregirNoticia() {
+    return <CargarContenido>{(contenido) => <Correccion key={contenido.folio} contenido={contenido} />}</CargarContenido>;
 }
 
 export default CorregirNoticia;

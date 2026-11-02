@@ -1,4 +1,4 @@
--- Ejecutar después de contenidos_editor.sql. ROLLBACK: no deja registros.
+-- Ejecutar después de contenidos_editor.sql y contenidos_memoria.sql. ROLLBACK: no deja registros.
 -- Cuentas y sesiones ficticias dentro de BEGIN/ROLLBACK.
 BEGIN;
 DO $$
@@ -84,6 +84,17 @@ BEGIN
  IF (r->>'total')::integer<>1 THEN RAISE EXCEPTION 'Búsqueda por folio incorrecta.'; END IF;
  r:=public.editor_contenidos('resumen');
  IF (r->>'borrador')::integer<>1 OR (r->>'en_revision')::integer<>1 THEN RAISE EXCEPTION 'Resumen incorrecto: %',r; END IF;
+
+ -- Memoria pública: acepta sus datos y pide autoría y dónde se publica
+ r:=public.editor_contenidos('guardar','{"tipo":"memoria","titulo":"Pieza","resumen":"Vista","cuerpo":"Contexto","datos":{"tipoPieza":"Fotografía"}}');
+ rechazo:=false;
+ BEGIN PERFORM public.editor_contenidos('enviar',jsonb_build_object('folio',r->>'folio'));
+ EXCEPTION WHEN check_violation THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Se envió una pieza de memoria incompleta.'; END IF;
+ PERFORM public.editor_contenidos('guardar',jsonb_build_object('folio',r->>'folio','datos',
+   jsonb_build_object('tipoPieza','Fotografía','autoria','Archivo','publicacion','Memoria pública','permisoImagen',true)));
+ IF public.editor_contenidos('enviar',jsonb_build_object('folio',r->>'folio'))->>'estado'<>'en_revision' THEN
+  RAISE EXCEPTION 'No se pudo enviar la pieza de memoria.'; END IF;
 
  -- Otro editor no ve ni toca contenidos ajenos
  PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',otro,'role','authenticated','session_id',s_otro)::text,true);

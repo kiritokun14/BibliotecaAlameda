@@ -1,26 +1,39 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { Campo, IconoBandera, IconoBuscar, IconoFlechaIzq, IconoLapiz, IconoLista, Interruptor, Migas, PanelEstado } from "./piezas";
 import { SECCIONES_ACERCA, type SeccionAcerca } from "./tipos";
 import ConfirmarEnvio from "./ConfirmarEnvio";
+import { datoTexto, useBorrador } from "./usarBorrador";
+import type { Contenido } from "../../../servicios/contenidos";
 import "./Contenidos.css";
 
-// Edición de «Acerca de la biblioteca». No se crea uno nuevo: se edita la sección
-// elegida y cada sección se autoriza por separado. Por ahora solo es el diseño.
+// Edición de «Acerca de la biblioteca». Cada sección es un contenido aparte y se
+// autoriza por separado. Con "inicial" se abre el borrador de una sola sección.
+// TODO: cargar el texto publicado de cada sección y guardar el enlace en Inicio.
 
 type DatosSeccion = { titulo: string; texto: string; lineaTiempo: string };
 
 const VACIA: DatosSeccion = { titulo: "", texto: "", lineaTiempo: "" };
 
-function EditarAcerca() {
+function seccionDe(contenido?: Contenido): SeccionAcerca {
+    const valor = datoTexto(contenido?.datos, "seccion");
+    return SECCIONES_ACERCA.find((s) => s.valor === valor)?.valor ?? "historia";
+}
+
+function EditarAcerca({ inicial }: { inicial?: Contenido }) {
     const [confirmando, setConfirmando] = useState(false);
-    const navegar = useNavigate();
-    const [seccion, setSeccion] = useState<SeccionAcerca>("historia");
-    // TODO: traer del backend el texto publicado de cada sección
-    const [datos, setDatos] = useState<Record<SeccionAcerca, DatosSeccion>>({
-        historia: VACIA, mision: VACIA, solon: VACIA, rol: VACIA,
+    const [seccion, setSeccion] = useState<SeccionAcerca>(seccionDe(inicial));
+    const [datos, setDatos] = useState<Record<SeccionAcerca, DatosSeccion>>(() => {
+        const vacias = { historia: VACIA, mision: VACIA, solon: VACIA, rol: VACIA };
+        if (!inicial) return vacias;
+        return {
+            ...vacias,
+            [seccionDe(inicial)]: { titulo: inicial.titulo, texto: inicial.cuerpo, lineaTiempo: datoTexto(inicial.datos, "lineaTiempo") },
+        };
     });
+    // Cada sección lleva su propio folio
+    const borrador = useBorrador("acerca", inicial, seccion);
     const [busqueda, setBusqueda] = useState("");
     const [enlaceInicio, setEnlaceInicio] = useState(true);
 
@@ -28,6 +41,16 @@ function EditarAcerca() {
     const valores = datos[seccion];
     const cambiar = (campo: keyof DatosSeccion, valor: string) =>
         setDatos((anterior) => ({ ...anterior, [seccion]: { ...anterior[seccion], [campo]: valor } }));
+
+    const cambios = () => ({
+        titulo: valores.titulo,
+        cuerpo: valores.texto,
+        datos: actual.lineaTiempo ? { seccion, lineaTiempo: valores.lineaTiempo } : { seccion },
+    });
+    const enviar = (nota: string) => {
+        setConfirmando(false);
+        borrador.enviar(cambios(), nota, { tipo: `Acerca de · ${actual.nombre}`, queSeEnvia: "la sección", titulo: valores.titulo || actual.titulo });
+    };
 
     const termino = busqueda.trim().toLowerCase();
     const coincidencias = termino ? valores.texto.toLowerCase().split(termino).length - 1 : 0;
@@ -42,7 +65,7 @@ function EditarAcerca() {
                         <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
                         Volver a Mis contenidos
                     </Link>
-                    <p className="contenidos-etiqueta">Contenidos · Editor · Acerca de</p>
+                    <p className="contenidos-etiqueta">Contenidos · Editor · Acerca de{borrador.folio ? ` · ${borrador.folio}` : ""}</p>
                     <h1>Editar «Acerca de la biblioteca»</h1>
                     <p className="contenidos-encabezado__texto">Elige la sección que vas a modificar. Cada sección se autoriza por separado.</p>
                 </div>
@@ -71,6 +94,8 @@ function EditarAcerca() {
                                         role="tab"
                                         aria-selected={seccion === s.valor}
                                         className={`contenidos-filtro${seccion === s.valor ? " contenidos-filtro--activo" : ""}`}
+                                        // Al abrir un borrador solo se edita su sección
+                                        disabled={Boolean(inicial) && s.valor !== seccion}
                                         onClick={() => setSeccion(s.valor)}
                                     >
                                         {s.nombre}
@@ -121,7 +146,13 @@ function EditarAcerca() {
                         </div>
                     </section>
 
-                    <PanelEstado id="acerca-estado" detalle="Cambios sin enviar" />
+                    <PanelEstado
+                        id="acerca-estado"
+                        detalle={borrador.folio ? borrador.detalle : "Cambios sin enviar"}
+                        ocupado={borrador.ocupado}
+                        error={borrador.error}
+                        alGuardar={() => borrador.guardarBorrador(cambios())}
+                    />
                 </aside>
             </form>
             <ConfirmarEnvio
@@ -130,8 +161,8 @@ function EditarAcerca() {
                 queSeEnvia="la sección"
                 titulo={valores.titulo || actual.titulo}
                 alCerrar={() => setConfirmando(false)}
-                // TODO: guardar en el backend como por_autorizar (con la nota) antes de navegar
-                alConfirmar={() => navegar("/admin/contenidos/editor/enviado", { state: { tipo: `Acerca de · ${actual.nombre}`, queSeEnvia: "la sección", titulo: valores.titulo || actual.titulo, enviadoEn: new Date().toISOString() } })}
+                folio={borrador.folio ?? undefined}
+                alConfirmar={enviar}
             />
         </PanelLayout>
     );
