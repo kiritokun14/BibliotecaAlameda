@@ -9,33 +9,39 @@ import noticia3 from "../../assets/inicio/noticia-3.jpg";
 import noticia4 from "../../assets/inicio/noticia-4.jpg";
 
 // ---------- Lecturas ----------
-// "estilo" decide el dibujo de la portada (ver PortadaLibro en Lecturas.tsx)
+// Lo que el backend debe mandar por cada libro de "Para leer esta semana".
+// Si un libro trae "portadaUrl" se muestra la foto real de la portada;
+// si no, se dibuja una portada ilustrada según "estilo".
 export type EstiloPortada = "narrativa" | "historia" | "poesia" | "consulta" | "ensayo";
-export type EstadoLibro = "disponible" | "prestamo" | "sala";
 
 export type Libro = {
+    id: string; // TODO backend: identificador del libro o reseña (se usa en /lecturas/:id)
     titulo: string;
     autoria: string;
     genero: string;
     estilo: EstiloPortada;
-    estado: EstadoLibro;
+    portadaUrl?: string; // TODO backend: dirección de la imagen de la portada
+
+    // La disponibilidad real se consulta en Koha; aquí solo se marca lo que no sale de la sala
+    soloEnSala?: boolean;
 };
 
 export const libros: Libro[] = [
-    { titulo: "Cuentos de la Alameda", autoria: "Autoría de ejemplo", genero: "NARRATIVA", estilo: "narrativa", estado: "disponible" },
-    { titulo: "Historia breve de Nayarit", autoria: "Autoría de ejemplo", genero: "HISTORIA REGIONAL", estilo: "historia", estado: "disponible" },
-    { titulo: "Poemas para el camino", autoria: "Autoría de ejemplo", genero: "POESÍA", estilo: "poesia", estado: "prestamo" },
-    { titulo: "Guía de la hemeroteca", autoria: "Autoría de ejemplo", genero: "CONSULTA", estilo: "consulta", estado: "sala" },
-    { titulo: "Memorias de un lector", autoria: "Autoría de ejemplo", genero: "ENSAYO", estilo: "ensayo", estado: "disponible" },
-    { titulo: "Mitos del Nayar", autoria: "Autoría de ejemplo", genero: "NARRATIVA", estilo: "narrativa", estado: "disponible" },
-    { titulo: "Versos de la Alameda", autoria: "Autoría de ejemplo", genero: "POESÍA", estilo: "poesia", estado: "prestamo" },
-    { titulo: "Cartas a un lector", autoria: "Autoría de ejemplo", genero: "ENSAYO", estilo: "ensayo", estado: "disponible" },
+    { id: "lectura-1", titulo: "Cuentos de la Alameda", autoria: "Autoría de ejemplo", genero: "NARRATIVA", estilo: "narrativa" },
+    { id: "lectura-2", titulo: "Historia breve de Nayarit", autoria: "Autoría de ejemplo", genero: "HISTORIA REGIONAL", estilo: "historia" },
+    { id: "lectura-3", titulo: "Poemas para el camino", autoria: "Autoría de ejemplo", genero: "POESÍA", estilo: "poesia" },
+    { id: "lectura-4", titulo: "Guía de la hemeroteca", autoria: "Autoría de ejemplo", genero: "CONSULTA", estilo: "consulta", soloEnSala: true },
+    { id: "lectura-5", titulo: "Memorias de un lector", autoria: "Autoría de ejemplo", genero: "ENSAYO", estilo: "ensayo" },
+    { id: "lectura-6", titulo: "Mitos del Nayar", autoria: "Autoría de ejemplo", genero: "NARRATIVA", estilo: "narrativa" },
+    { id: "lectura-7", titulo: "Versos de la Alameda", autoria: "Autoría de ejemplo", genero: "POESÍA", estilo: "poesia" },
+    { id: "lectura-8", titulo: "Cartas a un lector", autoria: "Autoría de ejemplo", genero: "ENSAYO", estilo: "ensayo" },
 ];
 
 // ---------- Actividades ----------
 export type TipoActividad = "Taller" | "Actividad" | "Agenda cultural";
 
 export type Actividad = {
+    id: string; // TODO backend: identificador de la actividad (se usa en /eventos/:id)
     tipo: TipoActividad;
     titulo: string;
     fecha: string;
@@ -45,12 +51,12 @@ export type Actividad = {
 };
 
 export const actividades: Actividad[] = [
-    { tipo: "Taller", titulo: "Taller de escritura creativa", fecha: "Sáb 8 nov", horario: "10:00 a 12:00 h", publico: "Jóvenes y adultos", imagen: actividad1 },
-    { tipo: "Actividad", titulo: "Noche de cuentos en la Alameda", fecha: "Vie 14 nov", horario: "18:00 a 19:30 h", publico: "Familias", imagen: actividad2 },
-    { tipo: "Agenda cultural", titulo: "Presentación de libro y charla con autores", fecha: "Sáb 22 nov", horario: "17:00 a 19:00 h", publico: "Público general", imagen: actividad3 },
-    { tipo: "Taller", titulo: "Taller de dibujo y acuarela", fecha: "Sáb 15 nov", horario: "10:00 a 12:00 h", publico: "Todo público", imagen: actividad2 },
-    { tipo: "Actividad", titulo: "Cine club en la biblioteca", fecha: "Vie 21 nov", horario: "18:00 a 20:00 h", publico: "Jóvenes y adultos", imagen: actividad3 },
-    { tipo: "Agenda cultural", titulo: "Lectura en voz alta para niños", fecha: "Sáb 29 nov", horario: "11:00 a 12:00 h", publico: "Infancias", imagen: actividad1 },
+    { id: "actividad-1", tipo: "Taller", titulo: "Taller de escritura creativa", fecha: "Sáb 8 nov", horario: "10:00 a 12:00 h", publico: "Jóvenes y adultos", imagen: actividad1 },
+    { id: "actividad-2", tipo: "Actividad", titulo: "Noche de cuentos en la Alameda", fecha: "Vie 14 nov", horario: "18:00 a 19:30 h", publico: "Familias", imagen: actividad2 },
+    { id: "actividad-3", tipo: "Agenda cultural", titulo: "Presentación de libro y charla con autores", fecha: "Sáb 22 nov", horario: "17:00 a 19:00 h", publico: "Público general", imagen: actividad3 },
+    { id: "actividad-4", tipo: "Taller", titulo: "Taller de dibujo y acuarela", fecha: "Sáb 15 nov", horario: "10:00 a 12:00 h", publico: "Todo público", imagen: actividad2 },
+    { id: "actividad-5", tipo: "Actividad", titulo: "Cine club en la biblioteca", fecha: "Vie 21 nov", horario: "18:00 a 20:00 h", publico: "Jóvenes y adultos", imagen: actividad3 },
+    { id: "actividad-6", tipo: "Agenda cultural", titulo: "Lectura en voz alta para niños", fecha: "Sáb 29 nov", horario: "11:00 a 12:00 h", publico: "Infancias", imagen: actividad1 },
 ];
 
 // ---------- Noticias ----------

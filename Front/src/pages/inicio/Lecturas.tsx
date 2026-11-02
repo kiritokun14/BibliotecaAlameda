@@ -1,7 +1,8 @@
 import { Bloque, EncabezadoSeccion } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
 import { useCarrusel } from "./useCarrusel";
-import { libros, type EstadoLibro, type Libro } from "./datos";
+import { Link } from "react-router";
+import { libros, type Libro } from "./datos";
 import circulo1 from "../../assets/inicio/lecturas-circulo-1.svg";
 import circulo2 from "../../assets/inicio/lecturas-circulo-2.svg";
 import textura from "../../assets/inicio/lecturas-textura.svg";
@@ -21,15 +22,9 @@ import formaEnsayo3 from "../../assets/inicio/forma-ensayo-3.svg";
 import formaEnsayo4 from "../../assets/inicio/forma-ensayo-4.svg";
 import formaEnsayo5 from "../../assets/inicio/forma-ensayo-5.svg";
 import formaEnsayo6 from "../../assets/inicio/forma-ensayo-6.svg";
-import estadoDisponible from "../../assets/inicio/estado-disponible.svg";
-import estadoPrestamo from "../../assets/inicio/estado-prestamo.svg";
-import estadoSala from "../../assets/inicio/estado-sala.svg";
-
-const estados: Record<EstadoLibro, { texto: string; icono: string }> = {
-    disponible: { texto: "Disponible", icono: estadoDisponible },
-    prestamo: { texto: "En préstamo", icono: estadoPrestamo },
-    sala: { texto: "Solo en sala", icono: estadoSala },
-};
+import iconoSala from "../../assets/inicio/estado-consulta-sala.svg";
+import iconoInfo from "../../assets/inicio/lecturas-info.svg";
+import flechaVerde from "../../assets/inicio/lecturas-flecha-verde.svg";
 
 // El dibujo del centro de cada portada cambia según el género
 function Ilustracion({ estilo }: { estilo: Libro["estilo"] }) {
@@ -96,6 +91,16 @@ function Ilustracion({ estilo }: { estilo: Libro["estilo"] }) {
 }
 
 function PortadaLibro({ libro }: { libro: Libro }) {
+    // Foto real (cuando el backend la mande)
+    if (libro.portadaUrl) {
+        return (
+            <div className="portada-libro portada-libro--foto">
+                <img src={libro.portadaUrl} alt={`Portada de ${libro.titulo}`} />
+            </div>
+        );
+    }
+
+    // Portada ilustrada mientras no haya foto
     return (
         <div className={`portada-libro portada-libro--${libro.estilo}`} aria-hidden="true">
             <Ilustracion estilo={libro.estilo} />
@@ -116,7 +121,7 @@ function Lecturas() {
         <section className="seccion-inicio seccion-inicio--verde-claro">
             <Bloque tema="verde" circulos={[circulo1, circulo2]} textura={{ src: textura, ancho: 420, alto: 200 }}>
                 <EncabezadoSeccion
-                    etiqueta="Lecturas"
+                    etiqueta="Lecturas y reseñas"
                     iconoEtiqueta={iconoLibro}
                     titulo={<>Para leer <span>esta semana</span></>}
                     boton={{ texto: "Ver todas las lecturas", ruta: "/lecturas", icono: flechaBlanca }}
@@ -126,14 +131,22 @@ function Lecturas() {
                     <Flecha lado="anterior" icono={anterior} alPresionar={irAnterior} />
                     <div className="carrusel__pista" ref={refPista} onScroll={alDesplazar}>
                         {libros.map((libro) => (
-                            <article key={libro.titulo} className="libro">
+                            <article key={libro.id} className="libro">
                                 <PortadaLibro libro={libro} />
-                                <h3>{libro.titulo}</h3>
+                                <h3>
+                                    {/* El enlace cubre todo el libro (ver .libro__enlace::after).
+                                        TODO: crear la página /lecturas/:id con la reseña */}
+                                    <Link to={`/lecturas/${libro.id}`} className="libro__enlace">
+                                        {libro.titulo}
+                                    </Link>
+                                </h3>
                                 <p>{libro.autoria}</p>
-                                <span className={`estado-libro estado-libro--${libro.estado}`}>
-                                    <img src={estados[libro.estado].icono} alt="" />
-                                    {estados[libro.estado].texto}
-                                </span>
+                                {libro.soloEnSala && (
+                                    <span className="estado-libro">
+                                        <img src={iconoSala} alt="" />
+                                        Consulta en sala
+                                    </span>
+                                )}
                             </article>
                         ))}
                     </div>
@@ -142,6 +155,16 @@ function Lecturas() {
 
                 <Puntos total={totalPaginas} activo={pagina} alElegir={irAPagina} />
                 <div className="repisa" />
+
+                {/* El portal no muestra disponibilidad: eso vive en Koha (HU-04) */}
+                <div className="aviso-catalogo">
+                    <img src={iconoInfo} alt="" />
+                    <p>La disponibilidad de cada libro se consulta en el catálogo de la biblioteca.</p>
+                    <Link to="/catalogo" className="boton-contorno-verde">
+                        Ver en el catálogo
+                        <img src={flechaVerde} alt="" />
+                    </Link>
+                </div>
             </Bloque>
         </section>
     );

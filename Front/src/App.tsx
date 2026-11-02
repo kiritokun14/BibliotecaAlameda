@@ -1,6 +1,8 @@
 import RetornoAuth from "./pages/RetornoAuth";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import Inicio from "./pages/inicio/Inicio.tsx";
+import Catalogo from "./pages/catalogo/Catalogo.tsx";
+import Acerca from "./pages/acerca/Acerca.tsx";
 import Login from "./pages/Login.tsx";
 import CuentaDeshabilitada from "./pages/CuentaDeshabilitada.tsx";
 import SesionIniciada from "./pages/SesionIniciada.tsx";
@@ -31,6 +33,11 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Inicio />} />
+        {/* Páginas públicas: sin AccesoPanel, cualquiera las ve sin cuenta */}
+        <Route path="/catalogo" element={<Catalogo />} />
+        {/* /acerca abre Historia; cada pestaña tiene su dirección */}
+        <Route path="/acerca" element={<Acerca />} />
+        <Route path="/acerca/:seccion" element={<Acerca />} />
 
         <Route path="/personal/alta-asistida" element={<AltaAsistida />} />
         <Route path="/auth/retorno" element={<RetornoAuth />} />

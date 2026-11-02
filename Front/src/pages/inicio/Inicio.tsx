@@ -1,9 +1,5 @@
 import { useState } from "react";
-import "./Inicio.css";
-import "../Acceso.css"; // estilos de la franja y el pie
-import { FranjaInstitucional, PieInstitucional } from "../../components/Institucional";
-import Navegacion from "../../components/Navegacion";
-import BotonAsistente from "../../components/BotonAsistente";
+import PaginaPublica from "../../components/PaginaPublica";
 import Portada from "./Portada";
 import Accesos from "./Accesos";
 import Lecturas from "./Lecturas";
@@ -11,30 +7,24 @@ import Cifras from "./Cifras";
 import Actividades from "./Actividades";
 import Noticias from "./Noticias";
 import LlamadoCuenta from "./LlamadoCuenta";
-import Acerca from "./Acerca";
 import Contacto from "./Contacto";
 
 // Página de inicio: cada sección vive en su propio archivo de esta carpeta
 function Inicio() {
+    // null = todavía no se sabe (no se muestra nada para que no "parpadee" a quien ya inició sesión);
+    // false = visitante → se muestra "Crea tu cuenta"; true = con sesión → se oculta.
     const [sesionActiva, setSesionActiva] = useState<boolean | null>(null);
     return (
-        <div className="pagina-inicio">
-            <FranjaInstitucional />
-            <Navegacion alCambiarSesion={setSesionActiva} />
-            <main>
-                <Portada />
-                <Accesos />
-                <Lecturas />
-                <Cifras />
-                <Actividades />
-                <Noticias />
-                {sesionActiva === false && <LlamadoCuenta />}
-                <Acerca />
-                <Contacto />
-            </main>
-            <PieInstitucional />
-            <BotonAsistente />
-        </div>
+        <PaginaPublica alCambiarSesion={setSesionActiva}>
+            <Portada />
+            <Accesos />
+            <Lecturas />
+            <Cifras />
+            <Actividades />
+            <Noticias />
+            {sesionActiva === false && <LlamadoCuenta />}
+            <Contacto />
+        </PaginaPublica>
     );
 }
 

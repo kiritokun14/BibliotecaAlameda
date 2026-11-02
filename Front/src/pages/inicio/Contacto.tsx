@@ -9,13 +9,7 @@ import iconoReloj from "../../assets/inicio/contacto-reloj.svg";
 import iconoTelefono from "../../assets/inicio/contacto-telefono.svg";
 import iconoCorreo from "../../assets/inicio/contacto-correo.svg";
 import flecha from "../../assets/inicio/contacto-flecha.svg";
-import parque from "../../assets/inicio/mapa-parque.svg";
-import arbol from "../../assets/inicio/mapa-arbol.svg";
-import iconoBiblioteca from "../../assets/inicio/mapa-biblioteca.svg";
-import puntoAbierto from "../../assets/inicio/mapa-abierto.svg";
-import iconoNavegar from "../../assets/inicio/mapa-navegar.svg";
-import iconoAcercar from "../../assets/inicio/mapa-acercar.svg";
-import iconoAlejar from "../../assets/inicio/mapa-alejar.svg";
+import iconoNavegar from "../../assets/inicio/mapa-google.svg";
 
 const datosContacto = [
     { titulo: "Dirección", texto: "Av. Allende s/n esq. Oaxaca, Parque Alameda, Tepic", icono: iconoPin },
@@ -24,52 +18,28 @@ const datosContacto = [
     { titulo: "Correo", texto: "Por confirmar", icono: iconoCorreo },
 ];
 
-// Posiciones del dibujo del mapa (en px, sobre un mapa de 732 × 556)
-const manzanas = [
-    [16, 19, 176, 132], [216, 19, 146, 132], [382, 19, 161, 132], [564, 19, 143, 132],
-    [16, 180, 176, 146], [564, 180, 143, 146],
-    [16, 362, 176, 161], [216, 362, 146, 161], [382, 362, 161, 161], [564, 362, 143, 161],
-];
-const arboles = [[245, 230], [318, 201], [421, 216], [479, 289], [274, 347], [377, 362], [450, 391]];
+// Mapa real de Google Maps. El modo "embed" con ?q= no necesita clave de API.
+// Si la biblioteca nos da otra dirección o el nombre exacto en Google, solo se cambia BUSQUEDA_MAPA.
+const BUSQUEDA_MAPA = "Biblioteca Pública Central Estatal Solón Argüello, Av. Allende, Tepic, Nayarit";
+const mapaIncrustado = `https://www.google.com/maps?q=${encodeURIComponent(BUSQUEDA_MAPA)}&z=17&output=embed`;
+// Enlace corto que viene en el diseño de Figma (abre la ficha en Google Maps)
+const abrirEnGoogleMaps = "https://maps.app.goo.gl/3kJpfUj9dDBsZZNz9";
 
-const comoLlegar = "https://www.google.com/maps/search/?api=1&query=Biblioteca+Sol%C3%B3n+Arg%C3%BCello+Tepic";
-
-function MapaIlustrativo() {
+function MapaGoogle() {
     return (
-        <div className="mapa" role="img" aria-label="Mapa ilustrativo: la biblioteca está frente al Parque Alameda, en Av. Allende y Calle Oaxaca">
-            {manzanas.map(([left, top, width, height]) => (
-                <span key={`${left}-${top}`} className="mapa__manzana" style={{ left, top, width, height }} />
-            ))}
-            <img className="mapa__parque" src={parque} alt="" />
-            {arboles.map(([left, top]) => (
-                <img key={`${left}-${top}`} className="mapa__arbol" src={arbol} alt="" style={{ left, top }} />
-            ))}
-            <span className="mapa__calle mapa__calle--h" style={{ top: 154 }} />
-            <span className="mapa__calle mapa__calle--h" style={{ top: 336 }} />
-            <span className="mapa__calle mapa__calle--v" style={{ left: 195, width: 20 }} />
-            <span className="mapa__calle mapa__calle--v" style={{ left: 365, width: 18 }} />
-            <span className="mapa__calle mapa__calle--v" style={{ left: 544, width: 20 }} />
-            <span className="mapa__calle mapa__calle--diagonal" />
-
-            <span className="mapa__texto" style={{ left: 25, top: 119 }}>Av. Allende</span>
-            <span className="mapa__texto" style={{ left: 570, top: 298 }}>Calle Oaxaca</span>
-            <span className="mapa__texto mapa__texto--parque" style={{ left: 283, top: 298 }}>Parque Alameda</span>
-
-            <span className="mapa__marcador">
-                <img src={iconoBiblioteca} alt="" />
-            </span>
-            <span className="mapa__nombre">Biblioteca Solón Argüello</span>
-
-            <span className="mapa__abierto">
-                <img src={puntoAbierto} alt="" />
-                <strong>Abierto ahora</strong> · cierra a las 19:30 h
-            </span>
-            <span className="mapa__zoom" style={{ top: 12 }}><img src={iconoAcercar} alt="" /></span>
-            <span className="mapa__zoom" style={{ top: 56 }}><img src={iconoAlejar} alt="" /></span>
-            <span className="etiqueta-ilustrativa mapa__ilustrativo">Mapa ilustrativo</span>
-            <a className="mapa__como-llegar" href={comoLlegar} target="_blank" rel="noreferrer">
+        <div className="mapa">
+            <iframe
+                className="mapa__iframe"
+                src={mapaIncrustado}
+                title="Mapa de Google con la ubicación de la Biblioteca Solón Argüello"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+            />
+            <a className="mapa__abrir" href={abrirEnGoogleMaps} target="_blank" rel="noopener noreferrer">
                 <img src={iconoNavegar} alt="" />
-                Cómo llegar
+                Abrir en Google Maps
+                <span className="solo-lectores">(se abre en una pestaña nueva)</span>
             </a>
         </div>
     );
@@ -105,7 +75,7 @@ function Contacto() {
                     </Link>
                 </div>
 
-                <MapaIlustrativo />
+                <MapaGoogle />
             </Bloque>
         </section>
     );

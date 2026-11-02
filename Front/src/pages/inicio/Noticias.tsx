@@ -42,7 +42,15 @@ function Noticias() {
                 <div className="noticias">
                     <article className="noticia-destacada">
                         <div className="noticia-destacada__imagen">
-                            <img src={destacada.imagen} alt="" />
+                            {/* Todas las fotos están encimadas; solo la activa se ve (cambio con desvanecido) */}
+                            {noticias.map((noticia, i) => (
+                                <img
+                                    key={noticia.titulo}
+                                    src={noticia.imagen}
+                                    alt=""
+                                    className={i === activa ? "noticia-destacada__foto noticia-destacada__foto--activa" : "noticia-destacada__foto"}
+                                />
+                            ))}
                             <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
                             {/* El % hace que al llegar al final vuelva a empezar */}
                             <Flecha lado="anterior" icono={anterior} alPresionar={() => setActiva((activa - 1 + total) % total)} />
@@ -51,7 +59,8 @@ function Noticias() {
                                 <Puntos total={total} activo={activa} alElegir={setActiva} />
                             </div>
                         </div>
-                        <div className="noticia-destacada__contenido">
+                        {/* key={activa}: React vuelve a dibujar el texto y se repite la animación de entrada */}
+                        <div key={activa} className="noticia-destacada__contenido">
                             <p className="noticia-destacada__meta">
                                 <span className="pastilla-destacada">Destacada</span>
                                 {destacada.categoria} · {destacada.fecha}
@@ -83,6 +92,7 @@ function Noticias() {
                                             {noticia.categoria}
                                         </Etiqueta>
                                         {noticia.fecha}
+                                        <span className="noticia-mini__viendo" aria-hidden={i !== activa}>Viendo</span>
                                     </span>
                                     <span className="noticia-mini__titulo">{noticia.titulo}</span>
                                 </button>

@@ -44,11 +44,13 @@ export function EncabezadoSeccion({
     etiqueta,
     iconoEtiqueta,
     titulo,
+    texto,
     boton,
 }: {
     etiqueta: string;
     iconoEtiqueta?: string;
     titulo: ReactNode;
+    texto?: string; // subtítulo opcional debajo del título
     boton?: { texto: string; ruta: string; icono: string };
 }) {
     return (
@@ -56,6 +58,7 @@ export function EncabezadoSeccion({
             <div className="encabezado-seccion__titular">
                 <Etiqueta icono={iconoEtiqueta}>{etiqueta}</Etiqueta>
                 <h2 className="titulo-seccion">{titulo}</h2>
+                {texto && <p className="texto-seccion encabezado-seccion__texto">{texto}</p>}
             </div>
             {boton && (
                 <Link to={boton.ruta} className="boton-contorno boton-contorno--chico">

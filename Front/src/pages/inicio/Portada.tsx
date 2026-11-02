@@ -1,19 +1,28 @@
+import { Link } from "react-router";
 import foto from "../../assets/inicio/portada-foto.jpg";
 import circulo1 from "../../assets/inicio/portada-circulo-1.svg";
 import circulo2 from "../../assets/inicio/portada-circulo-2.svg";
 import rama from "../../assets/inicio/portada-rama.svg";
 import indicador from "../../assets/inicio/portada-indicador.svg";
-import punto from "../../assets/inicio/portada-punto.svg";
 import flecha from "../../assets/inicio/portada-flecha.svg";
+import flechaBlanca from "../../assets/inicio/portada-flecha-blanca.svg";
+import iconoUsuarios from "../../assets/inicio/somos-usuarios.svg";
+import iconoAcervo from "../../assets/inicio/somos-libro.svg";
+import iconoAgenda from "../../assets/inicio/somos-calendario.svg";
 import brillo from "../../assets/inicio/portada-brillo.svg";
 import iconoLibro from "../../assets/inicio/portada-libro.svg";
 import iconoCalendario from "../../assets/inicio/portada-calendario.svg";
 import iconoReloj from "../../assets/inicio/portada-reloj.svg";
 import iconoCredencial from "../../assets/inicio/portada-credencial.svg";
 
-const beneficios = ["Catálogo en línea", "Credencial digital", "Talleres y eventos"];
+// Qué tipo de biblioteca somos (textos de ejemplo; la biblioteca los confirmará)
+const perfiles = [
+    { titulo: "Comunitaria", texto: "Abierta a todas las personas de Tepic y su región.", icono: iconoUsuarios },
+    { titulo: "Académica", texto: "Acervo y consulta para estudiar e investigar.", icono: iconoAcervo },
+    { titulo: "Cultural", texto: "Talleres, lecturas y actividades para todas las edades.", icono: iconoAgenda },
+];
 
-// Primera sección verde: texto de bienvenida y la foto en forma de arco con tarjetas encima
+// Primera sección verde: quiénes somos y la foto en forma de arco con tarjetas encima
 function Portada() {
     return (
         <section className="portada">
@@ -27,25 +36,35 @@ function Portada() {
                     Acervo abierto · Parque Alameda, Tepic
                 </span>
                 <h1 className="portada__titulo">
-                    Descubre qué <span>leer, aprender y hacer</span> en tu biblioteca.
+                    Biblioteca <span>Solón Argüello</span>
                 </h1>
                 <p className="portada__descripcion">
-                    Más de 45,000 volúmenes, hemeroteca regional y actividades para toda la comunidad, a unos
-                    pasos de ti.
+                    Somos la Biblioteca Pública Central Estatal de Nayarit: un espacio abierto para leer, aprender y
+                    encontrarnos.
                 </p>
-                <ul className="portada__beneficios">
-                    {beneficios.map((beneficio) => (
-                        <li key={beneficio}>
-                            <img src={punto} alt="" />
-                            {beneficio}
+                <ul className="portada__perfiles">
+                    {perfiles.map((perfil) => (
+                        <li key={perfil.titulo}>
+                            <span className="portada__perfil-icono">
+                                <img src={perfil.icono} alt="" />
+                            </span>
+                            <strong>{perfil.titulo}</strong>
+                            <p>{perfil.texto}</p>
                         </li>
                     ))}
                 </ul>
-                {/* TODO: poner la dirección real del catálogo Koha */}
-                <a href="#" className="boton-blanco">
-                    Explora el catálogo Koha
-                    <img src={flecha} alt="" />
-                </a>
+                <p className="portada__nota">Textos de ejemplo; la biblioteca los confirmará.</p>
+                <div className="portada__acciones">
+                    {/* HU-04: inicio → /catalogo → Koha (2 clics) */}
+                    <Link to="/catalogo" className="boton-blanco">
+                        Explora el catálogo Koha
+                        <img src={flecha} alt="" />
+                    </Link>
+                    <Link to="/acerca" className="boton-contorno boton-contorno--alto">
+                        Acerca de la biblioteca
+                        <img src={flechaBlanca} alt="" />
+                    </Link>
+                </div>
             </div>
 
             <div className="portada__composicion" aria-hidden="true">
