@@ -23,7 +23,7 @@ Este archivo explica a cualquier persona o agente qué se está haciendo en el f
 cd Front
 npm run dev     # http://localhost:5173 (sin backend también funciona: se ve como visitante)
 npm run lint
-npm test        # vitest, 26 pruebas
+npm test        # vitest, 30 pruebas
 npm run build
 ```
 
@@ -72,6 +72,29 @@ npm run build
 - **Misión y visión, y Rol de la biblioteca:** completas.
 - **Archivos:** `src/pages/acerca/` (`Acerca.tsx`, `piezas.tsx`, una pestaña por archivo, `datos.ts` y `Acerca.css`). Reutiliza `Bloque` y `EncabezadoSeccion` de Inicio. `EncabezadoSeccion` acepta ahora un subtítulo con `texto`.
 
+### Servicios y programas (`/servicios`, `/servicios/:id`) — terminado (HU-01)
+- Lista con grupos «Servicios» y «Programas»; tarjetas clicables (Credencial → `/credencial`, Agenda → `/espacios`, Actividades → `/eventos`, Visitas grupales → `/contacto` por ahora, Bibliocomunidad → `/servicios/bibliocomunidad`).
+- Detalle del Club Alameda (Bibliocomunidad · Próximamente).
+- Estados: cargando, **error al cargar** (con «Intentar de nuevo») y **contenido no disponible**.
+- **CA-01.2 resuelto en el frontend:** `soloPublicados` / `buscarPublicado` en `src/pages/servicios/datos.ts` filtran todo lo que no esté `publicado`. Hay un borrador de ejemplo (`/servicios/prestamo-a-domicilio`) que no aparece en la lista y por URL muestra «Contenido no disponible». Pruebas en `tests/servicios.test.ts`.
+- Para revisar estados sin backend (solo en desarrollo): `/servicios?simular=error` o `?simular=cargando`.
+- `obtenerServicios()` / `obtenerServicio(id)` simulan la API (`TODO backend`): backend debe responder solo contenido publicado y 404 para borradores.
+
+### Páginas de visitante sin cuenta: Eventos, Credencial y Espacios (terminadas)
+- Diseño según las capturas de Aldahir (`EventosSinLogin.png`, `CredencialSinLogin.png`, `EspaciosSinLogin.png`), **no** según toda la agenda de Figma: por ahora solo lo que ve un visitante sin cuenta.
+- Piezas comunes en `src/components/Visitante.tsx` + `.css`: `EncabezadoVisitante` (con «Volver»), `SeccionVisitante`, `AvisoCuenta` (aviso dorado + «Sin cuenta / Con cuenta puedes»), `PasosVisitante` (con pastilla opcional «Tú / Biblioteca») y `LlamadoVisitante`. Los botones llevan a `/iniciar-sesion` y `/crear-cuenta`.
+- **Eventos (`/eventos`, `/eventos/:id`, T-052 versión visitante):** `/eventos/:id` llega desde el carrusel de Inicio y muestra «Esta es la actividad que elegiste» (datos de `pages/inicio/datos.ts`). **`/eventos` sin elegir no muestra ningún evento**: invita a elegir una en Inicio; un id inexistente dice «No encontramos esa actividad». Incluye el apartado informativo «Cómo te inscribes a una actividad». La inscripción real, listados, calendario y filtros quedan para después (con sesión). Login no regresa a la actividad tras iniciar sesión (no existe ese parámetro todavía).
+- **Credencial (`/credencial`):** aviso de cuenta, «¿Qué es y para qué sirve?», «¿Cómo funciona el trámite?» (4 pasos) y «Lo que necesitas y lo que debes saber». Costo y tiempos son de ejemplo.
+- **Espacios (`/espacios`):** aviso de cuenta, «Cómo se solicita un espacio» y «Áreas de la biblioteca» (se pueden / no se solicitan) desde `src/pages/espacios/datos.ts` (`TODO backend`). No confundir con `pages/admin/atencion/espacios/` del panel.
+- Pruebas: `tests/eventos.test.ts`, `tests/espacios.test.ts`.
+
+### Lecturas y reseñas (`/lecturas…`): terminada, vista de visitante
+- Basada en Figma **Actor 2 · Lecturas, reseñas y catálogo** (`476:15774`), sin nada de sesión (no hay acciones de usuario en estas pantallas).
+- Rutas: `/lecturas` (por autor: buscar, filtros de género y orden en la URL `q`, `genero`, `orden`), `/lecturas/temas` (`?tema=`; mezcla reseñas y memoria), `/lecturas/memoria` (`?anio=`), `/lecturas/:id` (reseña) y `/lecturas/memoria/:id` (registro). `?desde=tema` cambia el botón de regreso.
+- Estados: **acceso restringido** (material `privado`), **recurso no disponible** (en revisión, retirado o inexistente) y **sin resultados**. «Catálogo no disponible» ya lo resuelve `/catalogo`; «Buscar en el catálogo» abre Koha si hay `VITE_KOHA_URL`.
+- Datos de ejemplo y reglas en `src/pages/lecturas/datos.ts` (`TODO backend`); pruebas en `tests/lecturas.test.ts`.
+- Ojo: las tarjetas «Para leer esta semana» de Inicio enlazan a `/lecturas/lectura-1…8`, que no existen en estos datos → muestran «Recurso no disponible» hasta que backend unifique los ids.
+
 ## 5. Pendientes por tarjeta del sprint
 
 Todas las tarjetas vencieron el 30 de octubre.
@@ -80,16 +103,16 @@ Todas las tarjetas vencieron el 30 de octubre.
 |---|---|---|
 | **BDLAG-14 · HU-04** Catálogo Koha | ✅ Hecha | Solo poner la dirección real en `.env` cuando la entreguen. |
 | **BDLAG-54 · T-051** Info institucional + Koha | ✅ Casi | Revisión de Aldahir. Opcional: pantalla «Acerca de · error al cargar» (`584:47347`), útil cuando el contenido venga de backend. |
-| **BDLAG-11 · HU-01** Info institucional y servicios | 🟡 Falta | **Página `/servicios`** (Figma `280:888`, Bibliocomunidad `280:1065`, contenido no disponible `280:1183`). CA-01.2: un borrador no debe verse por URL pública; depende de que backend tenga gestión de contenidos. Mientras tanto, prepara el estado «contenido no disponible». |
+| **BDLAG-11 · HU-01** Info institucional y servicios | ✅ Hecha | `/servicios` terminada con sus estados. Falta que backend sirva el contenido real respetando «solo publicado». |
 | **BDLAG-97 · T-053** Formulario de contacto (8 h) | ⬜ Sin empezar | **Página `/contacto`**: formulario, foco, validación, enviando, error, sugerencia, enviando sugerencia y enviado (Figma `283:925`, `283:1103`, `283:1292`, `283:1492`, `283:1669`, `283:1853`, `283:2031`, `283:2208`). Deja una función de servicio con tipos para que backend conecte el envío. |
-| **BDLAG-56 · T-052** Agenda pública (20 h, la más grande) | ⬜ Sin empezar | **`/eventos` y `/eventos/:id`**: lista, todas, calendario, detalle con inscripción, cupo completo, sin resultados, cancelada, cargando, vista de lista, filtros y filtro por fecha (Figma `547:29679` a `547:33519`). Los filtros deben coincidir con la API; confirma con backend qué campos manda. |
+| **BDLAG-56 · T-052** Agenda pública (20 h, la más grande) | 🟡 Parte de visitante hecha | `/eventos` y `/eventos/:id` en versión visitante (ver arriba). Lo que requiere sesión (inscribirse, cupos reales, listados con filtros, calendario; Figma `547:29679` a `547:33519`) queda para cuando Aldahir lo pida. |
 | **BDLAG-22 · HU-12** Autorizar, publicar y retirar contenido | ⬜ Sin empezar | Panel › Contenidos › Revisión y publicación (Figma `560:17410` a `610:48631`): bandeja, por autorizar, pedir cambios, rechazar, confirmar, publicado, historial (`561:19695`) y retirar (`561:20179`). CA-12.1: mostrar al responsable. CA-12.2: sin autorización no se publica. Depende del backend. |
 | **BDLAG-140 · T-048** Prototipos | No es código | Validar el Figma con la biblioteca y adjuntar evidencia. |
 
-**Orden recomendado:** `/servicios` → `/contacto` → `/eventos` → panel HU-12.
+**Orden recomendado:** panel HU-12. (`/contacto` (T-053) y luego `/noticias` los hace otra terminal en paralelo.)
 
 ### Pendientes chicos que ya existen en el código
-- **Rutas que todavía no existen** (hoy te regresan a Inicio): `/lecturas`, `/lecturas/:id`, `/eventos/:id`, `/noticias`, `/credencial`, `/espacios`, `/contacto`, `/servicios` y `/asistente`.
+- **Rutas que todavía no existen** (hoy te regresan a Inicio): `/noticias` (en curso en otra terminal) y `/asistente`.
 - **Redes sociales:** no tienen enlace porque la biblioteca no ha confirmado sus cuentas.
 - **Información del pie:** «Declaración de accesibilidad», «Términos» y «Alerta» son solo texto, sin página.
 - **Admin › Resumen:** quedó en pausa, sin terminar.

@@ -3,6 +3,20 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import Inicio from "./pages/inicio/Inicio.tsx";
 import Catalogo from "./pages/catalogo/Catalogo.tsx";
 import Acerca from "./pages/acerca/Acerca.tsx";
+import Servicios from "./pages/servicios/Servicios.tsx";
+import DetalleServicio from "./pages/servicios/DetalleServicio.tsx";
+import Contacto from "./pages/contacto/Contacto.tsx";
+import Noticias from "./pages/noticias/Noticias.tsx";
+import TodasNoticias from "./pages/noticias/TodasNoticias.tsx";
+import DetalleNoticia from "./pages/noticias/DetalleNoticia.tsx";
+import Eventos from "./pages/eventos/Eventos.tsx";
+import Credencial from "./pages/credencial/Credencial.tsx";
+import EspaciosPublico from "./pages/espacios/Espacios.tsx";
+import Lecturas from "./pages/lecturas/Lecturas.tsx";
+import LecturasTema from "./pages/lecturas/LecturasTema.tsx";
+import MemoriaPublica from "./pages/lecturas/MemoriaPublica.tsx";
+import DetalleResena from "./pages/lecturas/DetalleResena.tsx";
+import DetalleMemoria from "./pages/lecturas/DetalleMemoria.tsx";
 import Login from "./pages/Login.tsx";
 import CuentaDeshabilitada from "./pages/CuentaDeshabilitada.tsx";
 import SesionIniciada from "./pages/SesionIniciada.tsx";
@@ -38,6 +52,23 @@ function App() {
         {/* /acerca abre Historia; cada pestaña tiene su dirección */}
         <Route path="/acerca" element={<Acerca />} />
         <Route path="/acerca/:seccion" element={<Acerca />} />
+        <Route path="/servicios" element={<Servicios />} />
+        <Route path="/servicios/:id" element={<DetalleServicio />} />
+        <Route path="/contacto" element={<Contacto />} />
+        <Route path="/noticias" element={<Noticias />} />
+        <Route path="/noticias/todas" element={<TodasNoticias />} />
+        <Route path="/noticias/:id" element={<DetalleNoticia />} />
+        {/* Eventos (visitante): /eventos/:id viene del carrusel de Inicio; /eventos sin elegir no muestra ninguna */}
+        <Route path="/eventos" element={<Eventos />} />
+        <Route path="/eventos/:id" element={<Eventos />} />
+        <Route path="/credencial" element={<Credencial />} />
+        <Route path="/espacios" element={<EspaciosPublico />} />
+        {/* Lecturas y reseñas (visitante): las rutas fijas ganan a /lecturas/:id */}
+        <Route path="/lecturas" element={<Lecturas />} />
+        <Route path="/lecturas/temas" element={<LecturasTema />} />
+        <Route path="/lecturas/memoria" element={<MemoriaPublica />} />
+        <Route path="/lecturas/memoria/:id" element={<DetalleMemoria />} />
+        <Route path="/lecturas/:id" element={<DetalleResena />} />
 
         <Route path="/personal/alta-asistida" element={<AltaAsistida />} />
         <Route path="/auth/retorno" element={<RetornoAuth />} />
