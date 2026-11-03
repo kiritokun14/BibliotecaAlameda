@@ -1,104 +1,126 @@
 import { Link, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { Chip, EncabezadoPagina, EstadoVacio } from "../componentes";
 import "./Contenidos.css";
-import { NOMBRE_ESTADO, esEditable, fechaLarga, obtenerContenido, useContenidos, type Contenido } from "./datos";
+import { esEditable, fechaLarga, NOMBRE_ESTADO, obtenerContenido, useContenidos, type Contenido } from "./datos";
 import { ESQUEMAS, tituloDe } from "./esquemas";
-import { TONO_ESTADO } from "./tonos";
-import vacioBuscar from "../../../assets/admin/vacio-search.svg";
+import { ChipEstado, Datos, EncabezadoTarjeta, Migas, Pagina, PieDatos, Tarjeta } from "./piezas";
+import { clasesBoton } from "./utiles";
+import { NoEncontrado } from "./EditarContenido";
+import iconoOjo from "../../../assets/admin/contenidos/tarjeta-ojo.svg";
 
-// HU-12 · Así se verá en el portal. Para lo ya enviado o publicado es la vista de consulta.
-function VistaPreviaContenido() {
+// HU-12 · "Así se verá en el portal" (Figma 559:16593 y 610:48688). La usan el Editor y la Revisión.
+function VistaPreviaContenido({ desde = "editor" }: { desde?: "editor" | "revision" }) {
     const { folio } = useParams();
     useContenidos();
     const contenido = obtenerContenido(folio);
-
-    if (!contenido) {
-        return (
-            <PanelLayout titulo="Contenidos">
-                <EstadoVacio icono={vacioBuscar} titulo="No encontramos ese contenido" texto="Puede que el folio no exista." />
-                <Link to="/admin/contenidos/editor" className="boton-panel boton-panel--verde boton-panel--mediano">Volver a Mis contenidos</Link>
-            </PanelLayout>
-        );
-    }
+    const base = `/admin/contenidos/${desde}`;
+    if (!contenido) return <NoEncontrado ruta={base} texto={desde === "editor" ? "Volver a Mis contenidos" : "Volver a Revisión y publicación"} />;
 
     const esquema = ESQUEMAS[contenido.tipo];
-    const editable = esEditable(contenido.estado);
-    const rutaEditar = `/admin/contenidos/editor/${contenido.folio}`;
+    const editable = desde === "editor" && esEditable(contenido.estado);
+    const volver = desde === "revision"
+        ? { texto: "Volver a la revisión", ruta: `${base}/${contenido.folio}` }
+        : editable
+          ? { texto: "Volver a editar", ruta: `${base}/${contenido.folio}` }
+          : { texto: "Volver a Mis contenidos", ruta: base };
 
     return (
         <PanelLayout titulo="Contenidos">
-            <nav className="migas-panel" aria-label="Ruta">
-                <span>Contenidos</span> › <span>Editor de contenidos</span> › <strong>{esquema.nombre}</strong>
-            </nav>
+            <Pagina>
+                <Migas pasos={[["Contenidos"], [desde === "editor" ? "Editor de contenidos" : "Revisión y publicación", base], ["Vista previa"]]} />
 
-            <div className="encabezado-tarjeta">
-                <EncabezadoPagina
-                    volver={editable ? { texto: "Volver a editar", ruta: rutaEditar } : { texto: "Volver a Mis contenidos", ruta: "/admin/contenidos/editor" }}
-                    etiqueta={`VISTA PREVIA · ${esquema.etiqueta} ${contenido.folio}`}
+                <EncabezadoTarjeta
+                    volver={volver}
+                    etiqueta={`Vista previa · ${esquema.etiqueta} ${contenido.folio}`}
                     titulo="Así se verá en el portal"
                     texto={
                         contenido.estado === "publicado"
                             ? "Este contenido ya está publicado en el portal."
                             : contenido.estado === "por-autorizar"
-                              ? "Está en autorización: el Administrador lo revisa y no se puede editar mientras tanto."
+                              ? "Está en autorización: no se puede editar mientras el Administrador lo revisa."
                               : "Revisa el texto y la imagen. Aún no está publicado: nadie más lo ve."
                     }
                 />
-            </div>
 
-            <article className="vista-previa-contenido">
-                <p className="vista-previa-contenido__franja">
-                    VISTA PREVIA · {contenido.estado === "publicado" ? "Publicado" : `${NOMBRE_ESTADO[contenido.estado]} · no publicado`}
-                </p>
-                <ContenidoComoEnPortal contenido={contenido} />
-            </article>
+                <Tarjeta icono={iconoOjo} titulo={esquema.nombre} subtitulo={tituloDe(contenido.tipo, contenido.valores)}>
+                    <p className="cn-franja">
+                        Vista previa · {contenido.estado === "publicado" ? "Publicado" : `${NOMBRE_ESTADO[contenido.estado]} · no publicado`}
+                    </p>
+                    <PreviaContenido contenido={contenido} completa />
+                </Tarjeta>
 
-            <div className="acciones-contenido">
-                {editable ? (
-                    <>
-                        <Link to={rutaEditar} className="boton-panel boton-panel--verde boton-panel--grande">Volver a editar</Link>
-                        <p className="acciones-contenido__nota">Para enviarlo, vuelve a editar y usa «Enviar a autorización».</p>
-                    </>
-                ) : (
-                    <>
-                        <Link to="/admin/contenidos/editor" className="boton-panel boton-panel--verde boton-panel--grande">Volver a Mis contenidos</Link>
-                        <Chip tono={TONO_ESTADO[contenido.estado]}>{NOMBRE_ESTADO[contenido.estado]}</Chip>
-                    </>
-                )}
-            </div>
+                <div className="cn-acciones">
+                    {editable ? (
+                        <>
+                            <Link to={volver.ruta} className={clasesBoton("verde")}>Volver a editar</Link>
+                            <p className="cn-nota">Para enviarlo, vuelve a editar y usa «Enviar a autorización».</p>
+                        </>
+                    ) : (
+                        <>
+                            <Link to={volver.ruta} className={clasesBoton("verde")}>{volver.texto}</Link>
+                            <ChipEstado estado={contenido.estado} />
+                        </>
+                    )}
+                </div>
+
+                <PieDatos />
+            </Pagina>
         </PanelLayout>
     );
 }
 
-// Lo mismo que se verá en la página pública (pastilla, título, fecha, imagen y texto)
-export function ContenidoComoEnPortal({ contenido }: { contenido: Contenido }) {
+// Lo que verá la persona en el portal: imagen, pastilla, título, línea, texto y datos del tipo
+export function PreviaContenido({ contenido, completa }: { contenido: Contenido; completa?: boolean }) {
     const esquema = ESQUEMAS[contenido.tipo];
     const v = contenido.valores;
-    const etiqueta = esquema.campoEtiqueta ? String(v[esquema.campoEtiqueta] ?? "") : "";
+    const s = (nombre: string, otro = "Por confirmar") => String(v[nombre] ?? "").trim() || otro;
     const imagen = esquema.campoImagen ? String(v[esquema.campoImagen] ?? "") : "";
-    const texto = String(v[esquema.campoTexto] ?? "").trim();
     const resumen = esquema.campoResumen ? String(v[esquema.campoResumen] ?? "").trim() : "";
+    const texto = String(v[esquema.campoTexto] ?? "").trim();
+    const cuerpo = completa ? texto || resumen : resumen || texto;
+    const mes = new Date(contenido.actualizado).toLocaleDateString("es-MX", { month: "short", year: "numeric" }).replace(".", "");
 
-    let linea = "Biblioteca Solón Argüello";
-    if (contenido.tipo === "noticia" && v.fecha) linea = `${fechaLarga(String(v.fecha))} · Biblioteca Solón Argüello`;
-    if (contenido.tipo === "resena") linea = `${String(v.autoria || "Autoría por confirmar")} · Reseña del equipo de la biblioteca`;
-    if (contenido.tipo === "memoria") linea = `${String(v.periodo || "Periodo por confirmar")} · ${String(v.fuente || "Fuente por confirmar")}`;
+    const config = {
+        noticia: {
+            marco: "Imagen", pastilla: s("categoria", "Noticia"),
+            linea: `${v.fecha ? fechaLarga(String(v.fecha)) : "Fecha por confirmar"} · Biblioteca Solón Argüello`,
+            datos: [["Categoría", s("categoria")], ["Fecha", v.fecha ? fechaLarga(String(v.fecha)) : "Por confirmar"], ["Texto alternativo", s("alt", "Sin texto alternativo")]],
+        },
+        resena: {
+            marco: "Portada", pastilla: `${s("vista", "Por autor")} · ${s("genero", "Género por confirmar")}`,
+            linea: `Reseña del equipo · ${mes} (ejemplo)`,
+            datos: [["Libro", s("libro")], ["Autoría", s("autoria")], ["Género", s("genero")], ["Firmada por", s("firma")]],
+        },
+        acerca: {
+            marco: "", pastilla: s("seccion", "Acerca de"),
+            linea: "Acerca de la biblioteca · Biblioteca Solón Argüello",
+            datos: [["Sección", s("seccion")], ["Línea del tiempo", s("linea")]],
+        },
+        memoria: {
+            marco: s("tipoPieza", "Pieza"), pastilla: `Memoria pública · ${s("periodoTema", "Tema por confirmar")}`,
+            linea: `${s("fuente", "Fuente por confirmar")} · ${mes} (ejemplo)`,
+            datos: [["Pieza", s("titulo")], ["Fuente", s("fuente")], ["Tipo", s("tipoPieza")], ["Registrada por", s("registradaPor")]],
+        },
+    }[contenido.tipo];
 
     return (
-        <div className="vista-previa-contenido__cuerpo">
-            {etiqueta && <span className="chip chip--verde vista-previa-contenido__etiqueta">{etiqueta}</span>}
-            <h2>{tituloDe(contenido.tipo, v).replace(esquema.prefijoTitulo ?? "", "")}</h2>
-            <p className="vista-previa-contenido__linea">{linea}</p>
-            {esquema.campoImagen && (
-                <div className="vista-previa-contenido__imagen">
-                    {imagen ? `Imagen: ${imagen} (ejemplo)` : "Sin imagen"}
+        <div className="cn-previa">
+            <div className="cn-previa__fila">
+                {config.marco && (
+                    <div className="cn-previa__portada" role="img" aria-label={imagen ? `${config.marco}: ${imagen} (ejemplo)` : `Sin ${config.marco.toLowerCase()}`}>
+                        {imagen ? `${config.marco} · ${imagen}` : config.marco}
+                    </div>
+                )}
+                <div className="cn-previa__textos">
+                    <span className="cn-chip cn-chip--verde"><span className="cn-chip__punto" aria-hidden="true" />{config.pastilla}</span>
+                    <h3>{tituloDe(contenido.tipo, contenido.valores).replace(esquema.prefijoTitulo ?? "", "")}</h3>
+                    <p className="cn-previa__meta">{config.linea}</p>
+                    {cuerpo
+                        ? cuerpo.split(/\n+/).map((p, i) => <p key={i} className="cn-previa__texto">{p}</p>)
+                        : <p className="cn-previa__vacio">Todavía no hay texto.</p>}
                 </div>
-            )}
-            {resumen && <p className="vista-previa-contenido__resumen">{resumen}</p>}
-            {texto
-                ? texto.split(/\n+/).map((p, i) => <p key={i}>{p}</p>)
-                : <p className="vista-previa-contenido__vacio">Todavía no hay texto.</p>}
+            </div>
+            <Datos variante="compacto" filas={config.datos as [string, string][]} />
         </div>
     );
 }

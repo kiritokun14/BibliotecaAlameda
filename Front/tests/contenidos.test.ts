@@ -8,6 +8,12 @@ import {
     filtrarContenidos,
     obtenerContenido,
     reiniciarContenidos,
+    autorizarYPublicar,
+    filtrarRevision,
+    pedirCambios,
+    retirarContenido,
+    filtrarHistorial,
+    soloMios,
 } from '../src/pages/admin/contenidos/datos';
 import { capacidadPanel } from '../src/servicios/accesoPanel';
 
@@ -91,6 +97,41 @@ function obtenerTodos() {
         .map((f) => obtenerContenido(f)!)
         .filter(Boolean);
 }
+
+describe('Revisión y publicación (HU-12)', () => {
+    beforeEach(() => reiniciarContenidos());
+
+    it('CA-12.2: sin referencia de autorización no se publica', () => {
+        expect(() => autorizarYPublicar('CN-0030', '  ')).toThrow();
+        expect(obtenerContenido('CN-0030')?.estado).toBe('por-autorizar');
+        autorizarYPublicar('CN-0030', 'Oficio 12/2026');
+        expect(obtenerContenido('CN-0030')?.estado).toBe('publicado');
+        expect(obtenerContenido('CN-0030')?.publicacion?.version).toBe(1);
+    });
+
+    it('no se publica un borrador', () => {
+        expect(() => autorizarYPublicar('CN-0031', 'Oficio')).toThrow();
+    });
+
+    it('pedir cambios genera observaciones numeradas', () => {
+        pedirCambios('CN-0030', '1. Confirmar imagen\n2. Indicar el área');
+        expect(obtenerContenido('CN-0030')?.observaciones?.puntos).toEqual(['Confirmar imagen', 'Indicar el área']);
+    });
+
+    it('retirar deja el contenido como retirado y fuera del portal', () => {
+        retirarContenido('CN-0024', 'La información cambió');
+        expect(obtenerContenido('CN-0024')?.estado).toBe('retirado');
+        expect(filtrarHistorial(obtenerTodos(), 'retirado', '').map((c) => c.folio)).toEqual(['CN-0024']);
+    });
+
+    it('el Editor solo ve sus contenidos', () => {
+        expect(soloMios(obtenerTodos()).every((c) => !c.autor)).toBe(true);
+    });
+
+    it('la bandeja de revisión no muestra borradores', () => {
+        expect(filtrarRevision(obtenerTodos(), 'todos', '').some((c) => c.estado === 'borrador')).toBe(false);
+    });
+});
 
 describe('Fechas relativas', () => {
     const ahora = new Date(2026, 10, 2, 12, 0);

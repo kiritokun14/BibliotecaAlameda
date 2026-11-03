@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { EncabezadoPagina } from "../componentes";
 import "./Contenidos.css";
 import { crearContenido } from "./datos";
 import { ESQUEMAS, TIPOS, type TipoContenido } from "./esquemas";
-import iconoInfo from "../../../assets/admin/tarjeta-info.svg";
+import { EncabezadoTarjeta, Migas, Pagina, Pasos, PieDatos } from "./piezas";
+import { clasesBoton } from "./utiles";
 
-// HU-12 · Editor: elegir qué tipo de contenido se va a redactar
+// HU-12 · Editor: elegir qué tipo de contenido se va a redactar (Figma 558:16185)
 function NuevoContenido() {
     const navigate = useNavigate();
 
@@ -17,68 +17,52 @@ function NuevoContenido() {
 
     return (
         <PanelLayout titulo="Contenidos">
-            <nav className="migas-panel" aria-label="Ruta">
-                <span>Contenidos</span> › <span>Editor de contenidos</span> › <strong>Elegir tipo</strong>
-            </nav>
+            <Pagina>
+                <Migas pasos={[["Contenidos"], ["Editor de contenidos", "/admin/contenidos/editor"], ["Elegir tipo"]]} />
 
-            <div className="encabezado-tarjeta">
-                <EncabezadoPagina
+                <EncabezadoTarjeta
                     volver={{ texto: "Volver a Mis contenidos", ruta: "/admin/contenidos/editor" }}
-                    etiqueta="CONTENIDOS · EDITOR · NUEVO"
+                    etiqueta="Contenidos · Editor · Nuevo"
                     titulo="¿Qué quieres redactar?"
                     texto="Elige el tipo de contenido. Después podrás guardarlo como borrador o enviarlo a autorización."
                 />
-            </div>
 
-            <ul className="tipos-contenido">
-                {TIPOS.map((tipo) => {
-                    const esquema = ESQUEMAS[tipo];
-                    return (
-                        <li key={tipo} className="tipo-contenido">
-                            <span className="tipo-contenido__letra" aria-hidden="true">{esquema.letra}</span>
-                            <h2>{esquema.nombre}</h2>
-                            <p>{esquema.descripcionTipo}</p>
-                            <button type="button" className="boton-panel boton-panel--verde boton-panel--mediano" onClick={() => elegir(tipo)}>
-                                Elegir →<span className="solo-lectores"> {esquema.nombre}</span>
-                            </button>
-                        </li>
-                    );
-                })}
-            </ul>
+                <ul className="cn-tipos">
+                    {TIPOS.map((tipo) => {
+                        const esquema = ESQUEMAS[tipo];
+                        return (
+                            <li key={tipo} className="cn-tipo">
+                                <span className="cn-tipo__letra" aria-hidden="true">{esquema.letra}</span>
+                                <h2>{esquema.nombre}</h2>
+                                <p>{esquema.descripcionTipo}</p>
+                                <button type="button" className={clasesBoton("verde", "cn-boton--chico")} onClick={() => elegir(tipo)}>
+                                    Elegir →<span className="cn-solo-lectores"> {esquema.nombre}</span>
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ul>
 
-            <section className="como-funciona">
-                <div className="como-funciona__cabecera">
-                    <span className="icono-tarjeta icono-tarjeta--verde"><img src={iconoInfo} alt="" /></span>
-                    <div>
-                        <h2>Cómo funciona</h2>
-                        <p>Todo contenido pasa por autorización.</p>
+                <section className="cn-tarjeta cn-tarjeta--crema" aria-labelledby="cn-como-funciona">
+                    <div className="cn-tarjeta__cabecera">
+                        <span className="cn-mosaico" aria-hidden="true">i</span>
+                        <div>
+                            <h2 id="cn-como-funciona">Cómo funciona</h2>
+                            <p>Todo contenido pasa por autorización.</p>
+                        </div>
                     </div>
-                </div>
-                <PasosContenido
-                    pasos={[
-                        ["Redactas", "Guardas borradores cuantas veces quieras."],
-                        ["Envías a autorización", "El Administrador lo revisa y puede pedir cambios."],
-                        ["Se publica", "Queda en el portal y en la bitácora de cambios."],
-                    ]}
-                />
-            </section>
-        </PanelLayout>
-    );
-}
+                    <Pasos
+                        pasos={[
+                            ["Redactas", "Guardas borradores cuantas veces quieras."],
+                            ["Envías a autorización", "El Administrador lo revisa y puede pedir cambios."],
+                            ["Se publica", "Queda en el portal y en la bitácora de cambios."],
+                        ]}
+                    />
+                </section>
 
-export function PasosContenido({ pasos }: { pasos: [string, string][] }) {
-    return (
-        <ol className="pasos-contenido">
-            {pasos.map(([titulo, texto], i) => (
-                <li key={titulo}>
-                    <span className="pasos-contenido__numero" aria-hidden="true">{i + 1}</span>
-                    <span>
-                        <strong>{titulo}</strong>
-                        <small>{texto}</small>
-                    </span>
-                </li>
-            ))}
-        </ol>
+                <PieDatos />
+            </Pagina>
+        </PanelLayout>
     );
 }
 

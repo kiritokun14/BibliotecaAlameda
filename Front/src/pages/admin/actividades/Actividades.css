@@ -1,0 +1,32 @@
+/* Actividades · lo que no está en Contenidos.css (calendario del mes). Prefijo "ac-". */
+
+.ac-mes { gap: 12px; }
+.ac-mes__dias, .ac-mes__rejilla { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px 6px; }
+.ac-mes__dias span { padding: 0 6px 8px; font-size: 13px; font-weight: 700; color: #4d4d4d; }
+
+.ac-dia {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    min-height: 92px;
+    padding: 8px;
+    box-sizing: border-box;
+    background: #f7f5f0;
+    border: 1px solid #efece6;
+    border-radius: 10px;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.ac-dia:hover { border-color: #164f44; }
+.ac-dia--hueco { background: #f7f5f0; border-color: transparent; cursor: default; opacity: 0.6; }
+.ac-dia--hoy { background: #f6eeda; border-color: #e6d194; }
+.ac-dia__numero { font-size: 13px; color: #161a1d; }
+.ac-dia--hoy .ac-dia__numero { font-weight: 700; }
+
+.ac-evento { display: block; padding: 2px 8px; border-radius: 999px; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ac-evento--verde { background: #e4efeb; color: #164f44; }
+.ac-evento--dorado { background: #f6eeda; color: #8a6414; }
+.ac-evento--guinda { background: #f6eaee; color: #9b2247; }
+.ac-evento--mas { color: #4d4d4d; padding-left: 4px; }

@@ -2,10 +2,17 @@ import { createContext } from 'react';
 import type { AccesoCuenta } from './auth';
 export interface IdentidadPanel { acceso: AccesoCuenta; correo: string }
 export const ContextoPanel = createContext<IdentidadPanel | null>(null);
+// Rutas generales del panel (Resumen, Notificaciones, Perfil): las ve cualquier cuenta con acceso al panel
+export const PANEL_GENERAL = 'panel_general';
+const RUTAS_GENERALES = ['/admin/resumen', '/admin/notificaciones', '/admin/perfil'];
+
 export function capacidadPanel(ruta: string): string | null {
+    if (RUTAS_GENERALES.some(general => ruta.startsWith(general))) return PANEL_GENERAL;
     // Contenidos (HU-12): el Editor prepara; quien autoriza publica
     if (ruta.startsWith('/admin/contenidos/editor')) return 'preparar_contenidos';
     if (ruta.startsWith('/admin/contenidos/revision')) return 'publicar_contenidos';
+    // Actividades: las gestiona quien registra resoluciones de actividades
+    if (ruta.startsWith('/admin/actividades')) return 'registrar_resoluciones_actividades';
     if (ruta.startsWith('/admin/atencion/credenciales')) return 'validar_credenciales';
     if (ruta.startsWith('/admin/atencion/espacios')) return 'registrar_resoluciones_actividades';
     if (ruta.startsWith('/admin/atencion/propuestas'))
@@ -21,6 +28,7 @@ if (PANEL_COMPLETO_DEV) console.warn('[Panel] Modo desarrollo: todas las seccion
 
 export function permisoGlobal(acceso: AccesoCuenta, capacidad: string): boolean {
     if (PANEL_COMPLETO_DEV) return true;
+    if (capacidad === PANEL_GENERAL) return tienePanel(acceso);
     return acceso.roles.some(rol => rol.capacidades.includes(capacidad)) ||
         acceso.permisosAdicionales.some(p => p.capacidad === capacidad && p.ambito === 'global' && !p.actividadId);
 }
@@ -32,8 +40,9 @@ export function nombresRoles(acceso: AccesoCuenta): string {
         responsable_actividades: 'Responsable de actividades', administrador: 'Administrador del portal' };
     return acceso.roles.map(r => nombres[r.rolCodigo] ?? r.rolCodigo).join(', ');
 }
+// /admin abre el Resumen; si la cuenta no tiene panel, la primera sección que sí tenga (o ninguna)
 export function rutaInicialPanel(acceso: AccesoCuenta): string | null {
-    return ['/admin/atencion/credenciales', '/admin/atencion/espacios', '/admin/atencion/propuestas',
+    return ['/admin/resumen', '/admin/atencion/credenciales', '/admin/atencion/espacios', '/admin/atencion/propuestas',
         '/admin/contenidos/editor', '/admin/contenidos/revision']
         .find(ruta => permisoGlobal(acceso, capacidadPanel(ruta)!)) ?? null;
 }

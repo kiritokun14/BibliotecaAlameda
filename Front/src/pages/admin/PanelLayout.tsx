@@ -1,57 +1,83 @@
-import { useContext, type ReactNode } from "react";
-import { ContextoPanel, capacidadPanel, permisoGlobal, nombresRoles } from "../../servicios/accesoPanel";
-import { Link, NavLink, useLocation } from "react-router";
+import { useContext, useState, type ReactNode } from "react";
+import { NavLink, useLocation } from "react-router";
+import { ContextoPanel, PANEL_COMPLETO_DEV, capacidadPanel, nombresRoles, permisoGlobal, type IdentidadPanel } from "../../servicios/accesoPanel";
+import { PiePortal } from "../../components/portal/Portal";
 import "./Panel.css";
-import logoGobierno from "../../assets/comun/logos/logo-gobierno-mexico.png";
+import { RESUMEN, SECCIONES_MENU, type SeccionMenu, type SubitemMenu } from "./menu";
+import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.png";
+import logoNayarit from "../../assets/comun/logos/logo-nayarit-blanco.png";
 import iconoLibro from "../../assets/admin/menu-book.svg";
-import iconoLista from "../../assets/admin/menu-list.svg";
-import iconoArchivo from "../../assets/admin/menu-file.svg";
-import iconoCalendario from "../../assets/admin/menu-calendar.svg";
-import iconoUsuarios from "../../assets/admin/menu-users.svg";
-import iconoCorreo from "../../assets/admin/menu-mail.svg";
-import iconoAjustes from "../../assets/admin/menu-sliders.svg";
 import iconoExpandir from "../../assets/admin/menu-expandir.svg";
 import iconoContraer from "../../assets/admin/menu-contraer.svg";
 import iconoExterno from "../../assets/admin/icono-external.svg";
 import iconoCampana from "../../assets/admin/icono-bell.svg";
 import iconoUsuario from "../../assets/admin/icono-user.svg";
 
-// Secciones del menú que todavía no tienen pantalla (por eso no son enlaces)
-const SECCIONES_PENDIENTES = [
-    { texto: "Actividades", icono: iconoCalendario },
-    { texto: "Participantes", icono: iconoUsuarios },
-];
+// Armazón de todas las pantallas del panel (Figma «Panel de administración · cuenta con acceso total», A-05):
+// franja de gobierno, menú lateral, cabecera blanca, contenido y el pie institucional del portal.
+// Uso: <PanelLayout titulo="Atención">…</PanelLayout>. El menú se arma con menu.ts.
 
-const SUBMENU_CONTENIDOS = [
-    { texto: "Editor de contenidos", ruta: "/admin/contenidos/editor" },
-    { texto: "Revisión y publicación", ruta: "/admin/contenidos/revision" },
-];
+// ---------- Franja guinda de gobierno ----------
+function FranjaGobierno() {
+    return (
+        <div className="panel-gobierno">
+            <div className="panel-gobierno__logos">
+                <img src={logoMexico} alt="Gobierno de México" className="panel-gobierno__logo panel-gobierno__logo--mexico" />
+                <span className="panel-gobierno__separador" />
+                <img src={logoNayarit} alt="Gobierno de Nayarit" className="panel-gobierno__logo panel-gobierno__logo--nayarit" />
+                <span className="panel-gobierno__separador" />
+                {/* Logo de la biblioteca en blanco (se pinta con máscara, igual que en el portal) */}
+                <span className="panel-gobierno__logo-biblioteca" role="img" aria-label="Biblioteca Solón Argüello" />
+            </div>
+            <p className="panel-gobierno__textos">
+                Biblioteca Pública Central Estatal Solón Argüello
+                <span className="panel-gobierno__separador panel-gobierno__separador--texto" />
+                <strong>Panel de administración</strong>
+            </p>
+        </div>
+    );
+}
 
-const SUBMENU_ATENCION = [
-    { texto: "Solicitudes de credencial", ruta: "/admin/atencion/credenciales" },
-    { texto: "Solicitudes de espacios", ruta: "/admin/atencion/espacios" },
-    { texto: "Propuestas de eventos", ruta: "/admin/atencion/propuestas" },
-    { texto: "Contactos y sugerencias" },
-    { texto: "Bibliocomunidad", pronto: true },
-    { texto: "Altas asistidas", ruta: "/personal/alta-asistida" },
-    { texto: "Recuperación asistida" },
-    { texto: "Consulta de cuentas" },
-    { texto: "Avisos" },
-];
+// ---------- Menú lateral ----------
+
+// Un subítem es enlace si su ruta ya existe (tiene capacidad) y la cuenta tiene ese permiso;
+// si la ruta todavía no existe se muestra con «Pronto»; si existe pero no hay permiso, no se muestra.
+function estadoSubitem(subitem: SubitemMenu, identidad: IdentidadPanel | null): "enlace" | "pronto" | "oculto" {
+    const capacidad = subitem.capacidad ?? capacidadPanel(subitem.ruta);
+    if (!capacidad) return "pronto";
+    return identidad && permisoGlobal(identidad.acceso, capacidad) ? "enlace" : "oculto";
+}
+
+// Título de la tarjeta de rol: «acceso total» para quien tiene todo; si no, sus roles
+function textoRol(identidad: IdentidadPanel | null) {
+    const roles = identidad?.acceso.roles.map((r) => r.rolCodigo) ?? [];
+    const total = PANEL_COMPLETO_DEV || ["administrador", "editor", "responsable_actividades"].every((r) => roles.includes(r));
+    if (total) return { titulo: "CUENTA CON ACCESO TOTAL", texto: "Administrador del portal con todas las capacidades" };
+    return { titulo: "PERMISOS DE LA CUENTA", texto: identidad ? nombresRoles(identidad.acceso) : "Personal de la biblioteca" };
+}
 
 function BarraLateral() {
     const identidad = useContext(ContextoPanel);
     const { pathname } = useLocation();
-    const enContenidos = pathname.startsWith("/admin/contenidos");
-    const contenidosPermitidos = SUBMENU_CONTENIDOS.filter(
-        (subitem) => !!identidad && permisoGlobal(identidad.acceso, capacidadPanel(subitem.ruta)!),
-    );
+    const seccionActual = SECCIONES_MENU.find((s) => pathname.startsWith(s.prefijo))?.id;
+    // Abierta: la sección de la página actual; las demás se abren y cierran al presionarlas
+    const [abiertas, setAbiertas] = useState<Set<string>>(() => new Set(seccionActual ? [seccionActual] : []));
+    const rol = textoRol(identidad);
+    const enResumen = pathname.startsWith(RESUMEN.ruta);
+
+    function alternar(id: string) {
+        setAbiertas((previas) => {
+            const nuevas = new Set(previas);
+            if (nuevas.has(id)) nuevas.delete(id);
+            else nuevas.add(id);
+            return nuevas;
+        });
+    }
+
     return (
         <nav className="panel-lateral" aria-label="Menú del panel">
             <div className="panel-marca">
-                <span className="panel-marca__sello">
-                    <img src={iconoLibro} alt="" />
-                </span>
+                <span className="panel-marca__sello"><img src={iconoLibro} alt="" /></span>
                 <div>
                     <p className="panel-marca__nombre">Biblioteca Solón Argüello</p>
                     <p className="panel-marca__subtitulo">PANEL DEL PERSONAL</p>
@@ -59,132 +85,106 @@ function BarraLateral() {
             </div>
 
             <div className="panel-rol">
-                <p className="panel-rol__titulo">PERMISOS DE LA CUENTA</p>
-                <p className="panel-rol__texto">{identidad ? nombresRoles(identidad.acceso) : "Personal de la biblioteca"}</p>
+                <p className="panel-rol__titulo">{rol.titulo}</p>
+                <p className="panel-rol__texto">{rol.texto}</p>
             </div>
 
             <span className="panel-lateral__espacio" />
 
-            <span className="panel-menu__item">
-                <img src={iconoLista} alt="" />
-                <span>Resumen</span>
-            </span>
-            {contenidosPermitidos.length > 0 && (
-                <>
-                    <span className={`panel-menu__item ${enContenidos ? "panel-menu__item--abierto" : ""}`}>
-                        <img src={iconoArchivo} alt="" />
-                        <span>Contenidos</span>
-                        <img src={enContenidos ? iconoContraer : iconoExpandir} alt="" />
-                    </span>
-                    {enContenidos && (
-                        <ul className="panel-submenu">
-                            {contenidosPermitidos.map((subitem) => (
-                                <li key={subitem.ruta}>
-                                    <NavLink to={subitem.ruta} className="panel-submenu__item">{subitem.texto}</NavLink>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </>
-            )}
-            {SECCIONES_PENDIENTES.map((seccion) => (
-                <span key={seccion.texto} className="panel-menu__item">
-                    <img src={seccion.icono} alt="" />
-                    <span>{seccion.texto}</span>
-                    <img src={iconoExpandir} alt="" />
-                </span>
+            <NavLink to={RESUMEN.ruta} className="panel-menu__item panel-menu__item--enlace">
+                <img src={enResumen ? RESUMEN.iconoActivo : RESUMEN.icono} alt="" />
+                <span>{RESUMEN.texto}</span>
+            </NavLink>
+
+            {SECCIONES_MENU.map((seccion) => (
+                <SeccionLateral
+                    key={seccion.id}
+                    seccion={seccion}
+                    identidad={identidad}
+                    abierta={abiertas.has(seccion.id)}
+                    actual={seccion.id === seccionActual}
+                    alAlternar={() => alternar(seccion.id)}
+                />
             ))}
-
-            <span className={`panel-menu__item ${enContenidos ? "" : "panel-menu__item--abierto"}`}>
-                <img src={iconoCorreo} alt="" />
-                <span>Atención</span>
-                <img src={enContenidos ? iconoExpandir : iconoContraer} alt="" />
-            </span>
-            {!enContenidos && (
-            <ul className="panel-submenu">
-                {SUBMENU_ATENCION.filter(subitem => {
-                    if (!subitem.ruta) return true;
-                    const capacidad = subitem.ruta === "/personal/alta-asistida" ? "alta_asistida" : capacidadPanel(subitem.ruta);
-                    return !!identidad && !!capacidad && permisoGlobal(identidad.acceso, capacidad);
-                }).map((subitem) =>
-                    subitem.ruta ? (
-                        <li key={subitem.texto}>
-                            <NavLink to={subitem.ruta} className="panel-submenu__item">
-                                {subitem.texto}
-                            </NavLink>
-                        </li>
-                    ) : (
-                        <li key={subitem.texto}>
-                            <span className="panel-submenu__item">
-                                {subitem.texto}
-                                {subitem.pronto && <span className="etiqueta-pronto">Pronto</span>}
-                            </span>
-                        </li>
-                    ),
-                )}
-            </ul>
-            )}
-
-            <span className="panel-menu__item">
-                <img src={iconoAjustes} alt="" />
-                <span>Administración</span>
-                <img src={iconoExpandir} alt="" />
-            </span>
         </nav>
     );
 }
 
+function SeccionLateral({
+    seccion,
+    identidad,
+    abierta,
+    actual,
+    alAlternar,
+}: {
+    seccion: SeccionMenu;
+    identidad: IdentidadPanel | null;
+    abierta: boolean;
+    actual: boolean;
+    alAlternar: () => void;
+}) {
+    const visibles = seccion.subitems
+        .map((subitem) => ({ subitem, estado: estadoSubitem(subitem, identidad) }))
+        .filter(({ estado }) => estado !== "oculto");
+    if (visibles.length === 0) return null;
+    const idLista = `submenu-${seccion.id}`;
+
+    return (
+        <>
+            <button
+                type="button"
+                className={`panel-menu__item${abierta ? " panel-menu__item--abierto" : ""}${actual ? " panel-menu__item--actual" : ""}`}
+                aria-expanded={abierta}
+                aria-controls={idLista}
+                onClick={alAlternar}
+            >
+                <img src={seccion.icono} alt="" />
+                <span>{seccion.texto}</span>
+                <img src={abierta ? iconoContraer : iconoExpandir} alt="" />
+            </button>
+            {abierta && (
+                <ul className="panel-submenu" id={idLista}>
+                    {visibles.map(({ subitem, estado }) => (
+                        <li key={subitem.ruta}>
+                            {estado === "enlace" ? (
+                                <NavLink to={subitem.ruta} className="panel-submenu__item">{subitem.texto}</NavLink>
+                            ) : (
+                                <span className="panel-submenu__item panel-submenu__item--pronto">
+                                    {subitem.texto}
+                                    <span className="etiqueta-pronto">Pronto</span>
+                                </span>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </>
+    );
+}
+
+// ---------- Cabecera blanca ----------
 function Cabecera({ titulo }: { titulo: string }) {
     const identidad = useContext(ContextoPanel);
     return (
         <header className="panel-cabecera">
-            <p className="panel-cabecera__titulo">{titulo}</p>
-            <Link to="/" className="boton-panel boton-panel--contorno-verde">
+            <h1 className="panel-cabecera__titulo">{titulo}</h1>
+            <a href="/" target="_blank" rel="noopener noreferrer" className="boton-panel boton-panel--contorno-verde boton-panel--cabecera">
                 Ver portal público
                 <img src={iconoExterno} alt="" />
-            </Link>
-            {/* TODO: panel de notificaciones del personal */}
-            <button type="button" className="panel-campana" disabled aria-label="Notificaciones pendientes de implementar">
+                <span className="solo-lectores">(se abre en una pestaña nueva)</span>
+            </a>
+            {/* TODO: abrir Admin · Notificaciones cuando exista la pantalla */}
+            <button type="button" className="panel-campana" disabled aria-label="Notificaciones (próximamente)">
                 <img src={iconoCampana} alt="" />
-
             </button>
             <span className="panel-cuenta">
-                <span className="panel-cuenta__avatar">
-                    <img src={iconoUsuario} alt="" />
-                </span>
+                <span className="panel-cuenta__avatar"><img src={iconoUsuario} alt="" /></span>
                 <span>
                     <span className="panel-cuenta__nombre">{identidad?.correo ?? "Personal de la biblioteca"}</span>
                     <span className="panel-cuenta__rol">{identidad ? nombresRoles(identidad.acceso) : "Personal de la biblioteca"}</span>
                 </span>
             </span>
         </header>
-    );
-}
-
-function PieGobierno() {
-    return (
-        <footer className="panel-pie">
-            <img src={logoGobierno} alt="Gobierno de México" className="panel-logo" />
-            <div className="panel-pie__columna">
-                <p className="panel-pie__titulo">Enlaces</p>
-                <p>Marco jurídico</p>
-                <p>Transparencia para el pueblo</p>
-                <p>Portal de datos abiertos</p>
-                <p>Plataforma Nacional de Transparencia</p>
-            </div>
-            <div className="panel-pie__columna">
-                <p className="panel-pie__titulo">Información</p>
-                <p>Declaración de accesibilidad</p>
-                <p>Términos y condiciones</p>
-                <p>Alerta</p>
-            </div>
-            <div className="panel-pie__columna">
-                <p className="panel-pie__titulo">Biblioteca</p>
-                <p>Biblioteca Solón Argüello</p>
-                <p>Biblioteca Pública Central Estatal · Tepic, Nayarit</p>
-                <p>Panel de administración del portal</p>
-            </div>
-        </footer>
     );
 }
 
@@ -196,30 +196,18 @@ type PanelLayoutProps = {
 function PanelLayout({ titulo, children }: PanelLayoutProps) {
     return (
         <div className="panel">
-            <div className="panel-gobierno">
-                <img src={logoGobierno} alt="Gobierno de México" className="panel-logo" />
-                <p className="panel-gobierno__textos">
-                    Biblioteca Solón Argüello
-                    <span className="panel-gobierno__separador" />
-                    <strong>Panel de administración</strong>
-                </p>
-            </div>
-
+            <FranjaGobierno />
             <div className="panel-cuerpo">
                 <BarraLateral />
                 <div className="panel-principal">
                     <Cabecera titulo={titulo} />
                     <main className="panel-contenido">
-                        <p role="status" className="panel-nota">Vista de demostración: los datos son de ejemplo. Las decisiones no se guardan en la base y se reinician al recargar.</p>
                         {children}
-                        <p className="panel-nota">
-                            Biblioteca Solón Argüello · Panel del personal · Datos de ejemplo · Logotipo provisional
-                        </p>
+                        <p className="panel-nota">Biblioteca Solón Argüello · Panel del personal · Datos de ejemplo</p>
                     </main>
                 </div>
             </div>
-
-            <PieGobierno />
+            <PiePortal />
         </div>
     );
 }

@@ -43,11 +43,25 @@ import Propuestas from "./pages/admin/atencion/propuestas/Propuestas.tsx";
 import DetallePropuesta from "./pages/admin/atencion/propuestas/DetallePropuesta.tsx";
 import VistaPrevia from "./pages/admin/atencion/propuestas/VistaPrevia.tsx";
 import AccesoPanel from "./pages/admin/AccesoPanel";
+import Resumen from "./pages/admin/resumen/Resumen.tsx";
 import MisContenidos from "./pages/admin/contenidos/MisContenidos.tsx";
 import NuevoContenido from "./pages/admin/contenidos/NuevoContenido.tsx";
 import EditarContenido from "./pages/admin/contenidos/EditarContenido.tsx";
 import VistaPreviaContenido from "./pages/admin/contenidos/VistaPreviaContenido.tsx";
 import EnviadoContenido from "./pages/admin/contenidos/EnviadoContenido.tsx";
+import BandejaRevision from "./pages/admin/contenidos/BandejaRevision.tsx";
+import RevisarContenido from "./pages/admin/contenidos/RevisarContenido.tsx";
+import PedirCambios from "./pages/admin/contenidos/PedirCambios.tsx";
+import RechazarContenido from "./pages/admin/contenidos/RechazarContenido.tsx";
+import ResultadoRevision from "./pages/admin/contenidos/ResultadoRevision.tsx";
+import HistorialPublicaciones from "./pages/admin/contenidos/HistorialPublicaciones.tsx";
+import PropuestasActividades from "./pages/admin/actividades/Propuestas.tsx";
+import { EditarActividad, NuevaActividad } from "./pages/admin/actividades/FormularioActividad.tsx";
+import DetalleActividad from "./pages/admin/actividades/DetalleActividad.tsx";
+import ActividadPublicada from "./pages/admin/actividades/ActividadPublicada.tsx";
+import Calendario from "./pages/admin/actividades/Calendario.tsx";
+import { EditarSala, FichaSala } from "./pages/admin/actividades/FichaSala.tsx";
+import { BloqueoGuardado, EditarBloqueo, NuevoBloqueo } from "./pages/admin/actividades/FormularioBloqueo.tsx";
 
 function App() {
   return (
@@ -99,6 +113,7 @@ function App() {
 
         {/* Panel de administración · Atención (por ahora solo estas tres secciones) */}
         <Route path="/admin" element={<AccesoPanel><Navigate to="/admin/atencion/credenciales" replace /></AccesoPanel>} />
+        <Route path="/admin/resumen" element={<AccesoPanel><Resumen /></AccesoPanel>} />
         {/* key distinta para que al cambiar entre bandeja y "todas" se reinicien los filtros */}
         <Route path="/admin/atencion/credenciales" element={<AccesoPanel><Credenciales key="bandeja" vista="bandeja" /></AccesoPanel>} />
         <Route path="/admin/atencion/credenciales/todas" element={<AccesoPanel><Credenciales key="todas" vista="todas" /></AccesoPanel>} />
@@ -117,6 +132,30 @@ function App() {
         <Route path="/admin/contenidos/editor/:folio" element={<AccesoPanel><EditarContenido /></AccesoPanel>} />
         <Route path="/admin/contenidos/editor/:folio/vista-previa" element={<AccesoPanel><VistaPreviaContenido /></AccesoPanel>} />
         <Route path="/admin/contenidos/editor/:folio/enviado" element={<AccesoPanel><EnviadoContenido /></AccesoPanel>} />
+        {/* Panel · Contenidos (HU-12): Revisión y publicación */}
+        <Route path="/admin/contenidos/revision" element={<AccesoPanel><BandejaRevision /></AccesoPanel>} />
+        <Route path="/admin/contenidos/revision/historial" element={<AccesoPanel><HistorialPublicaciones /></AccesoPanel>} />
+        <Route path="/admin/contenidos/revision/:folio" element={<AccesoPanel><RevisarContenido /></AccesoPanel>} />
+        <Route path="/admin/contenidos/revision/:folio/vista-previa" element={<AccesoPanel><VistaPreviaContenido desde="revision" /></AccesoPanel>} />
+        <Route path="/admin/contenidos/revision/:folio/cambios" element={<AccesoPanel><PedirCambios /></AccesoPanel>} />
+        <Route path="/admin/contenidos/revision/:folio/rechazar" element={<AccesoPanel><RechazarContenido /></AccesoPanel>} />
+        <Route path="/admin/contenidos/revision/:folio/publicado" element={<AccesoPanel><ResultadoRevision tipo="publicado" /></AccesoPanel>} />
+        <Route path="/admin/contenidos/revision/:folio/observaciones-enviadas" element={<AccesoPanel><ResultadoRevision tipo="observaciones" /></AccesoPanel>} />
+        <Route path="/admin/contenidos/revision/:folio/rechazado" element={<AccesoPanel><ResultadoRevision tipo="rechazado" /></AccesoPanel>} />
+        {/* Panel · Actividades: Propuestas de actividades */}
+        <Route path="/admin/actividades/propuestas" element={<AccesoPanel><PropuestasActividades /></AccesoPanel>} />
+        <Route path="/admin/actividades/propuestas/nueva" element={<AccesoPanel><NuevaActividad /></AccesoPanel>} />
+        <Route path="/admin/actividades/propuestas/:folio" element={<AccesoPanel><DetalleActividad /></AccesoPanel>} />
+        <Route path="/admin/actividades/propuestas/:folio/editar" element={<AccesoPanel><EditarActividad /></AccesoPanel>} />
+        <Route path="/admin/actividades/propuestas/:folio/vista-previa" element={<AccesoPanel><DetalleActividad previa /></AccesoPanel>} />
+        <Route path="/admin/actividades/propuestas/:folio/publicada" element={<AccesoPanel><ActividadPublicada /></AccesoPanel>} />
+        {/* Panel · Actividades: Calendario y salas */}
+        <Route path="/admin/actividades/calendario" element={<AccesoPanel><Calendario /></AccesoPanel>} />
+        <Route path="/admin/actividades/calendario/bloquear" element={<AccesoPanel><NuevoBloqueo /></AccesoPanel>} />
+        <Route path="/admin/actividades/calendario/bloqueos/:id/editar" element={<AccesoPanel><EditarBloqueo /></AccesoPanel>} />
+        <Route path="/admin/actividades/calendario/bloqueos/:id/guardado" element={<AccesoPanel><BloqueoGuardado /></AccesoPanel>} />
+        <Route path="/admin/actividades/calendario/salas/:sala" element={<AccesoPanel><FichaSala /></AccesoPanel>} />
+        <Route path="/admin/actividades/calendario/salas/:sala/editar" element={<AccesoPanel><EditarSala /></AccesoPanel>} />
 
         {/* Estados del sistema: a donde se manda a la persona cuando algo falla */}
         <Route path="/error" element={<ErrorServidor />} />

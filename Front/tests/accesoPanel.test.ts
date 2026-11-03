@@ -10,9 +10,10 @@ describe('Acceso a las pantallas de atención', () => {
         expect(permisoGlobal(acceso(), 'publicar_contenidos')).toBe(false);
         expect(rutaInicialPanel(acceso())).toBeNull();
     });
-    it('entra a la primera sección realmente autorizada', () => {
-        expect(rutaInicialPanel(acceso('registrar_resoluciones_actividades'))).toBe('/admin/atencion/espacios');
-        expect(rutaInicialPanel(acceso('validar_credenciales'))).toBe('/admin/atencion/credenciales');
+    it('con acceso al panel, /admin abre el Resumen', () => {
+        expect(rutaInicialPanel(acceso('registrar_resoluciones_actividades'))).toBe('/admin/resumen');
+        expect(rutaInicialPanel(acceso('validar_credenciales'))).toBe('/admin/resumen');
+        expect(capacidadPanel('/admin/notificaciones')).toBe('panel_general');
     });
     it('publicar exige un permiso distinto al de resolver propuestas', () => {
         expect(capacidadPanel('/admin/atencion/propuestas/PR-1')).toBe('registrar_resoluciones_actividades');

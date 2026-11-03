@@ -1,59 +1,49 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { Chip, EncabezadoPagina, EstadoVacio } from "../componentes";
-import { Ventana } from "../Ventana";
 import "./Contenidos.css";
 import {
-    NOMBRE_ESTADO,
-    actualizarContenido,
-    cuandoSeActualizo,
-    enviarAAutorizacion,
-    esEditable,
-    fechaLarga,
-    guardarBorrador,
-    obtenerContenido,
-    useContenidos,
-    type Contenido,
+    actualizarContenido, cuandoSeActualizo, enviarAAutorizacion, esEditable, fechaLarga, guardarBorrador, obtenerContenido, useContenidos, type Contenido,
 } from "./datos";
 import { ESQUEMAS, revisarImagen, tituloDe, todosLosCampos, validar, type Campo, type Grupo, type Valores } from "./esquemas";
-import { TONO_ESTADO } from "./tonos";
+import { ChipEstado, Columnas, Datos, EncabezadoTarjeta, EstadoVacio, Migas, Pagina, PieDatos, Tarjeta, Ventana } from "./piezas";
+import { clasesBoton } from "./utiles";
 import iconoLapiz from "../../../assets/admin/contenidos/tarjeta-lapiz.svg";
 import iconoArchivo from "../../../assets/admin/contenidos/tarjeta-archivo.svg";
 import iconoLista from "../../../assets/admin/contenidos/tarjeta-lista.svg";
 import iconoBandera from "../../../assets/admin/contenidos/tarjeta-bandera.svg";
 import iconoAlerta from "../../../assets/admin/contenidos/tarjeta-alerta.svg";
-import iconoReloj from "../../../assets/admin/tarjeta-clock.svg";
-import iconoModal from "../../../assets/admin/modal-check.svg";
-import vacioBuscar from "../../../assets/admin/vacio-search.svg";
+import iconoReloj from "../../../assets/admin/contenidos/tarjeta-reloj.svg";
+import vacioBuscar from "../../../assets/admin/contenidos/vacio-buscar.svg";
 
 const ICONOS_GRUPO: Record<Grupo["icono"], string> = { lapiz: iconoLapiz, archivo: iconoArchivo, lista: iconoLista };
 
 type Aviso = null | "faltan" | "error";
 
-// HU-12 · Editor: redactar o corregir un contenido (borrador o con observaciones)
+// HU-12 · Editor: redactar o corregir un contenido (Figma 558:16627, 558:17112, 558:17619, 601:48088;
+// observaciones 559:17575, faltan campos 559:18139, error al guardar 559:18360, confirmar 559:17005)
 function EditarContenido() {
     const { folio } = useParams();
     useContenidos(); // se vuelve a pintar si el almacén cambia
     const contenido = obtenerContenido(folio);
 
-    if (!contenido) {
-        return (
-            <PanelLayout titulo="Contenidos">
-                <EstadoVacio
-                    icono={vacioBuscar}
-                    titulo="No encontramos ese contenido"
-                    texto="Puede que el folio no exista. Vuelve a Mis contenidos para elegir otro."
-                />
-                <Link to="/admin/contenidos/editor" className="boton-panel boton-panel--verde boton-panel--mediano">Volver a Mis contenidos</Link>
-            </PanelLayout>
-        );
-    }
+    if (!contenido) return <NoEncontrado />;
     // Lo que ya se envió o publicó solo se consulta
     if (!esEditable(contenido.estado)) return <Navigate to={`/admin/contenidos/editor/${contenido.folio}/vista-previa`} replace />;
 
     // key: si cambia el folio, el formulario empieza de cero
     return <Formulario key={contenido.folio} contenido={contenido} />;
+}
+
+export function NoEncontrado({ ruta = "/admin/contenidos/editor", texto = "Volver a Mis contenidos" }: { ruta?: string; texto?: string }) {
+    return (
+        <PanelLayout titulo="Contenidos">
+            <Pagina>
+                <EstadoVacio icono={vacioBuscar} titulo="No encontramos ese contenido" texto="Puede que el folio no exista. Vuelve a la bandeja para elegir otro." />
+                <div className="cn-acciones"><Link to={ruta} className={clasesBoton("verde")}>{texto}</Link></div>
+            </Pagina>
+        </PanelLayout>
+    );
 }
 
 function Formulario({ contenido }: { contenido: Contenido }) {
@@ -73,6 +63,7 @@ function Formulario({ contenido }: { contenido: Contenido }) {
     function cambiar(nombre: string, valor: string | boolean) {
         setValores((v) => ({ ...v, [nombre]: valor }));
         if (errores[nombre]) setErrores((e) => ({ ...e, [nombre]: "" }));
+        if (aviso === "faltan") setAviso(null);
     }
 
     async function guardar() {
@@ -118,138 +109,107 @@ function Formulario({ contenido }: { contenido: Contenido }) {
         navigate(`/admin/contenidos/editor/${contenido.folio}/vista-previa`);
     }
 
-    const nombresFaltantes = todosLosCampos(esquema)
-        .filter((c) => faltantes.includes(c.nombre))
-        .map((c) => c.etiqueta.toLowerCase());
+    const nombresFaltantes = todosLosCampos(esquema).filter((c) => faltantes.includes(c.nombre)).map((c) => c.etiqueta.toLowerCase());
+    const miga = conObservaciones ? "Con observaciones" : aviso === "faltan" ? "Faltan campos obligatorios" : aviso === "error" ? "Error al guardar" : "Borrador";
 
     return (
         <PanelLayout titulo="Contenidos">
-            <nav className="migas-panel" aria-label="Ruta">
-                <span>Contenidos</span> › <span>Editor de contenidos</span> ›{" "}
-                <strong>{conObservaciones ? "Con observaciones" : aviso === "faltan" ? "Faltan campos obligatorios" : "Borrador"}</strong>
-            </nav>
+            <Pagina>
+                <Migas pasos={[["Contenidos"], ["Editor de contenidos", "/admin/contenidos/editor"], [miga]]} />
 
-            <div className="encabezado-tarjeta">
-                <EncabezadoPagina
+                <EncabezadoTarjeta
                     volver={{ texto: "Volver a Mis contenidos", ruta: "/admin/contenidos/editor" }}
-                    etiqueta={`CONTENIDOS · EDITOR · ${esquema.etiqueta} ${contenido.folio}`}
+                    etiqueta={`Contenidos · Editor · ${esquema.etiqueta} ${contenido.folio}`}
                     titulo={conObservaciones ? esquema.tituloNuevo.replace(/^(Redactar|Editar)/, "Corregir") : esquema.tituloNuevo}
                     texto={conObservaciones ? "El Administrador dejó observaciones. Corrige y vuelve a enviar." : esquema.descripcion}
                 />
-            </div>
 
-            {conObservaciones && contenido.observaciones && (
-                <section className="aviso-contenido aviso-contenido--observaciones" aria-labelledby="titulo-observaciones">
-                    <div className="aviso-contenido__cabecera">
-                        <span className="icono-tarjeta icono-tarjeta--verde"><img src={iconoAlerta} alt="" /></span>
-                        <div>
-                            <h2 id="titulo-observaciones">Observaciones del Administrador</h2>
-                            <p>Dejadas el {fechaLarga(contenido.observaciones.fecha)} (ejemplo).</p>
+                {conObservaciones && contenido.observaciones && (
+                    <Tarjeta icono={iconoAlerta} titulo="Observaciones del Administrador" subtitulo={`Dejadas el ${fechaLarga(contenido.observaciones.fecha)} (ejemplo).`} tono="alerta">
+                        <ol className="cn-observaciones">
+                            {contenido.observaciones.puntos.map((p) => <li key={p}>{p}</li>)}
+                        </ol>
+                    </Tarjeta>
+                )}
+
+                {aviso === "faltan" && (
+                    <div className="cn-aviso" role="alert">
+                        <span className="cn-aviso__signo" aria-hidden="true">!</span>
+                        <div className="cn-aviso__textos">
+                            <strong>{faltantes.length === 1 ? "Falta 1 campo obligatorio" : `Faltan ${faltantes.length} campos obligatorios`}</strong>
+                            <p>Completa {nombresFaltantes.join(", ")} para poder enviar a autorización.</p>
                         </div>
                     </div>
-                    <ol className="observaciones-lista">
-                        {contenido.observaciones.puntos.map((p) => <li key={p}>{p}</li>)}
-                    </ol>
-                </section>
-            )}
+                )}
 
-            {aviso === "faltan" && (
-                <div className="aviso-contenido aviso-contenido--error" role="alert">
-                    <span className="aviso-contenido__signo" aria-hidden="true">!</span>
-                    <div>
-                        <strong>{faltantes.length === 1 ? "Falta 1 campo" : `Faltan ${faltantes.length} campos`} por completar</strong>
-                        <p>Revisa {nombresFaltantes.join(", ")} para poder enviar a autorización.</p>
+                {aviso === "error" && (
+                    <div className="cn-aviso" role="alert">
+                        <span className="cn-aviso__signo" aria-hidden="true">!</span>
+                        <div className="cn-aviso__textos">
+                            <strong>No se pudo guardar el borrador</strong>
+                            <p>Hubo un problema de conexión. Tu texto sigue en pantalla; no cierres esta página y vuelve a intentarlo.</p>
+                        </div>
+                        <button type="button" className={clasesBoton("contorno-guinda", "cn-boton--chico")} onClick={guardar} disabled={ocupado}>Reintentar</button>
                     </div>
-                </div>
-            )}
+                )}
 
-            {aviso === "error" && (
-                <div className="aviso-contenido aviso-contenido--error" role="alert">
-                    <span className="aviso-contenido__signo" aria-hidden="true">!</span>
-                    <div>
-                        <strong>No se pudo guardar el borrador</strong>
-                        <p>Hubo un problema de conexión. Tu texto sigue en pantalla; no cierres esta página y vuelve a intentarlo.</p>
-                    </div>
-                    <button type="button" className="boton-panel boton-panel--contorno-guinda boton-panel--mediano" onClick={guardar} disabled={ocupado}>
-                        Reintentar
-                    </button>
-                </div>
-            )}
-
-            <div className="columnas">
-                <div className="columna-principal">
-                    {esquema.grupos.map((grupo) => (
-                        <section key={grupo.titulo} className="tarjeta-panel tarjeta-panel--blanca">
-                            <div className="tarjeta-panel__cabecera">
-                                <span className="icono-tarjeta icono-tarjeta--verde"><img src={ICONOS_GRUPO[grupo.icono]} alt="" /></span>
-                                <div className="tarjeta-panel__textos">
-                                    <h2>{grupo.titulo === "Texto de la sección" ? String(valores.seccion || grupo.titulo) : grupo.titulo}</h2>
-                                    {grupo.subtitulo && <p>{grupo.subtitulo}</p>}
-                                </div>
-                            </div>
+                <Columnas
+                    principal={esquema.grupos.map((grupo) => (
+                        <Tarjeta
+                            key={grupo.titulo}
+                            icono={ICONOS_GRUPO[grupo.icono]}
+                            titulo={grupo.titulo === "Texto de la sección" ? String(valores.seccion || grupo.titulo) : grupo.titulo}
+                            subtitulo={grupo.subtitulo}
+                            id={`cn-grupo-${grupo.icono}-${grupo.campos[0].nombre}`}
+                        >
                             <CamposEnFilas campos={grupo.campos} valores={valores} errores={errores} alCambiar={cambiar} />
-                        </section>
+                        </Tarjeta>
                     ))}
-                </div>
+                    lateral={
+                        <>
+                            <Tarjeta icono={iconoBandera} titulo={esquema.publicacion.titulo} lateral>
+                                <CamposEnFilas campos={esquema.publicacion.campos} valores={valores} errores={errores} alCambiar={cambiar} />
+                            </Tarjeta>
 
-                <div className="columna-lateral">
-                    <section className="tarjeta-panel tarjeta-panel--blanca">
-                        <div className="tarjeta-panel__cabecera">
-                            <span className="icono-tarjeta icono-tarjeta--verde"><img src={iconoBandera} alt="" /></span>
-                            <div className="tarjeta-panel__textos"><h2>{esquema.publicacion.titulo}</h2></div>
-                        </div>
-                        <CamposEnFilas campos={esquema.publicacion.campos} valores={valores} errores={errores} alCambiar={cambiar} />
-                    </section>
+                            <Tarjeta icono={iconoReloj} titulo="Estado" tono="crema" lateral>
+                                <p className="cn-estado-linea" role="status">
+                                    <ChipEstado estado={contenido.estado} />
+                                    <span>{ocupado ? "Guardando…" : sinGuardar ? "Cambios sin guardar" : `Guardado ${cuandoSeActualizo(contenido.actualizado).toLowerCase()} (ejemplo)`}</span>
+                                </p>
+                                <div className="cn-botones-columna">
+                                    <button type="button" className={clasesBoton("verde", "cn-boton--ancho")} onClick={intentarEnviar} disabled={ocupado || faltantes.length > 0}>
+                                        {conObservaciones ? "Enviar de nuevo a autorización" : "Enviar a autorización"}
+                                    </button>
+                                    <button type="button" className={clasesBoton("suave", "cn-boton--ancho")} onClick={verVistaPrevia} disabled={ocupado}>Vista previa</button>
+                                    <button type="button" className={clasesBoton("contorno", "cn-boton--ancho")} onClick={guardar} disabled={ocupado}>Guardar borrador</button>
+                                </div>
+                                <p className="cn-nota">Solo el Administrador autoriza y publica. Tu contenido no se verá en el portal hasta entonces.</p>
+                            </Tarjeta>
+                        </>
+                    }
+                />
 
-                    <section className={`tarjeta-estado ${conObservaciones ? "tarjeta-estado--guinda" : ""}`}>
-                        <div className="tarjeta-panel__cabecera">
-                            <span className="icono-tarjeta icono-tarjeta--verde"><img src={iconoReloj} alt="" /></span>
-                            <div className="tarjeta-panel__textos"><h2>Estado</h2></div>
-                        </div>
-                        <p className="tarjeta-estado__linea" role="status">
-                            <Chip tono={TONO_ESTADO[contenido.estado]}>{NOMBRE_ESTADO[contenido.estado]}</Chip>
-                            <span>
-                                {ocupado ? "Guardando…" : sinGuardar ? "Cambios sin guardar" : `Guardado: ${cuandoSeActualizo(contenido.actualizado).toLowerCase()} (ejemplo)`}
-                            </span>
-                        </p>
-                        <button type="button" className="boton-panel boton-panel--verde boton-panel--ancho" onClick={intentarEnviar} disabled={ocupado}>
-                            {conObservaciones ? "Enviar de nuevo a autorización" : "Enviar a autorización"}
-                        </button>
-                        <button type="button" className="boton-panel boton-panel--suave boton-panel--ancho" onClick={verVistaPrevia} disabled={ocupado}>
-                            Vista previa
-                        </button>
-                        <button type="button" className="boton-panel boton-panel--contorno-verde boton-panel--ancho" onClick={guardar} disabled={ocupado}>
-                            Guardar borrador
-                        </button>
-                        <p className="tarjeta-estado__nota">Solo el Administrador autoriza y publica. Tu contenido no se verá en el portal hasta entonces.</p>
-                    </section>
-                </div>
-            </div>
+                <PieDatos />
+            </Pagina>
 
             {confirmar && (
                 <Ventana
-                    tono="verde"
-                    icono={iconoModal}
                     titulo="¿Enviar a autorización?"
                     texto={`El Administrador revisará ${esquema.enFrase} y podrá publicarl${esquema.genero}, pedirte cambios o rechazarl${esquema.genero}. Mientras tanto no podrás editarl${esquema.genero}.`}
-                    textoConfirmar={ocupado ? "Enviando…" : "Enviar a autorización"}
-                    alConfirmar={() => { if (!ocupado) void enviar(); }}
                     alCerrar={() => setConfirmar(false)}
+                    pie={
+                        <>
+                            <button type="button" className={clasesBoton("contorno")} onClick={() => setConfirmar(false)}>Cancelar</button>
+                            <button type="button" className={clasesBoton("verde")} disabled={ocupado} onClick={() => void enviar()}>
+                                {ocupado ? "Enviando…" : "Enviar a autorización"}
+                            </button>
+                        </>
+                    }
                 >
-                    <dl className="resumen-envio">
-                        <div><dt>Folio</dt><dd>{contenido.folio}</dd></div>
-                        <div><dt>Tipo</dt><dd>{esquema.nombre}</dd></div>
-                        <div><dt>Título</dt><dd>{tituloDe(contenido.tipo, valores)}</dd></div>
-                    </dl>
-                    <div className="campo-panel">
-                        <label htmlFor="nota-envio" className="campo-panel__etiqueta">Nota para el Administrador <span>(opcional)</span></label>
-                        <textarea
-                            id="nota-envio"
-                            className="entrada-panel entrada-panel--area"
-                            placeholder="Ej.: confirmar fecha con Servicios al Público."
-                            value={nota}
-                            onChange={(e) => setNota(e.target.value)}
-                        />
+                    <Datos variante="caja" filas={[["Folio", contenido.folio], ["Tipo", esquema.nombre], ["Título", tituloDe(contenido.tipo, valores)]]} />
+                    <div className="cn-campo">
+                        <label htmlFor="cn-nota-envio" className="cn-campo__etiqueta">Nota para el Administrador <span className="cn-campo__opcional">(opcional)</span></label>
+                        <textarea id="cn-nota-envio" className="cn-control cn-control--area" placeholder="Ej.: confirmar fecha con Servicios al Público." value={nota} onChange={(e) => setNota(e.target.value)} />
                     </div>
                 </Ventana>
             )}
@@ -258,17 +218,7 @@ function Formulario({ contenido }: { contenido: Contenido }) {
 }
 
 // Junta los campos "mitad" de dos en dos y los "tercio" de tres en tres
-function CamposEnFilas({
-    campos,
-    valores,
-    errores,
-    alCambiar,
-}: {
-    campos: Campo[];
-    valores: Valores;
-    errores: Record<string, string>;
-    alCambiar: (nombre: string, valor: string | boolean) => void;
-}) {
+function CamposEnFilas({ campos, valores, errores, alCambiar }: { campos: Campo[]; valores: Valores; errores: Record<string, string>; alCambiar: (nombre: string, valor: string | boolean) => void }) {
     const filas: Campo[][] = [];
     for (const campo of campos) {
         const ultima = filas[filas.length - 1];
@@ -277,17 +227,11 @@ function CamposEnFilas({
         else filas.push([campo]);
     }
     return (
-        <div className="campos-contenido">
+        <div className="cn-campos">
             {filas.map((fila) => (
-                <div key={fila[0].nombre} className="campos-contenido__fila">
+                <div key={fila[0].nombre} className="cn-campos__fila">
                     {fila.map((campo) => (
-                        <CampoContenido
-                            key={campo.nombre}
-                            campo={campo}
-                            valor={valores[campo.nombre]}
-                            error={errores[campo.nombre]}
-                            alCambiar={(v) => alCambiar(campo.nombre, v)}
-                        />
+                        <CampoContenido key={campo.nombre} campo={campo} valor={valores[campo.nombre]} error={errores[campo.nombre]} alCambiar={(v) => alCambiar(campo.nombre, v)} />
                     ))}
                 </div>
             ))}
@@ -295,67 +239,36 @@ function CamposEnFilas({
     );
 }
 
-function CampoContenido({
-    campo,
-    valor,
-    error,
-    alCambiar,
-}: {
-    campo: Campo;
-    valor: string | boolean | undefined;
-    error?: string;
-    alCambiar: (valor: string | boolean) => void;
-}) {
+function CampoContenido({ campo, valor, error, alCambiar }: { campo: Campo; valor: string | boolean | undefined; error?: string; alCambiar: (valor: string | boolean) => void }) {
     const id = `campo-${campo.nombre}`;
     const texto = typeof valor === "string" ? valor : "";
-    const clase = `entrada-panel ${error ? "entrada-panel--error" : ""}`;
+    const clase = `cn-control ${error ? "cn-control--error" : ""}`;
     const descripcion = error ? `${id}-error` : campo.ayuda ? `${id}-ayuda` : undefined;
     const [errorArchivo, setErrorArchivo] = useState("");
 
     if (campo.tipo === "interruptor") {
         return (
-            <div className="interruptor-campo">
-                <button
-                    type="button"
-                    role="switch"
-                    id={id}
-                    aria-checked={valor === true}
-                    className={`interruptor ${valor === true ? "interruptor--activo" : ""}`}
-                    onClick={() => alCambiar(valor !== true)}
-                >
-                    <span className="interruptor__bolita" />
+            <div className="cn-interruptor-campo">
+                <button type="button" role="switch" id={id} aria-checked={valor === true} className="cn-interruptor" onClick={() => alCambiar(valor !== true)} aria-describedby={error ? `${id}-error` : undefined}>
+                    <span className="cn-solo-lectores">{campo.etiqueta}</span>
                 </button>
                 <label htmlFor={id}>
                     <strong>{campo.etiqueta}</strong>
                     {campo.descripcion && <small>{campo.descripcion}</small>}
-                    {error && <small className="campo-panel__error">{error}</small>}
+                    {error && <small id={`${id}-error`} className="cn-campo__error">{error}</small>}
                 </label>
             </div>
         );
     }
 
-    const etiqueta = (
-        <label htmlFor={id} className="campo-panel__etiqueta">
-            {campo.etiqueta}
-            {campo.obligatorio && <span aria-label="obligatorio">*</span>}
-        </label>
-    );
-
     let control;
     if (campo.tipo === "fijo") {
-        control = <p id={id} className="entrada-panel entrada-fija">{texto || "Por confirmar"}</p>;
+        control = <p id={id} className="cn-control cn-control--fijo">{texto || "Por confirmar"}</p>;
     } else if (campo.tipo === "chips") {
         control = (
-            <div className="filtros" role="radiogroup" aria-labelledby={`${id}-grupo`}>
+            <div className="cn-pastillas" role="radiogroup" aria-labelledby={`${id}-grupo`}>
                 {campo.opciones?.map((opcion) => (
-                    <button
-                        key={opcion}
-                        type="button"
-                        role="radio"
-                        aria-checked={texto === opcion}
-                        className={`filtro ${texto === opcion ? "filtro--activo" : ""}`}
-                        onClick={() => alCambiar(opcion)}
-                    >
+                    <button key={opcion} type="button" role="radio" aria-checked={texto === opcion} className="cn-pastilla" onClick={() => alCambiar(opcion)}>
                         {opcion}
                     </button>
                 ))}
@@ -363,19 +276,19 @@ function CampoContenido({
         );
     } else if (campo.tipo === "select") {
         control = (
-            <select id={id} className={`${clase} ${texto ? "" : "entrada-panel--vacia"}`} value={texto} onChange={(e) => alCambiar(e.target.value)} aria-describedby={descripcion} aria-invalid={!!error}>
+            <select id={id} className={clase} value={texto} onChange={(e) => alCambiar(e.target.value)} aria-describedby={descripcion} aria-invalid={!!error}>
                 <option value="">Elige una opción</option>
                 {campo.opciones?.map((o) => <option key={o}>{o}</option>)}
             </select>
         );
     } else if (campo.tipo === "archivo") {
         control = texto ? (
-            <div className="archivo-elegido">
+            <div className="cn-archivo-elegido">
                 <span>{texto}</span>
-                <button type="button" className="boton-panel boton-panel--contorno boton-panel--chico" onClick={() => alCambiar("")}>Quitar</button>
+                <button type="button" className={clasesBoton("contorno", "cn-boton--chico")} onClick={() => alCambiar("")}>Quitar</button>
             </div>
         ) : (
-            <label className={`zona-archivo ${errorArchivo ? "zona-archivo--error" : ""}`}>
+            <label className={`cn-archivo ${errorArchivo ? "cn-archivo--error" : ""}`}>
                 <input
                     id={id}
                     type="file"
@@ -399,7 +312,7 @@ function CampoContenido({
         control = (
             <textarea
                 id={id}
-                className={`${clase} entrada-panel--area ${campo.tipo === "area-grande" ? "entrada-panel--grande" : ""}`}
+                className={`${clase} cn-control--area ${campo.tipo === "area-grande" ? "cn-control--grande" : ""}`}
                 value={texto}
                 placeholder={campo.placeholder}
                 onChange={(e) => alCambiar(e.target.value)}
@@ -423,13 +336,20 @@ function CampoContenido({
     }
 
     return (
-        <div className="campo-panel">
-            {campo.tipo === "chips" ? <p id={`${id}-grupo`} className="campo-panel__etiqueta">{campo.etiqueta}</p> : etiqueta}
+        <div className="cn-campo">
+            {campo.tipo === "chips" ? (
+                <p id={`${id}-grupo`} className="cn-campo__etiqueta">{campo.etiqueta}{campo.obligatorio && <span className="cn-campo__obligatorio" aria-hidden="true">*</span>}</p>
+            ) : (
+                <label htmlFor={id} className="cn-campo__etiqueta">
+                    {campo.etiqueta}
+                    {campo.obligatorio && <span className="cn-campo__obligatorio" aria-label="obligatorio">*</span>}
+                </label>
+            )}
             {control}
-            {error && <p id={`${id}-error`} className="campo-panel__error">{error}</p>}
-            {errorArchivo && <p className="campo-panel__error" role="alert">{errorArchivo}</p>}
+            {error && <p id={`${id}-error`} className="cn-campo__error">{error}</p>}
+            {errorArchivo && <p className="cn-campo__error" role="alert">{errorArchivo}</p>}
             {!error && campo.ayuda && campo.tipo !== "archivo" && (
-                <p id={`${id}-ayuda`} className="campo-panel__ayuda">
+                <p id={`${id}-ayuda`} className="cn-campo__ayuda">
                     {campo.ayuda}
                     {campo.max && texto ? ` (${texto.length}/${campo.max})` : ""}
                 </p>
