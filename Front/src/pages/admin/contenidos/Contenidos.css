@@ -448,3 +448,5 @@
 .cn-aviso--chico { padding: 14px 18px; border-radius: 16px; gap: 12px; }
 .cn-aviso--chico .cn-aviso__textos strong { font-size: 15px; }
 .cn-aviso__x { color: #9b2247; font-size: 16px; font-weight: 700; flex: none; }
+.cn-acceso--fijo { cursor: default; }
+.cn-acceso--fijo:hover { filter: none; }

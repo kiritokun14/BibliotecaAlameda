@@ -134,7 +134,7 @@ export type AccesoResumen = {
     enlace: string;
     tono: "verde" | "dorado" | "guinda";
     activo?: boolean;
-    alPresionar: () => void;
+    alPresionar?: () => void; // sin acción, la tarjeta solo informa
 };
 
 export function BloqueResumen({ insignia, titulo, resalte, subtitulo, accesos }: { insignia: string; titulo: string; resalte: string; subtitulo: string; accesos: AccesoResumen[] }) {
@@ -148,23 +148,24 @@ export function BloqueResumen({ insignia, titulo, resalte, subtitulo, accesos }:
                 <p>{subtitulo}</p>
             </div>
             <div className="cn-resumen__accesos">
-                {accesos.map((a) => (
-                    <button
-                        key={a.titulo}
-                        type="button"
-                        className={`cn-acceso cn-acceso--${a.tono}`}
-                        aria-pressed={a.activo}
-                        onClick={a.alPresionar}
-                    >
-                        <span className="cn-acceso__fila">
-                            <span className="cn-acceso__icono" aria-hidden="true"><img src={a.icono} alt="" /></span>
-                            <span className="cn-acceso__enlace">{a.enlace} →</span>
-                        </span>
-                        <span className="cn-acceso__numero">{a.numero}</span>
-                        <span className="cn-acceso__titulo">{a.titulo}</span>
-                        <span className="cn-acceso__texto">{a.texto}</span>
-                    </button>
-                ))}
+                {accesos.map((a) => {
+                    const contenido = (
+                        <>
+                            <span className="cn-acceso__fila">
+                                <span className="cn-acceso__icono" aria-hidden="true"><img src={a.icono} alt="" /></span>
+                                {a.enlace && <span className="cn-acceso__enlace">{a.enlace} →</span>}
+                            </span>
+                            <span className="cn-acceso__numero">{a.numero}</span>
+                            <span className="cn-acceso__titulo">{a.titulo}</span>
+                            <span className="cn-acceso__texto">{a.texto}</span>
+                        </>
+                    );
+                    return a.alPresionar ? (
+                        <button key={a.titulo} type="button" className={`cn-acceso cn-acceso--${a.tono}`} aria-pressed={a.activo} onClick={a.alPresionar}>{contenido}</button>
+                    ) : (
+                        <div key={a.titulo} className={`cn-acceso cn-acceso--${a.tono} cn-acceso--fijo`}>{contenido}</div>
+                    );
+                })}
             </div>
         </section>
     );

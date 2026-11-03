@@ -103,6 +103,15 @@ const iniciales: Actividad[] = [
         nombre: "Club de cómputo para personas mayores", tipo: "Club", fecha: "2026-11-05", inicio: "10:00", fin: "11:30", espacio: "Sala de cómputo", cupo: "15",
         publico: "Personas mayores", descripcion: "Uso básico de la computadora y del correo electrónico (ejemplo).",
     }, { autorizo: coordinacion, publicadaEl: "2026-10-10T10:00:00", inscritos: 9 }),
+    // Actividades ya realizadas (para Asistencia e Inscripciones "Pasadas")
+    ejemplo("AC-0099", "publicada", {
+        nombre: "Taller de dibujo", tipo: "Taller", fecha: "2026-10-20", inicio: "16:00", fin: "17:30", espacio: "Sala infantil", cupo: "15",
+        publico: "Niñez (6 a 10 años)", descripcion: "Taller de dibujo con cuentos (ejemplo).",
+    }, { autorizo: coordinacion, publicadaEl: "2026-10-05T10:00:00", inscritos: 15 }),
+    ejemplo("AC-0098", "publicada", {
+        nombre: "Club de lectura", tipo: "Club", fecha: "2026-10-27", inicio: "09:00", fin: "10:30", espacio: "Sala de lectura", cupo: "15",
+        publico: "Personas adultas", descripcion: "Club de lectura de los martes (ejemplo).",
+    }, { autorizo: coordinacion, publicadaEl: "2026-10-12T10:00:00", inscritos: 12 }),
     ejemplo("AC-0100", "borrador", {
         nombre: "Exposición: fotografías del archivo", tipo: "Exposición", fecha: "2026-12-03", inicio: "09:00", fin: "18:00", espacio: "Toda la biblioteca", cupo: "40",
         descripcion: "Selección de fotografías del archivo histórico (ejemplo).", inscripcion: false,

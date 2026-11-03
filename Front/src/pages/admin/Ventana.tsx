@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { MENSAJE_OBLIGATORIO } from "../../servicios/validaciones";
 
 // ---------- Ventana modal base ----------
@@ -30,6 +30,13 @@ export function Ventana({
     alCerrar,
     children,
 }: VentanaProps) {
+    const formulario = useRef<HTMLFormElement>(null);
+
+    // Al abrir, el foco pasa al primer control de la ventana (campo o botón) para quien usa teclado
+    useEffect(() => {
+        formulario.current?.querySelector<HTMLElement>("input, select, textarea, button")?.focus();
+    }, []);
+
     // Escape cierra la ventana
     useEffect(() => {
         function alTeclear(evento: KeyboardEvent) {
@@ -42,6 +49,7 @@ export function Ventana({
     return (
         <div className="fondo-atenuado" onClick={alCerrar}>
             <form
+                ref={formulario}
                 className={`ventana ${angosta ? "ventana--angosta" : ""}`}
                 role="dialog"
                 aria-modal="true"

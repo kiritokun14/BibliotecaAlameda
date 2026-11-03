@@ -1,9 +1,10 @@
 import { useContext, useState, type ReactNode } from "react";
-import { NavLink, useLocation } from "react-router";
+import { Link, NavLink, useLocation } from "react-router";
 import { ContextoPanel, PANEL_COMPLETO_DEV, capacidadPanel, nombresRoles, permisoGlobal, type IdentidadPanel } from "../../servicios/accesoPanel";
 import { PiePortal } from "../../components/portal/Portal";
 import "./Panel.css";
 import { RESUMEN, SECCIONES_MENU, type SeccionMenu, type SubitemMenu } from "./menu";
+import { useNotificaciones } from "./notificaciones/datos";
 import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.png";
 import logoNayarit from "../../assets/comun/logos/logo-nayarit-blanco.png";
 import iconoLibro from "../../assets/admin/menu-book.svg";
@@ -165,6 +166,7 @@ function SeccionLateral({
 // ---------- Cabecera blanca ----------
 function Cabecera({ titulo }: { titulo: string }) {
     const identidad = useContext(ContextoPanel);
+    const { pendientes } = useNotificaciones();
     return (
         <header className="panel-cabecera">
             <h1 className="panel-cabecera__titulo">{titulo}</h1>
@@ -173,10 +175,10 @@ function Cabecera({ titulo }: { titulo: string }) {
                 <img src={iconoExterno} alt="" />
                 <span className="solo-lectores">(se abre en una pestaña nueva)</span>
             </a>
-            {/* TODO: abrir Admin · Notificaciones cuando exista la pantalla */}
-            <button type="button" className="panel-campana" disabled aria-label="Notificaciones (próximamente)">
+            <Link to="/admin/notificaciones" className="panel-campana" aria-label={pendientes > 0 ? `Notificaciones: ${pendientes} sin leer` : "Notificaciones"}>
                 <img src={iconoCampana} alt="" />
-            </button>
+                {pendientes > 0 && <span className="panel-campana__insignia" aria-hidden="true">{pendientes > 9 ? "9+" : pendientes}</span>}
+            </Link>
             <span className="panel-cuenta">
                 <span className="panel-cuenta__avatar"><img src={iconoUsuario} alt="" /></span>
                 <span>

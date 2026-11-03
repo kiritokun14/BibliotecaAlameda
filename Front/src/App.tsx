@@ -44,6 +44,7 @@ import DetallePropuesta from "./pages/admin/atencion/propuestas/DetallePropuesta
 import VistaPrevia from "./pages/admin/atencion/propuestas/VistaPrevia.tsx";
 import AccesoPanel from "./pages/admin/AccesoPanel";
 import Resumen from "./pages/admin/resumen/Resumen.tsx";
+import Notificaciones from "./pages/admin/notificaciones/Notificaciones.tsx";
 import MisContenidos from "./pages/admin/contenidos/MisContenidos.tsx";
 import NuevoContenido from "./pages/admin/contenidos/NuevoContenido.tsx";
 import EditarContenido from "./pages/admin/contenidos/EditarContenido.tsx";
@@ -62,6 +63,15 @@ import ActividadPublicada from "./pages/admin/actividades/ActividadPublicada.tsx
 import Calendario from "./pages/admin/actividades/Calendario.tsx";
 import { EditarSala, FichaSala } from "./pages/admin/actividades/FichaSala.tsx";
 import { BloqueoGuardado, EditarBloqueo, NuevoBloqueo } from "./pages/admin/actividades/FormularioBloqueo.tsx";
+import Visitas from "./pages/admin/actividades/Visitas.tsx";
+import { ConfirmarVisita, DetalleVisita, ProponerFecha, ResultadoVisita } from "./pages/admin/actividades/DetalleVisita.tsx";
+import { FichaUso, RegistrarUso, UsoGuardado } from "./pages/admin/actividades/UsoEspacio.tsx";
+import Cambios from "./pages/admin/actividades/Cambios.tsx";
+import { CancelarActividad, DetalleCambio, Reprogramar, ResultadoCambio } from "./pages/admin/actividades/DetalleCambio.tsx";
+import Inscripciones, { InscritosActividad } from "./pages/admin/actividades/Inscripciones.tsx";
+import { FichaInscripcion, InscribirPersona, ResultadoInscripcion } from "./pages/admin/actividades/GestionInscripcion.tsx";
+import Asistencia, { ListaCerrada, PasarLista, ResumenAsistencia } from "./pages/admin/actividades/Asistencia.tsx";
+import Evidencias, { DetalleEvidencia, ResultadoEvidencia, SubirEvidencia } from "./pages/admin/actividades/Evidencias.tsx";
 
 function App() {
   return (
@@ -114,6 +124,7 @@ function App() {
         {/* Panel de administración · Atención (por ahora solo estas tres secciones) */}
         <Route path="/admin" element={<AccesoPanel><Navigate to="/admin/atencion/credenciales" replace /></AccesoPanel>} />
         <Route path="/admin/resumen" element={<AccesoPanel><Resumen /></AccesoPanel>} />
+        <Route path="/admin/notificaciones" element={<AccesoPanel><Notificaciones /></AccesoPanel>} />
         {/* key distinta para que al cambiar entre bandeja y "todas" se reinicien los filtros */}
         <Route path="/admin/atencion/credenciales" element={<AccesoPanel><Credenciales key="bandeja" vista="bandeja" /></AccesoPanel>} />
         <Route path="/admin/atencion/credenciales/todas" element={<AccesoPanel><Credenciales key="todas" vista="todas" /></AccesoPanel>} />
@@ -156,6 +167,48 @@ function App() {
         <Route path="/admin/actividades/calendario/bloqueos/:id/guardado" element={<AccesoPanel><BloqueoGuardado /></AccesoPanel>} />
         <Route path="/admin/actividades/calendario/salas/:sala" element={<AccesoPanel><FichaSala /></AccesoPanel>} />
         <Route path="/admin/actividades/calendario/salas/:sala/editar" element={<AccesoPanel><EditarSala /></AccesoPanel>} />
+        {/* Panel · Actividades: Visitas y uso de espacios */}
+        <Route path="/admin/actividades/visitas" element={<AccesoPanel><Visitas /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/uso/registrar" element={<AccesoPanel><RegistrarUso /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/uso/:id" element={<AccesoPanel><FichaUso /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/uso/:id/editar" element={<AccesoPanel><RegistrarUso /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/uso/:id/guardado" element={<AccesoPanel><UsoGuardado /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/:folio" element={<AccesoPanel><DetalleVisita /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/:folio/confirmar" element={<AccesoPanel><ConfirmarVisita /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/:folio/proponer" element={<AccesoPanel><ProponerFecha /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/:folio/confirmada" element={<AccesoPanel><ResultadoVisita tipo="confirmada" /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/:folio/propuesta-enviada" element={<AccesoPanel><ResultadoVisita tipo="propuesta" /></AccesoPanel>} />
+        <Route path="/admin/actividades/visitas/:folio/rechazada" element={<AccesoPanel><ResultadoVisita tipo="rechazada" /></AccesoPanel>} />
+        {/* Panel · Actividades: Cambios y cancelaciones */}
+        <Route path="/admin/actividades/cambios" element={<AccesoPanel><Cambios /></AccesoPanel>} />
+        <Route path="/admin/actividades/cambios/cancelar" element={<AccesoPanel><CancelarActividad /></AccesoPanel>} />
+        <Route path="/admin/actividades/cambios/reprogramar" element={<AccesoPanel><Reprogramar /></AccesoPanel>} />
+        <Route path="/admin/actividades/cambios/:folio" element={<AccesoPanel><DetalleCambio /></AccesoPanel>} />
+        <Route path="/admin/actividades/cambios/:folio/aplicado" element={<AccesoPanel><ResultadoCambio tipo="aplicado" /></AccesoPanel>} />
+        <Route path="/admin/actividades/cambios/:folio/rechazado" element={<AccesoPanel><ResultadoCambio tipo="rechazado" /></AccesoPanel>} />
+        <Route path="/admin/actividades/cambios/:folio/cancelada" element={<AccesoPanel><ResultadoCambio tipo="cancelada" /></AccesoPanel>} />
+        <Route path="/admin/actividades/cambios/:folio/enviada" element={<AccesoPanel><ResultadoCambio tipo="enviada" /></AccesoPanel>} />
+        {/* Panel · Actividades: Inscripciones y cupos */}
+        <Route path="/admin/actividades/inscripciones" element={<AccesoPanel><Inscripciones /></AccesoPanel>} />
+        <Route path="/admin/actividades/inscripciones/inscribir" element={<AccesoPanel><InscribirPersona /></AccesoPanel>} />
+        <Route path="/admin/actividades/inscripciones/:folio" element={<AccesoPanel><InscritosActividad /></AccesoPanel>} />
+        <Route path="/admin/actividades/inscripciones/:folio/cupo-ajustado" element={<AccesoPanel><ResultadoInscripcion tipo="cupo" /></AccesoPanel>} />
+        <Route path="/admin/actividades/inscripciones/:folio/:id" element={<AccesoPanel><FichaInscripcion /></AccesoPanel>} />
+        <Route path="/admin/actividades/inscripciones/:folio/:id/inscrita" element={<AccesoPanel><ResultadoInscripcion tipo="inscrita" /></AccesoPanel>} />
+        <Route path="/admin/actividades/inscripciones/:folio/:id/ofrecido" element={<AccesoPanel><ResultadoInscripcion tipo="ofrecido" /></AccesoPanel>} />
+        <Route path="/admin/actividades/inscripciones/:folio/:id/cancelada" element={<AccesoPanel><ResultadoInscripcion tipo="cancelada" /></AccesoPanel>} />
+        {/* Panel · Actividades: Asistencia */}
+        <Route path="/admin/actividades/asistencia" element={<AccesoPanel><Asistencia /></AccesoPanel>} />
+        <Route path="/admin/actividades/asistencia/resumen" element={<AccesoPanel><ResumenAsistencia /></AccesoPanel>} />
+        <Route path="/admin/actividades/asistencia/:folio" element={<AccesoPanel><PasarLista /></AccesoPanel>} />
+        <Route path="/admin/actividades/asistencia/:folio/cerrada" element={<AccesoPanel><ListaCerrada /></AccesoPanel>} />
+        {/* Panel · Actividades: Evidencias privadas */}
+        <Route path="/admin/actividades/evidencias" element={<AccesoPanel><Evidencias /></AccesoPanel>} />
+        <Route path="/admin/actividades/evidencias/subir" element={<AccesoPanel><SubirEvidencia /></AccesoPanel>} />
+        <Route path="/admin/actividades/evidencias/:folio" element={<AccesoPanel><DetalleEvidencia /></AccesoPanel>} />
+        <Route path="/admin/actividades/evidencias/:folio/guardada" element={<AccesoPanel><ResultadoEvidencia tipo="guardada" /></AccesoPanel>} />
+        <Route path="/admin/actividades/evidencias/:folio/solicitado" element={<AccesoPanel><ResultadoEvidencia tipo="solicitado" /></AccesoPanel>} />
+        <Route path="/admin/actividades/evidencias/:folio/retirada" element={<AccesoPanel><ResultadoEvidencia tipo="retirada" /></AccesoPanel>} />
 
         {/* Estados del sistema: a donde se manda a la persona cuando algo falla */}
         <Route path="/error" element={<ErrorServidor />} />
