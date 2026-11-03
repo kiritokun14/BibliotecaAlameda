@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState, type ChangeEvent, type SubmitEvent } from "react";
 import { Link } from "react-router";
-import AccesoLayout from "../../components/acceso/AccesoLayout";
-import Aviso from "../../components/acceso/Aviso";
-import { Campo, CampoSelect } from "../../components/acceso/Campo";
+import AccesoLayout from "../../components/AccesoLayout";
+import Aviso from "../../components/Aviso";
+import { Campo, CampoSelect } from "../../components/Campo";
 import { mensajeError, ErrorServicio } from "../../servicios/api";
 import { cerrarSesion } from "../../servicios/auth";
 import {
@@ -10,9 +10,9 @@ import {
     resolverDuplicado, type DatosAltaAsistida, type ResultadoAlta, type SolicitudAbierta,
 } from "../../servicios/altaAsistida";
 import { calcularEdad, esCorreoValido, tieneDigitos, MENSAJE_CORREO, MENSAJE_OBLIGATORIO } from "../../servicios/validaciones";
-import iconoFlechaDer from "../../assets/comun/iconos/flecha-derecha.svg";
-import iconoCargando from "../../assets/comun/iconos/cargando.svg";
-import iconoErrorCampo from "../../assets/comun/iconos/error-campo.svg";
+import iconoFlechaDer from "../../assets/login/icono-flecha-der.svg";
+import iconoCargando from "../../assets/login/icono-cargando.svg";
+import iconoErrorCampo from "../../assets/login/icono-error-campo.svg";
 import "./AltaAsistida.css";
 
 const pasos = [

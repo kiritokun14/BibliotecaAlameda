@@ -56,6 +56,7 @@ export function Subpestanas<T extends string | number>({
 
 // ---------- Portada ilustrada (sin foto de portada real) ----------
 export function Portada({ resena, tamano = "normal" }: { resena: Resena; tamano?: "normal" | "ancha" | "detalle" }) {
+    if (resena.imagen) return <div className={`portada-lectura portada-lectura--${tamano}`}><img src={resena.imagen} alt={`Portada de ${resena.libro}`} style={{ width: "100%", height: "100%", objectFit: "contain" }} /></div>;
     return (
         <div className={`portada-lectura portada-lectura--${resena.color} portada-lectura--${tamano}`} aria-hidden="true">
             <span className="portada-lectura__circulo" />
@@ -74,7 +75,7 @@ export function TarjetaResena({ resena, desde }: { resena: Resena; desde?: "tema
             <p className="tipo-lectura tipo-lectura--resena"><span />RESEÑA</p>
             <h3>{resena.libro}</h3>
             <p className="tarjeta-resena__autoria">{resena.autoria}</p>
-            <p className="tarjeta-resena__fecha">Reseña del equipo · {mesAnio(resena.publicada)} (ejemplo)</p>
+            <p className="tarjeta-resena__fecha">Reseña del equipo · {mesAnio(resena.publicada)}</p>
             <Link to={ruta} className="boton-lectura boton-lectura--chico">
                 Leer reseña <img src={flechaBlanca} alt="" />
                 <span className="solo-lectores">: {resena.libro}</span>
@@ -88,7 +89,7 @@ export function TarjetaMemoria({ memoria, desde }: { memoria: Memoria; desde?: "
     return (
         <li className="tarjeta-memoria">
             <div className="tarjeta-memoria__imagen">
-                <img src={memoria.imagen} alt="" />
+                <img src={memoria.imagen || undefined} alt="" />
                 <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
             </div>
             <div className="tarjeta-memoria__contenido">

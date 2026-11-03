@@ -1,5 +1,5 @@
 // Ayudas de Actividades que no son componentes
-import type { Tono } from "../contenidos/utiles";
+import type { Tono } from "../contenidoDemo/utiles";
 import type { EstadoActividad } from "./datos";
 import type { EstadoVisita } from "./visitas";
 import type { EstadoCambio } from "./cambios";

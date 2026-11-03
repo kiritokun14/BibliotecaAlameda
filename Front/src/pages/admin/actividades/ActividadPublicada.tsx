@@ -1,9 +1,9 @@
 import { Link, Navigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import { Chip, Encabezado, Migas, Pagina, Pasos, PieDatos, Resultado, Tarjeta } from "../contenidos/piezas";
-import { clasesBoton } from "../contenidos/utiles";
-import { cuandoConHora } from "../contenidos/datos";
+import "../contenidoDemo/Contenidos.css";
+import { Chip, Encabezado, Migas, Pagina, Pasos, PieDatos, Resultado, Tarjeta } from "../contenidoDemo/piezas";
+import { clasesBoton } from "../contenidoDemo/utiles";
+import { cuandoConHora } from "../contenidoDemo/datos";
 import { obtenerActividad, useActividades } from "./datos";
 import { BASE_PROPUESTAS } from "./utiles";
 import iconoCheck from "../../../assets/admin/contenidos/resultado-check.svg";

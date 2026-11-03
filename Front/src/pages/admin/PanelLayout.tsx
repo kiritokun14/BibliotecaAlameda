@@ -1,6 +1,7 @@
+import "./PanelSolon.css";
 import { useContext, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router";
-import { ContextoPanel, PANEL_COMPLETO_DEV, capacidadPanel, nombresRoles, permisoGlobal, type IdentidadPanel } from "../../servicios/accesoPanel";
+import { ContextoPanel, capacidadPanel, nombresRoles, permisoGlobal, type IdentidadPanel } from "../../servicios/accesoPanel";
 import { PiePortal } from "../../components/portal/Portal";
 import "./Panel.css";
 import { RESUMEN, SECCIONES_MENU, type SeccionMenu, type SubitemMenu } from "./menu";
@@ -51,9 +52,6 @@ function estadoSubitem(subitem: SubitemMenu, identidad: IdentidadPanel | null): 
 
 // Título de la tarjeta de rol: «acceso total» para quien tiene todo; si no, sus roles
 function textoRol(identidad: IdentidadPanel | null) {
-    const roles = identidad?.acceso.roles.map((r) => r.rolCodigo) ?? [];
-    const total = PANEL_COMPLETO_DEV || ["administrador", "editor", "responsable_actividades"].every((r) => roles.includes(r));
-    if (total) return { titulo: "CUENTA CON ACCESO TOTAL", texto: "Administrador del portal con todas las capacidades" };
     return { titulo: "PERMISOS DE LA CUENTA", texto: identidad ? nombresRoles(identidad.acceso) : "Personal de la biblioteca" };
 }
 
@@ -193,19 +191,22 @@ function Cabecera({ titulo }: { titulo: string }) {
 type PanelLayoutProps = {
     titulo: string; // el de la cabecera blanca, p. ej. "Atención"
     children: ReactNode;
+    tema?: string;
 };
 
-function PanelLayout({ titulo, children }: PanelLayoutProps) {
+function PanelLayout({ titulo, children, tema }: PanelLayoutProps) {
+    const { pathname } = useLocation();
     return (
-        <div className="panel">
+        <div className={`panel${tema ? ` panel--${tema}` : ""}`}>
             <FranjaGobierno />
             <div className="panel-cuerpo">
                 <BarraLateral />
                 <div className="panel-principal">
                     <Cabecera titulo={titulo} />
                     <main className="panel-contenido">
+                        {!pathname.startsWith("/admin/contenidos/editor") && !pathname.startsWith("/admin/contenidos/revision") && !pathname.startsWith("/admin/atencion/contactos") && !pathname.startsWith("/admin/atencion/bibliocomunidad") && !pathname.startsWith("/admin/administracion/fuentes") && <p role="status" className="panel-nota">Demostración: estas acciones usan datos de ejemplo y no se guardan en la base de datos.</p>}
                         {children}
-                        <p className="panel-nota">Biblioteca Solón Argüello · Panel del personal · Datos de ejemplo</p>
+                        <p className="panel-nota">Biblioteca Solón Argüello · Panel del personal</p>
                     </main>
                 </div>
             </div>

@@ -121,7 +121,8 @@ export const Confirmacion = forwardRef<HTMLHeadingElement, {
     etiqueta: string;
     titulo: string;
     alEnviarOtro: () => void;
-}>(function Confirmacion({ etiqueta, titulo, alEnviarOtro }, ref) {
+    folio?: string;
+}>(function Confirmacion({ etiqueta, titulo, alEnviarOtro, folio }, ref) {
     return (
         <section className="contacto-seccion contacto-seccion--verde">
             <div className="confirmacion-contacto" role="status">
@@ -133,7 +134,7 @@ export const Confirmacion = forwardRef<HTMLHeadingElement, {
                 <p className="confirmacion-contacto__etiqueta">{etiqueta}</p>
                 {/* tabIndex -1: recibe el foco al terminar para que el lector anuncie el resultado */}
                 <h2 ref={ref} tabIndex={-1}>{titulo}</h2>
-                <p className="confirmacion-contacto__texto">El personal de la biblioteca lo revisará.</p>
+                <p className="confirmacion-contacto__texto">{folio && <>Conserva tu folio: <strong>{folio}</strong><br /></>}El personal de la biblioteca lo revisará.</p>
                 <div className="confirmacion-contacto__botones">
                     <Link to="/" className="boton-contacto boton-contacto--verde">
                         Volver al inicio

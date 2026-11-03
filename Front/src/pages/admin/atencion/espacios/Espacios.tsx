@@ -1,5 +1,3 @@
-// Panel › Atención › Espacios: bandeja y «todas» de las solicitudes de espacios.
-// La tabla, filtros y resumen los dibuja Bandeja; aquí solo va la configuración de esta área. Datos de ejemplo (../datos.ts).
 import PanelLayout from "../../PanelLayout";
 import Bandeja, { CeldaDoble, type Columna, type ConfigArea } from "../Bandeja";
 import { formatearFecha, useSolicitudes, type SolicitudEspacio } from "../datos";

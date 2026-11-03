@@ -1,8 +1,10 @@
+import { useLecturasPublicadas } from "./publicados";
+import { EstadoPublicados } from "../../../servicios/EstadoPublicados";
 import { useEffect } from "react";
 import { useParams, useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import "./Lecturas.css";
-import { GENEROS, abrir, fechaLarga, resenas, visibles } from "./datos";
+import { GENEROS, abrir, fechaLarga, visibles } from "./datos";
 import {
     BotonCatalogo,
     BotonVolverClaro,
@@ -16,6 +18,7 @@ import iconoLibro from "../../../assets/comun/iconos/lecturas-libro.svg";
 
 // Reseña · detalle. ?desde=tema cambia el botón de regreso a "Lecturas por tema".
 function DetalleResena() {
+    const { datos, error, resenas } = useLecturasPublicadas();
     const { id } = useParams();
     // Al abrir otra desde "Más…", empezar arriba
     useEffect(() => { window.scrollTo(0, 0); }, [id]);
@@ -24,6 +27,8 @@ function DetalleResena() {
         ? { texto: "Volver a Lecturas por tema", ruta: "/lecturas/temas" }
         : { texto: "Volver a Lecturas y reseñas", ruta: "/lecturas" };
     const apertura = abrir(resenas, id);
+
+    if (!datos || error) return <PaginaPublica><EstadoPublicados datos={datos} error={error} /></PaginaPublica>;
 
     if (apertura.tipo !== "ok") {
         return (
@@ -72,7 +77,7 @@ function DetalleResena() {
                             <span className="autoria-resena__icono"><img src={iconoLibro} alt="" /></span>
                             <span>
                                 <strong>Reseña escrita por el equipo de la biblioteca</strong>
-                                <small>Publicada el {fechaLarga(r.publicada)} (ejemplo) · Servicios bibliotecarios (por confirmar)</small>
+                                <small>Publicada el {fechaLarga(r.publicada)} · Servicios bibliotecarios (por confirmar)</small>
                             </span>
                         </p>
                         <p className="detalle-resena__entrada">{r.entrada}</p>

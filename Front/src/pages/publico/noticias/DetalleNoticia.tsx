@@ -33,14 +33,15 @@ function DetalleNoticia() {
 
     useEffect(() => {
         let vigente = true;
-        Promise.all([obtenerNoticia(id), obtenerNoticias()])
-            .then(([noticia, todas]) => {
+        obtenerNoticia(id)
+            .then((noticia) => {
                 if (!vigente) return;
-                setRespuesta({
-                    clave,
-                    carga: noticia ? { estado: "listo", noticia, otras: otrasNoticias(todas, noticia.id) } : { estado: "no-disponible" },
-                });
+                setRespuesta({ clave, carga: noticia ? { estado: "listo", noticia, otras: [] } : { estado: "no-disponible" } });
                 window.scrollTo(0, 0);
+                // Las recomendaciones no bloquean el artículo ni convierten un 404 en error de carga.
+                if (noticia) void obtenerNoticias().then(todas => {
+                    if (vigente) setRespuesta({ clave, carga: { estado: "listo", noticia, otras: otrasNoticias(todas, noticia.id) } });
+                }).catch(() => { /* El contenido principal ya está disponible. */ });
             })
             .catch(() => { if (vigente) setRespuesta({ clave, carga: { estado: "error" } }); });
         return () => { vigente = false; };
@@ -91,7 +92,7 @@ function DetalleNoticia() {
 
                 <div className="detalle-noticia__cuerpo">
                     <div className="detalle-noticia__imagen">
-                        <img src={noticia.imagen} alt="" />
+                        <img src={noticia.imagen || undefined} alt={noticia.textoAlternativo ?? ""} />
                         <span className="tarjeta-noticia__ilustrativa">Imagen ilustrativa</span>
                     </div>
 

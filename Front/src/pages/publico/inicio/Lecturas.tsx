@@ -1,8 +1,9 @@
+import { useLecturasPublicadas } from "../lecturas/publicados";
 import { Bloque, EncabezadoSeccion } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
 import { useCarrusel } from "./useCarrusel";
 import { Link } from "react-router";
-import { libros, type Libro } from "./datos";
+import { type Libro } from "./datos";
 import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import textura from "../../../assets/inicio/lecturas-textura.svg";
@@ -115,8 +116,11 @@ function PortadaLibro({ libro }: { libro: Libro }) {
 }
 
 function Lecturas() {
+    const { resenas, datos, error } = useLecturasPublicadas();
+    const libros: Libro[] = resenas.slice(0, 8).map(c => ({ id: c.id, titulo: c.libro, autoria: c.autoria, genero: c.genero, portadaUrl: c.imagen, estilo: "narrativa" }));
     const { refPista, pagina, totalPaginas, alDesplazar, irAnterior, irSiguiente, irAPagina } = useCarrusel();
 
+    if (!libros.length) return <section className="seccion-inicio"><h2>Lecturas y reseñas</h2><p role={error ? "alert" : "status"}>{error ?? (!datos ? "Cargando lecturas…" : "Todavía no hay reseñas publicadas.")}</p></section>;
     return (
         <section className="seccion-inicio seccion-inicio--verde-claro">
             <Bloque tema="verde" circulos={[circulo1, circulo2]} textura={{ src: textura, ancho: 420, alto: 200 }}>

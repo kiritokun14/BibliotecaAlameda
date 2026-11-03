@@ -93,7 +93,7 @@ export function TarjetaChica({ noticia, origen }: { noticia: Noticia; origen: Or
     return (
         <Link to={rutaDetalle(noticia)} state={origen} className="tarjeta-noticia tarjeta-noticia--chica">
             <span className="tarjeta-noticia__imagen">
-                <img src={noticia.imagen} alt="" />
+                <img src={noticia.imagen || undefined} alt={noticia.textoAlternativo ?? ""} />
             </span>
             <span className="tarjeta-noticia__textos">
                 <PuntoCategoria categoria={noticia.categoria} />
@@ -109,7 +109,7 @@ export function TarjetaArchivo({ noticia, vista, origen }: { noticia: Noticia; v
     return (
         <Link to={rutaDetalle(noticia)} state={origen} className={`tarjeta-noticia tarjeta-noticia--${vista}`}>
             <span className="tarjeta-noticia__imagen">
-                <img src={noticia.imagen} alt="" />
+                <img src={noticia.imagen || undefined} alt={noticia.textoAlternativo ?? ""} />
                 <span className="tarjeta-noticia__ilustrativa">Imagen ilustrativa</span>
             </span>
             <span className="tarjeta-noticia__textos">

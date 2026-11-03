@@ -1,8 +1,10 @@
+import { usePublicados } from "../../../servicios/usarPublicados.ts";
+import { noticiaPublicada, fechaLarga } from "../noticias/datos";
 import { useState } from "react";
 import { Link } from "react-router";
 import { Bloque, EncabezadoSeccion, Etiqueta } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
-import { noticias, type CategoriaNoticia } from "./datos";
+import { type CategoriaNoticia } from "./datos";
 import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import rama from "../../../assets/inicio/noticias-rama.svg";
@@ -26,9 +28,13 @@ const categorias: Record<CategoriaNoticia, { color: string; icono: string }> = {
 // A la izquierda la noticia grande; a la derecha la lista para elegir cuál ver
 function Noticias() {
     const [activa, setActiva] = useState(0);
-    const destacada = noticias[activa];
+    const { datos, error } = usePublicados('noticia');
+    const categoriaInicio = { institucional: 'Institucional', avisos: 'Aviso', actividades: 'Actividades', comunidad: 'Comunidad' } as const;
+    const noticias = (datos ?? []).slice(0, 4).map(noticiaPublicada).map(c => ({ ...c, categoria: categoriaInicio[c.categoria], fecha: fechaLarga(c.fecha), enlace: 'Leer noticia completa' }));
+    const destacada = noticias[activa] ?? noticias[0];
     const total = noticias.length;
 
+    if (!destacada) return <section className="seccion-inicio"><h2>Noticias</h2><p role={error ? "alert" : "status"}>{error ?? (!datos ? "Cargando noticias…" : "Todavía no hay noticias publicadas.")}</p></section>;
     return (
         <section className="seccion-inicio seccion-inicio--blanca">
             <Bloque tema="verde" circulos={[circulo1, circulo2]} textura={{ src: rama, ancho: 380, alto: 380 }}>
@@ -46,7 +52,7 @@ function Noticias() {
                             {noticias.map((noticia, i) => (
                                 <img
                                     key={noticia.id}
-                                    src={noticia.imagen}
+                                    src={noticia.imagen || undefined}
                                     alt=""
                                     className={i === activa ? "noticia-destacada__foto noticia-destacada__foto--activa" : "noticia-destacada__foto"}
                                 />
@@ -100,7 +106,7 @@ function Noticias() {
                     </ul>
                 </div>
 
-                <p className="nota-ejemplo">Noticias de ejemplo; la biblioteca publicará su contenido real.</p>
+                <p className="nota-ejemplo">Noticias autorizadas por la biblioteca.</p>
             </Bloque>
         </section>
     );

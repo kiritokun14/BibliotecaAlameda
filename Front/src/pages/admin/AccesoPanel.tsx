@@ -1,6 +1,4 @@
-// Guardia del panel de administración: comprueba la sesión y el permiso de la sección (servicios/accesoPanel.ts).
-// Sin sesión → iniciar sesión; sin permiso → mensaje; en /admin → primera sección permitida.
-// En desarrollo, VITE_PANEL_COMPLETO=true abre todas las secciones (ver Front/README.md).
+import { invalidarConsultas } from '../../servicios/consultas';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, Navigate } from 'react-router';
 import { consultarMiAcceso } from '../../servicios/auth';
@@ -12,20 +10,24 @@ export default function AccesoPanel({ children }: { children: ReactNode }) {
     const [resultado, setResultado] = useState<{ ruta: string; identidad?: IdentidadPanel; error?: string; iniciar?: boolean }>({ ruta: '' });
     useEffect(() => {
         let activo = true;
+        let generacion = 0;
         async function comprobar() {
+            const actual = ++generacion;
             try {
                 const acceso = await consultarMiAcceso();
                 const capacidad = capacidadPanel(pathname === '/admin' ? (rutaInicialPanel(acceso) ?? '') : pathname);
                 if (!capacidad || !permisoGlobal(acceso, capacidad)) throw new ErrorServicio('Tu cuenta no tiene el permiso necesario para esta sección.', 403);
-                const { data, error } = await (await obtenerSupabase()).auth.getUser();
-                if (error || !data.user) throw new ErrorServicio('Inicia sesión para continuar.', 401);
-                if (activo) setResultado({ ruta: pathname, identidad: { acceso, correo: data.user.email ?? 'Cuenta del personal' } });
+                const { data, error } = await (await obtenerSupabase()).auth.getSession();
+                if (error || !data.session || data.session.user.id !== acceso.usuarioId) throw new ErrorServicio('Inicia sesión para continuar.', 401);
+                if (activo && actual === generacion) setResultado({ ruta: pathname, identidad: { acceso, correo: data.session.user.email ?? 'Cuenta del personal' } });
             } catch (error) {
-                if (activo) setResultado({ ruta: pathname, error: mensajeError(error), iniciar: error instanceof ErrorServicio && error.estado === 401 });
+                if (activo && actual === generacion) setResultado({ ruta: pathname, error: mensajeError(error), iniciar: error instanceof ErrorServicio && error.estado === 401 });
             }
         }
+        const revalidar = () => { invalidarConsultas(); void comprobar(); };
+        window.addEventListener('focus', revalidar);
         void comprobar();
-        return () => { activo = false; };
+        return () => { activo = false; window.removeEventListener('focus', revalidar); };
     }, [pathname]);
     if (resultado.ruta !== pathname) return <main className="confirmacion" role="status">Comprobando acceso al panel…</main>;
     if (resultado.iniciar) return <Navigate to="/iniciar-sesion" replace />;

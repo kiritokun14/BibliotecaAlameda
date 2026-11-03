@@ -29,6 +29,7 @@ export type Bloque = { tipo: "parrafo" | "subtitulo"; texto: string };
 
 export type Resena = {
     id: string; // se usa en /lecturas/:id
+    imagen?: string;
     libro: string;
     autoria: string;
     genero: Genero;

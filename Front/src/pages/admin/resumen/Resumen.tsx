@@ -2,7 +2,7 @@ import { useContext, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
 import "./Resumen.css";
-import { ContextoPanel, PANEL_COMPLETO_DEV, capacidadPanel, nombresRoles } from "../../../servicios/accesoPanel";
+import { ContextoPanel, capacidadPanel, nombresRoles, permisoGlobal } from "../../../servicios/accesoPanel";
 import {
     AREAS,
     NOMBRE_AREA,
@@ -150,13 +150,14 @@ export default function Resumen() {
 
 // En el modo de desarrollo con todos los permisos se muestran los roles de la cuenta de acceso total (Figma)
 function rolesDeLaCuenta(nombres: string): string[] {
-    if (PANEL_COMPLETO_DEV) return ["Administrador del portal", "Editor (A-03)", "Responsable de actividades (A-04)", "Servicios Digitales", "Préstamos"];
     return nombres.split(", ").filter((r) => r && r !== "Usuario / Cliente");
 }
 
 // Enlace a otra pantalla del panel; si esa pantalla aún no existe, el mismo aspecto sin poder presionarse
 function Enlace({ ruta, className, children }: { ruta: string; className: string; children: ReactNode }) {
-    if (existe(ruta)) return <Link to={ruta} className={className}>{children}</Link>;
+    const identidad = useContext(ContextoPanel);
+    const capacidad = capacidadPanel(ruta);
+    if (existe(ruta) && identidad && capacidad && permisoGlobal(identidad.acceso, capacidad)) return <Link to={ruta} className={className}>{children}</Link>;
     return <span className={`${className} resumen-sin-enlace`} title="Sección en desarrollo">{children}</span>;
 }
 

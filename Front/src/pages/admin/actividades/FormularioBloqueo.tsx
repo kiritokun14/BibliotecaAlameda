@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import { CampoTexto, Chip, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta } from "../contenidos/piezas";
-import { clasesBoton } from "../contenidos/utiles";
+import "../contenidoDemo/Contenidos.css";
+import { CampoTexto, Chip, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta } from "../contenidoDemo/piezas";
+import { clasesBoton } from "../contenidoDemo/utiles";
 import { fechaCorta, useActividades } from "./datos";
 import { guardarBloqueo, hoyISO, horarioBloqueo, obtenerBloqueo, obtenerSala, useSalas, validarBloqueo, type Bloqueo, type DatosBloqueo } from "./salas";
 import { conflictoBloqueo } from "./calendario";

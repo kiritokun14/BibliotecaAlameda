@@ -10,10 +10,9 @@ describe('Acceso a las pantallas de atención', () => {
         expect(permisoGlobal(acceso(), 'publicar_contenidos')).toBe(false);
         expect(rutaInicialPanel(acceso())).toBeNull();
     });
-    it('con acceso al panel, /admin abre el Resumen', () => {
+    it('entra a la primera sección realmente autorizada', () => {
         expect(rutaInicialPanel(acceso('registrar_resoluciones_actividades'))).toBe('/admin/resumen');
         expect(rutaInicialPanel(acceso('validar_credenciales'))).toBe('/admin/resumen');
-        expect(capacidadPanel('/admin/notificaciones')).toBe('panel_general');
     });
     it('publicar exige un permiso distinto al de resolver propuestas', () => {
         expect(capacidadPanel('/admin/atencion/propuestas/PR-1')).toBe('registrar_resoluciones_actividades');
@@ -24,6 +23,18 @@ describe('Acceso a las pantallas de atención', () => {
         const cuenta = acceso();
         cuenta.permisosAdicionales = [{ capacidad: 'registrar_resoluciones_actividades', ambito: 'actividad', actividadId: 'actividad' }];
         expect(tienePanel(cuenta)).toBe(false);
+    });
+    it('un editor no obtiene permisos de publicación ni de actividades', () => {
+        const editor = acceso('preparar_contenidos');
+        expect(tienePanel(editor)).toBe(true);
+        expect(permisoGlobal(editor, capacidadPanel('/admin/resumen')!)).toBe(true);
+        expect(permisoGlobal(editor, capacidadPanel('/admin/contenidos/revision')!)).toBe(false);
+        expect(permisoGlobal(editor, capacidadPanel('/admin/actividades/asistencia')!)).toBe(false);
+    });
+    it('resolver solicitudes no concede gestión de actividades o evidencias', () => {
+        const atencion = acceso('registrar_resoluciones_actividades');
+        expect(permisoGlobal(atencion, capacidadPanel('/admin/actividades/propuestas')!)).toBe(false);
+        expect(permisoGlobal(atencion, capacidadPanel('/admin/actividades/evidencias')!)).toBe(false);
     });
     it('sin rutas conocidas no presume permiso', () => {
         expect(capacidadPanel('/admin/desconocida')).toBeNull();

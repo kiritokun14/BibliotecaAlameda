@@ -1,0 +1,759 @@
+    .pagina-acceso {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+    }
+
+    .pagina-acceso p,
+    .pagina-acceso h1,
+    .pagina-acceso h2 {
+    margin: 0;
+    }
+
+    /* ---------- Franja institucional ---------- */
+    .franja {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 42px;
+    background: #611232;
+    color: #fff;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 14px;
+    }
+
+    .franja__titulo {
+    font-weight: 700;
+    }
+
+    /* ---------- Contenido (dos columnas) ---------- */
+    .acceso {
+    display: flex;
+    flex: 1;
+    }
+
+    /* ---------- Presentación (izquierda) ---------- */
+    .presentacion {
+    /* se queda fija mientras bajas en formularios largos (Crear cuenta) */
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    overflow: hidden;
+    width: 44%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 40px 112px 48px;
+    box-sizing: border-box;
+    background:
+        linear-gradient(rgba(11, 59, 51, 0.62), rgba(11, 59, 51, 0.78) 55%, rgba(11, 59, 51, 0.92)),
+        url('../assets/login/foto-biblioteca.jpg') center / cover;
+    color: #fff;
+    }
+
+    .presentacion__circulo {
+    position: absolute;
+    }
+
+    .presentacion__circulo--grande {
+    width: 460px;
+    height: 460px;
+    top: -160px;
+    right: -20px;
+    }
+
+    .presentacion__circulo--chico {
+    width: 280px;
+    height: 280px;
+    bottom: -84px;
+    left: -120px;
+    }
+
+    .boton-volver {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px 11px 14px;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    }
+
+    .boton-volver img {
+    width: 16px;
+    height: 16px;
+    }
+
+    .presentacion__contenido {
+    position: relative;
+    margin-block: auto; /* lo centra verticalmente */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 28px;
+    }
+
+    .etiqueta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    background: #e4efeb;
+    color: #164f44;
+    font-size: 16px;
+    font-weight: 700;
+    }
+
+    .etiqueta img {
+    width: 8px;
+    height: 8px;
+    }
+
+    .presentacion__titulo {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 72px;
+    line-height: 79px;
+    letter-spacing: -1.44px;
+    font-weight: 700;
+    }
+
+    .presentacion__titulo span {
+    color: #e6d194;
+    }
+
+    .presentacion__texto {
+    font-size: 24px;
+    line-height: 36px;
+    color: #e4efeb;
+    }
+
+    .beneficios {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 19px;
+    }
+
+    .beneficios li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    }
+
+    .beneficios__icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    }
+
+    .beneficios__icono img {
+    width: 14px;
+    height: 14px;
+    }
+
+    /* ---------- Formulario (derecha) ---------- */
+    .formulario {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 64px;
+    background: #f7f5f0;
+    }
+
+    .tarjeta {
+    width: 680px;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 44px 48px;
+    border: 1px solid #e2ded5;
+    border-radius: 40px;
+    background: #fff;
+    box-shadow: 0 12px 16px rgba(22, 79, 68, 0.08);
+    }
+
+    .tarjeta__encabezado {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    .tarjeta__encabezado h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 34px;
+    line-height: 37px;
+    letter-spacing: -0.68px;
+    color: #161a1d;
+    }
+
+    .tarjeta__encabezado p {
+    font-size: 17px;
+    line-height: 25px;
+    color: #4d4d4d;
+    }
+
+    .campos {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    }
+
+    .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    .campo__etiqueta {
+    font-size: 15px;
+    font-weight: 700;
+    color: #161a1d;
+    }
+
+    .campo__etiqueta span {
+    margin-left: 2px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #6b675e;
+    }
+
+    .campo__entrada {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 58px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    border: 1.5px solid #b9b3a5;
+    border-radius: 16px;
+    background: #fff;
+    }
+
+    .campo__entrada:focus-within {
+    border-color: #164f44;
+    }
+
+    .campo__entrada input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    font-size: 17px;
+    color: #161a1d;
+    }
+
+    .campo__entrada input::placeholder {
+    color: #6b675e;
+    }
+
+    .campo__ayuda {
+    font-size: 14px;
+    color: #6b675e;
+    }
+
+    .boton-mostrar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px 8px 10px;
+    border: none;
+    border-radius: 999px;
+    background: #e4efeb;
+    color: #164f44;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    }
+
+    .boton-mostrar img {
+    width: 18px;
+    height: 18px;
+    }
+
+    .opciones {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    }
+
+    .casilla {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #161a1d;
+    cursor: pointer;
+    }
+
+    .casilla input {
+    appearance: none;
+    margin: 0;
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid #b9b3a5;
+    border-radius: 7px;
+    background: #fff;
+    cursor: pointer;
+    }
+
+    .casilla input:checked {
+    border-color: #164f44;
+    background: #164f44 url("../assets/login/icono-palomita.svg") center / 14px no-repeat;
+    }
+
+    .enlace {
+    color: #164f44;
+    font-weight: 700;
+    }
+
+    .boton-principal,
+    .boton-secundario {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    border-radius: 999px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    }
+
+    .boton-principal {
+    height: 58px;
+    border: none;
+    background: #164f44;
+    color: #fff;
+    font-size: 17px;
+    }
+
+    .boton-principal img {
+    width: 20px;
+    height: 20px;
+    }
+
+    .boton-secundario {
+    height: 56px;
+    border: 1.5px solid #164f44;
+    background: #fff;
+    color: #164f44;
+    font-size: 16px;
+    }
+
+    .boton-secundario img {
+    width: 18px;
+    height: 18px;
+    }
+
+    .separador {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+    color: #6b675e;
+    }
+
+    .separador::before,
+    .separador::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2ded5;
+    }
+
+    .tarjeta__pie {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid #e2ded5;
+    text-align: center;
+    font-size: 16px;
+    color: #4d4d4d;
+    }
+
+    .tarjeta__ayuda {
+    font-size: 14px;
+    line-height: 20px;
+    color: #6b675e;
+    }
+
+    /* ---------- Crear cuenta ---------- */
+    .tarjeta--ancha {
+    width: 900px;
+    }
+
+    .seccion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 8px;
+    color: #164f44;
+    font-size: 13px;
+    font-weight: 700;
+    }
+
+    .seccion::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c9a24a;
+    }
+
+    .seccion::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2ded5;
+    }
+
+    .fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+    }
+
+    .casilla {
+    font-size: 15px;
+    }
+
+    .mensaje-error {
+    color: #b3261e;
+    font-size: 15px;
+    font-weight: 700;
+    }
+
+    .tarjeta__pie--sin-linea {
+    margin-top: 0;
+    padding-top: 16px;
+    border-top: none;
+    }
+
+    /* ---------- Pie institucional ---------- */
+    .pie {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 32px 96px;
+    background: #611232;
+    font-family: 'Noto Sans', sans-serif;
+    }
+
+    .pie__logo {
+    width: 156px;
+    height: 56px;
+    object-fit: contain;
+    }
+
+    .pie__textos {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    }
+
+    .pie__titulo {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    }
+    
+    .pie__nota {
+    font-size: 14px;
+    color: #f1ecdc;
+    }
+    /* ---------- Confirma tu correo ---------- */
+    .icono-circulo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 999px;
+    background: #e4efeb;
+    }
+
+    .icono-circulo img {
+    width: 38px;
+    height: 38px;
+    }
+
+    .enlaces {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    }
+
+    /* ---------- Avisos (error, advertencia, info, éxito) ---------- */
+    .aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid;
+    border-radius: 22px;
+    }
+
+    .aviso--error {
+    background: #f6eaee;
+    border-color: #e7b8c6;
+    }
+
+    .aviso--advertencia {
+    background: #f6eeda;
+    border-color: #e6d194;
+    }
+
+    .aviso--info,
+    .aviso--exito {
+    background: #e4efeb;
+    border-color: #bfd8d0;
+    }
+
+    .aviso__icono {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: #fff;
+    }
+
+    .aviso__icono img {
+    width: 18px;
+    height: 18px;
+    }
+
+    .aviso__textos {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    }
+
+    .aviso__titulo {
+    font-size: 16px;
+    font-weight: 700;
+    color: #161a1d;
+    }
+
+    .aviso__texto {
+    font-size: 14.5px;
+    line-height: 21px;
+    color: #4d4d4d;
+    }
+
+    /* ---------- Campos con error ---------- */
+    .campo__entrada--error,
+    .campo__entrada--error:focus-within {
+    border: 2px solid #9b2247;
+    }
+
+    .campo__error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #9b2247;
+    }
+
+    .campo__error img {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    }
+
+    .casilla-con-error {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    /* ---------- Botones y enlaces sueltos ---------- */
+    a.boton-principal,
+    a.boton-secundario {
+    box-sizing: border-box;
+    text-decoration: none;
+    }
+
+    .boton-principal:disabled,
+    .boton-secundario:disabled {
+    opacity: 0.7;
+    cursor: wait;
+    }
+
+    .enlace--suelto {
+    align-self: flex-start;
+    font-size: 15px;
+    }
+
+    a.icono-circulo {
+    cursor: pointer;
+    }
+
+    .tarjeta__parrafo {
+    font-size: 16px;
+    line-height: 24px;
+    color: #4d4d4d;
+    }
+
+    .asistida {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 18px;
+    font-size: 14.5px;
+    line-height: 21px;
+    color: #4d4d4d;
+    }
+
+    /* ---------- Enviando (botón verde claro con ícono girando) ---------- */
+    .boton-principal:disabled {
+    opacity: 1;
+    background: #2f7d6b;
+    }
+
+    .girando {
+    animation: girar 1s linear infinite;
+    }
+
+    @keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+    }
+
+    .nota-enviando {
+    font-size: 14px;
+    color: #4d4d4d;
+    }
+
+    /* ---------- Lista desplegable y enlaces que son botones ---------- */
+    .campo__entrada select {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    font-size: 17px;
+    color: #161a1d;
+    cursor: pointer;
+    }
+
+    .enlace--boton {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+    }
+
+    /* ---------- Sesión iniciada ---------- */
+    .confirmacion {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 96px 24px 120px;
+    background: #f7f5f0;
+    text-align: center;
+    }
+
+    .confirmacion__anillo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 160px;
+    height: 160px;
+    box-sizing: border-box;
+    border: 2px solid rgba(230, 209, 148, 0.7);
+    border-radius: 999px;
+    }
+
+    .confirmacion__icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 112px;
+    height: 112px;
+    border-radius: 999px;
+    background: #e4efeb;
+    }
+
+    .confirmacion__icono img {
+    width: 48px;
+    height: 48px;
+    }
+
+    .confirmacion__textos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    max-width: 620px;
+    }
+
+    .confirmacion__etiqueta {
+    font-size: 13px;
+    font-weight: 700;
+    color: #9b2247;
+    }
+
+    .confirmacion__textos h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 44px;
+    line-height: 48px;
+    letter-spacing: -0.88px;
+    color: #161a1d;
+    }
+
+    .confirmacion__textos p:last-child {
+    font-size: 19px;
+    line-height: 29px;
+    color: #4d4d4d;
+    }
+
+    .boton-principal--compacto {
+    width: auto;
+    height: 54px;
+    margin-top: 8px;
+    padding: 0 28px;
+    font-size: 16px;
+    }
+
+    .boton-principal--compacto img {
+    width: 18px;
+    height: 18px;
+    }

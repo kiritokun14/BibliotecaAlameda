@@ -8,6 +8,7 @@ import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import volverBlanca from "../../../assets/comun/iconos/volver-blanca.svg";
 import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
+import SolicitudBibliocomunidad from "./SolicitudBibliocomunidad";
 import iconoCheck from "../../../assets/comun/iconos/check-verde.svg";
 
 type Carga =
@@ -73,7 +74,7 @@ function DetalleServicio() {
                 </div>
                 <span className="etiqueta-inicio">
                     <span className="punto-dorado" />
-                    {detalle.etiqueta}
+                    {id === "bibliocomunidad" ? "Bibliocomunidad · Registro de interés" : detalle.etiqueta}
                 </span>
                 <h1>{detalle.nombre.normal} <span>{detalle.nombre.resaltado}</span></h1>
                 <p>{detalle.subtitulo}</p>
@@ -109,10 +110,11 @@ function DetalleServicio() {
                 </div>
             </section>
 
+            {id === "bibliocomunidad" && <SolicitudBibliocomunidad />}
             <section className="servicios-seccion servicios-seccion--verde programa-aviso">
-                <span className="tarjeta-servicio__proximamente">PRÓXIMAMENTE</span>
-                <h2>{detalle.aviso.titulo}</h2>
-                <p>{detalle.aviso.texto}</p>
+                <span className="tarjeta-servicio__proximamente">{id === "bibliocomunidad" ? "REGISTRO DE INTERÉS DISPONIBLE" : "PRÓXIMAMENTE"}</span>
+                <h2>{id === "bibliocomunidad" ? "La incorporación requiere confirmación" : detalle.aviso.titulo}</h2>
+                <p>{id === "bibliocomunidad" ? "Puedes dejar tu interés mediante el formulario. El personal revisará tu solicitud y te contactará; el envío no equivale a una inscripción al club." : detalle.aviso.texto}</p>
                 <Link to="/servicios" className="boton-servicios boton-servicios--contorno">
                     Volver a Servicios y programas
                     <img src={volverOscura} alt="" />

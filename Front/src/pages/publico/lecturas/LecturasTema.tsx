@@ -1,3 +1,5 @@
+import { useLecturasPublicadas } from "./publicados";
+import { EstadoPublicados } from "../../../servicios/EstadoPublicados";
 import { Link, useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import "./Lecturas.css";
@@ -6,10 +8,13 @@ import { EncabezadoLecturas, PestanasLecturas, Portada, Subpestanas } from "./pi
 
 // Lecturas por tema: mezcla reseñas y registros de memoria. ?tema=novela
 function LecturasTema() {
+    const { datos, error, resenas, memorias } = useLecturasPublicadas();
     const [parametros, setParametros] = useSearchParams();
     const temaUrl = parametros.get("tema") ?? "";
     const tema = (temaUrl in GENEROS ? temaUrl : "") as Genero | "";
-    const items = porTema(tema);
+    const items = porTema(tema, resenas, memorias);
+
+    if (!datos || error) return <PaginaPublica><EstadoPublicados datos={datos} error={error} /></PaginaPublica>;
 
     return (
         <PaginaPublica>
@@ -64,7 +69,7 @@ function TarjetaTema({ elemento }: { elemento: ItemTema }) {
     return (
         <li className="tarjeta-tema">
             <div className="tarjeta-tema__foto">
-                <img src={m.imagen} alt="" />
+                <img src={m.imagen || undefined} alt="" />
                 <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
             </div>
             <div className="tarjeta-tema__contenido">

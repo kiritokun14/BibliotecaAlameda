@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import { BloqueResumen, Buscador, Chip, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta } from "../contenidos/piezas";
-import { clasesBoton, paginar } from "../contenidos/utiles";
+import "../contenidoDemo/Contenidos.css";
+import { BloqueResumen, Buscador, Chip, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta } from "../contenidoDemo/piezas";
+import { clasesBoton, paginar } from "../contenidoDemo/utiles";
 import { fechaCorta } from "./datos";
 import { NOMBRE_ESTADO_CAMBIO, useCambios, type Cambio, type FiltroCambio } from "./cambios";
 import { BASE_CAMBIOS, TONO_CAMBIO } from "./utiles";

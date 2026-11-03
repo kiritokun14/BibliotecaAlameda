@@ -1,3 +1,4 @@
+import { usePublicados } from "../../../servicios/usarPublicados.ts";
 import type { ReactNode } from "react";
 import { Navigate, NavLink, useParams } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
@@ -65,14 +66,16 @@ function esSeccion(valor: string | undefined): valor is SeccionAcerca {
 // T-051 / HU-01: información institucional, pública y sin registro
 function Acerca() {
     const { seccion } = useParams();
+    const { datos, error } = usePublicados("acerca");
     // /acerca o una pestaña que no existe → Historia
     if (!esSeccion(seccion)) return <Navigate to="/acerca/historia" replace />;
 
     const actual = secciones[seccion];
-    const Contenido = actual.Contenido;
+    const claveBD = seccion === "mision-vision" ? "mision" : seccion === "solon-arguello" ? "solon" : seccion;
+    const publicado = datos?.find(c => c.datos.seccion === claveBD);
     // TODO backend: cuando el contenido venga del servidor, este estado se muestra si la carga falla.
     // Mientras tanto se puede ver con ?simular=error (solo en desarrollo).
-    const fallo = simulacion() === "error";
+    const fallo = !!error || simulacion() === "error";
 
     return (
         <PaginaPublica>
@@ -98,7 +101,7 @@ function Acerca() {
                         ))}
                     </nav>
 
-                    <Contenido />
+                    {!datos ? <p role="status">Cargando información institucional…</p> : !publicado ? <p>Esta sección todavía no tiene información publicada.</p> : <article className="acerca-contenedor"><h2>{publicado.titulo}</h2><div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{publicado.cuerpo}</div>{typeof publicado.datos.lineaTiempo === 'string' && <p style={{ whiteSpace: 'pre-wrap' }}>{publicado.datos.lineaTiempo}</p>}</article>}
                 </div>
             )}
         </PaginaPublica>

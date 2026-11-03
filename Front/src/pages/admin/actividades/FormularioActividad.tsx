@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import { EncabezadoTarjeta, Migas, Pagina, PieDatos, Tarjeta } from "../contenidos/piezas";
-import { clasesBoton } from "../contenidos/utiles";
+import "../contenidoDemo/Contenidos.css";
+import { EncabezadoTarjeta, Migas, Pagina, PieDatos, Tarjeta } from "../contenidoDemo/piezas";
+import { clasesBoton } from "../contenidoDemo/utiles";
 import {
     actualizarActividad, capacidadDe, crearActividad, datosDe, espacios, obtenerActividad, PUBLICOS, TIPOS_ACTIVIDAD, useActividades, VACIA, validarActividad,
     type Actividad, type DatosActividad,

@@ -88,7 +88,7 @@ function ContenidoListado({
                         <img className="noticia-principal__circulo noticia-principal__circulo--1" src={circuloGrande} alt="" />
                         <img className="noticia-principal__circulo noticia-principal__circulo--2" src={circuloChico} alt="" />
                         <span className="noticia-principal__imagen">
-                            <img src={destacada.imagen} alt="" />
+                            <img src={destacada.imagen || undefined} alt={destacada.textoAlternativo ?? ""} />
                         </span>
                         <span className="noticia-principal__textos">
                             <span className="noticia-principal__meta">

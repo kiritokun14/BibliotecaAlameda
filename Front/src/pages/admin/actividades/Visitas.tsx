@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta } from "../contenidos/piezas";
-import { clasesBoton, paginar } from "../contenidos/utiles";
+import "../contenidoDemo/Contenidos.css";
+import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta } from "../contenidoDemo/piezas";
+import { clasesBoton, paginar } from "../contenidoDemo/utiles";
 import { fechaCorta } from "./datos";
 import { enFiltro, NOMBRE_ESTADO_VISITA, useVisitas, type FiltroVisita, type UsoEspacio, type Visita } from "./visitas";
 import { BASE_VISITAS, TONO_VISITA } from "./utiles";

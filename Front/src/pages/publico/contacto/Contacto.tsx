@@ -14,6 +14,7 @@ import {
     type TipoMensaje,
 } from "./datos";
 import { CampoContacto, Confirmacion, TarjetaDatos } from "./piezas";
+import SeguimientoContacto from "./SeguimientoContacto";
 import iconoCandado from "../../../assets/contacto/privacidad-candado.svg";
 import iconoEnviar from "../../../assets/contacto/boton-enviar.svg";
 import iconoAviso from "../../../assets/contacto/aviso-alerta.svg";
@@ -39,6 +40,8 @@ function Contacto() {
     const [envio, setEnvio] = useState<Envio>("editando");
 
     const campos = useRef<Partial<Record<CampoMensaje, HTMLInputElement & HTMLTextAreaElement | null>>>({});
+    const ocupado = useRef(false);
+    const [folio, setFolio] = useState("");
     const tituloEnviado = useRef<HTMLHeadingElement>(null);
     const montado = useRef(true);
 
@@ -73,7 +76,7 @@ function Contacto() {
 
     async function enviar(evento: FormEvent) {
         evento.preventDefault();
-        if (enviando) return;
+        if (ocupado.current) return;
 
         const encontrados = validarMensaje(datos);
         setIntentoEnviar(true);
@@ -84,15 +87,17 @@ function Contacto() {
             return;
         }
 
+        ocupado.current = true;
         setEnvio("enviando");
         try {
-            await enviarMensaje(prepararEnvio(datos));
+            const acuse = await enviarMensaje(prepararEnvio(datos));
             if (!montado.current) return;
+            setFolio(acuse.folio);
             setEnvio("enviado");
         } catch {
             // Lo escrito se conserva para poder reintentar
             if (montado.current) setEnvio("error");
-        }
+        } finally { ocupado.current = false; }
     }
 
     function enviarOtro() {
@@ -110,9 +115,11 @@ function Contacto() {
                 texto="Cuéntanos tu duda, comentario o idea para mejorar la biblioteca."
             />
 
+            <SeguimientoContacto />
             {envio === "enviado" ? (
                 <Confirmacion
                     ref={tituloEnviado}
+                    folio={folio}
                     etiqueta={textos.enviado.etiqueta}
                     titulo={textos.enviado.titulo}
                     alEnviarOtro={enviarOtro}

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidos/piezas";
-import { clasesBoton } from "../contenidos/utiles";
+import "../contenidoDemo/Contenidos.css";
+import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidoDemo/piezas";
+import { clasesBoton } from "../contenidoDemo/utiles";
 import { fechaCorta, obtenerActividad, useActividades } from "./datos";
 import { cancelarInscripcion, inscribir, lugaresLibres, NOMBRE_ESTADO_INSCRIPCION, obtenerInscripcion, useInscripciones, validarInscripcion, type DatosInscripcion } from "./inscripciones";
 import { BASE_INSCRIPCIONES, TONO_INSCRIPCION } from "./utiles";

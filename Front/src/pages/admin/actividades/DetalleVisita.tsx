@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, Pasos, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidos/piezas";
-import { clasesBoton } from "../contenidos/utiles";
+import "../contenidoDemo/Contenidos.css";
+import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, Pasos, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidoDemo/piezas";
+import { clasesBoton } from "../contenidoDemo/utiles";
 import { capacidadDe, espacios, fechaCorta, useActividades } from "./datos";
 import { useSalas } from "./salas";
 import { ocupacion } from "./calendario";

@@ -2,47 +2,38 @@ import { createContext } from 'react';
 import type { AccesoCuenta } from './auth';
 export interface IdentidadPanel { acceso: AccesoCuenta; correo: string }
 export const ContextoPanel = createContext<IdentidadPanel | null>(null);
-// Rutas generales del panel (Resumen, Notificaciones, Perfil): las ve cualquier cuenta con acceso al panel
 export const PANEL_GENERAL = 'panel_general';
-const RUTAS_GENERALES = ['/admin/resumen', '/admin/notificaciones', '/admin/perfil'];
-
 export function capacidadPanel(ruta: string): string | null {
-    if (RUTAS_GENERALES.some(general => ruta.startsWith(general))) return PANEL_GENERAL;
-    // Contenidos (HU-12): el Editor prepara; quien autoriza publica
-    if (ruta.startsWith('/admin/contenidos/editor')) return 'preparar_contenidos';
+    if (['/admin/resumen', '/admin/notificaciones'].includes(ruta)) return PANEL_GENERAL;
+    if (ruta.startsWith('/admin/atencion/contactos')) return 'atender_contactos';
+    if (ruta.startsWith('/admin/atencion/bibliocomunidad')) return 'atender_bibliocomunidad';
+    if (ruta.startsWith('/admin/administracion/fuentes')) return 'gestionar_fuentes_asistente';
     if (ruta.startsWith('/admin/contenidos/revision')) return 'publicar_contenidos';
-    // Actividades: las gestiona quien registra resoluciones de actividades
-    if (ruta.startsWith('/admin/actividades')) return 'registrar_resoluciones_actividades';
+    if (ruta.startsWith('/admin/actividades/asistencia')) return 'registrar_asistencia';
+    if (ruta.startsWith('/admin/actividades/inscripciones')) return 'confirmar_inscripciones';
+    if (ruta.startsWith('/admin/actividades/evidencias')) return 'gestionar_evidencias';
+    if (ruta.startsWith('/admin/actividades')) return 'gestionar_actividades';
     if (ruta.startsWith('/admin/atencion/credenciales')) return 'validar_credenciales';
     if (ruta.startsWith('/admin/atencion/espacios')) return 'registrar_resoluciones_actividades';
     if (ruta.startsWith('/admin/atencion/propuestas'))
         return ruta.endsWith('/publicar') ? 'publicar_contenidos' : 'registrar_resoluciones_actividades';
+    if (ruta.startsWith('/admin/contenidos')) return 'preparar_contenidos';
     return null;
 }
-// Modo desarrollo con TODOS los permisos del panel (atajo temporal mientras backend asigna los reales).
-// Solo funciona con `npm run dev` y VITE_PANEL_COMPLETO=true en Front/.env.development.local.
-// En el build de producción import.meta.env.DEV es false, así que esta línea no concede nada.
-// Ojo: solo abre las pantallas del frontend; cualquier llamada real al backend sigue revisando permisos.
-export const PANEL_COMPLETO_DEV = import.meta.env.DEV && import.meta.env.VITE_PANEL_COMPLETO === 'true';
-if (PANEL_COMPLETO_DEV) console.warn('[Panel] Modo desarrollo: todas las secciones del panel están abiertas para cualquier sesión.');
-
 export function permisoGlobal(acceso: AccesoCuenta, capacidad: string): boolean {
-    if (PANEL_COMPLETO_DEV) return true;
     if (capacidad === PANEL_GENERAL) return tienePanel(acceso);
     return acceso.roles.some(rol => rol.capacidades.includes(capacidad)) ||
         acceso.permisosAdicionales.some(p => p.capacidad === capacidad && p.ambito === 'global' && !p.actividadId);
 }
 export function tienePanel(acceso: AccesoCuenta): boolean {
-    return ['validar_credenciales', 'registrar_resoluciones_actividades', 'preparar_contenidos', 'publicar_contenidos'].some(c => permisoGlobal(acceso, c));
+    return ['validar_credenciales', 'registrar_resoluciones_actividades', 'preparar_contenidos', 'publicar_contenidos', 'gestionar_actividades', 'registrar_asistencia', 'confirmar_inscripciones', 'gestionar_evidencias', 'atender_contactos', 'atender_bibliocomunidad', 'gestionar_fuentes_asistente'].some(c => permisoGlobal(acceso, c));
 }
 export function nombresRoles(acceso: AccesoCuenta): string {
     const nombres: Record<string,string> = { usuario: 'Usuario / Cliente', editor: 'Editor',
         responsable_actividades: 'Responsable de actividades', administrador: 'Administrador del portal' };
     return acceso.roles.map(r => nombres[r.rolCodigo] ?? r.rolCodigo).join(', ');
 }
-// /admin abre el Resumen; si la cuenta no tiene panel, la primera sección que sí tenga (o ninguna)
 export function rutaInicialPanel(acceso: AccesoCuenta): string | null {
-    return ['/admin/resumen', '/admin/atencion/credenciales', '/admin/atencion/espacios', '/admin/atencion/propuestas',
-        '/admin/contenidos/editor', '/admin/contenidos/revision']
+    return ['/admin/resumen', '/admin/atencion/credenciales', '/admin/atencion/espacios', '/admin/atencion/propuestas', '/admin/contenidos/editor']
         .find(ruta => permisoGlobal(acceso, capacidadPanel(ruta)!)) ?? null;
 }

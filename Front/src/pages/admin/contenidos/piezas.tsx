@@ -1,345 +1,134 @@
-// Piezas de las pantallas de Contenidos (Editor y Revisión), según Figma 591:48349.
-// Viven aquí mientras se unifican con las del resto del panel; usan solo clases "cn-".
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import ImagenContenido from "../../../components/ImagenContenido";
+import { validarArchivoImagen } from "../../../servicios/imagenes";
 import { Link } from "react-router";
-import { NOMBRE_ESTADO, type EstadoContenido } from "./datos";
-import { clasesBoton, TONO_ESTADO, type Tono } from "./utiles";
-import iconoBuscar from "../../../assets/admin/contenidos/buscar.svg";
-import decoracion1 from "../../../assets/admin/contenidos/decoracion-1.svg";
-import decoracion2 from "../../../assets/admin/contenidos/decoracion-2.svg";
 
-// ---------- Página y encabezados ----------
+// Piezas compartidas por las pantallas de Contenidos
 
-export function Pagina({ children }: { children: ReactNode }) {
-    return <div className="cn-pagina">{children}</div>;
-}
-
-// Contenidos › Revisión y publicación › Por autorizar (el último no es enlace)
-export function Migas({ pasos }: { pasos: [string, string?][] }) {
+// Íconos de línea; toman el color del texto que los rodea
+function Icono({ children }: { children: ReactNode }) {
     return (
-        <nav className="cn-migas" aria-label="Ruta">
-            <ol>
-                {pasos.map(([texto, ruta], i) => (
-                    <li key={texto}>
-                        {ruta && i < pasos.length - 1 ? <Link to={ruta}>{texto}</Link> : <span aria-current={i === pasos.length - 1 ? "page" : undefined}>{texto}</span>}
-                    </li>
-                ))}
-            </ol>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            {children}
+        </svg>
+    );
+}
+export const IconoLapiz = () => <Icono><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></Icono>;
+export const IconoReloj = () => <Icono><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Icono>;
+export const IconoAviso = () => <Icono><circle cx="12" cy="12" r="9" /><path d="M12 8v5" /><path d="M12 16h.01" /></Icono>;
+export const IconoInfo = () => <Icono><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><path d="M12 8h.01" /></Icono>;
+export const IconoLista = () => <Icono><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></Icono>;
+export const IconoBuscar = () => <Icono><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></Icono>;
+export const IconoMas = () => <Icono><path d="M12 5v14M5 12h14" /></Icono>;
+export const IconoFlechaIzq = () => <Icono><path d="M19 12H5M12 19l-7-7 7-7" /></Icono>;
+export const IconoBandera = () => <Icono><path d="M4 22V4" /><path d="M4 4h12l-2 4 2 4H4" /></Icono>;
+export const IconoImagen = () => <Icono><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-5-5L5 21" /></Icono>;
+export const IconoDocumento = () => <Icono><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z" /><path d="M14 3v6h6M9 13h6M9 17h4" /></Icono>;
+
+// Ruta de migas: Contenidos › Editor de contenidos › (pantalla actual)
+export function Migas({ actual }: { actual: string }) {
+    return (
+        <nav className="contenidos-migas" aria-label="Ruta">
+            <span>Contenidos</span>
+            <span aria-hidden="true">›</span>
+            <Link to="/admin/contenidos/editor">Editor de contenidos</Link>
+            <span aria-hidden="true">›</span>
+            <strong aria-current="page">{actual}</strong>
         </nav>
     );
 }
 
-export function Etiqueta({ children }: { children: ReactNode }) {
+// ---------- Piezas de los formularios de redacción ----------
+
+export function Campo({ id, etiqueta, obligatorio, ayuda, children }: { id: string; etiqueta: string; obligatorio?: boolean; ayuda?: string; children: ReactNode }) {
     return (
-        <p className="cn-etiqueta">
-            <span className="cn-etiqueta__punto" aria-hidden="true" />
+        <div className="contenidos-campo">
+            <label htmlFor={id}>
+                {etiqueta}
+                {obligatorio && <span className="contenidos-campo__obligatorio"> *</span>}
+            </label>
             {children}
-        </p>
-    );
-}
-
-// Encabezado suelto (bandejas y resultados). "grande" = pantallas de resultado (44 px).
-export function Encabezado({ etiqueta, titulo, texto, accion, grande }: { etiqueta: string; titulo: string; texto: string; accion?: ReactNode; grande?: boolean }) {
-    return (
-        <header className="cn-encabezado">
-            <div className="cn-encabezado__textos">
-                <Etiqueta>{etiqueta}</Etiqueta>
-                <h1 className={grande ? "cn-titulo cn-titulo--grande" : "cn-titulo"}>{titulo}</h1>
-                <p className={grande ? "cn-entrada cn-entrada--grande" : "cn-entrada"}>{texto}</p>
-            </div>
-            {accion}
-        </header>
-    );
-}
-
-// Encabezado en tarjeta blanca con acento dorado y botón de volver (formularios y detalle)
-export function EncabezadoTarjeta({ volver, etiqueta, titulo, texto }: { volver: { texto: string; ruta: string }; etiqueta: string; titulo: string; texto: string }) {
-    return (
-        <header className="cn-encabezado-tarjeta">
-            <Link to={volver.ruta} className="cn-volver">
-                <span className="cn-volver__circulo" aria-hidden="true">←</span>
-                {volver.texto}
-            </Link>
-            <Etiqueta>{etiqueta}</Etiqueta>
-            <h1 className="cn-titulo">{titulo}</h1>
-            <p className="cn-entrada">{texto}</p>
-        </header>
-    );
-}
-
-export function PieDatos() {
-    return <p className="cn-pie">Biblioteca Solón Argüello · Panel del personal · Datos de ejemplo</p>;
-}
-
-// ---------- Tarjetas ----------
-
-type TarjetaProps = {
-    icono: string;
-    titulo: string;
-    subtitulo?: string;
-    tono?: "blanca" | "crema" | "alerta";
-    lateral?: boolean; // las de la columna derecha tienen más relleno
-    id?: string;
-    children?: ReactNode;
-};
-
-export function Tarjeta({ icono, titulo, subtitulo, tono = "blanca", lateral, id, children }: TarjetaProps) {
-    const idTitulo = id ?? `cn-${titulo.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-    return (
-        <section className={`cn-tarjeta cn-tarjeta--${tono} ${lateral ? "cn-tarjeta--lateral" : ""}`} aria-labelledby={idTitulo}>
-            <div className="cn-tarjeta__cabecera">
-                <span className="cn-mosaico" aria-hidden="true"><img src={icono} alt="" /></span>
-                <div>
-                    <h2 id={idTitulo}>{titulo}</h2>
-                    {subtitulo && <p>{subtitulo}</p>}
-                </div>
-            </div>
-            {children}
-        </section>
-    );
-}
-
-export function Columnas({ principal, lateral }: { principal: ReactNode; lateral: ReactNode }) {
-    return (
-        <div className="cn-columnas">
-            <div className="cn-columnas__principal">{principal}</div>
-            <div className="cn-columnas__lateral">{lateral}</div>
+            {ayuda && <p id={`${id}-ayuda`} className="contenidos-campo__ayuda">{ayuda}</p>}
         </div>
     );
 }
 
-// ---------- Chips y botones ----------
-
-// ancho: true = 190 px (tablas de Contenidos) o un número en px
-export function Chip({ tono, children, ancho }: { tono: Tono; children: ReactNode; ancho?: boolean | number }) {
+export function Interruptor({ id, titulo, texto, activo, alCambiar }: { id: string; titulo: string; texto?: string; activo: boolean; alCambiar: (v: boolean) => void }) {
     return (
-        <span className={`cn-chip cn-chip--${tono} ${ancho === true ? "cn-chip--ancho" : ""}`} style={typeof ancho === "number" ? { width: ancho, boxSizing: "border-box" } : undefined}>
-            <span className="cn-chip__punto" aria-hidden="true" />
-            {children}
-        </span>
-    );
-}
-
-export function ChipEstado({ estado, ancho }: { estado: EstadoContenido; ancho?: boolean }) {
-    return <Chip tono={TONO_ESTADO[estado]} ancho={ancho}>{NOMBRE_ESTADO[estado]}</Chip>;
-}
-
-// ---------- Resumen (bloque guinda con tres accesos) ----------
-
-export type AccesoResumen = {
-    icono: string;
-    numero: number | string;
-    titulo: string;
-    texto: string;
-    enlace: string;
-    tono: "verde" | "dorado" | "guinda";
-    activo?: boolean;
-    alPresionar?: () => void; // sin acción, la tarjeta solo informa
-};
-
-export function BloqueResumen({ insignia, titulo, resalte, subtitulo, accesos }: { insignia: string; titulo: string; resalte: string; subtitulo: string; accesos: AccesoResumen[] }) {
-    return (
-        <section className="cn-resumen" aria-labelledby="cn-resumen-titulo">
-            <img className="cn-resumen__decoracion cn-resumen__decoracion--1" src={decoracion1} alt="" />
-            <img className="cn-resumen__decoracion cn-resumen__decoracion--2" src={decoracion2} alt="" />
-            <div className="cn-resumen__titular">
-                <span className="cn-insignia"><span className="cn-chip__punto" aria-hidden="true" />{insignia}</span>
-                <h2 id="cn-resumen-titulo">{titulo} <span>{resalte}</span></h2>
-                <p>{subtitulo}</p>
-            </div>
-            <div className="cn-resumen__accesos">
-                {accesos.map((a) => {
-                    const contenido = (
-                        <>
-                            <span className="cn-acceso__fila">
-                                <span className="cn-acceso__icono" aria-hidden="true"><img src={a.icono} alt="" /></span>
-                                {a.enlace && <span className="cn-acceso__enlace">{a.enlace} →</span>}
-                            </span>
-                            <span className="cn-acceso__numero">{a.numero}</span>
-                            <span className="cn-acceso__titulo">{a.titulo}</span>
-                            <span className="cn-acceso__texto">{a.texto}</span>
-                        </>
-                    );
-                    return a.alPresionar ? (
-                        <button key={a.titulo} type="button" className={`cn-acceso cn-acceso--${a.tono}`} aria-pressed={a.activo} onClick={a.alPresionar}>{contenido}</button>
-                    ) : (
-                        <div key={a.titulo} className={`cn-acceso cn-acceso--${a.tono} cn-acceso--fijo`}>{contenido}</div>
-                    );
-                })}
-            </div>
-        </section>
-    );
-}
-
-// ---------- Filtros, buscador, tabla y paginación ----------
-
-export function Filtros<T extends string>({ opciones, valor, alCambiar, etiqueta = "Filtrar por estado" }: { opciones: { valor: T; texto: string }[]; valor: T; alCambiar: (v: T) => void; etiqueta?: string }) {
-    return (
-        <div className="cn-filtros" role="group" aria-label={etiqueta}>
-            {opciones.map((o) => (
-                <button
-                    key={o.valor}
-                    type="button"
-                    className={`cn-filtro ${valor === o.valor ? "cn-filtro--activo" : ""}`}
-                    aria-pressed={valor === o.valor}
-                    onClick={() => alCambiar(o.valor)}
-                >
-                    {o.texto}
-                </button>
-            ))}
-        </div>
-    );
-}
-
-export function Buscador({ valor, alCambiar, texto = "Buscar por folio o título" }: { valor: string; alCambiar: (v: string) => void; texto?: string }) {
-    return (
-        <label className="cn-buscador">
-            <img src={iconoBuscar} alt="" />
-            <input type="search" placeholder={texto} aria-label={texto} value={valor} onChange={(e) => alCambiar(e.target.value)} />
+        <label htmlFor={id} className="contenidos-interruptor">
+            <input id={id} type="checkbox" role="switch" checked={activo} onChange={(e) => alCambiar(e.target.checked)} />
+            <span className="contenidos-interruptor__pista" aria-hidden="true" />
+            <span>
+                <strong>{titulo}</strong>
+                {texto && <small>{texto}</small>}
+            </span>
         </label>
     );
 }
 
-export type Columna<T> = { titulo: string; ancho?: number; celda: (fila: T) => ReactNode; fuerte?: boolean; folio?: boolean };
-
-export function Tabla<T>({ columnas, filas, clave }: { columnas: Columna<T>[]; filas: T[]; clave: (fila: T) => string }) {
-    const estilo = (c: Columna<T>) => (c.ancho ? { width: c.ancho, flex: "none" } : { flex: 1, minWidth: 0 });
-    return (
-        <div className="cn-tabla" role="table">
-            <div className="cn-tabla__encabezado" role="row">
-                {columnas.map((c) => <span key={c.titulo} role="columnheader" style={estilo(c)}>{c.titulo}</span>)}
-            </div>
-            {filas.map((fila) => (
-                <div key={clave(fila)} className="cn-tabla__fila" role="row">
-                    {columnas.map((c) => (
-                        <span key={c.titulo} role="cell" style={estilo(c)} className={c.folio ? "cn-tabla__folio" : c.fuerte ? "cn-tabla__fuerte" : undefined}>
-                            {c.celda(fila)}
-                        </span>
-                    ))}
-                </div>
-            ))}
-        </div>
-    );
-}
-
-export function Paginacion({ pagina, paginas, alCambiar }: { pagina: number; paginas: number; alCambiar: (p: number) => void }) {
-    if (paginas <= 1) return null;
-    return (
-        <div className="cn-paginacion" role="group" aria-label="Páginas">
-            <button type="button" className="cn-paginacion__paso" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>‹ Anterior</button>
-            {Array.from({ length: paginas }, (_, i) => (
-                <button
-                    key={i}
-                    type="button"
-                    className={`cn-paginacion__numero ${i === pagina ? "cn-paginacion__numero--activo" : ""}`}
-                    aria-current={i === pagina ? "page" : undefined}
-                    onClick={() => alCambiar(i)}
-                >
-                    {i + 1}
-                </button>
-            ))}
-            <button type="button" className="cn-paginacion__paso" disabled={pagina >= paginas - 1} onClick={() => alCambiar(pagina + 1)}>Siguiente ›</button>
-        </div>
-    );
-}
-
-export function EstadoVacio({ icono, titulo, texto, accion }: { icono: string; titulo: string; texto: string; accion?: { texto: string; alPresionar: () => void } }) {
-    return (
-        <div className="cn-vacio" role="status">
-            <span className="cn-vacio__icono" aria-hidden="true"><img src={icono} alt="" /></span>
-            <p className="cn-vacio__titulo">{titulo}</p>
-            <p className="cn-vacio__texto">{texto}</p>
-            {accion && <button type="button" className={clasesBoton("contorno")} onClick={accion.alPresionar}>{accion.texto}</button>}
-        </div>
-    );
-}
-
-// ---------- Resultados y pasos ----------
-
-export function Resultado({ tono, icono, titulo, linea, chip }: { tono: "verde" | "dorado" | "guinda"; icono: string; titulo: string; linea: string; chip: ReactNode }) {
-    return (
-        <section className={`cn-resultado cn-resultado--${tono}`} role="status">
-            <span className="cn-resultado__icono" aria-hidden="true"><img src={icono} alt="" /></span>
-            <div className="cn-resultado__textos">
-                <h2>{titulo}</h2>
-                <p>{linea}</p>
-            </div>
-            {chip}
-        </section>
-    );
-}
-
-export function Pasos({ pasos }: { pasos: [string, string][] }) {
-    return (
-        <ol className="cn-pasos">
-            {pasos.map(([titulo, texto], i) => (
-                <li key={titulo}>
-                    <span className="cn-pasos__numero" aria-hidden="true">{i + 1}</span>
-                    <span>
-                        <strong>{titulo}</strong>
-                        <small>{texto}</small>
-                    </span>
-                </li>
-            ))}
-        </ol>
-    );
-}
-
-// Filas "dato · valor" (registro de publicación, resumen de las ventanas, datos del libro)
-export function Datos({ filas, variante = "registro" }: { filas: [string, ReactNode][]; variante?: "registro" | "caja" | "compacto" }) {
-    return (
-        <dl className={`cn-datos cn-datos--${variante}`}>
-            {filas.map(([dato, valor]) => (
-                <div key={dato}>
-                    <dt>{dato}</dt>
-                    <dd>{valor}</dd>
-                </div>
-            ))}
-        </dl>
-    );
-}
-
-// ---------- Ventana modal ----------
-
-export function Ventana({ titulo, texto, alCerrar, children, pie }: { titulo: string; texto: string; alCerrar: () => void; children?: ReactNode; pie: ReactNode }) {
-    const caja = useRef<HTMLDivElement>(null);
-
+// Zona para elegir una imagen (JPG o PNG)
+export function SubirImagen({ id, archivo, detalle, alCambiar, folio, tieneImagen, version }: {
+    id: string; archivo: File | null | undefined; detalle: string; alCambiar: (f: File | null) => void;
+    folio?: string | null; tieneImagen?: boolean; version?: string;
+}) {
+    const [error, setError] = useState("");
+    const [previa, setPrevia] = useState<{ archivo: File; url: string } | null>(null);
     useEffect(() => {
-        const anterior = document.activeElement as HTMLElement | null;
-        caja.current?.querySelector<HTMLElement>("input, textarea, select, button")?.focus();
-        function alTeclear(e: KeyboardEvent) {
-            if (e.key === "Escape") alCerrar();
-        }
-        window.addEventListener("keydown", alTeclear);
-        return () => {
-            window.removeEventListener("keydown", alTeclear);
-            anterior?.focus();
-        };
-    }, [alCerrar]);
-
-    return (
-        <div className="cn-fondo" onClick={alCerrar}>
-            <div ref={caja} className="cn-ventana" role="dialog" aria-modal="true" aria-labelledby="cn-ventana-titulo" onClick={(e) => e.stopPropagation()}>
-                <h2 id="cn-ventana-titulo">{titulo}</h2>
-                <p className="cn-ventana__texto">{texto}</p>
-                {children}
-                <div className="cn-ventana__pie">{pie}</div>
-            </div>
-        </div>
-    );
+        if (!archivo) return;
+        const lector = new FileReader(); let vigente = true;
+        lector.onload = () => { if (vigente) setPrevia({ archivo, url: String(lector.result) }); };
+        lector.readAsDataURL(archivo);
+        return () => { vigente = false; if (lector.readyState === FileReader.LOADING) lector.abort(); };
+    }, [archivo]);
+    function elegir(nuevo: File | undefined) {
+        if (!nuevo) return;
+        const fallo = validarArchivoImagen(nuevo);
+        if (fallo) { setError(fallo); return; }
+        setError(""); alCambiar(nuevo);
+    }
+    return <div>
+        <label htmlFor={id} className="contenidos-subir" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); elegir(e.dataTransfer.files[0]); }}>
+            <span className="contenidos-subir__icono"><IconoImagen /></span>
+            <strong>{archivo ? archivo.name : "Arrastra una imagen o elige un archivo"}</strong>
+            <span>{detalle} · JPG/PNG hasta 5 MB</span>
+            <span>La imagen se conserva al guardar y solo se hace pública al publicar el contenido.</span>
+            <input id={id} type="file" accept="image/jpeg,image/png" onChange={e => { elegir(e.target.files?.[0]); e.target.value = ""; }} />
+        </label>
+        {error && <p role="alert">{error}</p>}
+        {archivo && previa?.archivo === archivo && <img src={previa.url} alt="Vista previa de la imagen seleccionada" style={{ maxWidth: '100%', maxHeight: 300, objectFit: 'contain' }} />}
+        {archivo === undefined && tieneImagen && folio && <ImagenContenido folio={folio} version={version} />}
+        {(archivo || (archivo === undefined && tieneImagen)) && <button type="button" className="contenidos-boton" onClick={() => { setError(""); alCambiar(null); }}>Quitar imagen al guardar</button>}
+        {archivo === null && tieneImagen && <p role="status">La imagen se quitará al guardar el borrador.</p>}
+    </div>;
 }
 
-// ---------- Campos sencillos (formularios de Revisión) ----------
-
-export function CampoTexto({ id, etiqueta, obligatorio, ayuda, error, children }: { id: string; etiqueta: string; obligatorio?: boolean; ayuda?: string; error?: string; children: ReactNode }) {
+// Tarjeta "Estado" con los botones del borrador
+type PanelEstadoProps = {
+    id: string;
+    detalle?: string;
+    ocupado?: boolean;
+    error?: string;
+    alVistaPrevia?: () => void;
+    alGuardar?: () => void;
+};
+export function PanelEstado({ id, detalle = "Sin guardar", ocupado, error, alVistaPrevia, alGuardar }: PanelEstadoProps) {
     return (
-        <div className="cn-campo">
-            <label htmlFor={id} className="cn-campo__etiqueta">
-                {etiqueta}
-                {obligatorio && <span className="cn-campo__obligatorio" aria-label="obligatorio">*</span>}
-            </label>
-            {children}
-            {error ? <p id={`${id}-error`} className="cn-campo__error" role="alert">{error}</p> : ayuda && <p id={`${id}-ayuda`} className="cn-campo__ayuda">{ayuda}</p>}
-        </div>
+        <section className="contenidos-panel contenidos-panel--estado" aria-labelledby={id}>
+            <div className="contenidos-lista__cabecera">
+                <span className="contenidos-lista__icono"><IconoReloj /></span>
+                <h2 id={id}>Estado</h2>
+            </div>
+            <p className="contenidos-estado-linea">
+                <span className="contenidos-estado contenidos-estado--borrador">Borrador</span>
+                <span>{ocupado ? "Guardando…" : detalle}</span>
+            </p>
+            {error && <p className="contenidos-error" role="alert">{error}</p>}
+            <button type="submit" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho" disabled={ocupado}>Enviar a autorización</button>
+            {alVistaPrevia && (
+                <button type="button" className="contenidos-boton contenidos-boton--suave contenidos-boton--ancho" onClick={alVistaPrevia}>Vista previa</button>
+            )}
+            <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--ancho" onClick={alGuardar} disabled={ocupado}>Guardar borrador</button>
+            <p className="contenidos-nota">Solo el Administrador autoriza y publica. Tu contenido no se verá en el portal hasta entonces.</p>
+        </section>
     );
 }

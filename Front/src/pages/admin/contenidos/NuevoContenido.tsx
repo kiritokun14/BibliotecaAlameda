@@ -1,67 +1,77 @@
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
+import { IconoFlechaIzq, IconoInfo, Migas } from "./piezas";
+import { TIPOS_CONTENIDO } from "./tipos";
 import "./Contenidos.css";
-import { crearContenido } from "./datos";
-import { ESQUEMAS, TIPOS, type TipoContenido } from "./esquemas";
-import { EncabezadoTarjeta, Migas, Pagina, Pasos, PieDatos } from "./piezas";
-import { clasesBoton } from "./utiles";
 
-// HU-12 · Editor: elegir qué tipo de contenido se va a redactar (Figma 558:16185)
+// Paso 1 de "Nuevo contenido": elegir qué tipo de contenido se va a redactar.
+// Por ahora solo es el diseño; el formulario de cada tipo viene después.
+
+const PASOS = [
+    { titulo: "Redactas", texto: "Guarda borradores cuantas veces quieras." },
+    { titulo: "Envías a autorización", texto: "El Administrador lo revisa y puede pedir cambios." },
+    { titulo: "Se publica", texto: "Queda en el portal y en la bitácora de cambios." },
+];
+
 function NuevoContenido() {
-    const navigate = useNavigate();
-
-    function elegir(tipo: TipoContenido) {
-        const folio = crearContenido(tipo);
-        navigate(`/admin/contenidos/editor/${folio}`);
-    }
-
     return (
-        <PanelLayout titulo="Contenidos">
-            <Pagina>
-                <Migas pasos={[["Contenidos"], ["Editor de contenidos", "/admin/contenidos/editor"], ["Elegir tipo"]]} />
+        <PanelLayout titulo="Contenidos" tema="solon">
+            <Migas actual="Elegir tipo" />
 
-                <EncabezadoTarjeta
-                    volver={{ texto: "Volver a Mis contenidos", ruta: "/admin/contenidos/editor" }}
-                    etiqueta="Contenidos · Editor · Nuevo"
-                    titulo="¿Qué quieres redactar?"
-                    texto="Elige el tipo de contenido. Después podrás guardarlo como borrador o enviarlo a autorización."
-                />
+            <div className="contenidos-encabezado contenidos-encabezado--tarjeta">
+                <div>
+                    <Link to="/admin/contenidos/editor" className="contenidos-volver">
+                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
+                        Volver a Mis contenidos
+                    </Link>
+                    <p className="contenidos-etiqueta">Contenidos · Editor · Nuevo</p>
+                    <h1>¿Qué quieres redactar?</h1>
+                    <p className="contenidos-encabezado__texto">
+                        Elige el tipo de contenido. Después podrás guardarlo como borrador o enviarlo a autorización.
+                    </p>
+                </div>
+            </div>
 
-                <ul className="cn-tipos">
-                    {TIPOS.map((tipo) => {
-                        const esquema = ESQUEMAS[tipo];
-                        return (
-                            <li key={tipo} className="cn-tipo">
-                                <span className="cn-tipo__letra" aria-hidden="true">{esquema.letra}</span>
-                                <h2>{esquema.nombre}</h2>
-                                <p>{esquema.descripcionTipo}</p>
-                                <button type="button" className={clasesBoton("verde", "cn-boton--chico")} onClick={() => elegir(tipo)}>
-                                    Elegir →<span className="cn-solo-lectores"> {esquema.nombre}</span>
-                                </button>
-                            </li>
-                        );
-                    })}
-                </ul>
+            <ul className="contenidos-tipos">
+                {TIPOS_CONTENIDO.map((tipo) => (
+                    <li key={tipo.valor} className="contenidos-tipo">
+                        <span className="contenidos-tipo__letra" aria-hidden="true">{tipo.letra}</span>
+                        <h2>{tipo.nombre}</h2>
+                        <p>{tipo.descripcion}</p>
+                        {tipo.ruta ? (
+                            <Link to={tipo.ruta} className="contenidos-boton contenidos-boton--principal contenidos-boton--chico" aria-label={`Elegir ${tipo.nombre}`}>
+                                Elegir →
+                            </Link>
+                        ) : (
+                            // TODO: formulario de este tipo
+                            <button type="button" className="contenidos-boton contenidos-boton--principal contenidos-boton--chico" aria-label={`Elegir ${tipo.nombre}`}>
+                                Elegir →
+                            </button>
+                        )}
+                    </li>
+                ))}
+            </ul>
 
-                <section className="cn-tarjeta cn-tarjeta--crema" aria-labelledby="cn-como-funciona">
-                    <div className="cn-tarjeta__cabecera">
-                        <span className="cn-mosaico" aria-hidden="true">i</span>
-                        <div>
-                            <h2 id="cn-como-funciona">Cómo funciona</h2>
-                            <p>Todo contenido pasa por autorización.</p>
-                        </div>
+            <section className="contenidos-como" aria-labelledby="contenidos-como-titulo">
+                <div className="contenidos-como__cabecera">
+                    <span className="contenidos-como__icono"><IconoInfo /></span>
+                    <div>
+                        <h2 id="contenidos-como-titulo">Cómo funciona</h2>
+                        <p>Todo contenido pasa por autorización.</p>
                     </div>
-                    <Pasos
-                        pasos={[
-                            ["Redactas", "Guardas borradores cuantas veces quieras."],
-                            ["Envías a autorización", "El Administrador lo revisa y puede pedir cambios."],
-                            ["Se publica", "Queda en el portal y en la bitácora de cambios."],
-                        ]}
-                    />
-                </section>
-
-                <PieDatos />
-            </Pagina>
+                </div>
+                <ol className="contenidos-como__pasos">
+                    {PASOS.map((paso, i) => (
+                        <li key={paso.titulo}>
+                            <span className="contenidos-como__numero">{i + 1}</span>
+                            <div>
+                                <strong>{paso.titulo}</strong>
+                                <p>{paso.texto}</p>
+                            </div>
+                        </li>
+                    ))}
+                </ol>
+            </section>
         </PanelLayout>
     );
 }

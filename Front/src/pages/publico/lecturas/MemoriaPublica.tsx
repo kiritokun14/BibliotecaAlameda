@@ -1,3 +1,5 @@
+import { useLecturasPublicadas } from "./publicados";
+import { EstadoPublicados } from "../../../servicios/EstadoPublicados";
 import { useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import "./Lecturas.css";
@@ -6,11 +8,14 @@ import { EncabezadoLecturas, PestanasLecturas, Subpestanas, TarjetaMemoria } fro
 
 // Memoria pública: fotos y registros autorizados. ?anio=2024
 function MemoriaPublica() {
+    const { datos, error, memorias } = useLecturasPublicadas();
     const [parametros, setParametros] = useSearchParams();
-    const anios = aniosDeMemoria();
+    const anios = aniosDeMemoria(memorias);
     const anioUrl = Number(parametros.get("anio"));
     const anio = anios.includes(anioUrl) ? anioUrl : null;
-    const registros = memoriaPorAnio(anio);
+    const registros = memoriaPorAnio(anio, memorias);
+
+    if (!datos || error) return <PaginaPublica><EstadoPublicados datos={datos} error={error} /></PaginaPublica>;
 
     return (
         <PaginaPublica>
@@ -29,6 +34,7 @@ function MemoriaPublica() {
                         activa={anio ?? 0}
                         alElegir={(valor) => setParametros(valor ? { anio: String(valor) } : {}, { replace: true })}
                     />
+                    {registros.length === 0 && <p>No hay registros de memoria publicados para este año.</p>}
                     <ul className="rejilla-memoria">
                         {registros.map((m) => <TarjetaMemoria key={m.id} memoria={m} />)}
                     </ul>

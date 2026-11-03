@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
+import "../contenidoDemo/Contenidos.css";
 import "./Actividades.css";
-import { BloqueResumen, Buscador, CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Resultado, Tabla, Tarjeta, Ventana } from "../contenidos/piezas";
-import { clasesBoton, paginar } from "../contenidos/utiles";
+import { BloqueResumen, Buscador, CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Resultado, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
+import { clasesBoton, paginar } from "../contenidoDemo/utiles";
 import { fechaCorta, useActividades } from "./datos";
 import { hoyISO } from "./salas";
 import {

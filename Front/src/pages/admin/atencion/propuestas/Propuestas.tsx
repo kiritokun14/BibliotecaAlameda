@@ -1,5 +1,3 @@
-// Panel › Atención › Propuestas: bandeja y «todas» de las propuestas de eventos de la gente usuaria.
-// La tabla, filtros y resumen los dibuja Bandeja; aquí solo va la configuración de esta área. Datos de ejemplo (../datos.ts).
 import PanelLayout from "../../PanelLayout";
 import Bandeja, { CeldaDoble, type Columna, type ConfigArea } from "../Bandeja";
 import { useSolicitudes, type Propuesta } from "../datos";

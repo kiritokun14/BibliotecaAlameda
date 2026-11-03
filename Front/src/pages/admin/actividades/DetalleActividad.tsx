@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import { CampoTexto, Chip, Datos, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidos/piezas";
-import { clasesBoton } from "../contenidos/utiles";
+import "../contenidoDemo/Contenidos.css";
+import { CampoTexto, Chip, Datos, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidoDemo/piezas";
+import { clasesBoton } from "../contenidoDemo/utiles";
 import {
     archivarActividad, actualizarActividad, fechaCorta, horario, NOMBRE_ESTADO_ACTIVIDAD, obtenerActividad, publicarActividad, useActividades, validarActividad, datosDe,
     type Actividad,

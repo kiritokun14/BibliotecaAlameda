@@ -74,9 +74,12 @@ describe('Formatos y permisos', () => {
         expect(fechaCorta('')).toBe('Por definir');
     });
 
-    it('Actividades pide registrar_resoluciones_actividades', () => {
-        expect(capacidadPanel('/admin/actividades/propuestas')).toBe('registrar_resoluciones_actividades');
-        expect(capacidadPanel('/admin/actividades/calendario')).toBe('registrar_resoluciones_actividades');
+    it('Actividades distingue gestión, inscripciones, asistencia y evidencias', () => {
+        expect(capacidadPanel('/admin/actividades/propuestas')).toBe('gestionar_actividades');
+        expect(capacidadPanel('/admin/actividades/calendario')).toBe('gestionar_actividades');
+        expect(capacidadPanel('/admin/actividades/asistencia')).toBe('registrar_asistencia');
+        expect(capacidadPanel('/admin/actividades/inscripciones')).toBe('confirmar_inscripciones');
+        expect(capacidadPanel('/admin/actividades/evidencias')).toBe('gestionar_evidencias');
     });
 
     it('el almacén se puede usar como hook', () => {

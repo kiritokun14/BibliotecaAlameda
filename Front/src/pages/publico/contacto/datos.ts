@@ -101,21 +101,9 @@ export type RespuestaEnvio = {
     folio: string; // identificador que backend asigna al mensaje
 };
 
-// Para revisar los estados sin backend: /contacto?simular=error o ?simular=lento
-// (solo funciona en desarrollo; en producción se ignora)
-function simulacion(): string | null {
-    if (!import.meta.env.DEV) return null;
-    return new URLSearchParams(window.location.search).get("simular");
-}
-
-const espera = (ms: number) => new Promise((resolver) => setTimeout(resolver, ms));
-
-// TODO backend: POST del mensaje (por ejemplo /api/contacto) con el cuerpo MensajeContacto.
-// Debe validar lo mismo que validarMensaje(), responder { folio } y, si falla, un error.
-// Cuando exista, se puede usar pedirApi<RespuestaEnvio>("/contacto", { method: "POST", body: JSON.stringify(datos) }).
 export async function enviarMensaje(datos: MensajeContacto): Promise<RespuestaEnvio> {
-    const modo = simulacion();
-    await espera(modo === "lento" ? 60000 : 900);
-    if (modo === "error") throw new Error("No se pudo enviar el mensaje");
-    return { folio: `EJEMPLO-${datos.tipo === "contacto" ? "C" : "S"}-${Date.now()}` };
+    const { registrarContacto } = await import('../../../servicios/atencionComunidad');
+    const acuse = await registrarContacto(datos);
+    if (!acuse?.id) throw new Error('No se pudo confirmar el registro.');
+    return {folio:acuse.id};
 }

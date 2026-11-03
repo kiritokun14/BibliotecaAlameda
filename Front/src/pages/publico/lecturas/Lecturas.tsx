@@ -1,3 +1,5 @@
+import { useLecturasPublicadas } from "./publicados";
+import { EstadoPublicados } from "../../../servicios/EstadoPublicados";
 import { useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
@@ -9,7 +11,6 @@ import {
     filtrarResenas,
     filtrosDesdeParametros,
     parametrosDesdeFiltros,
-    resenas,
     type FiltrosResenas,
     type Genero,
     type Orden,
@@ -23,6 +24,7 @@ import chevron from "../../../assets/comun/iconos/chevron-abajo.svg";
 // Lecturas y reseñas · Por autor (vista de visitante: solo consulta).
 // La búsqueda y los filtros viven en la URL: /lecturas?q=rulfo&genero=novela&orden=titulo
 function Lecturas() {
+    const { datos, error, resenas } = useLecturasPublicadas();
     const [parametros, setParametros] = useSearchParams();
     const filtros = filtrosDesdeParametros(parametros);
     const resultado = filtrarResenas(resenas, filtros);
@@ -30,6 +32,8 @@ function Lecturas() {
     function aplicar(nuevos: FiltrosResenas) {
         setParametros(parametrosDesdeFiltros(nuevos), { replace: true });
     }
+
+    if (!datos || error) return <PaginaPublica><EstadoPublicados datos={datos} error={error} /></PaginaPublica>;
 
     return (
         <PaginaPublica>
@@ -44,7 +48,7 @@ function Lecturas() {
                     <Buscador filtros={filtros} alAplicar={aplicar} />
 
                     <p className="lecturas-resumen" role="status">
-                        Mostrando {resultado.length} {resultado.length === 1 ? "reseña" : "reseñas"} de la biblioteca (ejemplo)
+                        Mostrando {resultado.length} {resultado.length === 1 ? "reseña" : "reseñas"} de la biblioteca
                     </p>
 
                     <h2 className="lecturas-titulo">Reseñas de la biblioteca</h2>

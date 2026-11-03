@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta, type Columna } from "../contenidos/piezas";
-import { clasesBoton, paginar } from "../contenidos/utiles";
+import "../contenidoDemo/Contenidos.css";
+import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta, type Columna } from "../contenidoDemo/piezas";
+import { clasesBoton, paginar } from "../contenidoDemo/utiles";
 import { fechaCorta, filtrarActividades, NOMBRE_ESTADO_ACTIVIDAD, useActividades, type Actividad, type EstadoActividad, type FiltroActividad } from "./datos";
 import { BASE_PROPUESTAS, TONO_ACTIVIDAD } from "./utiles";
 import iconoArchivo from "../../../assets/admin/actividades/resumen-archivo.svg";

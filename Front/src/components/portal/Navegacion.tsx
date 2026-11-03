@@ -83,7 +83,7 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
 
                 <div className="navegacion__cuenta">
                     {correo ? <>
-                        <span className="navegacion__enlace">Sesión activa</span>
+                        <Link to="/mi-perfil" className="navegacion__boton">Mi perfil</Link>
                         {panel && <Link to="/admin" className="navegacion__boton">Panel del personal</Link>}
                         {altaAsistida && <Link to="/personal/alta-asistida" className="navegacion__boton">Alta asistida</Link>}
                         <button type="button" className="navegacion__boton" onClick={salir} disabled={cerrando}>

@@ -1,7 +1,7 @@
+import { listarPublicados, obtenerPublicado, type ContenidoPublico } from "../../../servicios/publicacion";
 // Noticias de la biblioteca (vista de visitante, sin sesión).
-// TODO backend: estas noticias vendrán de la gestión de contenidos. El portal público solo
-// debe mostrar lo PUBLICADO: un borrador o una noticia retirada no se lista ni se abre por su
-// dirección (igual que en Servicios, CA-01.2). Backend sustituye obtenerNoticias() y obtenerNoticia().
+// La consulta pública usa exclusivamente publicaciones autorizadas del backend.
+// Las constantes de ejemplo se conservan para las pruebas de reglas puras.
 import foto1 from "../../../assets/comun/fotos/noticia-1.jpg";
 import foto2 from "../../../assets/comun/fotos/noticia-2.jpg";
 import foto3 from "../../../assets/comun/fotos/noticia-3.jpg";
@@ -28,6 +28,7 @@ export type Noticia = {
     titulo: string;
     resaltado?: string; // parte del título que va en dorado en el detalle
     resumen: string;
+    textoAlternativo?: string;
     imagen: string; // TODO backend: dirección de la imagen
     destacada?: boolean;
     introduccion: string;
@@ -367,30 +368,17 @@ export function esFechaValida(valor: string | null): valor is string {
     return fecha.getUTCMonth() === mes - 1 && fecha.getUTCDate() === dia;
 }
 
-// ---------- Servicio (lo que backend debe sustituir) ----------
 
-// Para revisar los estados sin backend: ?simular=error o ?simular=cargando
-// (solo funciona en desarrollo; en producción se ignora)
-function simulacion(): string | null {
-    if (!import.meta.env.DEV) return null;
-    return new URLSearchParams(window.location.search).get("simular");
+// Proyección del contrato público. No se reemplazan errores por ejemplos.
+export function noticiaPublicada(c: ContenidoPublico): Noticia {
+    const categoria = String(c.datos.categoria ?? '').toLowerCase();
+    return { id: c.folio, estado: 'publicada', categoria: esCategoria(categoria) ? categoria : 'institucional',
+        fecha: esFechaValida(String(c.datos.fecha ?? '')) ? String(c.datos.fecha) : c.publicadoEn.slice(0,10), minutosLectura: Math.max(1, Math.ceil(c.cuerpo.split(/\s+/).length / 200)),
+        titulo: c.titulo, resumen: c.resumen, imagen: c.imagenUrl ?? '', textoAlternativo: String(c.datos.textoAlternativo ?? ''), introduccion: c.resumen,
+        bloques: [{ tipo: 'parrafo', texto: c.cuerpo }], reacciones: { meGusta: 0, meSirvio: 0, compartir: 0 } };
 }
-
-const espera = (ms: number) => new Promise((resolver) => setTimeout(resolver, ms));
-
-// TODO backend: GET de noticias publicadas (con texto, categoría, fecha, orden y página si
-// conviene filtrar del lado del servidor). Nunca debe incluir borradores ni retiradas.
-export async function obtenerNoticias(): Promise<Noticia[]> {
-    const modo = simulacion();
-    await espera(modo === "cargando" ? 60000 : 250);
-    if (modo === "error") throw new Error("No se pudieron cargar las noticias");
-    return soloPublicadas(noticias);
-}
-
-// TODO backend: GET de una noticia por id. Si no existe o no está publicada debe responder 404.
+export async function obtenerNoticias(): Promise<Noticia[]> { return (await listarPublicados('noticia')).map(noticiaPublicada); }
 export async function obtenerNoticia(id: string | undefined): Promise<Noticia | null> {
-    const modo = simulacion();
-    await espera(modo === "cargando" ? 60000 : 250);
-    if (modo === "error") throw new Error("No se pudo cargar la noticia");
-    return buscarPublicada(noticias, id);
+    if (!id) return null;
+    const c = await obtenerPublicado(id, 'noticia'); return c ? noticiaPublicada(c) : null;
 }
