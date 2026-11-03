@@ -8,7 +8,7 @@
     min-height: 100vh;
     background: #f7f5f0;
     color: #161a1d;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Noto Sans', sans-serif; /* Figma A-05 usa Noto Sans, igual que el portal */
 }
 
 .panel p,
@@ -40,10 +40,27 @@
     background: #611232;
 }
 
-.panel-logo {
-    width: 110px;
-    height: 40px;
-    object-fit: cover;
+.panel-gobierno__logos {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.panel-gobierno__logo {
+    height: 36px;
+    object-fit: contain;
+}
+
+.panel-gobierno__logo--mexico { width: 100px; }
+.panel-gobierno__logo--nayarit { width: 106px; }
+
+/* El logo de la biblioteca es negro: se pinta en blanco con máscara (como en el encabezado del portal) */
+.panel-gobierno__logo-biblioteca {
+    width: 91px;
+    height: 36px;
+    background: #fff;
+    -webkit-mask: url("../../assets/comun/logos/logo-solon-arguello.png") no-repeat center / contain;
+    mask: url("../../assets/comun/logos/logo-solon-arguello.png") no-repeat center / contain;
 }
 
 .panel-gobierno__textos {
@@ -51,41 +68,22 @@
     align-items: center;
     gap: 20px;
     color: #fff;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
 }
 
 .panel-gobierno__textos strong {
     color: #e6d194;
+    font-size: 15px;
 }
 
 .panel-gobierno__separador {
     width: 1px;
-    height: 18px;
-    background: rgba(255, 255, 255, 0.4);
+    height: 26px;
+    background: rgba(255, 255, 255, 0.35);
 }
 
-.panel-pie {
-    display: flex;
-    align-items: flex-start;
-    gap: 80px;
-    padding: 28px 120px;
-    background: #611232;
-}
-
-.panel-pie__columna {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    color: #fff;
-    font-size: 13px;
-}
-
-.panel-pie__titulo {
-    color: #c7c7c7;
-    font-size: 14px;
-    font-weight: 700;
-}
+.panel-gobierno__separador--texto { height: 18px; }
 
 /* ---------- Cuerpo: barra lateral + principal ---------- */
 .panel-cuerpo {
@@ -166,12 +164,32 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    width: 100%;
     height: 48px;
     padding: 0 14px;
+    box-sizing: border-box;
+    border: none;
     border-radius: 14px;
+    background: transparent;
     color: #fff;
     font-size: 15px;
     font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.panel-menu__item:hover { background: rgba(22, 79, 68, 0.7); }
+.panel-menu__item img { width: 20px; height: 20px; }
+.panel-menu__item img:last-child:not(:first-child) { width: 18px; height: 18px; }
+
+/* Resumen activo: dorado */
+a.panel-menu__item.active,
+a.panel-menu__item.active:hover {
+    background: #e6d194;
+    color: #0b3b33;
+    font-weight: 700;
 }
 
 .panel-menu__item > span {
@@ -215,6 +233,8 @@ a.panel-submenu__item.active {
     font-weight: 700;
 }
 
+.panel-submenu__item--pronto { cursor: default; }
+
 .etiqueta-pronto {
     padding: 2px 8px;
     border: 1px solid #e6d194;
@@ -243,12 +263,16 @@ a.panel-submenu__item.active {
     background: #fff;
 }
 
-.panel-cabecera__titulo {
+.panel .panel-cabecera__titulo {
     flex: 1;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 24px;
+    color: #161a1d;
+    font-size: 22px;
     font-weight: 700;
 }
+
+.boton-panel--cabecera { height: 48px; }
+
+.panel-campana:disabled { cursor: default; }
 
 .panel-campana {
     position: relative;
@@ -345,7 +369,7 @@ a.panel-submenu__item.active {
     box-sizing: border-box;
     border: 1.5px solid transparent;
     border-radius: 999px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: inherit;
     font-size: 16px;
     font-weight: 700;
     white-space: nowrap;
@@ -442,7 +466,7 @@ a.panel-submenu__item.active {
 }
 
 .encabezado-panel h1 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: inherit;
     font-size: 44px;
     line-height: 48px;
     letter-spacing: -0.88px;
@@ -546,7 +570,7 @@ a.panel-submenu__item.active {
 }
 
 .tarjeta-panel__textos h2 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: inherit;
     font-size: 22px;
     line-height: 24px;
     letter-spacing: -0.44px;
@@ -1058,7 +1082,7 @@ a.panel-submenu__item.active {
     border-radius: 16px;
     background: #fffdf8;
     color: #161a1d;
-    font-family: 'DM Sans', sans-serif;
+    font-family: inherit;
     font-size: 16px;
 }
 
@@ -1156,7 +1180,7 @@ a.panel-submenu__item.active {
 }
 
 .ventana__textos h2 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: inherit;
     font-size: 26px;
     line-height: 31px;
     letter-spacing: -0.52px;
@@ -1247,7 +1271,7 @@ a.panel-submenu__item.active {
 
 .bloque-resumen h2 {
     color: #fff;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: inherit;
     font-size: 54px;
     line-height: 58px;
     letter-spacing: -1.08px;
@@ -1294,7 +1318,7 @@ a.panel-submenu__item.active {
 }
 
 .tarjeta-resumen h3 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: inherit;
     font-size: 25px;
     line-height: 28px;
     letter-spacing: -0.25px;
@@ -1360,7 +1384,7 @@ a.panel-submenu__item.active {
     outline: none;
     background: transparent;
     color: #161a1d;
-    font-family: 'DM Sans', sans-serif;
+    font-family: inherit;
     font-size: 15px;
 }
 
@@ -1454,7 +1478,7 @@ a.panel-submenu__item.active {
 }
 
 .estado-vacio h3 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: inherit;
     font-size: 24px;
     line-height: 26px;
     letter-spacing: -0.48px;
@@ -1493,7 +1517,7 @@ a.panel-submenu__item.active {
 }
 
 .vista-previa__titulo {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: inherit;
     font-size: 30px;
     line-height: 33px;
     letter-spacing: -0.6px;

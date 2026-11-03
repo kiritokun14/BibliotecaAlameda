@@ -1,3 +1,4 @@
+import { invalidarConsultas } from './consultas';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export class ErrorServicio extends Error {
@@ -13,6 +14,7 @@ export async function pedirApi<T>(ruta: string, opciones: RequestInit = {}): Pro
     } catch { throw new ErrorServicio('No pudimos conectar con el servidor. Comprueba que el backend esté encendido.'); }
     const datos = await respuesta.json().catch(() => null);
     if (!respuesta.ok) {
+        if (respuesta.status === 401 || respuesta.status === 403) invalidarConsultas();
         const mensaje = typeof datos?.detail === 'string' ? datos.detail
             : respuesta.status === 422 ? 'Revisa los campos y los requisitos del formulario.' : 'No fue posible completar la operación. Intenta más tarde.';
         throw new ErrorServicio(mensaje, respuesta.status);

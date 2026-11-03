@@ -20,7 +20,9 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 5 | `corregir_roles_y_capacidades.sql` | Corrección de roles y capacidades | T-032 |
 | 6 | `alinear_actores_documentados.sql` | Catálogo vigente de actores (3.1b y Figma) | T-032 |
 | 7 | `alta_asistida_cuentas.sql` | Alta de cuentas asistida por el personal | T-033 |
-| 8 | `datos_prueba.sql` | **Opcional.** Datos ficticios de prueba | T-026 |
+| 8 | `contenidos_editor.sql` | Editor de contenidos: folio, borradores, envío a autorización y observaciones | T-054 |
+| 9 | `contenidos_memoria.sql` | Memoria pública en el editor de contenidos | T-054 |
+| 10 | `datos_prueba.sql` | **Opcional.** Datos ficticios de prueba | T-026 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
@@ -43,6 +45,7 @@ fijos `00000000-0000-4000-…` para poder encontrarlos y borrarlos.
 
 `pruebas_registro.sql` y `pruebas_administracion.sql` usan `ROLLBACK`: comprueban el registro y la
 administración de cuentas sin dejar registros. Se pueden ejecutar después del paso 7.
+`pruebas_contenidos_editor.sql` (también con `ROLLBACK`) comprueba el editor de contenidos después del paso 9.
 
 ## Cambios nuevos a la base
 

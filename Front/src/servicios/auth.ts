@@ -1,3 +1,4 @@
+import { consultasAcceso, invalidarConsultas } from './consultas';
 import { ErrorServicio, obtenerSupabase, pedirApi, recordarSesion } from './api';
 
 export interface Domicilio {
@@ -33,19 +34,22 @@ export async function crearCuenta(datos: SolicitudRegistro) {
 export async function consultarMiAcceso(): Promise<AccesoCuenta> {
     const supabase = await obtenerSupabase();
     const { data, error } = await supabase.auth.getSession();
-    if (error || !data.session) throw new ErrorServicio('Inicia sesión para continuar.', 401);
-    return pedirApi<AccesoCuenta>('/administracion/mi-acceso', {
-        headers: { Authorization: `Bearer ${data.session.access_token}` },
-    });
+    if (error || !data.session) { invalidarConsultas(); throw new ErrorServicio('Inicia sesión para continuar.', 401); }
+    const token = data.session.access_token;
+    return consultasAcceso.obtener(token, () => pedirApi<AccesoCuenta>('/administracion/mi-acceso', {
+        headers: { Authorization: `Bearer ${token}` },
+    }), 15000);
 }
 export async function pedirAdministracion<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
     const { data } = await (await obtenerSupabase()).auth.getSession();
     if (!data.session) throw new ErrorServicio('Inicia sesión para continuar.', 401);
+    if (opciones.method && opciones.method !== 'GET') invalidarConsultas();
     return pedirApi<T>(`/administracion${ruta}`, { ...opciones,
         headers: { ...opciones.headers, Authorization: `Bearer ${data.session.access_token}` } });
 }
 export type ResultadoInicioSesion = 'ok' | 'credenciales-incorrectas' | 'cuenta-deshabilitada' | 'correo-pendiente';
 export async function iniciarSesion(correo: string, contrasena: string, recordarme = false): Promise<ResultadoInicioSesion> {
+    invalidarConsultas();
     recordarSesion(recordarme);
     const supabase = await obtenerSupabase();
     const { error } = await supabase.auth.signInWithPassword({ email: correo.trim(), password: contrasena });
@@ -61,6 +65,7 @@ export async function iniciarSesion(correo: string, contrasena: string, recordar
     return 'ok';
 }
 export async function cerrarSesion() {
+    invalidarConsultas();
     const { error } = await (await obtenerSupabase()).auth.signOut({ scope: 'local' });
     falloAuth(error);
     sessionStorage.removeItem('biblioteca-recuperacion');

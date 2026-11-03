@@ -103,3 +103,26 @@ Cambios locales en Roberto, sin commit ni push. No se modificó la base ni se en
 Verificación: 23 pruebas de frontend correctas, lint y compilación correctos. No se ejecutaron operaciones reales de Atención.
 
 Entrega del avance integrado: se prepara la publicación de las pantallas de Aldahir y sus controles de acceso en main, con autorización de Roberto. Las referencias anteriores a cambios locales describen el estado previo a esta entrega. Las operaciones de Atención continúan con datos de ejemplo. La cuenta ficticia prueba.panel@biblioteca.test tiene los tres permisos globales autorizados para esta prueba; su contraseña no se guarda en el repositorio.
+
+## Integración del editor de Valeria — 2 de noviembre
+
+Incorporé los 33 archivos del avance de Valeria (05dc15a) en Roberto: backend de contenidos, pruebas, pantallas conectadas, estilos/recursos, rutas, servicio y SQL del editor y memoria pública. Conservé registro, recuperación de BOBA, alta asistida y Atención. El panel admite preparar_contenidos sin habilitar permisos ficticios de desarrollo.
+
+Ajustes de integración: separé los tipos que admite la creación de los tipos existentes que se pueden listar; alineé los filtros de estado con el backend; corregí la navegación de reseñas, memoria y Acerca con observaciones para que no abra el formulario de noticias. Añadí pruebas de llamadas autenticadas y manejo de errores. La selección de imágenes indica expresamente que solo sirve de vista previa y todavía no se almacena.
+
+Verificación: 78 pruebas de backend, 29 de frontend, lint y compilación correctos. Las pruebas automatizadas usan transporte simulado. Consulté CECANbd y confirmé la RPC editor_contenidos, validación de memoria, bitácora y columnas ya instaladas; no ejecuté migraciones ni modifiqué usuarios, permisos o contenidos. No se ejecutó el script SQL de pruebas en la base compartida.
+
+Pendientes funcionales que ya existían en la aportación: almacenamiento de imágenes, revisiones privadas sobre contenidos publicados, visualización detallada de enviados/publicados y conexión con la revisión/publicación institucional de T-055. No se acredita el flujo real completo de un editor solo con estas pruebas. Estas limitaciones no se presentan como terminadas. Cambios locales sin commit ni push.
+
+## Fluidez del panel y editor — 2 de noviembre
+
+- Añadí reutilización en memoria de la consulta de permisos durante 15 segundos, separada por token. Las llamadas simultáneas comparten petición. Se invalida al iniciar/cerrar sesión, modificar administración, recibir 401/403 o recuperar el foco. El backend continúa autorizando cada operación; no se amplían capacidades.
+- Retiré la consulta remota redundante getUser del acceso al panel: después de comprobar permisos en el servidor se usa la sesión local y se compara su identificador. Protegí las comprobaciones frente a respuestas que llegan fuera de orden.
+- Las lecturas simultáneas idénticas del editor comparten petición, sin conservar resultados terminados. Las escrituras no se reutilizan y limpian las consultas pendientes.
+- Separé errores del resumen y del listado. Al cambiar filtros/página se muestra carga en lugar de datos anteriores; la paginación espera la respuesta. Añadí etiquetas correctas para aprobado, retirado y archivado.
+- Bloqueé guardados/envíos simultáneos en el mismo formulario y conservé inmediatamente el folio creado para evitar otra creación antes del siguiente renderizado.
+- Separé las pantallas administrativas y de personal en archivos que se descargan al abrirlas. El JavaScript inicial compilado pasó de 836.48 a 651.53 kB (aproximadamente 22 % menos; gzip de 206.03 a 173.61 kB). Todavía existe el aviso de paquete inicial mayor a 500 kB.
+
+Verificación: 36 pruebas de frontend correctas y una prueba de latencia manual omitida por defecto; lint y compilación correctos. La prueba manual se ejecutó aparte contra el backend existente: cuatro consultas consecutivas de permisos produjeron una sola petición HTTP, con 1288.9 ms en la primera y menos de 0.1 ms en las siguientes dentro del servicio con sesión local simulada. No representa tiempo completo de pantalla ni guardado. La primera consulta real sigue rondando 1.3 segundos. Las 78 pruebas de backend habían pasado en la integración anterior; este ajuste no modifica el backend.
+
+No se aplicaron migraciones ni se cambiaron contenidos, usuarios o permisos. No se iniciaron servidores y no se realizó commit ni push. Quedan fuera de este ajuste la reutilización segura de conexiones del backend y unir guardado/envío en una operación; requieren cambios y pruebas específicos. La prueba completa del editor con cuenta autorizada sigue pendiente.

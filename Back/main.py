@@ -9,6 +9,19 @@ from Back.administracion import router as administracion_router
 from Back.solicitudes import router as solicitudes_router
 from Back.recuperacion import router as recuperacion_router
 from Back.alta_asistida import router as alta_asistida_router
+from Back.contenidos import router as contenidos_router
+from Back.publicacion import router as publicacion_router
+from Back.imagenes import router as imagenes_router
+
+from Back.contacto import router as contacto_router
+
+from Back.bibliocomunidad import router as bibliocomunidad_router
+
+from Back.asistente_fuentes import router as asistente_fuentes_router
+
+from Back.lectura import router as lectura_router
+
+from Back.perfil import router as perfil_router
 
 app = FastAPI(title='Biblioteca Alameda', version='0.1.0')
 app.include_router(registro_router)
@@ -16,6 +29,14 @@ app.include_router(administracion_router)
 app.include_router(solicitudes_router)
 app.include_router(recuperacion_router)
 app.include_router(alta_asistida_router)
+app.include_router(contenidos_router)
+app.include_router(publicacion_router)
+app.include_router(imagenes_router)
+app.include_router(lectura_router)
+app.include_router(asistente_fuentes_router)
+app.include_router(bibliocomunidad_router)
+app.include_router(contacto_router)
+app.include_router(perfil_router)
 
 
 @app.exception_handler(RequestValidationError)

@@ -1,3 +1,4 @@
+import { invalidarConsultas } from '../src/servicios/consultas';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const simulado = vi.hoisted(() => ({ auth: {
@@ -7,7 +8,7 @@ const simulado = vi.hoisted(() => ({ auth: {
 } }));
 vi.mock('@supabase/supabase-js', () => ({ createClient: () => simulado }));
 import { crearCuenta, iniciarSesion, procesarRetorno, guardarNuevaContrasena,
-    reenviarConfirmacion, enviarEnlaceRecuperacion } from '../src/servicios/auth';
+    reenviarConfirmacion, enviarEnlaceRecuperacion, consultarMiAcceso, cerrarSesion } from '../src/servicios/auth';
 
 class Almacen {
     datos = new Map<string, string>();
@@ -19,6 +20,7 @@ const peticiones = vi.fn();
 const responder = (datos: unknown, estado = 200) => new Response(JSON.stringify(datos), { status: estado, headers: { 'Content-Type': 'application/json' } });
 
 beforeEach(() => {
+    invalidarConsultas();
     vi.clearAllMocks();
     vi.stubGlobal('localStorage', new Almacen());
     vi.stubGlobal('sessionStorage', new Almacen());
@@ -120,4 +122,20 @@ it('no borra el contexto de recuperación si el backend rechaza el cambio', asyn
     peticiones.mockResolvedValue(responder({ detail: 'Sesión inválida.' }, 401));
     await expect(guardarNuevaContrasena('Nueva-contraseña-123')).rejects.toMatchObject({ estado: 401 });
     expect(simulado.auth.signOut).not.toHaveBeenCalled();
+});
+
+it('navegar comparte permisos sin repetir la llamada remota', async () => {
+    await Promise.all([consultarMiAcceso(),consultarMiAcceso()]);
+    await consultarMiAcceso();
+    expect(peticiones.mock.calls.filter(([url])=>url.endsWith('/mi-acceso'))).toHaveLength(1);
+});
+it('cerrar sesión invalida los permisos antes de reutilizarlos', async () => {
+    await consultarMiAcceso(); await cerrarSesion(); await consultarMiAcceso();
+    expect(peticiones.mock.calls.filter(([url])=>url.endsWith('/mi-acceso'))).toHaveLength(2);
+});
+it('cambiar de token nunca hereda permisos de otra sesión', async () => {
+    await consultarMiAcceso();
+    simulado.auth.getSession.mockResolvedValue({data:{session:{access_token:'otro-token'}}});
+    await consultarMiAcceso();
+    expect(peticiones.mock.calls.filter(([url])=>url.endsWith('/mi-acceso'))).toHaveLength(2);
 });
