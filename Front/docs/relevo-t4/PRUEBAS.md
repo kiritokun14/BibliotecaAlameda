@@ -67,3 +67,13 @@ La barra de arriba solo cambia con una sesión real (backend levantado y una cue
 ## Credencial con datos reales (cuenta real y backend levantado)
 - Con una solicitud de credencial en la base: `/credencial/seguimiento`, el encabezado del perfil y Mi credencial muestran el mismo estado
   (recibida/en atención/cita → En revisión; atendida → Vigente; rechazada → Corrección con las observaciones). Sin solicitudes → «Aún no tienes una solicitud».
+
+## Club Alameda (foro)
+- `/club-alameda`: 4 temas en 2×2 con su color, número de respuestas y última actividad; «Entrar a la conversación» abre el hilo.
+- `/club-alameda/cuentos-de-la-alameda` sin sesión: se leen las respuestas, no hay «Reportar» y la caja invita a iniciar sesión.
+- Con `?simular=sesion`: publicar vacío o con más de 1,000 caracteres marca error. La primera respuesta sale con «En revisión»
+  y no suma al contador; «Vista de ejemplo: el personal aprueba mis respuestas» la publica y la siguiente ya sale directa.
+- «Reportar» → elegir norma (obligatoria) → «Enviar reporte» → «Gracias por avisarnos»; la tarjeta queda «Reportada».
+- «Vista de ejemplo: cuenta silenciada» cambia la caja por «Por ahora no puedes publicar».
+- Una dirección de tema que no existe regresa a `/club-alameda`.
+- `/servicios`: la tarjeta Bibliocomunidad ya no dice «Próximamente»; en `/servicios/bibliocomunidad` el botón «Entrar al foro Club Alameda» abre el foro.

@@ -502,3 +502,6 @@
     transition: none;
   }
 }
+
+/* Bibliocomunidad: botón al foro Club Alameda junto a «Volver» */
+.programa-aviso__botones { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }

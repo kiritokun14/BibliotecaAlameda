@@ -13,7 +13,7 @@ Léelo completo junto con `Front/AGENTS.md`. **opencode no tiene Figma**: todo l
 | S3 | BDLAG-54 · T-051 | Información institucional + enlace a Koha | **Casi hecho** (no lo hizo T4) | `Acerca` (`src/pages/publico/acerca/`) y el enlace a Koha (`src/pages/publico/catalogo/Catalogo.tsx`, abre en pestaña nueva) ya existen. Solo comparar con `fichas/acerca.md`. Con sesión, Acerca no cambia salvo la barra. |
 | S3 | BDLAG-56 · T-052 | Listado, calendario y filtros de la agenda pública | **En curso** | **Casi hecho** (3-4 nov): listado, «Todas», calendario, detalle con inscripción y «Mi inscripción». Falta: lista de espera (Estados del sistema) y conectar con backend. Ver §3.1. |
 | S3 | BDLAG-140 · T-048 | Diseñar y validar prototipos de agenda, contenidos y contacto | No es código | Es validación en Figma. Las capturas de `capturas/eventos/` sirven de evidencia de la agenda. |
-| S4 | BDLAG-36 · HU-26 | Participar en el foro Club Alameda | **Bloqueado: el diseño aún no existe** (Aldahir, 4 nov) | En la sección A-02 de Figma **no hay pantallas del foro** (solo aparece el texto «Club Alameda: comunidad de lectores con foro y actividades propias.» en Servicios). Pide a Aldahir el nodo de Figma del foro antes de empezar. Ver §3.4. |
+| S4 | BDLAG-36 · HU-26 | Participar en el foro Club Alameda | **Hecho en frontend** (4 nov) | `/club-alameda` y `/club-alameda/:tema`, desde Figma 759:93131. Enlazado desde Bibliocomunidad. Falta backend y la pregunta de membresía (§3.4). |
 | S4 | BDLAG-63 | Apoyo · Integración de pantallas de solicitud y seguimiento | **Hecho en frontend** (4 nov) | Credencial, Espacios con sesión (`/espacios`, `/espacios/enviada`, `/espacios/solicitud/:id`), Proponer (`/proponer`, `/proponer/enviada`, `/proponer/:id`) y el historial del perfil. Falta solo backend para crear, corregir y cancelar. Ver §3.2 y §3.3. |
 | S4 | BDLAG-153 · T-071 | Diseñar y validar prototipos de credenciales, solicitudes y foro | No es código | Validación en Figma. Evidencia: pantallas de Credencial ya programadas y `capturas/espacios/`, `capturas/proponer/`. |
 
@@ -24,9 +24,9 @@ Léelo completo junto con `Front/AGENTS.md`. **opencode no tiene Figma**: todo l
 **Revisión del resto de A-02 (4 nov):** Contacto, Noticias, Servicios, Bibliocomunidad, Acerca y Koha con sesión son iguales a los de visitante salvo la barra
 (ya hecha) y pequeñas diferencias de títulos entre los dos diseños de Figma. Pendientes reales: (1) «Material privado · acceso restringido»
 (`476:17037`, Lecturas: «Tu cuenta no tiene acceso a este material»), (2) variantes del Asistente con sesión (`476:18280`; el asistente es de T1),
-(3) el foro HU-26 cuando exista el diseño, (4) conectar todo con el backend (`TODO backend` en cada `datos.ts`).
+(3) conectar el foro HU-26 con backend, (4) conectar todo con el backend (`TODO backend` en cada `datos.ts`).
 
-**Orden sugerido para opencode:** lo que queda del sprint es el foro HU-26 (cuando haya diseño) y la lista de espera de Eventos (Estados del sistema).
+**Orden sugerido para opencode:** el sprint 4 ya está completo en frontend; queda revisar con `PRUEBAS.md` y conectar con el backend cuando existan los servicios.
 Inscribirse ya crea notificación y aparece en Mis eventos; enviar solicitud de espacio y propuesta también crean notificación.
 
 ---
@@ -155,9 +155,15 @@ y motivos de cancelación de espacios. En `App.tsx` la ruta usa `DetallePropuest
 4. Las cuentas de persona menor de edad **no** tienen propuestas ni espacios (`perfil/datos.ts → seccionesDe(menor)`).
 
 ### 3.4 HU-26 · Foro Club Alameda
-- No hay diseño en A-02. Pídelo antes de programar.
-- Ya existe la moderación del panel (T2): `src/pages/admin/participantes/moderacion.ts` (publicaciones, normas `NORMAS`,
-  estados, personas silenciadas). La vista pública debe usar el **mismo modelo de datos** (normas, estados «aprobada/retirada»).
+- Hecho (4 nov) desde Figma 759:93131 (inicio 759:93132 y detalle 759:93772). Detalle en «Club Alameda · foro» al final de este archivo.
+- La moderación del panel es de T2: `src/pages/admin/participantes/moderacion.ts` (`/admin/participantes/foro`). Los hilos se llaman igual;
+  al conectar con backend, la vista pública y la moderación deben usar el mismo servicio.
+- No confundir con Atención → Bibliocomunidad (`/admin/atencion/bibliocomunidad`): ahí el personal atiende las **solicitudes para unirse**
+  al club; la moderación revisa lo que se **publica** en el foro.
+- **Pregunta abierta para el equipo de backend:** ¿para responder en el foro hay que ser miembro aprobado de la Bibliocomunidad?
+  Hoy basta con tener sesión (leer es libre). Si la respuesta es sí, hace falta un servicio que diga el estado de la persona
+  (por ejemplo `GET /api/foro/mi-estado → { miembro: boolean, silenciadaHasta: string | null }`) y en el front se bloquea la caja
+  «Tu lectura también cuenta» con un aviso que lleve a `/servicios/bibliocomunidad`.
 
 ---
 
@@ -166,7 +172,7 @@ y motivos de cancelación de espacios. En `App.tsx` la ruta usa `DetallePropuest
 - No edites `src/components/portal/*` (de T1). Excepción ya hecha: T4 conectó `MenuCuenta` en `Navegacion.tsx` a pedido de Aldahir.
 - Imágenes: antes de agregar una, revisa con md5 que no exista. Exclusivas en `src/assets/<pantalla>/`, compartidas en `src/assets/comun/`.
   Los íconos de Figma solo se descargan con Figma; si te falta uno, pídelo o usa uno idéntico que ya exista.
-- Al terminar: `npm run lint`, `npm test`, `npm run build` sin errores. Hoy pasan los tres (206 pruebas).
+- Al terminar: `npm run lint`, `npm test`, `npm run build` sin errores. Hoy pasan los tres (240 pruebas).
 
 ## 5. Pendientes para otros
 - **T1:** decidir si el enlace «Contacto» de la barra pasa a «Buzón de sugerencias» (así está en Figma con sesión);
@@ -179,3 +185,16 @@ y motivos de cancelación de espacios. En `App.tsx` la ruta usa `DetallePropuest
 
 ## 6. Qué probar de lo que ya hizo T4
 Ver `PRUEBAS.md` en esta misma carpeta.
+
+## Club Alameda · foro (HU-26) — 4 nov 2026
+- Figma: sección 759:93131 → 759:93132 (inicio del foro) y 759:93772 (detalle de un hilo). Solo existen esas 2 pantallas.
+- Código: `src/pages/publico/club/` (`datos.ts`, `ClubAlameda.tsx`, `ClubAlameda.css`), íconos en `src/assets/club/`,
+  rutas `/club-alameda` y `/club-alameda/:tema` en `App.tsx`, pruebas en `tests/clubAlameda.test.ts`.
+- Los 4 hilos se llaman igual que en Moderación del foro (T2, `admin/participantes/moderacion.ts`), pero los datos van aparte
+  (no se edita el archivo de T2). Todo es local con `TODO backend` (endpoints esperados al inicio de `club/datos.ts`).
+- Reglas: la primera respuesta queda «En revisión» (solo la ve quien la escribió); después de una aprobada, se publica directo.
+  Máximo 1,000 caracteres. Sin sesión se puede leer pero no responder ni reportar.
+- Sin diseño (se armó con piezas del portal): modal «Reportar una respuesta» (norma + comentario opcional) y su confirmación,
+  la tarjeta «En revisión», la invitación a iniciar sesión y el aviso de cuenta silenciada.
+- Enlazado desde Bibliocomunidad (con permiso de Aldahir, 4 nov): se quitó «Próximamente» de la tarjeta en `servicios/datos.ts` y
+  `DetalleServicio.tsx` tiene el botón «Entrar al foro Club Alameda». Avisar a T1.
