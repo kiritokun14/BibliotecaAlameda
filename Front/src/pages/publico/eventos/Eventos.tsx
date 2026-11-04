@@ -9,6 +9,11 @@ import {
     PasosVisitante,
     SeccionVisitante,
 } from "../../../components/portal/Visitante";
+import Agenda from "./Agenda";
+import TodasActividades from "./TodasActividades";
+import CalendarioActividades from "./CalendarioActividades";
+import DetalleActividad from "./DetalleActividad";
+import { obtenerActividad } from "./datosAgenda";
 import "./Eventos.css";
 import { actividadElegida, partirFecha } from "./datos";
 import type { Actividad } from "../inicio/datos";
@@ -23,6 +28,12 @@ import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 // /eventos (sin elegir) no muestra ninguna: invita a elegir una en Inicio.
 function Eventos() {
     const { id } = useParams();
+    // Sin actividad elegida se muestra la agenda completa (T-052, Figma A-02 476:11136).
+    if (!id) return <Agenda />;
+    if (id === "todas") return <TodasActividades />;
+    if (id === "calendario") return <CalendarioActividades />;
+    const deAgenda = obtenerActividad(id);
+    if (deAgenda) return <DetalleActividad actividad={deAgenda} />;
     const actividad = actividadElegida(id);
     // TODO backend: si la consulta de eventos falla se muestra «No pudimos cargar los eventos».
     // Mientras tanto se puede ver con ?simular=error (solo en desarrollo).

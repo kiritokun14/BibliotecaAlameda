@@ -6,16 +6,21 @@ import {
     PasosVisitante,
     SeccionVisitante,
 } from "../../../components/portal/Visitante";
+import { useSesion } from "../perfil/usarSesion";
+import { PasosTramite, TarjetaMiTramite } from "./piezas";
 import "./Credencial.css";
+import "./CredencialSesion.css";
 import iconoCheck from "../../../assets/comun/iconos/check-verde.svg";
 import iconoInfo from "../../../assets/comun/iconos/lecturas-info.svg";
 import iconoCosto from "../../../assets/comun/iconos/accesos-credencial.svg";
 import iconoReloj from "../../../assets/comun/iconos/cifras-reloj.svg";
 
-// Credencial · vista de visitante SIN cuenta: explica el trámite.
-// Solicitar, dar seguimiento y renovar se hace después, con sesión.
+// Credencial · información del trámite.
+// Sin cuenta: aviso para iniciar sesión y llamado a crear cuenta.
+// Con sesión (Figma A-02, 476:9984): pasos del trámite y tarjeta «Mi trámite» para solicitarla.
 // TODO backend: costo y tiempos los confirma la biblioteca (por ahora son de ejemplo).
 function Credencial() {
+    const sesion = useSesion(); // undefined mientras se sabe si hay sesión
     return (
         <PaginaPublica>
             <EncabezadoVisitante
@@ -25,18 +30,25 @@ function Credencial() {
                 texto="Conoce en qué consiste, qué necesitas y cómo funciona el trámite. Tú decides si lo inicias."
             />
 
-            <SeccionVisitante fondo="crema">
-                <AvisoCuenta
-                    titulo="Inicia sesión o crea una cuenta para solicitar tu credencial"
-                    texto="Puedes conocer todo el trámite sin cuenta. Solicitarla, dar seguimiento a tu solicitud y renovarla se hace con una cuenta."
-                    sinCuenta={[
-                        "Conocer para qué sirve la credencial",
-                        "Revisar cómo funciona el trámite",
-                        "Ver qué necesitas antes de empezar",
-                    ]}
-                    conCuenta={["Solicitar tu credencial", "Ver el seguimiento de tu solicitud", "Renovar tu credencial"]}
-                />
-            </SeccionVisitante>
+            {sesion ? <>
+                <PasosTramite actual={1} />
+                <SeccionVisitante fondo="crema">
+                    <TarjetaMiTramite />
+                </SeccionVisitante>
+            </> : sesion === null && (
+                <SeccionVisitante fondo="crema">
+                    <AvisoCuenta
+                        titulo="Inicia sesión o crea una cuenta para solicitar tu credencial"
+                        texto="Puedes conocer todo el trámite sin cuenta. Solicitarla, dar seguimiento a tu solicitud y renovarla se hace con una cuenta."
+                        sinCuenta={[
+                            "Conocer para qué sirve la credencial",
+                            "Revisar cómo funciona el trámite",
+                            "Ver qué necesitas antes de empezar",
+                        ]}
+                        conCuenta={["Solicitar tu credencial", "Ver el seguimiento de tu solicitud", "Renovar tu credencial"]}
+                    />
+                </SeccionVisitante>
+            )}
 
             <SeccionVisitante fondo="verde" sobretitulo="QUÉ ES" titulo="¿Qué es y para qué sirve?">
                 <div className="credencial-que-es">
@@ -89,10 +101,10 @@ function Credencial() {
                 </div>
             </SeccionVisitante>
 
-            <LlamadoVisitante
+            {sesion === null && <LlamadoVisitante
                 titulo="¿Quieres tramitar tu credencial?"
                 texto="Inicia sesión o crea una cuenta para solicitarla. Podrás seguir su avance en la sección Seguimiento."
-            />
+            />}
         </PaginaPublica>
     );
 }

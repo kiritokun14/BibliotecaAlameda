@@ -4,6 +4,7 @@ import { tieneCapacidad } from "../../servicios/altaAsistida";
 import { cerrarSesion, consultarMiAcceso } from "../../servicios/auth";
 import { obtenerSupabase, mensajeError } from "../../servicios/api";
 import { Link, NavLink } from "react-router";
+import MenuCuenta from "../../pages/publico/perfil/MenuCuenta";
 import "./Navegacion.css";
 import "./Portal.css"; // logo de la biblioteca (.logo-solon)
 
@@ -83,12 +84,10 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
 
                 <div className="navegacion__cuenta">
                     {correo ? <>
-                        <Link to="/mi-perfil" className="navegacion__boton">Mi perfil</Link>
                         {panel && <Link to="/admin" className="navegacion__boton">Panel del personal</Link>}
                         {altaAsistida && <Link to="/personal/alta-asistida" className="navegacion__boton">Alta asistida</Link>}
-                        <button type="button" className="navegacion__boton" onClick={salir} disabled={cerrando}>
-                            {cerrando ? 'Cerrando…' : 'Cerrar sesión'}
-                        </button>
+                        {/* Campana, «Mi perfil» y menú de cuenta con sesión (T4 · Actor 2, Figma 476:20760) */}
+                        <MenuCuenta correo={correo} cerrando={cerrando} alCerrarSesion={salir} />
                     </> : <>
                         <Link to="/iniciar-sesion" className="navegacion__boton">Ingresar</Link>
                         <Link to="/crear-cuenta" className="navegacion__boton navegacion__boton--relleno">Crear cuenta</Link>

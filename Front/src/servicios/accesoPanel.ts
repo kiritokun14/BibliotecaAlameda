@@ -13,6 +13,10 @@ export function capacidadPanel(ruta: string): string | null {
     if (ruta.startsWith('/admin/actividades/inscripciones')) return 'confirmar_inscripciones';
     if (ruta.startsWith('/admin/actividades/evidencias')) return 'gestionar_evidencias';
     if (ruta.startsWith('/admin/actividades')) return 'gestionar_actividades';
+    // Participantes: progreso y recompensas, cotejo de credenciales y moderación del foro
+    if (ruta.startsWith('/admin/participantes/progreso')) return 'registrar_recompensas';
+    if (ruta.startsWith('/admin/participantes/cotejo')) return 'validar_credenciales';
+    if (ruta.startsWith('/admin/participantes/foro')) return 'moderar_foro';
     if (ruta.startsWith('/admin/atencion/credenciales')) return 'validar_credenciales';
     if (ruta.startsWith('/admin/atencion/espacios')) return 'registrar_resoluciones_actividades';
     if (ruta.startsWith('/admin/atencion/propuestas'))

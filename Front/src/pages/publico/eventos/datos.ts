@@ -1,9 +1,10 @@
 // Eventos para visitante (T-052): solo muestra la actividad elegida en el carrusel de Inicio.
 // TODO backend: GET /actividades/:id cuando exista; por ahora se usan los datos de Inicio.
 import { actividades, type Actividad } from "../inicio/datos";
+import { agendaEjemplo, comoActividad } from "./datosAgenda";
 
 // null si no se eligió ninguna o el id no existe
-export function actividadElegida(id: string | undefined, lista: Actividad[] = actividades): Actividad | null {
+export function actividadElegida(id: string | undefined, lista: Actividad[] = [...actividades, ...agendaEjemplo.map(comoActividad)]): Actividad | null {
     if (!id) return null;
     return lista.find((a) => a.id === id) ?? null;
 }

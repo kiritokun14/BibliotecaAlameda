@@ -46,8 +46,18 @@ const TodasNoticias = lazy(() => import("./pages/publico/noticias/TodasNoticias.
 const DetalleNoticia = lazy(() => import("./pages/publico/noticias/DetalleNoticia.tsx"));
 const AbrirAsistente = lazy(() => import("./pages/publico/asistente/AbrirAsistente.tsx"));
 const Eventos = lazy(() => import("./pages/publico/eventos/Eventos.tsx"));
+const CuentaSuspendida = lazy(() => import("./pages/publico/sesion/EstadosSesion.tsx").then(m => ({ default: m.CuentaSuspendida })));
+const SesionCaducada = lazy(() => import("./pages/publico/sesion/EstadosSesion.tsx").then(m => ({ default: m.SesionCaducada })));
+const MiInscripcion = lazy(() => import("./pages/publico/eventos/MiInscripcion.tsx"));
 const Credencial = lazy(() => import("./pages/publico/credencial/Credencial.tsx"));
+const TramiteCredencial = lazy(() => import("./pages/publico/credencial/Tramite.tsx"));
+const NotificacionesUsuario = lazy(() => import("./pages/publico/notificaciones/Notificaciones.tsx"));
 const EspaciosPublico = lazy(() => import("./pages/publico/espacios/Espacios.tsx"));
+const ProponerActividad = lazy(() => import("./pages/publico/proponer/Proponer.tsx"));
+const PropuestaEnviada = lazy(() => import("./pages/publico/proponer/Proponer.tsx").then(m => ({ default: m.PropuestaEnviada })));
+const DetallePropuestaUsuario = lazy(() => import("./pages/publico/proponer/Proponer.tsx").then(m => ({ default: m.DetallePropuesta })));
+const SolicitudEspacioEnviada = lazy(() => import("./pages/publico/espacios/SolicitudEspacio.tsx").then(m => ({ default: m.SolicitudEnviada })));
+const GestionarSolicitudEspacio = lazy(() => import("./pages/publico/espacios/SolicitudEspacio.tsx").then(m => ({ default: m.GestionarSolicitud })));
 const Lecturas = lazy(() => import("./pages/publico/lecturas/Lecturas.tsx"));
 const LecturasTema = lazy(() => import("./pages/publico/lecturas/LecturasTema.tsx"));
 const MemoriaPublica = lazy(() => import("./pages/publico/lecturas/MemoriaPublica.tsx"));
@@ -104,6 +114,22 @@ const Evidencias = lazy(() => import("./pages/admin/actividades/Evidencias.tsx")
 const DetalleEvidencia = lazy(() => import("./pages/admin/actividades/Evidencias.tsx").then(m => ({ default: m.DetalleEvidencia })));
 const ResultadoEvidencia = lazy(() => import("./pages/admin/actividades/Evidencias.tsx").then(m => ({ default: m.ResultadoEvidencia })));
 const SubirEvidencia = lazy(() => import("./pages/admin/actividades/Evidencias.tsx").then(m => ({ default: m.SubirEvidencia })));
+const Progreso = lazy(() => import("./pages/admin/participantes/Progreso.tsx"));
+const FichaParticipante = lazy(() => import("./pages/admin/participantes/FichaParticipante.tsx").then(m => ({ default: m.FichaParticipante })));
+const ResultadoParticipante = lazy(() => import("./pages/admin/participantes/FichaParticipante.tsx").then(m => ({ default: m.ResultadoParticipante })));
+const FormularioMeta = lazy(() => import("./pages/admin/participantes/FormulariosProgreso.tsx").then(m => ({ default: m.FormularioMeta })));
+const FormularioRecompensa = lazy(() => import("./pages/admin/participantes/FormulariosProgreso.tsx").then(m => ({ default: m.FormularioRecompensa })));
+const GuardadoProgreso = lazy(() => import("./pages/admin/participantes/FormulariosProgreso.tsx").then(m => ({ default: m.GuardadoProgreso })));
+const Cotejo = lazy(() => import("./pages/admin/participantes/Cotejo.tsx"));
+const DetalleCotejo = lazy(() => import("./pages/admin/participantes/DetalleCotejo.tsx").then(m => ({ default: m.DetalleCotejo })));
+const PedirCorreccion = lazy(() => import("./pages/admin/participantes/DetalleCotejo.tsx").then(m => ({ default: m.PedirCorreccion })));
+const ResultadoCotejo = lazy(() => import("./pages/admin/participantes/DetalleCotejo.tsx").then(m => ({ default: m.ResultadoCotejo })));
+const Foro = lazy(() => import("./pages/admin/participantes/Foro.tsx"));
+const DetallePublicacion = lazy(() => import("./pages/admin/participantes/DetalleForo.tsx").then(m => ({ default: m.DetallePublicacion })));
+const AdvertirPersona = lazy(() => import("./pages/admin/participantes/DetalleForo.tsx").then(m => ({ default: m.AdvertirPersona })));
+const HiloCompleto = lazy(() => import("./pages/admin/participantes/DetalleForo.tsx").then(m => ({ default: m.HiloCompleto })));
+const ResultadoForo = lazy(() => import("./pages/admin/participantes/DetalleForo.tsx").then(m => ({ default: m.ResultadoForo })));
+const ParticipacionRestaurada = lazy(() => import("./pages/admin/participantes/DetalleForo.tsx").then(m => ({ default: m.ParticipacionRestaurada })));
 
 const ContenidoPropio = lazy(() => import("./pages/admin/revision/Revision.tsx").then(m => ({ default: m.ContenidoPropio })));
 
@@ -122,6 +148,8 @@ function App() {
         <Route path="/auth/retorno" element={<RetornoAuth />} />
         <Route path="/iniciar-sesion" element={<Login />} />
         <Route path="/cuenta-deshabilitada" element={<CuentaDeshabilitada />} />
+        <Route path="/cuenta-suspendida" element={<CuentaSuspendida />} />
+        <Route path="/sesion-caducada" element={<SesionCaducada />} />
         <Route path="/sesion-iniciada" element={<SesionIniciada />} />
 
         <Route path="/crear-cuenta" element={<CrearCuenta />} />
@@ -173,14 +201,27 @@ function App() {
         <Route path="/servicios/:id" element={<DetalleServicio />} />
         <Route path="/contacto" element={<Contacto />} />
         <Route path="/mi-perfil" element={<PerfilPropio />} />
+        <Route path="/mi-perfil/datos/editar" element={<PerfilPropio vista="editar" />} />
+        <Route path="/mi-perfil/datos/correo-pendiente" element={<PerfilPropio vista="correo-pendiente" />} />
+        <Route path="/mi-perfil/:seccion" element={<PerfilPropio />} />
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/noticias/todas" element={<TodasNoticias />} />
         <Route path="/noticias/:id" element={<DetalleNoticia />} />
         <Route path="/asistente" element={<AbrirAsistente />} />
         <Route path="/eventos" element={<Eventos />} />
         <Route path="/eventos/:id" element={<Eventos />} />
+        <Route path="/eventos/:id/mi-inscripcion" element={<MiInscripcion />} />
         <Route path="/credencial" element={<Credencial />} />
+        <Route path="/credencial/solicitud" element={<TramiteCredencial vista="solicitud" />} />
+        <Route path="/credencial/enviada" element={<TramiteCredencial vista="enviada" />} />
+        <Route path="/credencial/seguimiento" element={<TramiteCredencial vista="seguimiento" />} />
+        <Route path="/notificaciones" element={<NotificacionesUsuario />} />
         <Route path="/espacios" element={<EspaciosPublico />} />
+        <Route path="/espacios/enviada" element={<SolicitudEspacioEnviada />} />
+        <Route path="/espacios/solicitud/:id" element={<GestionarSolicitudEspacio />} />
+        <Route path="/proponer" element={<ProponerActividad />} />
+        <Route path="/proponer/enviada" element={<PropuestaEnviada />} />
+        <Route path="/proponer/:id" element={<DetallePropuestaUsuario />} />
         <Route path="/lecturas" element={<Lecturas />} />
         <Route path="/lecturas/temas" element={<LecturasTema />} />
         <Route path="/lecturas/memoria" element={<MemoriaPublica />} />
@@ -253,6 +294,34 @@ function App() {
         <Route path="/admin/actividades/evidencias/:folio/guardada" element={<AccesoPanel><ResultadoEvidencia tipo="guardada" /></AccesoPanel>} />
         <Route path="/admin/actividades/evidencias/:folio/solicitado" element={<AccesoPanel><ResultadoEvidencia tipo="solicitado" /></AccesoPanel>} />
         <Route path="/admin/actividades/evidencias/:folio/retirada" element={<AccesoPanel><ResultadoEvidencia tipo="retirada" /></AccesoPanel>} />
+        {/* Panel · Participantes: Progreso y recompensas */}
+        <Route path="/admin/participantes" element={<Navigate to="/admin/participantes/progreso" replace />} />
+        <Route path="/admin/participantes/progreso" element={<AccesoPanel><Progreso /></AccesoPanel>} />
+        <Route path="/admin/participantes/progreso/metas/:id" element={<AccesoPanel><FormularioMeta /></AccesoPanel>} />
+        <Route path="/admin/participantes/progreso/metas/:id/guardada" element={<AccesoPanel><GuardadoProgreso tipo="meta" /></AccesoPanel>} />
+        <Route path="/admin/participantes/progreso/recompensas/:id" element={<AccesoPanel><FormularioRecompensa /></AccesoPanel>} />
+        <Route path="/admin/participantes/progreso/recompensas/:id/guardada" element={<AccesoPanel><GuardadoProgreso tipo="recompensa" /></AccesoPanel>} />
+        <Route path="/admin/participantes/progreso/:folio" element={<AccesoPanel><FichaParticipante /></AccesoPanel>} />
+        <Route path="/admin/participantes/progreso/:folio/entregada" element={<AccesoPanel><ResultadoParticipante tipo="entregada" /></AccesoPanel>} />
+        <Route path="/admin/participantes/progreso/:folio/ajustado" element={<AccesoPanel><ResultadoParticipante tipo="ajustado" /></AccesoPanel>} />
+        {/* Panel · Participantes: Cotejo de credenciales */}
+        <Route path="/admin/participantes/cotejo" element={<AccesoPanel><Cotejo /></AccesoPanel>} />
+        <Route path="/admin/participantes/cotejo/:folio" element={<AccesoPanel><DetalleCotejo /></AccesoPanel>} />
+        <Route path="/admin/participantes/cotejo/:folio/correccion" element={<AccesoPanel><PedirCorreccion /></AccesoPanel>} />
+        <Route path="/admin/participantes/cotejo/:folio/vinculada" element={<AccesoPanel><ResultadoCotejo tipo="vinculada" /></AccesoPanel>} />
+        <Route path="/admin/participantes/cotejo/:folio/correccion-solicitada" element={<AccesoPanel><ResultadoCotejo tipo="correccion" /></AccesoPanel>} />
+        <Route path="/admin/participantes/cotejo/:folio/aviso" element={<AccesoPanel><ResultadoCotejo tipo="aviso" /></AccesoPanel>} />
+        <Route path="/admin/participantes/cotejo/:folio/rechazada" element={<AccesoPanel><ResultadoCotejo tipo="rechazada" /></AccesoPanel>} />
+        {/* Panel · Participantes: Moderación del foro */}
+        <Route path="/admin/participantes/foro" element={<AccesoPanel><Foro /></AccesoPanel>} />
+        <Route path="/admin/participantes/foro/silenciadas/restaurada" element={<AccesoPanel><ParticipacionRestaurada /></AccesoPanel>} />
+        <Route path="/admin/participantes/foro/:folio" element={<AccesoPanel><DetallePublicacion /></AccesoPanel>} />
+        <Route path="/admin/participantes/foro/:folio/advertir" element={<AccesoPanel><AdvertirPersona /></AccesoPanel>} />
+        <Route path="/admin/participantes/foro/:folio/hilo" element={<AccesoPanel><HiloCompleto /></AccesoPanel>} />
+        <Route path="/admin/participantes/foro/:folio/retirada" element={<AccesoPanel><ResultadoForo tipo="retirada" /></AccesoPanel>} />
+        <Route path="/admin/participantes/foro/:folio/aprobada" element={<AccesoPanel><ResultadoForo tipo="aprobada" /></AccesoPanel>} />
+        <Route path="/admin/participantes/foro/:folio/advertencia" element={<AccesoPanel><ResultadoForo tipo="advertencia" /></AccesoPanel>} />
+        <Route path="/admin/participantes/foro/:folio/silenciada" element={<AccesoPanel><ResultadoForo tipo="silenciada" /></AccesoPanel>} />
         <Route path="/error" element={<ErrorServidor />} />
         <Route path="/sin-conexion" element={<SinConexion />} />
         <Route path="/mantenimiento" element={<Mantenimiento />} />
