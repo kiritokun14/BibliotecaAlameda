@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from Back.conexion import crear_cliente
+from Back.agenda import router as agenda_router
 from Back.registro import router as registro_router
 from Back.administracion import router as administracion_router
 from Back.solicitudes import router as solicitudes_router
@@ -24,6 +25,7 @@ from Back.lectura import router as lectura_router
 from Back.perfil import router as perfil_router
 
 app = FastAPI(title='Biblioteca Alameda', version='0.1.0')
+app.include_router(agenda_router)
 app.include_router(registro_router)
 app.include_router(administracion_router)
 app.include_router(solicitudes_router)

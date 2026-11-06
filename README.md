@@ -69,6 +69,15 @@ CECANbd distingue Usuario / Cliente, Editor, Responsable de actividades y Admini
 
 Supabase/alinear_actores_documentados.sql ya se aplicó después de las migraciones anteriores. El autorregistro concede únicamente Usuario / Cliente. La administración requiere una asignación expresa en Supabase y sigue pendiente la comprobación HTTP con una cuenta administradora real. Los endpoints de los demás módulos no quedan implementados por declarar sus permisos. Verificación vigente: 43 pruebas del backend, 12 de integración del frontend y pruebas SQL reversibles de registro y administración.
 
+## Agenda pública (T-050)
+
+Estado revisado el 6 de noviembre de 2026. API implementada y pruebas aisladas correctas. El carrusel de Inicio y el detalle de Eventos todavía consumen datos locales. La conexión de esas pantallas, la verificación con Supabase real y la revisión de Aldahir están pendientes. El [informe de T-050 y T-061](INFORME_T050_T061.md) registra el alcance y los resultados.
+
+- `GET /public/actividades` lista actividades publicadas. Acepta `tipo` (categoría exacta), `desde` y `hasta` (fecha ISO de inicio de sesión, inclusiva, en UTC), `page` (desde 1) y `limit` (1 a 100, por defecto 20). El listado se ordena por título e ID y devuelve `items`, `page` y `limit`.
+- `GET /public/actividades/{actividad_id}` recibe un UUID y devuelve la actividad con sus requisitos, estado de publicación y sesiones visibles. Cada sesión incluye fechas, estado y el nombre del espacio si es visible bajo las políticas de Supabase.
+- Las fechas del filtro se aplican a las sesiones y al conjunto de actividades antes de paginar. Sin filtro de fecha, una actividad publicada puede aparecer sin sesiones visibles.
+- Parámetros inválidos devuelven 422. Un UUID sin actividad correspondiente o de una actividad sin publicar devuelve 404. Si falla la consulta a Supabase, la API devuelve 503.
+
 ## Ejecutar el frontend integrado
 
 En otra terminal, dentro de Front, ejecutar npm ci y luego npm run dev. Abrir http://localhost:5173, manteniendo FastAPI en el puerto 8000. El servidor de desarrollo de Vite reenvía /api al backend; los dos procesos deben estar encendidos. La compilación estática requiere configurar ese mismo reenvío en el servidor que la publique.
