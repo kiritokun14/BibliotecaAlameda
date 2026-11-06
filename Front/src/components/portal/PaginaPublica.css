@@ -1,0 +1,95 @@
+/* =========================================================
+   PÁGINAS PÚBLICAS (catálogo, servicios, acerca, contacto, eventos)
+   ========================================================= */
+
+/* ---------- Teclado: enlace para saltar el menú y foco visible ---------- */
+.saltar-contenido {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 100;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: #164f44;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.saltar-contenido:focus { top: 16px; }
+
+.pagina-publica main:focus { outline: none; }
+
+.pagina-publica a:focus-visible,
+.pagina-publica button:focus-visible {
+  outline: 3px solid #c9a24a;
+  outline-offset: 3px;
+}
+
+/* ---------- Encabezado verde ---------- */
+.encabezado-publico {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 56px 24px 64px;
+  overflow: hidden;
+  background: linear-gradient(166deg, #0b3b33 0%, #1f6b5c 71%);
+  text-align: center;
+}
+
+.encabezado-publico__circulo {
+  position: absolute;
+  pointer-events: none;
+}
+
+.encabezado-publico__circulo--1 { top: -230px; right: -100px; width: 520px; height: 520px; }
+.encabezado-publico__circulo--2 { top: 260px; left: -130px; width: 320px; height: 320px; }
+
+/* El texto va encima de los círculos */
+.encabezado-publico .etiqueta-inicio,
+.encabezado-publico h1,
+.encabezado-publico p {
+  position: relative;
+}
+
+.encabezado-publico h1 {
+  max-width: 1000px;
+  color: #fff;
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 56px;
+  line-height: 62px;
+  letter-spacing: -1.12px;
+}
+
+.encabezado-publico h1 span { color: #e6d194; }
+
+.encabezado-publico p {
+  max-width: 720px;
+  color: #e4efeb;
+  font-size: 19px;
+  line-height: 29px;
+}
+
+/* ---------- Piezas comunes ---------- */
+.punto-dorado {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #c9a24a;
+}
+
+/* Texto que no se ve, pero que leen los lectores de pantalla */
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

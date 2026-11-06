@@ -1,118 +1,79 @@
-"""Recuperación de contraseña por enlace temporal de Supabase."""
-
-import logging
+"""Recuperación adaptada de BOBA (0c7c1b4), sin claves privilegiadas."""
 import os
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, HTTPException, Response
-from pydantic import BaseModel, ConfigDict, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr
 from supabase_auth.errors import AuthApiError
 
 from Back.conexion import crear_cliente
 
-logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/auth", tags=["Recuperación de contraseña"])
-MENSAJE = "Si el correo está registrado, recibirás un enlace de recuperación."
-
+router = APIRouter(prefix='/auth', tags=['Recuperación de contraseña'])
+MENSAJE = 'Si el correo está registrado, recibirás un enlace de recuperación.'
 
 class SolicitudRecuperacion(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    correo: str = Field(
-        min_length=5,
-        max_length=254,
-        pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$",
-    )
-
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    correo: EmailStr = Field(max_length=254)
 
 class RestablecerPassword(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    token_hash: SecretStr = Field(min_length=1, max_length=16384)
-    nueva_password: SecretStr = Field(min_length=12, max_length=128)
+    model_config = ConfigDict(extra='forbid')
+    access_token: SecretStr = Field(min_length=1, max_length=16384)
+    refresh_token: SecretStr = Field(min_length=1, max_length=16384)
+    nueva_password: SecretStr = Field(min_length=8, max_length=128)
 
+def fallo(error: AuthApiError):
+    if error.status == 429 or error.code == 'over_email_send_rate_limit':
+        raise HTTPException(429, 'Se alcanzó el límite de solicitudes o correos del proyecto. Espera antes de intentar otra vez.') from None
+    if error.code in {'weak_password', 'same_password'}:
+        raise HTTPException(422, 'Usa una contraseña diferente, de entre 8 y 128 caracteres.') from None
+    if error.status in (400, 401, 403):
+        raise HTTPException(401, 'La sesión no es válida. Solicita un nuevo enlace de recuperación.') from None
+    raise HTTPException(503, 'El servicio de recuperación no está disponible. Intenta más tarde.') from None
 
-@router.post("/recuperar", status_code=202)
+@router.post('/recuperar', status_code=202)
 def recuperar_password(datos: SolicitudRecuperacion, respuesta: Response):
-    """Solicita el enlace de recuperación al correo registrado."""
-    respuesta.headers["Cache-Control"] = "no-store"
+    respuesta.headers['Cache-Control'] = 'no-store'
     try:
         cliente = crear_cliente()
-        destino = os.getenv("RESET_REDIRECT_URL", "").strip()
-        url = urlsplit(destino)
-        if (
-            url.scheme not in {"http", "https"}
-            or not url.netloc
-            or url.username
-            or url.password
-            or url.fragment
-        ):
-            raise RuntimeError("RESET_REDIRECT_URL no está configurada correctamente")
-        cliente.auth.reset_password_for_email(
-            datos.correo.strip(), {"redirect_to": destino}
-        )
-    except AuthApiError as error:
-        if error.code in {"user_not_found", "email_not_found"}:
-            return {"mensaje": MENSAJE}
-        if error.status == 429 or error.code == "over_email_send_rate_limit":
-            raise HTTPException(status_code=429, detail="Demasiadas solicitudes") from None
-        logger.warning("Supabase rechazó la solicitud de recuperación: %s", error.code)
-        raise HTTPException(status_code=503, detail="Servicio de recuperación no disponible") from None
-    except Exception:
-        logger.exception("No se pudo solicitar recuperación")
-        raise HTTPException(status_code=503, detail="Servicio de recuperación no disponible") from None
-    return {"mensaje": MENSAJE}
-
-
-@router.post("/restablecer")
-def restablecer_password(datos: RestablecerPassword, respuesta: Response):
-    """Verifica un token de recuperación y cambia la contraseña de esa cuenta."""
-    respuesta.headers["Cache-Control"] = "no-store"
-    try:
-        cliente = crear_cliente()
-        verificacion = cliente.auth.verify_otp({
-            "token_hash": datos.token_hash.get_secret_value(),
-            "type": "recovery",
+        origen = os.getenv('FRONTEND_URL', 'http://localhost:5173').strip().rstrip('/')
+        url = urlsplit(origen)
+        if url.scheme not in {'http', 'https'} or not url.netloc or url.query or url.fragment or url.username or url.path:
+            raise ValueError('Origen inválido')
+        cliente.auth.reset_password_for_email(str(datos.correo), {
+            'redirect_to': origen + '/auth/retorno?flujo=recuperacion',
         })
-        if not verificacion.session or not verificacion.user:
-            raise HTTPException(
-                status_code=401,
-                detail="Enlace inválido, vencido o utilizado",
-            )
+    except AuthApiError as error:
+        if error.code not in {'user_not_found', 'email_not_found'}:
+            if error.status == 429 or error.code == 'over_email_send_rate_limit':
+                fallo(error)
+            raise HTTPException(503, 'El servicio de recuperación no está disponible. Intenta más tarde.') from None
+    except Exception:
+        raise HTTPException(503, 'El servicio de recuperación no está disponible. Intenta más tarde.') from None
+    return {'mensaje': MENSAJE}
+
+@router.post('/restablecer')
+def restablecer_password(datos: RestablecerPassword, respuesta: Response):
+    respuesta.headers['Cache-Control'] = 'no-store'
+    try:
+        cliente = crear_cliente()
+        sesion = cliente.auth.set_session(datos.access_token.get_secret_value(), datos.refresh_token.get_secret_value())
+        if not sesion.session or not sesion.user:
+            raise HTTPException(401, 'La sesión no es válida. Solicita un nuevo enlace de recuperación.')
+        # Auth valida la identidad; nunca se recibe el usuario que se va a modificar.
+        verificacion = cliente.auth.get_user()
+        if not verificacion.user or verificacion.user.id != sesion.user.id:
+            raise HTTPException(401, 'No fue posible verificar la sesión.')
+        cliente.auth.update_user({'password': datos.nueva_password.get_secret_value()})
     except HTTPException:
         raise
     except AuthApiError as error:
-        if error.status == 429:
-            raise HTTPException(status_code=429, detail="Demasiados intentos") from None
-        if error.status in (400, 401, 403, 422):
-            raise HTTPException(
-                status_code=401,
-                detail="Enlace inválido, vencido o utilizado",
-            ) from None
-        raise HTTPException(status_code=503, detail="No fue posible validar el enlace") from None
+        fallo(error)
     except Exception:
-        logger.exception("No se pudo verificar el enlace")
-        raise HTTPException(status_code=503, detail="No fue posible validar el enlace") from None
-
+        raise HTTPException(503, 'No se pudo actualizar la contraseña. Intenta más tarde.') from None
+    # El cambio ya ocurrió: si falla el cierre, no afirmar que falló la contraseña.
+    cerradas = True
     try:
-        cliente.auth.update_user({
-            "password": datos.nueva_password.get_secret_value(),
-        })
-    except AuthApiError as error:
-        if error.code in {"weak_password", "same_password"} or error.status == 422:
-            raise HTTPException(status_code=422, detail="Contraseña no aceptada") from None
-        if error.status in (400, 401, 403):
-            raise HTTPException(status_code=400, detail="Contraseña no aceptada") from None
-        raise HTTPException(status_code=503, detail="No se pudo cambiar la contraseña") from None
+        cliente.auth.sign_out({'scope': 'global'})
     except Exception:
-        logger.exception("No se pudo actualizar la contraseña")
-        raise HTTPException(status_code=503, detail="No se pudo cambiar la contraseña") from None
-
-    sesiones_cerradas = True
-    try:
-        cliente.auth.sign_out()
-    except Exception:
-        sesiones_cerradas = False
-        logger.warning("La contraseña se cambió, pero no se confirmó el cierre de sesión")
-    return {
-        "mensaje": "Contraseña actualizada correctamente",
-        "sesionesCerradas": sesiones_cerradas,
-    }
+        cerradas = False
+    return {'mensaje': 'Contraseña actualizada correctamente.', 'sesionesCerradas': cerradas}
