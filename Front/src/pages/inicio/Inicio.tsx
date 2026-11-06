@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./Inicio.css";
 import "../Acceso.css"; // estilos de la franja y el pie
 import { FranjaInstitucional, PieInstitucional } from "../../components/Institucional";
@@ -16,11 +15,10 @@ import Contacto from "./Contacto";
 
 // Página de inicio: cada sección vive en su propio archivo de esta carpeta
 function Inicio() {
-    const [sesionActiva, setSesionActiva] = useState<boolean | null>(null);
     return (
         <div className="pagina-inicio">
             <FranjaInstitucional />
-            <Navegacion alCambiarSesion={setSesionActiva} />
+            <Navegacion />
             <main>
                 <Portada />
                 <Accesos />
@@ -28,7 +26,7 @@ function Inicio() {
                 <Cifras />
                 <Actividades />
                 <Noticias />
-                {sesionActiva === false && <LlamadoCuenta />}
+                <LlamadoCuenta />
                 <Acerca />
                 <Contacto />
             </main>

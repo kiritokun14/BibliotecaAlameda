@@ -5,12 +5,11 @@ import unittest
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import httpx
 
 from Back.main import app
-from postgrest.exceptions import APIError
 
 
 class ConsultaFalsa:
@@ -115,6 +114,12 @@ class ContactoTests(unittest.TestCase):
         self.cliente = ClienteFalso()
         self.fabrica_publica.return_value = self.cliente
 
+        parche_servicio = patch('Back.contacto.crear_cliente_servicio')
+        self.fabrica_servicio = parche_servicio.start()
+        self.addCleanup(parche_servicio.stop)
+        self.servicio = ClienteFalso()
+        self.fabrica_servicio.return_value = self.servicio
+
         self.usuario_id = str(uuid4())
         self.folio = str(uuid4())
         self.fecha = datetime.now(timezone.utc).isoformat()
@@ -133,7 +138,6 @@ class ContactoTests(unittest.TestCase):
         self.cliente.rpc.return_value.execute.return_value.data = {
             'usuarioId': self.usuario_id,
             'roles': [{'rolCodigo': rol} for rol in (roles or [])],
-            'permisosAdicionales': permisos or [],
         }
         self.cliente.resultados_tabla['permisoCuenta'] = [permisos or []]
 
@@ -141,7 +145,7 @@ class ContactoTests(unittest.TestCase):
         self.cliente.rpc.return_value.execute.return_value.data = {
             'id': self.folio, 'creadoEn': self.fecha,
         }
-        respuesta = self.http.post('/v1/public/contacto', json=self.entrada)
+        respuesta = self.http.post('/api/v1/public/contacto', json=self.entrada)
         self.assertEqual(respuesta.status_code, 201)
         self.assertEqual(respuesta.json()['id'], self.folio)
         self.assertIn('folio', respuesta.json()['mensaje'])
@@ -151,7 +155,6 @@ class ContactoTests(unittest.TestCase):
             'p_correo_contacto': self.entrada['correoContacto'],
             'p_asunto': self.entrada['asunto'],
             'p_cuerpo_mensaje': self.entrada['cuerpoMensaje'],
-                'p_telefono_contacto': None,
         })
 
     def test_envio_autenticado_asocia_sesion_y_permita_aviso(self):
@@ -162,7 +165,7 @@ class ContactoTests(unittest.TestCase):
             'id': self.folio, 'creadoEn': self.fecha,
         }
         respuesta = self.http.post(
-            '/v1/public/contacto',
+            '/api/v1/public/contacto',
             json=self.entrada | {'usuarioId': self.usuario_id},
             headers={'Authorization': 'Bearer token-valido'},
         )
@@ -176,7 +179,7 @@ class ContactoTests(unittest.TestCase):
     def test_no_permite_suplantar_usuario_en_envio_anonimo(self):
         # La API ignora cualquier intento anónimo de asociar el mensaje a otra cuenta.
         respuesta = self.http.post(
-            '/v1/public/contacto',
+            '/api/v1/public/contacto',
             json=self.entrada | {'usuarioId': self.usuario_id},
         )
         self.assertEqual(respuesta.status_code, 403)
@@ -184,7 +187,7 @@ class ContactoTests(unittest.TestCase):
 
     def test_rechaza_formulario_invalido(self):
         respuesta = self.http.post(
-            '/v1/public/contacto',
+            '/api/v1/public/contacto',
             json=self.entrada | {'correoContacto': 'no-es-correo'},
         )
         self.assertEqual(respuesta.status_code, 422)
@@ -199,7 +202,7 @@ class ContactoTests(unittest.TestCase):
             'creadoEn': self.fecha,
         }
         respuesta = self.http.get(
-            f'/v1/public/contacto/seguimiento/{self.folio}',
+            f'/api/v1/public/contacto/seguimiento/{self.folio}',
         )
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(respuesta.json()['estadoAtencion'], 'recibido')
@@ -211,7 +214,7 @@ class ContactoTests(unittest.TestCase):
     def test_seguimiento_folio_inexistente_es_404(self):
         self.cliente.rpc.return_value.execute.return_value.data = None
         respuesta = self.http.get(
-            f'/v1/public/contacto/seguimiento/{self.folio}',
+            f'/api/v1/public/contacto/seguimiento/{self.folio}',
         )
         self.assertEqual(respuesta.status_code, 404)
 
@@ -224,53 +227,174 @@ class ContactoTests(unittest.TestCase):
             'respuestaFinal': 'Gracias por tu sugerencia.',
         }
         respuesta = self.http.get(
-            f'/v1/public/contacto/seguimiento/{self.folio}',
+            f'/api/v1/public/contacto/seguimiento/{self.folio}',
         )
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(respuesta.json()['estadoAtencion'], 'cerrado')
         self.assertEqual(respuesta.json()['respuestaFinal'], 'Gracias por tu sugerencia.')
 
-
     def test_panel_admin_requiere_autenticacion(self):
-        self.assertEqual(self.http.get('/v1/admin/contacto').status_code,401)
+        respuesta = self.http.get('/api/v1/admin/contacto')
+        self.assertEqual(respuesta.status_code, 401)
+        self.fabrica_servicio.assert_not_called()
 
-    def test_administrador_sin_capacidad_no_puede_listar(self):
+    def test_admin_lista_contactos_paginados(self):
         self.autenticar(roles=['administrador'])
-        respuesta=self.http.get('/v1/admin/contacto',headers={'Authorization':'Bearer token'})
-        self.assertEqual(respuesta.status_code,403)
-        self.assertEqual(self.cliente.consultas,[])
+        contacto = {
+            'id': self.folio,
+            'usuarioId': None,
+            'nombreRemitente': 'Ana Rivera',
+            'correoContacto': 'ana@example.com',
+            'asunto': 'Sugerencia',
+            'cuerpoMensaje': 'Texto',
+            'estadoAtencion': 'recibido',
+            'atendidoPor': None,
+            'respuestaFinal': None,
+            'creadoEn': self.fecha,
+            'actualizadoEn': self.fecha,
+        }
+        self.servicio.resultados_tabla['mensajeContacto'] = [[contacto]]
 
-    def test_capacidad_de_actividad_no_autoriza_contactos_globales(self):
-        self.autenticar(permisos=[{'capacidad':'atender_contactos','ambito':'actividades_asignadas','actividadId':str(uuid4())}])
-        self.assertEqual(self.http.get('/v1/admin/contacto',headers={'Authorization':'Bearer token'}).status_code,403)
+        respuesta = self.http.get(
+            '/api/v1/admin/contacto?page=1&limit=5&estado_atencion=recibido',
+            headers={'Authorization': 'Bearer token-valido'},
+        )
 
-    def test_capacidad_efectiva_autoriza_listado_por_categoria(self):
-        self.autenticar(permisos=[{'capacidad':'atender_contactos','ambito':'global'}])
-        self.cliente.resultados_tabla['mensajeContacto']=[[]]
-        respuesta=self.http.get('/v1/admin/contacto',headers={'Authorization':'Bearer token'})
-        self.assertEqual(respuesta.status_code,200)
-        self.assertIn(('eq','tipoContacto','general'),self.cliente.consultas[0][1].filtros)
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.json()['total'], 1)
+        self.assertEqual(respuesta.json()['items'][0]['estadoAtencion'], 'recibido')
+        tabla, consulta = self.servicio.consultas[0]
+        self.assertEqual(tabla, 'mensajeContacto')
+        self.assertIn(('eq', 'estadoAtencion', 'recibido'), consulta.filtros)
 
-    def test_cierre_exige_respuesta_y_ejecuta_rpc_con_token(self):
-        self.autenticar(permisos=[{'capacidad':'atender_contactos','ambito':'global'}])
-        self.assertEqual(self.http.patch('/v1/admin/contacto/'+self.folio+'/atender',
-            headers={'Authorization':'Bearer token'},json={'estadoAtencion':'cerrado'}).status_code,400)
-        contacto={'id':self.folio,'usuarioId':None,'nombreRemitente':'Ana',
-            'correoContacto':'ana@example.com','asunto':'Consulta','cuerpoMensaje':'Texto',
-            'estadoAtencion':'cerrado','atendidoPor':self.usuario_id,'respuestaFinal':'Resuelto',
-            'creadoEn':self.fecha,'actualizadoEn':self.fecha}
-        from Back.contacto import atender_contacto,AtenderContacto,PersonalSesion
-        self.cliente.rpc.return_value.execute.return_value.data=contacto
-        resultado=atender_contacto(UUID(self.folio),AtenderContacto(estadoAtencion='cerrado',respuestaFinal=' Resuelto '),
-            PersonalSesion(self.cliente,self.usuario_id))
-        self.assertEqual(resultado.respuestaFinal,'Resuelto')
-        self.cliente.rpc.assert_called_with('atender_contacto',{'p_folio':self.folio,'p_estado':'cerrado','p_respuesta':'Resuelto'})
+    def test_personal_con_capacidad_vigente_puede_atender(self):
+        self.autenticar(permisos=[{
+            'capacidad': 'atender_contactos',
+            'vigenteDesde': '2020-01-01T00:00:00+00:00',
+            'vigenteHasta': None,
+        }])
+        self.servicio.resultados_tabla['mensajeContacto'] = [[]]
+        respuesta = self.http.get(
+            '/api/v1/admin/contacto',
+            headers={'Authorization': 'Bearer token-valido'},
+        )
+        self.assertEqual(respuesta.status_code, 200)
 
-    def test_cierre_repetido_es_conflicto(self):
-        from Back.contacto import atender_contacto,AtenderContacto,PersonalSesion
-        from fastapi import HTTPException
-        self.cliente.rpc.return_value.execute.side_effect=APIError({'code':'55000','message':'Cerrado'})
-        with self.assertRaises(HTTPException) as error:
-            atender_contacto(UUID(self.folio),AtenderContacto(estadoAtencion='cerrado',respuestaFinal='Texto'),
-                PersonalSesion(self.cliente,self.usuario_id))
-        self.assertEqual(error.exception.status_code,409)
+    def test_usuario_sin_capacidad_no_puede_listar(self):
+        self.autenticar(roles=['usuario'])
+        respuesta = self.http.get(
+            '/api/v1/admin/contacto',
+            headers={'Authorization': 'Bearer token-valido'},
+        )
+        self.assertEqual(respuesta.status_code, 403)
+        self.fabrica_servicio.assert_not_called()
+
+    def test_cerrar_sin_respuesta_es_400(self):
+        self.autenticar(roles=['administrador'])
+        respuesta = self.http.patch(
+            f'/api/v1/admin/contacto/{self.folio}/atender',
+            json={'estadoAtencion': 'cerrado'},
+            headers={'Authorization': 'Bearer token-valido'},
+        )
+        self.assertEqual(respuesta.status_code, 400)
+        self.assertEqual(self.servicio.consultas, [])
+
+    def test_asignar_atencion_registra_personal_y_estado(self):
+        self.autenticar(roles=['administrador'])
+        contacto = {
+            'id': self.folio,
+            'usuarioId': None,
+            'nombreRemitente': 'Ana Rivera',
+            'correoContacto': 'ana@example.com',
+            'asunto': 'Sugerencia',
+            'cuerpoMensaje': 'Texto',
+            'estadoAtencion': 'en_atencion',
+            'atendidoPor': self.usuario_id,
+            'respuestaFinal': None,
+            'creadoEn': self.fecha,
+            'actualizadoEn': self.fecha,
+        }
+        self.servicio.resultados_tabla['mensajeContacto'] = [[contacto]]
+
+        respuesta = self.http.patch(
+            f'/api/v1/admin/contacto/{self.folio}/atender',
+            json={'estadoAtencion': 'en_atencion'},
+            headers={'Authorization': 'Bearer token-valido'},
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        _tabla, consulta = self.servicio.consultas[0]
+        self.assertEqual(consulta.actualizacion['estadoAtencion'], 'en_atencion')
+        self.assertEqual(consulta.actualizacion['atendidoPor'], self.usuario_id)
+        self.assertIn(('in', 'estadoAtencion', ['recibido']), consulta.filtros)
+
+    def test_cerrar_contacto_exige_y_persiste_respuesta(self):
+        self.autenticar(roles=['administrador'])
+        contacto = {
+            'id': self.folio,
+            'usuarioId': None,
+            'nombreRemitente': 'Ana Rivera',
+            'correoContacto': 'ana@example.com',
+            'asunto': 'Sugerencia',
+            'cuerpoMensaje': 'Texto',
+            'estadoAtencion': 'cerrado',
+            'atendidoPor': self.usuario_id,
+            'respuestaFinal': 'Gracias por tu sugerencia.',
+            'creadoEn': self.fecha,
+            'actualizadoEn': self.fecha,
+        }
+        self.servicio.resultados_tabla['mensajeContacto'] = [[contacto]]
+
+        respuesta = self.http.patch(
+            f'/api/v1/admin/contacto/{self.folio}/atender',
+            json={
+                'estadoAtencion': 'cerrado',
+                'respuestaFinal': 'Gracias por tu sugerencia.',
+            },
+            headers={'Authorization': 'Bearer token-valido'},
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.json()['respuestaFinal'], 'Gracias por tu sugerencia.')
+        _tabla, consulta = self.servicio.consultas[0]
+        self.assertEqual(consulta.actualizacion['respuestaFinal'], 'Gracias por tu sugerencia.')
+        self.assertIn(('in', 'estadoAtencion', ['recibido', 'en_atencion']), consulta.filtros)
+
+    def test_personal_no_puede_atender_folio_inexistente(self):
+        self.autenticar(roles=['administrador'])
+        self.servicio.resultados_tabla['mensajeContacto'] = [[], []]
+        respuesta = self.http.patch(
+            f'/api/v1/admin/contacto/{self.folio}/atender',
+            json={'estadoAtencion': 'en_atencion'},
+            headers={'Authorization': 'Bearer token-valido'},
+        )
+        self.assertEqual(respuesta.status_code, 404)
+
+    def test_personal_no_puede_reabrir_cerrado(self):
+        # Una transición inválida debe distinguirse de un folio inexistente.
+        self.autenticar(roles=['administrador'])
+        self.servicio.resultados_tabla['mensajeContacto'] = [
+            [],
+            [{'id': self.folio}],
+        ]
+        respuesta = self.http.patch(
+            f'/api/v1/admin/contacto/{self.folio}/atender',
+            json={'estadoAtencion': 'en_atencion'},
+            headers={'Authorization': 'Bearer token-valido'},
+        )
+        self.assertEqual(respuesta.status_code, 409)
+
+    def test_capacidad_expirada_no_autoriza_listado(self):
+        self.autenticar(permisos=[{
+            'capacidad': 'atender_contactos',
+            'vigenteDesde': '2020-01-01T00:00:00+00:00',
+            'vigenteHasta': '2021-01-01T00:00:00+00:00',
+        }])
+        respuesta = self.http.get(
+            '/api/v1/admin/contacto',
+            headers={'Authorization': 'Bearer token-valido'},
+        )
+        self.assertEqual(respuesta.status_code, 403)
+        self.fabrica_servicio.assert_not_called()
+
+
+if __name__ == '__main__':
+    unittest.main()

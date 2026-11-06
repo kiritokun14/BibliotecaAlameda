@@ -104,7 +104,7 @@ class BibliocomunidadTests(unittest.TestCase):
 
     def setUp(self):
         self.http = ClienteHttpx(app)
-        parche_publico = patch('Back.bibliocomunidad.crear_cliente')
+        parche_publico = patch('Back.bibliocumnidad.crear_cliente')
         self.fabrica = parche_publico.start()
         self.addCleanup(parche_publico.stop)
         self.cliente = ClienteFalso()
@@ -129,10 +129,6 @@ class BibliocomunidadTests(unittest.TestCase):
         self.cliente.rpc_respuestas['administrar_cuentas'] = {
             'usuarioId': self.usuario_id,
             'roles': [{'rolCodigo': rol} for rol in (roles or [])],
-            'permisosAdicionales': [
-                {**p, 'ambito': 'global'} for p in (permisos or (
-                    [{'capacidad':'atender_bibliocomunidad'}] if 'administrador' in (roles or []) else []))
-            ],
         }
         self.cliente.resultados_tabla['permisoCuenta'] = [permisos or []]
 
@@ -142,7 +138,7 @@ class BibliocomunidadTests(unittest.TestCase):
             'creadoEn': self.fecha,
         }
         respuesta = self.http.post(
-            '/v1/public/bibliocomunidad/solicitar',
+            '/api/v1/public/bibliocomunidad/solicitar',
             json=self.entrada,
         )
         self.assertEqual(respuesta.status_code, 201)
@@ -164,7 +160,7 @@ class BibliocomunidadTests(unittest.TestCase):
             'creadoEn': self.fecha,
         }
         respuesta = self.http.post(
-            '/v1/public/bibliocomunidad/solicitar',
+            '/api/v1/public/bibliocomunidad/solicitar',
             json={
                 'nombreRemitente': 'Ana Rivera',
                 'correoContacto': 'ana@example.com',
@@ -181,7 +177,7 @@ class BibliocomunidadTests(unittest.TestCase):
     def test_solicitud_sin_medio_de_contacto_es_rechazada(self):
         # La validación debe detener la petición antes de llamar a la base de datos.
         respuesta = self.http.post(
-            '/v1/public/bibliocomunidad/solicitar',
+            '/api/v1/public/bibliocomunidad/solicitar',
             json={
                 'nombreRemitente': 'Ana Rivera',
                 'interes': 'Quiero participar.',
@@ -192,7 +188,7 @@ class BibliocomunidadTests(unittest.TestCase):
 
     def test_solicitud_rechaza_correo_invalido(self):
         respuesta = self.http.post(
-            '/v1/public/bibliocomunidad/solicitar',
+            '/api/v1/public/bibliocomunidad/solicitar',
             json=self.entrada | {'correoContacto': 'no-es-email'},
         )
         self.assertEqual(respuesta.status_code, 422)
@@ -200,7 +196,7 @@ class BibliocomunidadTests(unittest.TestCase):
     def test_no_permite_suplantar_usuario_en_solicitud(self):
         # Un envío anónimo no puede asociar arbitrariamente el folio a una cuenta.
         respuesta = self.http.post(
-            '/v1/public/bibliocomunidad/solicitar',
+            '/api/v1/public/bibliocomunidad/solicitar',
             json=self.entrada | {'usuarioId': self.usuario_id},
         )
         self.assertEqual(respuesta.status_code, 403)
@@ -213,7 +209,7 @@ class BibliocomunidadTests(unittest.TestCase):
             'creadoEn': self.fecha,
         }
         respuesta = self.http.post(
-            '/v1/public/bibliocomunidad/solicitar',
+            '/api/v1/public/bibliocomunidad/solicitar',
             json=self.entrada | {'usuarioId': self.usuario_id},
             headers={'Authorization': 'Bearer token-valido'},
         )
@@ -241,7 +237,7 @@ class BibliocomunidadTests(unittest.TestCase):
         }
         self.cliente.resultados_tabla['mensajeContacto'] = [[fila]]
         respuesta = self.http.get(
-            '/v1/admin/bibliocomunidad/solicitudes'
+            '/api/v1/admin/bibliocomunidad/solicitudes'
             '?estado_atencion=recibido&page=2&limit=5',
             headers={'Authorization': 'Bearer token-valido'},
         )
@@ -261,16 +257,19 @@ class BibliocomunidadTests(unittest.TestCase):
         }])
         self.cliente.resultados_tabla['mensajeContacto'] = [[]]
         respuesta = self.http.get(
-            '/v1/admin/bibliocomunidad/solicitudes',
+            '/api/v1/admin/bibliocomunidad/solicitudes',
             headers={'Authorization': 'Bearer token-valido'},
         )
         self.assertEqual(respuesta.status_code, 200)
-        self.assertIn(('eq','tipoContacto','bibliocomunidad'), self.cliente.consultas[0][1].filtros)
+        self.assertIn(
+            ('is', 'actividadId', 'null'),
+            self.cliente.consultas[0][1].filtros,
+        )
 
     def test_persona_sin_capacidad_no_puede_listar(self):
         self.autenticar(roles=['usuario'])
         respuesta = self.http.get(
-            '/v1/admin/bibliocomunidad/solicitudes',
+            '/api/v1/admin/bibliocomunidad/solicitudes',
             headers={'Authorization': 'Bearer token-valido'},
         )
         self.assertEqual(respuesta.status_code, 403)
@@ -289,7 +288,7 @@ class BibliocomunidadTests(unittest.TestCase):
             'realizadoEn': self.fecha,
         }
         respuesta = self.http.post(
-            f'/v1/admin/bibliocomunidad/solicitudes/{self.folio}/registrar-intento',
+            f'/api/v1/admin/bibliocomunidad/solicitudes/{self.folio}/registrar-intento',
             json={
                 'tipoIntento': 'llamada',
                 'exitoso': False,
@@ -324,7 +323,7 @@ class BibliocomunidadTests(unittest.TestCase):
             'message': 'Se requiere contacto efectivo.',
         })
         respuesta = self.http.patch(
-            f'/v1/admin/bibliocomunidad/solicitudes/{self.folio}/finalizar',
+            f'/api/v1/admin/bibliocomunidad/solicitudes/{self.folio}/finalizar',
             json={
                 'incorporacionConfirmada': False,
                 'respuestaFinal': 'No se logró contactar.',
@@ -336,7 +335,7 @@ class BibliocomunidadTests(unittest.TestCase):
     def test_finalizar_requiere_respuesta_no_vacia(self):
         self.autenticar(roles=['administrador'])
         respuesta = self.http.patch(
-            f'/v1/admin/bibliocomunidad/solicitudes/{self.folio}/finalizar',
+            f'/api/v1/admin/bibliocomunidad/solicitudes/{self.folio}/finalizar',
             json={
                 'incorporacionConfirmada': False,
                 'respuestaFinal': '   ',
@@ -369,7 +368,7 @@ class BibliocomunidadTests(unittest.TestCase):
         }
         self.cliente.rpc_respuestas['finalizar_solicitud_bibliocomunidad'] = resultado
         respuesta = self.http.patch(
-            f'/v1/admin/bibliocomunidad/solicitudes/{self.folio}/finalizar',
+            f'/api/v1/admin/bibliocomunidad/solicitudes/{self.folio}/finalizar',
             json={
                 'incorporacionConfirmada': False,
                 'respuestaFinal': 'Se resolvió la consulta informativa.',
@@ -388,7 +387,7 @@ class BibliocomunidadTests(unittest.TestCase):
             'message': 'No se puede confirmar incorporación sin contacto efectivo.',
         })
         respuesta = self.http.patch(
-            f'/v1/admin/bibliocomunidad/solicitudes/{self.folio}/finalizar',
+            f'/api/v1/admin/bibliocomunidad/solicitudes/{self.folio}/finalizar',
             json={
                 'incorporacionConfirmada': True,
                 'respuestaFinal': 'La incorporación fue confirmada.',

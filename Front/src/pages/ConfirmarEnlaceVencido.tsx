@@ -1,4 +1,3 @@
-import { mensajeError } from "../servicios/api";
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import AccesoLayout from "../components/AccesoLayout";
@@ -23,11 +22,9 @@ function ConfirmarEnlaceVencido() {
         }
         setError("");
         setEnviando(true);
-        try {
-            await reenviarConfirmacion(correo);
-            navigate("/confirma-tu-correo", { state: { correo, reenviado: true } });
-        } catch (error) { setError(mensajeError(error)); }
-        finally { setEnviando(false); }
+        await reenviarConfirmacion(correo);
+        setEnviando(false);
+        navigate("/confirma-tu-correo", { state: { correo, reenviado: true } });
     }
 
     return (

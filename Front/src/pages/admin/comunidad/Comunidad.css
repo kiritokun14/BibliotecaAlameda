@@ -1,7 +1,0 @@
-.comunidad-caso { margin-top:24px;padding:24px;border:1px solid #d4d4cb;border-radius:16px;background:white;overflow-wrap:anywhere; }
-.comunidad-formulario {display:grid;gap:16px;margin:20px 0;max-width:760px;}
-.comunidad-formulario label {display:grid;gap:6px;}
-.comunidad-formulario label:has(input[type=checkbox]) {display:flex;align-items:center;}
-.comunidad-formulario textarea {min-height:100px;resize:vertical;}
-.comunidad-texto {white-space:pre-wrap;}
-.comunidad-caso fieldset {border:0;padding:0;min-width:0;}

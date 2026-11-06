@@ -20,13 +20,35 @@ GRANT SELECT ON TABLE "fuenteRAG" TO anon, authenticated;
 GRANT INSERT ON TABLE "fuenteRAG" TO authenticated;
 
 CREATE OR REPLACE FUNCTION privado.puede_gestionar_fuentes_asistente()
-RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = pg_catalog
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public, privado
 AS $$
-DECLARE actor uuid;
+DECLARE
+  actor uuid;
 BEGIN
- actor := privado.comprobar_sesion_cuenta();
- RETURN EXISTS (SELECT 1 FROM jsonb_array_elements(privado.permisos_de_cuenta(actor,true)) p
- WHERE p->>'capacidad'='gestionar_fuentes_asistente' AND p->>'ambito'='global');
+  actor := privado.comprobar_sesion_cuenta();
+  RETURN EXISTS (
+    SELECT 1
+    FROM "rolUsuario" r
+    WHERE r."usuarioId" = actor
+      AND r."rolCodigo" = 'administrador'
+      AND r.ambito = 'global'
+      AND r."vigenteDesde" <= statement_timestamp()
+      AND (r."vigenteHasta" IS NULL OR r."vigenteHasta" > statement_timestamp())
+  ) OR (
+    privado.capacidad_corresponde(actor, 'gestionar_fuentes_asistente')
+    AND EXISTS (
+      SELECT 1
+      FROM "permisoCuenta" p
+      WHERE p."usuarioId" = actor
+        AND p.capacidad = 'gestionar_fuentes_asistente'
+        AND p."actividadId" IS NULL
+        AND p."vigenteDesde" <= statement_timestamp()
+        AND (p."vigenteHasta" IS NULL OR p."vigenteHasta" > statement_timestamp())
+    )
+  );
 END;
 $$;
 REVOKE ALL ON FUNCTION privado.puede_gestionar_fuentes_asistente()
@@ -67,19 +89,16 @@ CREATE POLICY alta_borrador_fuentes
     AND "version" = 1
     AND "aprobadaPor" IS NULL
     AND NOT activa
-    AND length(btrim("tituloFuente")) BETWEEN 1 AND 250
-    AND length(btrim("tipoFuente")) BETWEEN 1 AND 80
-    AND length(btrim("contenidoReferencia")) BETWEEN 1 AND 50000
   );
 
-CREATE OR REPLACE FUNCTION privado.resolver_fuente_rag(
+CREATE OR REPLACE FUNCTION resolver_fuente_rag(
   p_fuente_id uuid,
   p_aprobar boolean
 )
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = pg_catalog, public
+SET search_path = pg_catalog, public, privado
 AS $$
 DECLARE
   actor uuid;
@@ -90,7 +109,7 @@ BEGIN
     RAISE EXCEPTION 'La decisión de aprobación es obligatoria.'
       USING ERRCODE = '22023';
   END IF;
-  IF NOT privado.puede_gestionar_fuentes_asistente() OR NOT EXISTS (
+  IF NOT EXISTS (
     SELECT 1
     FROM "rolUsuario" r
     WHERE r."usuarioId" = actor
@@ -117,21 +136,13 @@ BEGIN
   END IF;
   RETURN to_jsonb(salida);
 END;
- $$;
-REVOKE ALL ON FUNCTION privado.resolver_fuente_rag(uuid,boolean) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION privado.resolver_fuente_rag(uuid,boolean) TO authenticated;
-CREATE OR REPLACE FUNCTION public.resolver_fuente_rag(
-  p_fuente_id uuid,
-  p_aprobar boolean
-)
-RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
-AS $$ SELECT privado.resolver_fuente_rag(p_fuente_id,p_aprobar); $$;
+$$;
 
-CREATE OR REPLACE FUNCTION privado.activar_fuente_rag(p_fuente_id uuid)
+CREATE OR REPLACE FUNCTION activar_fuente_rag(p_fuente_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = pg_catalog, public
+SET search_path = pg_catalog, public, privado
 AS $$
 DECLARE
   salida "fuenteRAG"%ROWTYPE;
@@ -157,18 +168,13 @@ BEGIN
   END IF;
   RETURN to_jsonb(salida);
 END;
- $$;
-REVOKE ALL ON FUNCTION privado.activar_fuente_rag(uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION privado.activar_fuente_rag(uuid) TO authenticated;
-CREATE OR REPLACE FUNCTION public.activar_fuente_rag(p_fuente_id uuid)
-RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
-AS $$ SELECT privado.activar_fuente_rag(p_fuente_id); $$;
+$$;
 
-CREATE OR REPLACE FUNCTION privado.retirar_fuente_rag(p_fuente_id uuid)
+CREATE OR REPLACE FUNCTION retirar_fuente_rag(p_fuente_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = pg_catalog, public
+SET search_path = pg_catalog, public, privado
 AS $$
 DECLARE
   salida "fuenteRAG"%ROWTYPE;
@@ -189,14 +195,9 @@ BEGIN
   END IF;
   RETURN to_jsonb(salida);
 END;
- $$;
-REVOKE ALL ON FUNCTION privado.retirar_fuente_rag(uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION privado.retirar_fuente_rag(uuid) TO authenticated;
-CREATE OR REPLACE FUNCTION public.retirar_fuente_rag(p_fuente_id uuid)
-RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
-AS $$ SELECT privado.retirar_fuente_rag(p_fuente_id); $$;
+$$;
 
-CREATE OR REPLACE FUNCTION privado.crear_version_fuente_rag(
+CREATE OR REPLACE FUNCTION crear_version_fuente_rag(
   p_fuente_id uuid,
   p_titulo text,
   p_tipo text,
@@ -205,7 +206,7 @@ CREATE OR REPLACE FUNCTION privado.crear_version_fuente_rag(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = pg_catalog, public
+SET search_path = pg_catalog, public, privado
 AS $$
 DECLARE
   actor uuid;
@@ -224,9 +225,6 @@ BEGIN
   IF NOT FOUND THEN
     RAISE EXCEPTION 'No se encontró la fuente solicitada.'
       USING ERRCODE = 'P0002';
-  END IF;
-  IF anterior."estadoFuente"='retirada' THEN
-    RAISE EXCEPTION 'La fuente ya tiene una versión posterior o fue retirada.' USING ERRCODE='23514';
   END IF;
   IF nullif(btrim(p_titulo), '') IS NULL
      OR length(p_titulo) > 250
@@ -255,27 +253,17 @@ BEGIN
   RETURNING * INTO nueva;
   RETURN to_jsonb(nueva);
 END;
- $$;
-REVOKE ALL ON FUNCTION privado.crear_version_fuente_rag(uuid,text,text,text) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION privado.crear_version_fuente_rag(uuid,text,text,text) TO authenticated;
-CREATE OR REPLACE FUNCTION public.crear_version_fuente_rag(
-  p_fuente_id uuid,
-  p_titulo text,
-  p_tipo text,
-  p_contenido text
-)
-RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
-AS $$ SELECT privado.crear_version_fuente_rag(p_fuente_id,p_titulo,p_tipo,p_contenido); $$;
+$$;
 
-REVOKE ALL ON FUNCTION public.resolver_fuente_rag(uuid, boolean)
+REVOKE ALL ON FUNCTION resolver_fuente_rag(uuid, boolean)
   FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.activar_fuente_rag(uuid)
+REVOKE ALL ON FUNCTION activar_fuente_rag(uuid)
   FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.retirar_fuente_rag(uuid)
+REVOKE ALL ON FUNCTION retirar_fuente_rag(uuid)
   FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.crear_version_fuente_rag(uuid, text, text, text)
+REVOKE ALL ON FUNCTION crear_version_fuente_rag(uuid, text, text, text)
   FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.resolver_fuente_rag(uuid, boolean),
+GRANT EXECUTE ON FUNCTION resolver_fuente_rag(uuid, boolean),
   activar_fuente_rag(uuid), retirar_fuente_rag(uuid),
   crear_version_fuente_rag(uuid, text, text, text)
   TO authenticated;

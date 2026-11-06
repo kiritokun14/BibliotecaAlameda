@@ -1,6 +1,6 @@
 """Recepción pública, seguimiento por folio y atención de contactos."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated, Literal, NamedTuple
 from uuid import UUID
 
@@ -12,9 +12,9 @@ from supabase import Client
 from supabase_auth.errors import AuthApiError
 
 from Back.administracion import ejecutar
-from Back.conexion import crear_cliente
+from Back.conexion import crear_cliente, crear_cliente_servicio
 
-router = APIRouter(prefix='/v1', tags=['Contacto y atención'])
+router = APIRouter(prefix='/api/v1', tags=['Contacto y atención'])
 seguridad_opcional = HTTPBearer(auto_error=False)
 seguridad_obligatoria = HTTPBearer(auto_error=False)
 
@@ -35,7 +35,6 @@ class ContactoEntrada(Peticion):
         str, StringConstraints(strip_whitespace=True, min_length=1, max_length=10000)
     ]
     usuarioId: UUID | None = None
-    telefonoContacto: Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^\+?[0-9][0-9 ()-]{5,18}$")] | None = None
 
 
 class ContactoCreado(BaseModel):
@@ -57,7 +56,6 @@ class ContactoResumen(BaseModel):
     usuarioId: UUID | None
     nombreRemitente: str
     correoContacto: EmailStr | None
-    telefonoContacto: str | None = None
     asunto: str
     cuerpoMensaje: str
     estadoAtencion: Literal['recibido', 'en_atencion', 'cerrado']
@@ -82,6 +80,7 @@ class AtenderContacto(Peticion):
 class PersonalSesion(NamedTuple):
     cliente: Client
     usuario_id: str
+    servicio: Client
 
 
 def _datos_rpc(resultado) -> dict | None:
@@ -152,18 +151,36 @@ def _sesion_personal(
         if usuario_id != str(respuesta.user.id):
             raise HTTPException(503, 'No fue posible comprobar la sesión.')
 
-        permisos = acceso.get('permisosAdicionales', [])
-        puede_gestionar = any(
-            p.get('capacidad') == 'atender_contactos' and p.get('ambito') == 'global'
-            and not p.get('actividadId')
-            for p in permisos if isinstance(p, dict)
-        ) or any(
-            'atender_contactos' in r.get('capacidades', [])
-            for r in acceso.get('roles', []) if isinstance(r, dict)
-        )
-        if not puede_gestionar:
-            raise HTTPException(403, 'Se requiere la capacidad atender_contactos.')
-        return PersonalSesion(cliente, usuario_id)
+        roles = {
+            rol.get('rolCodigo')
+            for rol in acceso.get('roles', [])
+            if isinstance(rol, dict)
+        }
+        puede_atender = 'administrador' in roles
+        if not puede_atender:
+            permisos = cliente.table('permisoCuenta').select(
+                'capacidad,vigenteDesde,vigenteHasta'
+            ).eq('usuarioId', usuario_id).eq('capacidad', 'atender_contactos').execute()
+            if not isinstance(permisos.data, list):
+                raise HTTPException(503, 'No fue posible comprobar los permisos.')
+            ahora = datetime.now(timezone.utc)
+            # Una capacidad vencida o aún no vigente no habilita operaciones administrativas.
+            puede_atender = any(
+                datetime.fromisoformat(permiso['vigenteDesde'].replace('Z', '+00:00')) <= ahora
+                and (
+                    permiso.get('vigenteHasta') is None
+                    or datetime.fromisoformat(
+                        permiso['vigenteHasta'].replace('Z', '+00:00')
+                    ) > ahora
+                )
+                for permiso in permisos.data
+            )
+        if not puede_atender:
+            raise HTTPException(403, 'Se requiere la capacidad atender_contactos o el rol administrador.')
+
+        # La clave de servicio solo se usa en el servidor tras validar la sesión y el permiso.
+        cliente_servicio = crear_cliente_servicio()
+        return PersonalSesion(cliente, usuario_id, cliente_servicio)
     except HTTPException:
         raise
     except AuthApiError as error:
@@ -210,7 +227,6 @@ def crear_contacto(
             'p_correo_contacto': str(entrada.correoContacto),
             'p_asunto': entrada.asunto.strip(),
             'p_cuerpo_mensaje': entrada.cuerpoMensaje.strip(),
-            'p_telefono_contacto': entrada.telefonoContacto,
         }).execute()
     except APIError as error:
         raise _error_db(error) from None
@@ -260,7 +276,7 @@ def consultar_seguimiento(folio_id: UUID):
     response_model=ContactosPaginados,
     summary='Listar contactos para personal autorizado',
     description=(
-        'Requiere la capacidad global vigente atender_contactos. '
+        'Requiere el rol administrador o la capacidad vigente atender_contactos. '
         'El listado no está disponible para usuarios anónimos.'
     ),
 )
@@ -270,7 +286,7 @@ def listar_contactos(
     page: int = Query(1, ge=1, le=10000),
     limit: int = Query(10, ge=1, le=100),
 ):
-    servicio = sesion.cliente
+    servicio = sesion.servicio
     # Limitar el desplazamiento evita lecturas administrativas excesivas.
     desplazamiento = (page - 1) * limit
     if desplazamiento > 100000:
@@ -278,7 +294,7 @@ def listar_contactos(
 
     consulta = (servicio.table('mensajeContacto')
                 .select(
-                    'id,usuarioId,nombreRemitente,correoContacto,telefonoContacto,asunto,cuerpoMensaje,'
+                    'id,usuarioId,nombreRemitente,correoContacto,asunto,cuerpoMensaje,'
                     'estadoAtencion,atendidoPor,respuestaFinal,creadoEn,actualizadoEn',
                     count='exact',
                 )
@@ -315,20 +331,53 @@ def listar_contactos(
     ),
 )
 def atender_contacto(folio_id: UUID, cambio: AtenderContacto, sesion: SesionPersonal):
+    usuario_id = sesion.usuario_id
+    servicio = sesion.servicio
     respuesta_final = cambio.respuestaFinal.strip() if cambio.respuestaFinal else None
     if cambio.estadoAtencion == 'cerrado' and not respuesta_final:
         raise HTTPException(400, 'respuestaFinal es obligatoria para cerrar el contacto.')
+
+    # El filtro de estado previo evita reabrir casos cerrados o reasignar un caso ya atendido.
+    estados_previos = ['recibido'] if cambio.estadoAtencion == 'en_atencion' else [
+        'recibido', 'en_atencion',
+    ]
+    valores = {
+        'estadoAtencion': cambio.estadoAtencion,
+        'atendidoPor': usuario_id,
+        'actualizadoEn': datetime.now(timezone.utc).isoformat(),
+    }
+    if cambio.estadoAtencion == 'cerrado':
+        valores['respuestaFinal'] = respuesta_final
     try:
-        resultado = sesion.cliente.rpc('atender_contacto', {
-            'p_folio': str(folio_id), 'p_estado': cambio.estadoAtencion,
-            'p_respuesta': respuesta_final,
-        }).execute()
+        respuesta = (servicio.table('mensajeContacto')
+                     .update(valores)
+                     .eq('id', str(folio_id))
+                     .eq('tipoContacto', 'general')
+                     .in_('estadoAtencion', estados_previos)
+                     .select(
+                         'id,usuarioId,nombreRemitente,correoContacto,asunto,cuerpoMensaje,'
+                         'estadoAtencion,atendidoPor,respuestaFinal,creadoEn,actualizadoEn'
+                     )
+                     .execute())
     except APIError as error:
-        if error.code == 'P0002':
-            raise HTTPException(404, 'No se encontró el contacto.') from None
-        if error.code == '55000':
-            raise HTTPException(409, 'El contacto ya está cerrado o cambió de estado.') from None
         raise _error_db(error) from None
     except Exception:
-        raise HTTPException(503, 'No fue posible actualizar el contacto.') from None
-    return ContactoResumen.model_validate(_datos_rpc(resultado))
+        raise HTTPException(503, 'No fue posible actualizar la atención del contacto.') from None
+
+    if isinstance(respuesta.data, list) and respuesta.data:
+        return ContactoResumen.model_validate(respuesta.data[0])
+
+    # Distinguir entre un folio inexistente y una transición que ya no es válida.
+    try:
+        existente = (servicio.table('mensajeContacto')
+                     .select('id')
+                     .eq('id', str(folio_id))
+                     .limit(1)
+                     .execute())
+    except APIError as error:
+        raise _error_db(error) from None
+    except Exception:
+        raise HTTPException(503, 'No fue posible verificar el contacto.') from None
+    if not existente.data:
+        raise HTTPException(404, 'No se encontró un contacto con ese folio.')
+    raise HTTPException(409, 'El estado del contacto cambió o ya no admite esta transición.')

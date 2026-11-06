@@ -3,10 +3,6 @@
 -- CA-23.2: consultar folio es una lectura exacta y nunca modifica estado.
 
 BEGIN;
-ALTER TABLE public."mensajeContacto"
- ADD COLUMN IF NOT EXISTS "telefonoContacto" text,
- ADD COLUMN IF NOT EXISTS "tipoContacto" text NOT NULL DEFAULT 'general';
-
 
 ALTER TABLE public."mensajeContacto" ENABLE ROW LEVEL SECURITY;
 
@@ -72,14 +68,50 @@ CREATE POLICY "insertar_contacto_publico"
 -- Ya existe lectura propia para autenticados. Esta política añade lectura
 -- general solo a personal con capacidad vigente o rol administrador.
 CREATE OR REPLACE FUNCTION privado.puede_atender_contactos()
-RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = pg_catalog
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog
 AS $$
-DECLARE actor uuid;
-BEGIN
- actor := privado.comprobar_sesion_cuenta();
- RETURN EXISTS (SELECT 1 FROM jsonb_array_elements(privado.permisos_de_cuenta(actor,true)) p
- WHERE p->>'capacidad'='atender_contactos' AND p->>'ambito'='global');
-END;
+  SELECT auth.uid() IS NOT NULL
+    AND EXISTS (
+      SELECT 1
+      FROM public.perfil p
+      WHERE p.id = auth.uid()
+        AND p.estatus = 'activo'
+    )
+    AND EXISTS (
+      SELECT 1
+      FROM auth.sessions s
+      JOIN auth.users u ON u.id = s.user_id
+      WHERE s.id::text = (auth.jwt() ->> 'session_id')
+        AND s.user_id = auth.uid()
+        AND u.email_confirmed_at IS NOT NULL
+        AND (s.not_after IS NULL OR s.not_after > statement_timestamp())
+    )
+    AND (
+      EXISTS (
+        SELECT 1
+        FROM public."rolUsuario" r
+        WHERE r."usuarioId" = auth.uid()
+          AND r."rolCodigo" = 'administrador'
+          AND r.ambito = 'global'
+          AND r."vigenteDesde" <= statement_timestamp()
+          AND (r."vigenteHasta" IS NULL OR r."vigenteHasta" > statement_timestamp())
+      )
+      OR (
+        privado.capacidad_corresponde(auth.uid(), 'atender_contactos')
+        AND EXISTS (
+          SELECT 1
+          FROM public."permisoCuenta" p
+          WHERE p."usuarioId" = auth.uid()
+            AND p.capacidad = 'atender_contactos'
+            AND p."vigenteDesde" <= statement_timestamp()
+            AND (p."vigenteHasta" IS NULL OR p."vigenteHasta" > statement_timestamp())
+        )
+      )
+    );
 $$;
 REVOKE ALL ON FUNCTION privado.puede_atender_contactos() FROM PUBLIC, anon;
 GRANT USAGE ON SCHEMA privado TO authenticated;
@@ -119,13 +151,12 @@ CREATE POLICY "actualizar_contactos_personal"
 -- API pública de envío. auth.uid() evita asociar un envío a una cuenta ajena.
 -- El aviso se crea solo para remitentes autenticados; los anónimos reciben
 -- el folio HTTP como acuse y no se inventa una identidad de destinatario.
-CREATE OR REPLACE FUNCTION privado.registrar_contacto_publico(
+CREATE OR REPLACE FUNCTION public.registrar_contacto_publico(
   p_usuario_id uuid,
   p_nombre_remitente text,
   p_correo_contacto text,
   p_asunto text,
-  p_cuerpo_mensaje text,
-  p_telefono_contacto text DEFAULT NULL
+  p_cuerpo_mensaje text
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -153,7 +184,6 @@ BEGIN
      OR length(p_correo_contacto) > 254
      OR length(p_asunto) > 200
      OR length(p_cuerpo_mensaje) > 10000
-     OR (p_telefono_contacto IS NOT NULL AND p_telefono_contacto !~ '^\+?[0-9][0-9 ()-]{5,19}$')
      OR p_correo_contacto !~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$' THEN
     RAISE EXCEPTION 'Los campos del contacto son obligatorios.'
       USING ERRCODE = '22023';
@@ -161,11 +191,11 @@ BEGIN
 
   INSERT INTO public."mensajeContacto" (
     "usuarioId", "nombreRemitente", "correoContacto", asunto, "cuerpoMensaje",
-    "estadoAtencion", "telefonoContacto"
+    "estadoAtencion"
   )
   VALUES (
     p_usuario_id, btrim(p_nombre_remitente), btrim(p_correo_contacto),
-    btrim(p_asunto), btrim(p_cuerpo_mensaje), 'recibido', nullif(btrim(p_telefono_contacto),'')
+    btrim(p_asunto), btrim(p_cuerpo_mensaje), 'recibido'
   )
   RETURNING id, "creadoEn" INTO v_id, v_creado_en;
 
@@ -183,26 +213,14 @@ BEGIN
 
   RETURN jsonb_build_object('id', v_id, 'creadoEn', v_creado_en);
 END;
- $$;
-REVOKE ALL ON FUNCTION privado.registrar_contacto_publico(uuid,text,text,text,text,text) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION privado.registrar_contacto_publico(uuid,text,text,text,text,text) TO anon, authenticated;
-CREATE OR REPLACE FUNCTION public.registrar_contacto_publico(
-  p_usuario_id uuid,
-  p_nombre_remitente text,
-  p_correo_contacto text,
-  p_asunto text,
-  p_cuerpo_mensaje text,
-  p_telefono_contacto text DEFAULT NULL
-)
-RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
-AS $$ SELECT privado.registrar_contacto_publico(p_usuario_id,p_nombre_remitente,p_correo_contacto,p_asunto,p_cuerpo_mensaje,p_telefono_contacto); $$;
-REVOKE ALL ON FUNCTION public.registrar_contacto_publico(uuid, text, text, text, text, text)
+$$;
+REVOKE ALL ON FUNCTION public.registrar_contacto_publico(uuid, text, text, text, text)
   FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.registrar_contacto_publico(uuid, text, text, text, text, text)
+GRANT EXECUTE ON FUNCTION public.registrar_contacto_publico(uuid, text, text, text, text)
   TO anon, authenticated;
 
 -- SELECT por UUID exacto. No concede SELECT directo de toda la tabla a anon.
-CREATE OR REPLACE FUNCTION privado.consultar_contacto_por_folio(p_folio uuid)
+CREATE OR REPLACE FUNCTION public.consultar_contacto_por_folio(p_folio uuid)
 RETURNS jsonb
 LANGUAGE sql
 STABLE
@@ -220,13 +238,8 @@ AS $$
     ELSE '{}'::jsonb
   END
   FROM public."mensajeContacto" m
-  WHERE m.id = p_folio AND m."tipoContacto" = 'general';
- $$;
-REVOKE ALL ON FUNCTION privado.consultar_contacto_por_folio(uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION privado.consultar_contacto_por_folio(uuid) TO anon, authenticated;
-CREATE OR REPLACE FUNCTION public.consultar_contacto_por_folio(p_folio uuid)
-RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
-AS $$ SELECT privado.consultar_contacto_por_folio(p_folio); $$;
+  WHERE m.id = p_folio;
+$$;
 REVOKE ALL ON FUNCTION public.consultar_contacto_por_folio(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.consultar_contacto_por_folio(uuid)
   TO anon, authenticated;
@@ -234,36 +247,4 @@ GRANT EXECUTE ON FUNCTION public.consultar_contacto_por_folio(uuid)
 COMMENT ON FUNCTION public.consultar_contacto_por_folio(uuid) IS
   'HU-23 / CA-23.2: devuelve únicamente los campos públicos del folio indicado y no actualiza estado.';
 
-REVOKE INSERT, UPDATE ON public."mensajeContacto" FROM anon, authenticated;
-REVOKE INSERT ("usuarioId","nombreRemitente","correoContacto",asunto,"cuerpoMensaje")
- ON public."mensajeContacto" FROM anon, authenticated;
-REVOKE UPDATE ("estadoAtencion","atendidoPor","respuestaFinal","actualizadoEn")
- ON public."mensajeContacto" FROM authenticated;
-
-CREATE OR REPLACE FUNCTION privado.atender_contacto(p_folio uuid,p_estado text,p_respuesta text DEFAULT NULL)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
-DECLARE fila public."mensajeContacto"%ROWTYPE;
-BEGIN
- IF NOT privado.puede_atender_contactos() THEN RAISE EXCEPTION 'Sin capacidad.' USING ERRCODE='42501'; END IF;
- SELECT * INTO fila FROM public."mensajeContacto" WHERE id=p_folio AND "tipoContacto"='general' FOR UPDATE;
- IF NOT FOUND THEN RAISE EXCEPTION 'Contacto no encontrado.' USING ERRCODE='P0002'; END IF;
- IF fila."estadoAtencion"='cerrado' OR (p_estado='en_atencion' AND fila."estadoAtencion"<>'recibido')
- THEN RAISE EXCEPTION 'Transición no permitida.' USING ERRCODE='55000'; END IF;
- IF p_estado IS NULL OR p_estado NOT IN ('en_atencion','cerrado')
- OR length(coalesce(p_respuesta,''))>10000
- OR (p_estado='cerrado' AND nullif(btrim(p_respuesta),'') IS NULL)
- THEN RAISE EXCEPTION 'Respuesta o estado inválido.' USING ERRCODE='22023'; END IF;
- UPDATE public."mensajeContacto" SET "estadoAtencion"=p_estado,"atendidoPor"=auth.uid(),
- "respuestaFinal"=CASE WHEN p_estado='cerrado' THEN btrim(p_respuesta) ELSE NULL END,
- "actualizadoEn"=statement_timestamp() WHERE id=p_folio RETURNING * INTO fila;
- RETURN to_jsonb(fila);
-END;
- $$;
-REVOKE ALL ON FUNCTION privado.atender_contacto(uuid,text,text) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION privado.atender_contacto(uuid,text,text) TO authenticated;
-CREATE OR REPLACE FUNCTION public.atender_contacto(p_folio uuid,p_estado text,p_respuesta text DEFAULT NULL)
-RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
-AS $$ SELECT privado.atender_contacto(p_folio,p_estado,p_respuesta); $$;
-REVOKE ALL ON FUNCTION public.atender_contacto(uuid,text,text) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.atender_contacto(uuid,text,text) TO authenticated;
 COMMIT;

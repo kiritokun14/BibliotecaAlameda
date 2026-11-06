@@ -7,7 +7,7 @@ import { iniciarSesion } from "../servicios/auth";
 import { esCorreoValido, MENSAJE_CORREO } from "../servicios/validaciones";
 import iconoFlechaDer from "../assets/login/icono-flecha-der.svg";
 import iconoCargando from "../assets/login/icono-cargando.svg";
-import { mensajeError } from "../servicios/api";
+import iconoGoogle from "../assets/login/icono-google.svg";
 
 const beneficios = [
     "Solicitar tu credencial",
@@ -25,7 +25,6 @@ function Login() {
 
     // Estado: qué salió mal (si algo salió mal)
     const [errores, setErrores] = useState<Errores>({});
-    const [errorServicio, setErrorServicio] = useState("");
     const [errorAcceso, setErrorAcceso] = useState(false);
     const [enviando, setEnviando] = useState(false);
 
@@ -47,15 +46,12 @@ function Login() {
 
         // 2. Preguntar al servidor
         setEnviando(true);
-        setErrorServicio("");
-        try {
-            const resultado = await iniciarSesion(correo, contrasena, recordarme);
-            if (resultado === "credenciales-incorrectas") setErrorAcceso(true);
-            if (resultado === "cuenta-deshabilitada") navigate("/cuenta-deshabilitada");
-            if (resultado === "correo-pendiente") navigate("/confirma-tu-correo", { state: { correo } });
-            if (resultado === "ok") navigate("/sesion-iniciada", { replace: true });
-        } catch (error) { setErrorServicio(mensajeError(error)); }
-        finally { setEnviando(false); }
+        const resultado = await iniciarSesion(correo, contrasena);
+        setEnviando(false);
+
+        if (resultado === "credenciales-incorrectas") setErrorAcceso(true);
+        if (resultado === "cuenta-deshabilitada") navigate("/cuenta-deshabilitada");
+        if (resultado === "ok") navigate("/sesion-iniciada");
     }
 
     const hayErroresDeCampos = Object.keys(errores).length > 0;
@@ -72,8 +68,6 @@ function Login() {
                     <p>Usa el correo con el que te registraste.</p>
                 </div>
 
-                {errorServicio && <Aviso tipo="error" titulo="No pudimos conectar">{errorServicio}</Aviso>}
-                {parametros.get("confirmado") === "si" && <Aviso tipo="exito" titulo="Correo confirmado">Ya puedes iniciar sesión con tu cuenta.</Aviso>}
                 {hayErroresDeCampos && (
                     <Aviso tipo="error" titulo="No pudimos iniciar sesión">
                         Revisa los datos marcados e inténtalo de nuevo. Lo que escribiste se conserva.
@@ -137,6 +131,15 @@ function Login() {
                         Estamos verificando tus datos. No cierres esta ventana.
                     </p>
                 )}
+
+                <div className="separador">
+                    <span>o</span>
+                </div>
+
+                <button type="button" className="boton-secundario">
+                    <img src={iconoGoogle} alt="" />
+                    Continuar con Google
+                </button>
 
                 <div className="tarjeta__pie">
                     <p>
