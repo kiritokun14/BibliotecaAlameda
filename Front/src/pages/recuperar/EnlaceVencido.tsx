@@ -1,3 +1,4 @@
+import { mensajeError } from "../../servicios/api";
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import AccesoLayout from "../../components/AccesoLayout";
@@ -22,9 +23,11 @@ function EnlaceVencido() {
         }
         setError("");
         setEnviando(true);
-        await enviarEnlaceRecuperacion(correo);
-        setEnviando(false);
-        navigate("/recuperar/revisa-tu-correo", { state: { correo } });
+        try {
+            await enviarEnlaceRecuperacion(correo);
+            navigate("/recuperar/revisa-tu-correo", { state: { correo } });
+        } catch (error) { setError(mensajeError(error)); }
+        finally { setEnviando(false); }
     }
 
     return (

@@ -106,48 +106,14 @@ REVOKE ALL ON TABLE public."intentoContactoBibliocomunidad"
 GRANT SELECT ON TABLE public."intentoContactoBibliocomunidad" TO authenticated;
 
 CREATE OR REPLACE FUNCTION privado.puede_atender_bibliocomunidad()
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = pg_catalog
+RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = pg_catalog
 AS $$
-  SELECT auth.uid() IS NOT NULL
-    AND coalesce(auth.jwt() ->> 'role', '') = 'authenticated'
-    AND EXISTS (
-      SELECT 1
-      FROM auth.sessions s
-      JOIN auth.users u ON u.id = s.user_id
-      JOIN public.perfil p ON p.id = u.id
-      WHERE s.id::text = (auth.jwt() ->> 'session_id')
-        AND s.user_id = auth.uid()
-        AND p.estatus = 'activo'
-        AND u.email_confirmed_at IS NOT NULL
-        AND (s.not_after IS NULL OR s.not_after > statement_timestamp())
-    )
-    AND (
-      EXISTS (
-        SELECT 1
-        FROM public."rolUsuario" r
-        WHERE r."usuarioId" = auth.uid()
-          AND r."rolCodigo" = 'administrador'
-          AND r.ambito = 'global'
-          AND r."vigenteDesde" <= statement_timestamp()
-          AND (r."vigenteHasta" IS NULL OR r."vigenteHasta" > statement_timestamp())
-      )
-      OR (
-        privado.capacidad_corresponde(auth.uid(), 'atender_bibliocomunidad')
-        AND EXISTS (
-          SELECT 1
-          FROM public."permisoCuenta" p
-          WHERE p."usuarioId" = auth.uid()
-            AND p.capacidad = 'atender_bibliocomunidad'
-            AND p."actividadId" IS NULL
-            AND p."vigenteDesde" <= statement_timestamp()
-            AND (p."vigenteHasta" IS NULL OR p."vigenteHasta" > statement_timestamp())
-        )
-      )
-    );
+DECLARE actor uuid;
+BEGIN
+ actor := privado.comprobar_sesion_cuenta();
+ RETURN EXISTS (SELECT 1 FROM jsonb_array_elements(privado.permisos_de_cuenta(actor,true)) p
+ WHERE p->>'capacidad'='atender_bibliocomunidad' AND p->>'ambito'='global');
+END;
 $$;
 REVOKE ALL ON FUNCTION privado.puede_atender_bibliocomunidad()
   FROM PUBLIC, anon, authenticated;
@@ -219,7 +185,7 @@ REVOKE UPDATE ("estadoAtencion", "atendidoPor", "respuestaFinal", "actualizadoEn
 REVOKE SELECT ON TABLE public."intentoContactoBibliocomunidad"
   FROM authenticated;
 
-CREATE OR REPLACE FUNCTION public.registrar_solicitud_bibliocomunidad(
+CREATE OR REPLACE FUNCTION privado.registrar_solicitud_bibliocomunidad(
   p_usuario_id uuid,
   p_nombre_remitente text,
   p_correo_contacto text,
@@ -294,7 +260,18 @@ BEGIN
 
   RETURN jsonb_build_object('id', v_id, 'creadoEn', v_creado_en);
 END;
-$$;
+ $$;
+REVOKE ALL ON FUNCTION privado.registrar_solicitud_bibliocomunidad(uuid,text,text,text,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION privado.registrar_solicitud_bibliocomunidad(uuid,text,text,text,text) TO anon, authenticated;
+CREATE OR REPLACE FUNCTION public.registrar_solicitud_bibliocomunidad(
+  p_usuario_id uuid,
+  p_nombre_remitente text,
+  p_correo_contacto text,
+  p_telefono_contacto text,
+  p_interes text
+)
+RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
+AS $$ SELECT privado.registrar_solicitud_bibliocomunidad(p_usuario_id,p_nombre_remitente,p_correo_contacto,p_telefono_contacto,p_interes); $$;
 REVOKE ALL ON FUNCTION public.registrar_solicitud_bibliocomunidad(
   uuid, text, text, text, text
 ) FROM PUBLIC;
@@ -302,7 +279,7 @@ GRANT EXECUTE ON FUNCTION public.registrar_solicitud_bibliocomunidad(
   uuid, text, text, text, text
 ) TO anon, authenticated;
 
-CREATE OR REPLACE FUNCTION public.registrar_intento_bibliocomunidad(
+CREATE OR REPLACE FUNCTION privado.registrar_intento_bibliocomunidad(
   p_folio uuid,
   p_tipo_intento text,
   p_exitoso boolean,
@@ -366,7 +343,17 @@ BEGIN
     'realizadoEn', v_intento."realizadoEn"
   );
 END;
-$$;
+ $$;
+REVOKE ALL ON FUNCTION privado.registrar_intento_bibliocomunidad(uuid,text,boolean,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION privado.registrar_intento_bibliocomunidad(uuid,text,boolean,text) TO authenticated;
+CREATE OR REPLACE FUNCTION public.registrar_intento_bibliocomunidad(
+  p_folio uuid,
+  p_tipo_intento text,
+  p_exitoso boolean,
+  p_observaciones text
+)
+RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
+AS $$ SELECT privado.registrar_intento_bibliocomunidad(p_folio,p_tipo_intento,p_exitoso,p_observaciones); $$;
 REVOKE ALL ON FUNCTION public.registrar_intento_bibliocomunidad(
   uuid, text, boolean, text
 ) FROM PUBLIC;
@@ -374,7 +361,7 @@ GRANT EXECUTE ON FUNCTION public.registrar_intento_bibliocomunidad(
   uuid, text, boolean, text
 ) TO authenticated;
 
-CREATE OR REPLACE FUNCTION public.finalizar_solicitud_bibliocomunidad(
+CREATE OR REPLACE FUNCTION privado.finalizar_solicitud_bibliocomunidad(
   p_folio uuid,
   p_incorporacion_confirmada boolean,
   p_respuesta_final text,
@@ -439,7 +426,17 @@ BEGIN
 
   RETURN to_jsonb(v_contacto);
 END;
-$$;
+ $$;
+REVOKE ALL ON FUNCTION privado.finalizar_solicitud_bibliocomunidad(uuid,boolean,text,boolean) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION privado.finalizar_solicitud_bibliocomunidad(uuid,boolean,text,boolean) TO authenticated;
+CREATE OR REPLACE FUNCTION public.finalizar_solicitud_bibliocomunidad(
+  p_folio uuid,
+  p_incorporacion_confirmada boolean,
+  p_respuesta_final text,
+  p_resolucion_explicita boolean DEFAULT false
+)
+RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
+AS $$ SELECT privado.finalizar_solicitud_bibliocomunidad(p_folio,p_incorporacion_confirmada,p_respuesta_final,p_resolucion_explicita); $$;
 REVOKE ALL ON FUNCTION public.finalizar_solicitud_bibliocomunidad(
   uuid, boolean, text, boolean
 ) FROM PUBLIC;
@@ -447,7 +444,7 @@ GRANT EXECUTE ON FUNCTION public.finalizar_solicitud_bibliocomunidad(
   uuid, boolean, text, boolean
 ) TO authenticated;
 
-CREATE OR REPLACE FUNCTION public.listar_intentos_bibliocomunidad(p_folio uuid)
+CREATE OR REPLACE FUNCTION privado.listar_intentos_bibliocomunidad(p_folio uuid)
 RETURNS SETOF jsonb
 LANGUAGE plpgsql
 STABLE
@@ -472,7 +469,12 @@ BEGIN
   WHERE i."contactoId" = p_folio
   ORDER BY i."realizadoEn", i.id;
 END;
-$$;
+ $$;
+REVOKE ALL ON FUNCTION privado.listar_intentos_bibliocomunidad(uuid) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION privado.listar_intentos_bibliocomunidad(uuid) TO authenticated;
+CREATE OR REPLACE FUNCTION public.listar_intentos_bibliocomunidad(p_folio uuid)
+RETURNS SETOF jsonb LANGUAGE sql SECURITY INVOKER SET search_path=pg_catalog
+AS $$ SELECT  * FROM privado.listar_intentos_bibliocomunidad(p_folio); $$;
 REVOKE ALL ON FUNCTION public.listar_intentos_bibliocomunidad(uuid)
   FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.listar_intentos_bibliocomunidad(uuid)
@@ -482,3 +484,5 @@ COMMENT ON TABLE public."intentoContactoBibliocomunidad" IS
   'HU-24 / CA-24.2: bitácora append-only de intentos; un intento fallido no confirma incorporación ni cierra el caso.';
 
 COMMIT;
+
+REVOKE INSERT ON public."mensajeContacto" FROM anon,authenticated;

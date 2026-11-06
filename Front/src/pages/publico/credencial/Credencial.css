@@ -1,0 +1,99 @@
+/* =========================================================
+   CREDENCIAL · visitante sin cuenta
+   Las piezas comunes están en components/Visitante.css
+   ========================================================= */
+
+/* ---------- ¿Qué es y para qué sirve? ---------- */
+.credencial-que-es {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 32px;
+}
+
+.credencial-que-es__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: #333;
+  font-size: 16px;
+  line-height: 25px;
+}
+
+.credencial-nota {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #fff;
+  color: #164f44;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.credencial-nota img,
+.credencial-usos img,
+.credencial-antes img { width: 18px; height: 18px; flex-shrink: 0; }
+
+.credencial-usos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.credencial-usos li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff;
+  color: #161a1d;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* ---------- Lo que necesitas y lo que debes saber ---------- */
+.credencial-antes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.credencial-antes__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+  border: 1px solid #ebe6da;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.credencial-antes__tarjeta--dorada { border-color: #ecdcae; background: #f8eedb; }
+
+.credencial-antes__titulo { color: #164f44; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.credencial-antes__tarjeta--dorada .credencial-antes__titulo { color: #8a6414; }
+
+.credencial-antes ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.credencial-antes li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #161a1d;
+  font-size: 14px;
+  line-height: 20px;
+}

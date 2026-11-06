@@ -6,6 +6,8 @@ cffi==2.1.1
 click==8.5.0
 cryptography==50.0.2
 deprecation==2.1.0
+dnspython==2.9.0
+email-validator==2.3.0
 fastapi==0.162.0
 h11==0.16.0
 h2==4.4.1
@@ -36,4 +38,4 @@ typing_extensions==4.16.0
 uvicorn==0.54.0
 websockets==15.0.1
 yarl==1.25.1
-email-validator
+Pillow==13.0.0

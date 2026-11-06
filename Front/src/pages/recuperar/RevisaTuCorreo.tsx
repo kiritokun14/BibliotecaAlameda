@@ -1,3 +1,5 @@
+import Aviso from "../../components/Aviso";
+import { mensajeError } from "../../servicios/api";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import AccesoLayout from "../../components/AccesoLayout";
@@ -10,13 +12,15 @@ function RevisaTuCorreo() {
     const location = useLocation();
     const correo: string = location.state?.correo ?? "tu correo";
     const [reenviado, setReenviado] = useState(false);
+    const [error, setError] = useState("");
     const [enviando, setEnviando] = useState(false);
 
     async function reenviar() {
         setEnviando(true);
-        await enviarEnlaceRecuperacion(correo);
-        setEnviando(false);
-        setReenviado(true);
+        setError("");
+        try { await enviarEnlaceRecuperacion(correo); setReenviado(true); }
+        catch (error) { setError(mensajeError(error)); }
+        finally { setEnviando(false); }
     }
 
     return (
@@ -26,17 +30,15 @@ function RevisaTuCorreo() {
             texto="Te enviamos un enlace para crear una nueva contraseña."
         >
             <div className="tarjeta">
-                {/* SIMULACIÓN: el sobre hace de "abrir el enlace del correo" (así viene en el diseño) */}
-                <Link to="/recuperar/nueva-contrasena" className="icono-circulo" title="Abrir enlace del correo (simulación)">
-                    <img src={iconoCorreo} alt="Abrir enlace del correo" />
-                </Link>
+                <div className="icono-circulo"><img src={iconoCorreo} alt="" /></div>
 
+                {error && <Aviso tipo="error" titulo="No se pudo reenviar">{error}</Aviso>}
                 <div className="tarjeta__encabezado">
                     {reenviado ? (
                         <>
                             <h2>Enlace reenviado</h2>
                             <p>
-                                Enviamos otro enlace a {correo}. El anterior deja de funcionar. Puede tardar unos
+                                Enviamos otro enlace a {correo}. Si la cuenta existe, recibirás el mensaje. Puede tardar unos
                                 minutos; revisa también la carpeta de spam.
                             </p>
                         </>
@@ -51,7 +53,7 @@ function RevisaTuCorreo() {
                     )}
                 </div>
 
-                <button type="button" className="boton-secundario" onClick={reenviar} disabled={enviando}>
+                <button type="button" className="boton-secundario" onClick={reenviar} disabled={enviando || correo === "tu correo"}>
                     {enviando ? "Reenviando…" : "Reenviar enlace"}
                     <img src={iconoReenviar} alt="" />
                 </button>

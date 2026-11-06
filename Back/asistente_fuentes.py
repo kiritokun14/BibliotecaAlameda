@@ -1,6 +1,6 @@
 """Administración y recuperación segura de fuentes para el asistente RAG."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Annotated, Literal, NamedTuple
 from uuid import UUID
 
@@ -15,7 +15,7 @@ from Back.administracion import ejecutar
 from Back.conexion import crear_cliente
 
 router = APIRouter(
-    prefix='/api/v1/admin/rag/fuentes',
+    prefix='/v1/admin/rag/fuentes',
     tags=['Fuentes del asistente RAG'],
 )
 seguridad = HTTPBearer(auto_error=False)
@@ -108,41 +108,21 @@ def _sesion_fuentes(
         if usuario_id != str(respuesta.user.id):
             raise HTTPException(503, 'No fue posible comprobar la sesión.')
 
-        roles = {
-            rol.get('rolCodigo')
-            for rol in acceso.get('roles', [])
-            if isinstance(rol, dict)
-        }
-        puede_aprobar = 'administrador' in roles
-        puede_gestionar = puede_aprobar
+        permisos = acceso.get('permisosAdicionales', [])
+        puede_gestionar = any(
+            p.get('capacidad') == 'gestionar_fuentes_asistente' and p.get('ambito') == 'global'
+            and not p.get('actividadId')
+            for p in permisos if isinstance(p, dict)
+        ) or any(
+            'gestionar_fuentes_asistente' in r.get('capacidades', [])
+            for r in acceso.get('roles', []) if isinstance(r, dict)
+        )
         if not puede_gestionar:
-            # La capacidad solo aplica si es global y está vigente en este momento.
-            permisos = (
-                cliente.table('permisoCuenta')
-                .select('capacidad,vigenteDesde,vigenteHasta')
-                .eq('usuarioId', usuario_id)
-                .eq('capacidad', 'gestionar_fuentes_asistente')
-                .is_('actividadId', 'null')
-                .execute()
-            )
-            if not isinstance(permisos.data, list):
-                raise HTTPException(503, 'No fue posible comprobar los permisos.')
-            ahora = datetime.now(timezone.utc)
-            puede_gestionar = any(
-                datetime.fromisoformat(fila['vigenteDesde'].replace('Z', '+00:00')) <= ahora
-                and (
-                    fila.get('vigenteHasta') is None
-                    or datetime.fromisoformat(
-                        fila['vigenteHasta'].replace('Z', '+00:00')
-                    ) > ahora
-                )
-                for fila in permisos.data
-            )
-        if not puede_gestionar:
-            raise HTTPException(
-                403,
-                'Se requiere gestionar_fuentes_asistente o el rol administrador.',
-            )
+            raise HTTPException(403, 'Se requiere la capacidad gestionar_fuentes_asistente.')
+        puede_aprobar = any(
+            r.get('rolCodigo') == 'administrador' and r.get('ambito', 'global') == 'global'
+            for r in acceso.get('roles', []) if isinstance(r, dict)
+        )
         return SesionFuentes(cliente, usuario_id, puede_aprobar)
     except HTTPException:
         raise

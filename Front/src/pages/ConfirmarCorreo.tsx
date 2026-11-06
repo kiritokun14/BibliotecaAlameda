@@ -1,3 +1,5 @@
+import Aviso from "../components/Aviso";
+import { mensajeError } from "../servicios/api";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import AccesoLayout from "../components/AccesoLayout";
@@ -10,13 +12,15 @@ function ConfirmarCorreo() {
     const location = useLocation();
     const correo: string = location.state?.correo ?? "tu correo";
     const [reenviado, setReenviado] = useState<boolean>(location.state?.reenviado ?? false);
+    const [error, setError] = useState("");
     const [enviando, setEnviando] = useState(false);
 
     async function reenviar() {
         setEnviando(true);
-        await reenviarConfirmacion(correo);
-        setEnviando(false);
-        setReenviado(true);
+        setError("");
+        try { await reenviarConfirmacion(correo); setReenviado(true); }
+        catch (error) { setError(mensajeError(error)); }
+        finally { setEnviando(false); }
     }
 
     return (
@@ -30,15 +34,16 @@ function ConfirmarCorreo() {
                     <img src={iconoCorreo} alt="" />
                 </div>
 
+                {error && <Aviso tipo="error" titulo="No se pudo reenviar">{error}</Aviso>}
                 <div className="tarjeta__encabezado">
                     <h2>{reenviado ? "Correo reenviado" : "Confirma tu correo"}</h2>
                     <p>
-                        Te enviamos un mensaje a {correo}. Abre el enlace para activar tu cuenta. Puede tardar
+                        Si el registro procede, recibirás un mensaje en {correo}. Abre el enlace para activar tu cuenta. Puede tardar
                         unos minutos; revisa también la carpeta de spam.
                     </p>
                 </div>
 
-                <button type="button" className="boton-secundario" onClick={reenviar} disabled={enviando}>
+                <button type="button" className="boton-secundario" onClick={reenviar} disabled={enviando || correo === "tu correo"}>
                     {enviando ? "Reenviando…" : "Reenviar correo"}
                     <img src={iconoReenviar} alt="" />
                 </button>
