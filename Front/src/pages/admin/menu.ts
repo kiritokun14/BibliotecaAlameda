@@ -37,6 +37,8 @@ export const SECCIONES_MENU: SeccionMenu[] = [
         subitems: [
             { texto: "Editor de contenidos", ruta: "/admin/contenidos/editor" },
             { texto: "Revisión y publicación", ruta: "/admin/contenidos/revision" },
+            { texto: "Historial de publicaciones", ruta: "/admin/contenidos/revision/historial" },
+            { texto: "Acerca de la biblioteca", ruta: "/admin/contenidos/editor/acerca" },
         ],
     },
     {
@@ -51,6 +53,7 @@ export const SECCIONES_MENU: SeccionMenu[] = [
             { texto: "Cambios y cancelaciones", ruta: "/admin/actividades/cambios" },
             { texto: "Inscripciones y cupos", ruta: "/admin/actividades/inscripciones" },
             { texto: "Asistencia", ruta: "/admin/actividades/asistencia" },
+            { texto: "Resumen de asistencia", ruta: "/admin/actividades/asistencia/resumen" },
             { texto: "Evidencias privadas", ruta: "/admin/actividades/evidencias" },
         ],
     },

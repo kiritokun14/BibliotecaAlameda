@@ -1,0 +1,85 @@
+/* Ajustes exclusivos de las pantallas de revisión conectadas al servicio. */
+.panel--revision .cn-pagina { gap: 22px; }
+.panel--revision .cn-encabezado-tarjeta { padding: 20px 24px; gap: 10px; border-radius: 18px; }
+.panel--revision .cn-encabezado-tarjeta::before { width: 4px; background: #611232; }
+.panel--revision .cn-titulo { font-size: 25px; line-height: 32px; }
+.panel--revision .cn-entrada { font-size: 13px; line-height: 20px; }
+.panel--revision .cn-tarjeta { padding: 20px; gap: 16px; border-radius: 18px; }
+.panel--revision .cn-tarjeta__cabecera h2 { font-size: 16px; line-height: 24px; }
+.panel--revision .cn-columnas { gap: 20px; }
+.panel--revision .cn-columnas__principal { gap: 20px; }
+.panel--revision .cn-columnas__lateral { width: 280px; gap: 20px; }
+.panel--revision .cn-tabla { font-size: 13px; }
+.panel--revision .cn-barra { flex-wrap: wrap; }
+@media (max-width: 1100px) {
+    .panel--revision .cn-columnas { flex-direction: column; }
+    .panel--revision .cn-columnas__lateral { width: 100%; }
+}
+
+/* La revisión usa una tabla semántica; evita los estilos flex de las tarjetas demo. */
+.panel--revision .cn-tabla-contenedor { max-height: clamp(240px, 42vh, 400px); overflow: auto; scrollbar-width: thin; scrollbar-gutter: stable; border: 1px solid #e2ded5; border-radius: 14px; background: #fff; }
+.panel--revision table.cn-tabla { display: table; width: 100%; min-width: 800px; border-collapse: collapse; text-align: left; }
+.panel--revision .cn-tabla th { background: #f7f5f0; font-size: 12px; color: #4d4d4d; }
+.panel--revision .cn-tabla th,
+.panel--revision .cn-tabla td { padding: 12px 14px; border-bottom: 1px solid #e2ded5; vertical-align: middle; }
+.panel--revision .cn-tabla tbody tr:last-child td { border-bottom: 0; }
+.panel--revision .cn-tabla a { color: #164f44; font-weight: 700; }
+
+.panel--revision .cn-tabla thead th { position: sticky; top: 0; z-index: 1; }
+
+/* Bandeja, detalle y decisiones: misma escala que Resumen. */
+.panel--revision .revision-encabezado { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.panel--revision .revision-encabezado .cn-etiqueta { margin-bottom: 8px; font-size: 12px; }
+.panel--revision .revision-bandeja { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.panel--revision .revision-franja { display: flex; align-items: center; min-height: 44px; box-sizing: border-box; padding: 10px 20px; background: #611232; color: #fff; border-radius: 12px; font-size: 17px; line-height: 24px; }
+.panel--revision .revision-bandeja__cuerpo { min-width: 0; }
+.panel--revision .boton-panel { min-height: 40px; height: auto; padding: 10px 16px; border: 1px solid #e2ded5; border-radius: 10px; font-size: 13px; line-height: 20px; background: #fff; color: #164f44; text-decoration: none; }
+.panel--revision .boton-panel:hover:not(:disabled) { background: #edf3ef; }
+.panel--revision .revision-boton-principal { background: #164f44; border-color: #164f44; color: #fff; }
+.panel--revision .revision-boton-principal:hover:not(:disabled) { background: #0b3b33; }
+.panel--revision .revision-filtros { gap: 12px; align-items: flex-end; }
+.panel--revision .revision-filtros label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; }
+.panel--revision .revision-busqueda { flex: 1; min-width: 220px; }
+.panel--revision .cn-control { min-height: 42px; padding: 10px 12px; border-radius: 10px; font-size: 13px; border-color: #e2ded5; box-sizing: border-box; }
+.panel--revision .cn-control--area { min-height: 112px; }
+.panel--revision .cn-control:focus-visible { outline: 2px solid #164f44; outline-offset: 2px; }
+.panel--revision .revision-conteo { font-size: 12px; color: #4d4d4d; }
+.panel--revision table.cn-tabla { table-layout: fixed; min-width: 1000px; }
+.panel--revision .cn-tabla td { text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.panel--revision .cn-tabla tbody tr:hover { background: #faf9f6; }
+.panel--revision .cn-tabla td:first-child { font-weight: 600; color: #164f44; }
+.panel--revision .revision-estado { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; background: #efede7; color: #4d4d4d; font-size: 11px; line-height: 16px; font-weight: 700; }
+.panel--revision .revision-estado::before { content: ''; width: 6px; height: 6px; flex: none; border-radius: 50%; background: currentColor; }
+.panel--revision .revision-estado--en_revision { background: #f7eed9; color: #795710; }
+.panel--revision .revision-estado--publicado,
+.panel--revision .revision-estado--aprobado { background: #e8f0ec; color: #164f44; }
+.panel--revision .revision-estado--con_observaciones,
+.panel--revision .revision-estado--rechazado { background: #f6eaee; color: #9b2247; }
+.panel--revision .revision-paginacion { justify-content: flex-end; gap: 12px; font-size: 12px; }
+.panel--revision .revision-vacio { padding: 32px 16px; text-align: center; color: #4d4d4d; font-size: 14px; background: #f7f5f0; border-radius: 12px; }
+.panel--revision .revision-alerta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px; border: 1px solid #e3b9c3; border-radius: 12px; background: #f6eaee; color: #611232; font-size: 13px; }
+.panel--revision .cn-datos--registro { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 16px 20px; border: 1px solid #e2ded5; border-radius: 14px; background: #fff; }
+.panel--revision .cn-datos--registro > div { flex-direction: column; gap: 6px; padding: 0; min-width: 0; font-size: 13px; }
+.panel--revision .cn-datos--registro dt { width: auto; font-size: 12px; }
+.panel--revision .cn-tarjeta > h2 { font-size: 17px; line-height: 24px; }
+.panel--revision .revision-articulo { font-size: 14px; line-height: 1.7; }
+.panel--revision .revision-articulo img { display: block; max-width: 100%; max-height: 360px; object-fit: contain; align-self: flex-start; border-radius: 12px; }
+.panel--revision .revision-metadatos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; padding-top: 16px; border-top: 1px solid #e2ded5; }
+.panel--revision .revision-metadatos dt { font-size: 12px; color: #4d4d4d; }
+.panel--revision .revision-metadatos dd { font-size: 13px; overflow-wrap: anywhere; }
+.panel--revision .revision-decisiones { gap: 10px; }
+.panel--revision .revision-decisiones [aria-current="page"] { background: #e8f0ec; border-color: #164f44; }
+.panel--revision .revision-formulario { border-top: 4px solid #611232; }
+.panel--revision .revision-confirmacion { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 20px; }
+.panel--revision .revision-confirmacion input { margin: 3px 0 0; accent-color: #164f44; }
+.panel--revision .revision-historial > ol { max-height: 320px; overflow: auto; scrollbar-width: thin; padding-left: 24px; font-size: 13px; line-height: 1.6; }
+.panel--revision .revision-historial > ol > li { padding: 12px 8px; border-bottom: 1px solid #e2ded5; }
+.panel--revision .revision-historial > ol > li:last-child { border-bottom: 0; }
+@media (max-width: 1100px) {
+    .panel--revision .revision-encabezado { align-items: flex-start; flex-direction: column; }
+    .panel--revision .cn-datos--registro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+    .panel--revision .cn-datos--registro,
+    .panel--revision .revision-metadatos { grid-template-columns: 1fr; }
+}

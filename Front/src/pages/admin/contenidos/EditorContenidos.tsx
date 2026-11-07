@@ -146,16 +146,13 @@ function EditorContenidos() {
     const paginas = Math.max(1, Math.ceil(totalFiltrado / POR_PAGINA));
 
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <Migas actual="Bandeja" />
 
             <div className="contenidos-encabezado">
                 <div>
                     <p className="contenidos-etiqueta">Contenidos · Editor</p>
                     <h1>Editor de contenidos</h1>
-                    <p className="contenidos-encabezado__texto">
-                        Redacta noticias, reseñas y textos del portal. Lo que envíes lo autoriza y publica el Administrador.
-                    </p>
                 </div>
                 <Link to="/admin/contenidos/editor/nuevo" className="contenidos-boton contenidos-boton--principal">
                     <IconoMas />
@@ -164,11 +161,7 @@ function EditorContenidos() {
             </div>
 
             <section className="contenidos-resumen" aria-labelledby="contenidos-resumen-titulo">
-                <p className="contenidos-resumen__chip">Editor de contenidos</p>
-                <h2 id="contenidos-resumen-titulo">
-                    ¿Cómo van tus <span>contenidos</span>?
-                </h2>
-                <p className="contenidos-resumen__subtitulo">Tu actividad en el Editor.</p>
+                <h2 id="contenidos-resumen-titulo">Seguimiento de contenidos</h2>
                 {errorResumen && <p role="alert" className="contenidos-error">No se pudieron cargar los contadores: {errorResumen}</p>}
                 <div className="contenidos-resumen__tarjetas">
                     <TarjetaResumen
@@ -206,7 +199,6 @@ function EditorContenidos() {
                     <span className="contenidos-lista__icono"><IconoLista /></span>
                     <div>
                         <h2 id="contenidos-lista-titulo">Mis contenidos</h2>
-                        <p>Del más reciente al más antiguo.</p>
                     </div>
                 </div>
 
@@ -237,7 +229,7 @@ function EditorContenidos() {
                     </label>
                 </div>
 
-                <div className="contenidos-tabla" role="table" aria-label="Mis contenidos" aria-busy={cargando}>
+                <div className="contenidos-tabla" tabIndex={0} role="table" aria-label="Mis contenidos" aria-busy={cargando}>
                     {cargando && <p role="status" className="contenidos-cargando">Cargando contenidos…</p>}
                     <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
                         <span role="columnheader">Folio</span>
