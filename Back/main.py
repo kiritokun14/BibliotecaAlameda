@@ -11,6 +11,7 @@ from Back.solicitudes import router as solicitudes_router
 from Back.recuperacion import router as recuperacion_router
 from Back.alta_asistida import router as alta_asistida_router
 from Back.contenidos import router as contenidos_router
+from Back.espacios import router as espacios_router
 from Back.publicacion import router as publicacion_router
 from Back.imagenes import router as imagenes_router
 
@@ -32,6 +33,7 @@ app.include_router(solicitudes_router)
 app.include_router(recuperacion_router)
 app.include_router(alta_asistida_router)
 app.include_router(contenidos_router)
+app.include_router(espacios_router)
 app.include_router(publicacion_router)
 app.include_router(imagenes_router)
 app.include_router(lectura_router)
