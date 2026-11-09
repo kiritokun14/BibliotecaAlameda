@@ -1,7 +1,7 @@
-/* Actividades con el diseño del Editor de contenidos.
+/* Actividades y Participantes con el diseño del Editor de contenidos.
    Las pantallas siguen usando las piezas «cn-» (contenidoDemo/piezas.tsx); aquí, SOLO dentro del tema del Editor
    (.panel--contenidos), esas piezas toman las medidas y el aspecto del Editor (contenidos/Contenidos.css).
-   Así Participantes y Fuentes, que también usan «cn-», no cambian. Colores: los del tema del Editor (--solon-*). */
+   Así Fuentes, que también usa «cn-», no cambia. Colores: los del tema del Editor (--solon-*). */
 
 .panel--contenidos .cn-pagina { gap: 22px; color: var(--solon-texto); }
 

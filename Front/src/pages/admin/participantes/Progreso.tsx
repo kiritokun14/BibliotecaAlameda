@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "../actividades/EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import "../actividades/Actividades.css";
 import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta } from "../contenidoDemo/piezas";
@@ -192,7 +194,7 @@ function Progreso() {
     }
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Progreso y recompensas", vista === "participantes" ? undefined : BASE_PROGRESO], [encabezado.miga]]} />
                 <Encabezado etiqueta={encabezado.etiqueta} titulo={encabezado.titulo} texto={encabezado.texto} />

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "../actividades/EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, Encabezado, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -45,7 +47,7 @@ function FormMeta({ meta }: { meta?: Meta }) {
     const props = (c: keyof DatosMeta) => ({ id: `mt-${c}`, className: `cn-control ${errores[c] ? "cn-control--error" : ""}`, "aria-invalid": !!errores[c], "aria-describedby": errores[c] ? `mt-${c}-error` : undefined });
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], [faltan ? "Meta con campos faltantes" : meta ? "Editar meta" : "Nueva meta"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Reglas de progreso", ruta: REGLAS }} etiqueta="Reglas de progreso" titulo={meta ? "Editar meta" : "Nueva meta"} texto="Los cambios aplican a partir de hoy; el avance anterior se respeta." />
@@ -107,7 +109,7 @@ function FormRecompensa({ recompensa }: { recompensa?: Recompensa }) {
     }
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], [recompensa ? "Editar recompensa" : "Nueva recompensa"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Recompensas", ruta: CATALOGO }} etiqueta="Recompensas" titulo={recompensa ? "Editar recompensa" : "Nueva recompensa"} texto="Las existencias se descuentan solas en cada entrega." />
@@ -146,7 +148,7 @@ export function GuardadoProgreso({ tipo }: { tipo: "meta" | "recompensa" }) {
     const r = tipo === "recompensa" ? obtenerRecompensa(id) : undefined;
     if (!meta && !r) return <Navigate to={tipo === "meta" ? REGLAS : CATALOGO} replace />;
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], [meta ? "Meta guardada" : "Recompensa guardada"]]} />
                 <Encabezado grande etiqueta={meta ? "Reglas de progreso" : "Recompensas"} titulo={meta ? "Meta guardada" : "Recompensa guardada"} texto={meta ? "Los cambios aplican a partir de hoy." : "El catálogo ya muestra los datos nuevos."} />

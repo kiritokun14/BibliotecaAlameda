@@ -1,4 +1,4 @@
-// Moderación del foro: publicaciones reportadas, normas y personas silenciadas (datos de ejemplo).
+// Moderación de Bibliocomunidad: publicaciones reportadas, normas y personas silenciadas (datos de ejemplo).
 // TODO backend: GET /api/admin/foro/publicaciones, GET /api/admin/foro/normas, GET /api/admin/foro/silencios,
 // POST /api/admin/foro/publicaciones/{folio}/decision { tipo, norma, mensaje } y POST /api/admin/foro/silencios/{persona}/restaurar.
 import { useSyncExternalStore } from "react";

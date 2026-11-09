@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "../actividades/EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -52,7 +54,7 @@ export function FichaParticipante() {
     }
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], [ventana === "ajustar" ? "Ajustar progreso" : ventana === "entregar" ? (fallo ? "Error al entregar" : "Entregar recompensa") : "Ficha"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Progreso y recompensas", ruta: BASE_PROGRESO }} etiqueta={`Participante ${p.folio}`} titulo={p.nombre} texto={`${p.credencial} · Participa desde ${desdeTexto(p.desde)}.`} />
@@ -136,7 +138,7 @@ export function ResultadoParticipante({ tipo }: { tipo: "entregada" | "ajustado"
     const a = avanceDe(p);
     const recompensa = obtenerRecompensa(obtenerMeta(p.meta)?.recompensa);
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], [tipo === "entregada" ? "Recompensa entregada" : "Progreso ajustado"]]} />
                 <Encabezado grande etiqueta={`Participante ${p.folio}`} titulo={tipo === "entregada" ? "Recompensa entregada" : "Progreso ajustado"} texto={tipo === "entregada" ? "Se avisó a la persona y se descontó de las existencias." : "El ajuste quedó en la bitácora con su motivo."} />

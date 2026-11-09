@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "../actividades/EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -108,10 +110,10 @@ export function DetallePublicacion() {
     const miga = ventana === "retirar" ? "Retirar publicación" : ventana === "silenciar" ? "Silenciar a la persona" : p.estado === "reportada" ? "Publicación reportada" : "Publicación";
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
-                <Migas pasos={[["Participantes"], ["Moderación del foro", BASE_FORO], [miga]]} />
-                <EncabezadoTarjeta volver={{ texto: "Volver a Moderación del foro", ruta: BASE_FORO }} etiqueta={`Publicación ${p.folio}`} titulo={p.estado === "reportada" ? "Publicación reportada" : p.estado === "pendiente" ? "Publicación por aprobar" : "Publicación"} texto={`Hilo: «${p.hilo}» · ${fechaHora(p.fecha)} (ejemplo).`} />
+                <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], [miga]]} />
+                <EncabezadoTarjeta volver={{ texto: "Volver a Bibliocomunidad", ruta: BASE_FORO }} etiqueta={`Publicación ${p.folio}`} titulo={p.estado === "reportada" ? "Publicación reportada" : p.estado === "pendiente" ? "Publicación por aprobar" : "Publicación"} texto={`Hilo: «${p.hilo}» · ${fechaHora(p.fecha)} (ejemplo).`} />
                 <Resultado tono={banda.tono} icono={iconoBanderaResultado} titulo={banda.titulo} linea={banda.linea} chip={<Chip tono={TONO_PUBLICACION[p.estado]}>{NOMBRE_ESTADO_PUBLICACION[p.estado]}</Chip>} />
                 <Tarjeta icono={iconoCita} titulo="Contenido">
                     <blockquote className="cn-previa cn-parrafo" style={{ margin: 0 }}>{p.texto}</blockquote>
@@ -210,9 +212,9 @@ export function AdvertirPersona() {
     }
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
-                <Migas pasos={[["Participantes"], ["Moderación del foro", BASE_FORO], ["Advertir a la persona"]]} />
+                <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], ["Advertir a la persona"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a la publicación", ruta }} etiqueta={`Publicación ${p.folio}`} titulo="Advertir a la persona" texto={`Envía un aviso a ${p.autor} sin retirar la publicación.`} />
                 <Tarjeta icono={iconoLapiz} titulo="Aviso">
                     <CampoNorma id="fo-norma-aviso" etiqueta="Norma" valor={norma} alCambiar={(v) => { setNorma(v); setErrores((x) => ({ ...x, norma: undefined })); }} error={errores.norma} />
@@ -238,9 +240,9 @@ export function HiloCompleto() {
     if (!p) return <Navigate to={BASE_FORO} replace />;
     const hilo = hiloDe(p);
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
-                <Migas pasos={[["Participantes"], ["Moderación del foro", BASE_FORO], ["Hilo completo"]]} />
+                <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], ["Hilo completo"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a la publicación", ruta: `${BASE_FORO}/${p.folio}` }} etiqueta="Hilo" titulo={p.hilo} texto={`${hilo.length === 1 ? "1 publicación" : `${hilo.length} publicaciones`} · la que revisas está marcada.`} />
                 <Tarjeta icono={iconoLista} titulo="Publicaciones del hilo">
                     <Tabla
@@ -278,13 +280,13 @@ export function ResultadoForo({ tipo }: { tipo: "retirada" | "aprobada" | "adver
     }[tipo];
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
-                <Migas pasos={[["Participantes"], ["Moderación del foro", BASE_FORO], [datos.titulo]]} />
+                <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], [datos.titulo]]} />
                 <Encabezado grande etiqueta={`Publicación ${p.folio} · ${datos.chip}`} titulo={datos.titulo} texto={datos.texto} />
                 <Resultado tono={datos.tono} icono={datos.icono} titulo={datos.cabeza} linea={datos.linea} chip={<Chip tono={datos.tono}>{datos.chip}</Chip>} />
                 <div className="cn-acciones">
-                    <Link to={BASE_FORO} className={clasesBoton("verde")}>Volver a Moderación del foro</Link>
+                    <Link to={BASE_FORO} className={clasesBoton("verde")}>Volver a Bibliocomunidad</Link>
                     {tipo === "retirada" && !silencio && <Link to={`${ruta}?accion=silenciar`} className={clasesBoton("contorno")}>Silenciar a la persona</Link>}
                     {tipo === "silenciada" && <Link to={`${BASE_FORO}?vista=silenciadas`} className={clasesBoton("contorno")}>Ver personas silenciadas</Link>}
                     {(tipo === "aprobada" || tipo === "advertencia") && <Link to={ruta} className={clasesBoton("contorno")}>Ver publicación</Link>}
@@ -300,9 +302,9 @@ export function ParticipacionRestaurada() {
     const { state } = useLocation() as { state: { persona?: string } | null };
     if (!state?.persona) return <Navigate to={`${BASE_FORO}?vista=silenciadas`} replace />;
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
-                <Migas pasos={[["Participantes"], ["Moderación del foro", BASE_FORO], ["Participación restaurada"]]} />
+                <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], ["Participación restaurada"]]} />
                 <Encabezado grande etiqueta="Participantes · Foro" titulo="Participación restaurada" texto="La persona ya puede volver a publicar en el foro." />
                 <Resultado tono="verde" icono={iconoCheck} titulo={state.persona} linea="Silencio terminado hoy · se le avisó por correo" chip={<Chip tono="verde">Restaurada</Chip>} />
                 <div className="cn-acciones">

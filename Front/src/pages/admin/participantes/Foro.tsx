@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "../actividades/EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { BloqueResumen, Buscador, Chip, Datos, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
 import { clasesBoton, paginar } from "../contenidoDemo/utiles";
@@ -38,7 +40,7 @@ function Pestanas({ vista }: { vista: Vista }) {
     );
 }
 
-// Moderación del foro: cola (Figma 574:30186), cola vacía (574:30679), sin resultados (574:30900),
+// Moderación de Bibliocomunidad: cola (Figma 574:30186), cola vacía (574:30679), sin resultados (574:30900),
 // normas (574:34237) y personas silenciadas (574:34674)
 function Foro() {
     const [params] = useSearchParams();
@@ -63,12 +65,12 @@ function Cola() {
     const accion = (p: Publicacion) => (p.estado === "reportada" || p.estado === "pendiente" ? "Revisar" : "Ver");
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
-                <Migas pasos={[["Participantes"], ["Moderación del foro"], ["Cola de moderación"]]} />
-                <Encabezado etiqueta="Participantes · Foro" titulo="Moderación del foro" texto="Revisa lo que reportan las personas y decide con base en las normas del foro." />
+                <Migas pasos={[["Participantes"], ["Bibliocomunidad"], ["Cola de moderación"]]} />
+                <Encabezado etiqueta="Participantes · Foro" titulo="Moderación de Bibliocomunidad" texto="Revisa las primeras respuestas y los reportes de Bibliocomunidad." />
                 <BloqueResumen
-                    insignia="Moderación del foro"
+                    insignia="Moderación de Bibliocomunidad"
                     titulo="Moderación de"
                     resalte="hoy"
                     subtitulo="Publicaciones reportadas y decisiones del día · cifras de ejemplo"
@@ -133,9 +135,9 @@ function Normas() {
     const t = busqueda.trim().toLowerCase();
     const filas = NORMAS.filter((n) => !t || n.nombre.toLowerCase().includes(t) || n.descripcion.toLowerCase().includes(t));
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
-                <Migas pasos={[["Participantes"], ["Moderación del foro", BASE_FORO], ["Normas del foro"]]} />
+                <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], ["Normas del foro"]]} />
                 <Encabezado etiqueta="Participantes · Foro" titulo="Normas del foro" texto="Las reglas que usa el personal para decidir." />
                 <Tarjeta icono={iconoLista} titulo="Normas vigentes">
                     <div className="cn-barra">
@@ -193,9 +195,9 @@ function Silenciadas() {
     if (fallo) return <ErrorDecision ocupado={ocupado} alReintentar={() => void restaurar()} alVolver={() => { setFallo(false); setElegido(null); }} />;
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
-                <Migas pasos={[["Participantes"], ["Moderación del foro", BASE_FORO], [elegido ? "Restaurar participación" : "Personas silenciadas"]]} />
+                <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], [elegido ? "Restaurar participación" : "Personas silenciadas"]]} />
                 <Encabezado etiqueta="Participantes · Foro" titulo="Personas silenciadas" texto="Quién no puede publicar y hasta cuándo." />
                 <Tarjeta icono={iconoSilencio} titulo="Silencios activos">
                     <div className="cn-barra">

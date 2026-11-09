@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "../actividades/EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -53,7 +55,7 @@ export function DetalleCotejo() {
     const pendiente = c.estado === "pendiente";
 
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Cotejo de credenciales", BASE_COTEJO], [ventana === "vincular" ? "Confirmar vínculo" : ventana === "rechazar" ? "Rechazar vínculo" : b.miga]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Cotejo de credenciales", ruta: BASE_COTEJO }} etiqueta={`Cotejo ${c.folio}`} titulo={c.persona} texto="Captura del portal contra el registro de la biblioteca." />
@@ -125,7 +127,7 @@ export function PedirCorreccion() {
     if (!c || c.estado !== "pendiente") return <Navigate to={c ? `${BASE_COTEJO}/${c.folio}` : BASE_COTEJO} replace />;
     const ruta = `${BASE_COTEJO}/${c.folio}`;
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Cotejo de credenciales", BASE_COTEJO], ["Pedir corrección"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Cotejo de credenciales", ruta }} etiqueta={`Cotejo ${c.folio}`} titulo="Pedir corrección" texto="Indica qué debe corregir la persona." />
@@ -161,7 +163,7 @@ export function ResultadoCotejo({ tipo }: { tipo: "vinculada" | "correccion" | "
         rechazada: { titulo: "Vínculo rechazado", texto: "La cuenta sigue sin credencial y la persona recibió el motivo.", tono: "guinda" as const, icono: iconoX },
     }[tipo];
     return (
-        <PanelLayout titulo="Participantes">
+        <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Cotejo de credenciales", BASE_COTEJO], [datos.titulo]]} />
                 <Encabezado grande etiqueta={`Cotejo ${c.folio}`} titulo={datos.titulo} texto={datos.texto} />

@@ -63,7 +63,7 @@ export const SECCIONES_MENU: SeccionMenu[] = [
         subitems: [
             { texto: "Progreso y recompensas", ruta: "/admin/participantes/progreso" },
             { texto: "Cotejo de credenciales", ruta: "/admin/participantes/cotejo" },
-            { texto: "Moderación del foro", ruta: "/admin/participantes/foro" },
+            { texto: "Bibliocomunidad", ruta: "/admin/participantes/foro" },
         ],
     },
     {
