@@ -152,7 +152,7 @@ export function DetalleMovimiento() {
                 <div className="at-nota"><p className="at-nota__autor">Detalle</p><p>{m.detalle}</p></div>
             </Tarjeta>
             <div className="contenidos-previa__acciones">
-                <Link to={RUTA} className="contenidos-boton contenidos-boton--principal">Volver a la bitácora</Link>
+                <Link to={RUTA} className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a la bitácora</Link>
             </div>
         </Pantalla>
     );

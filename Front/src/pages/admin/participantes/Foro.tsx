@@ -32,7 +32,7 @@ function Pestanas({ vista }: { vista: Vista }) {
             valor={vista}
             alCambiar={(v) => navigate(v === "publicaciones" ? BASE_FORO : `${BASE_FORO}?vista=${v}`)}
             opciones={[
-                { valor: "publicaciones", texto: "Publicaciones" },
+                { valor: "publicaciones", texto: "Respuestas" },
                 { valor: "normas", texto: "Normas del foro" },
                 { valor: "silenciadas", texto: "Personas silenciadas" },
             ]}
@@ -76,7 +76,7 @@ function Cola() {
                     subtitulo="Publicaciones reportadas y decisiones del día · cifras de ejemplo"
                     accesos={[
                         { icono: iconoXGuinda, numero: cuenta("reportadas"), titulo: "Reportadas", texto: "Esperan decisión", enlace: "Ver reportada", tono: "guinda", activo: filtro === "reportadas", alPresionar: () => elegir("reportadas") },
-                        { icono: iconoCheckDorado, numero: cuenta("pendientes"), titulo: "Pendientes de aprobar", texto: "Primera publicación", enlace: "Revisar", tono: "dorado", activo: filtro === "pendientes", alPresionar: () => elegir("pendientes") },
+                        { icono: iconoCheckDorado, numero: cuenta("pendientes"), titulo: "Pendientes de aprobar", texto: "Primera respuesta", enlace: "Revisar", tono: "dorado", activo: filtro === "pendientes", alPresionar: () => elegir("pendientes") },
                         { icono: iconoXVerde, numero: retiradasHoy, titulo: "Retiradas hoy", texto: "Con motivo", enlace: "Ver retirada", tono: "verde", activo: filtro === "retiradas", alPresionar: () => elegir("retiradas") },
                         { icono: iconoXDorado, numero: silencios.length, titulo: "Personas silenciadas", texto: "Activas", enlace: "Ver personas", tono: "dorado", alPresionar: () => navigate(`${BASE_FORO}?vista=silenciadas`) },
                     ]}
@@ -106,7 +106,7 @@ function Cola() {
                         <Tabla
                             columnas={[
                                 { titulo: "FOLIO", ancho: 80, folio: true, celda: (p: Publicacion) => p.folio },
-                                { titulo: "PUBLICACIÓN", fuerte: true, celda: (p: Publicacion) => `«${recortar(p.texto)}»` },
+                                { titulo: "RESPUESTA", fuerte: true, celda: (p: Publicacion) => `«${recortar(p.texto)}»` },
                                 { titulo: "AUTOR", celda: (p: Publicacion) => p.autor },
                                 { titulo: "REPORTES", ancho: 80, celda: (p: Publicacion) => p.reportes },
                                 { titulo: "MOTIVO", ancho: 140, celda: (p: Publicacion) => p.motivo },

@@ -320,7 +320,7 @@
 
 .llamado-visitante__textos { display: flex; flex-direction: column; gap: 6px; }
 
-.llamado-visitante__sobretitulo { color: #e6d194; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.llamado-visitante__sobretitulo { color: #f2e3b8; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
 
 .seccion-visitante .llamado-visitante h2 { color: #fff; font-size: 30px; line-height: 36px; }
 

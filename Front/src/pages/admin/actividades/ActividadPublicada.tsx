@@ -41,7 +41,7 @@ function ActividadPublicada() {
                 </Tarjeta>
                 <div className="cn-acciones">
                     <a href="/eventos" target="_blank" rel="noopener noreferrer" className={clasesBoton("verde")}>Ver en el portal ↗<span className="cn-solo-lectores"> (se abre en otra pestaña)</span></a>
-                    <Link to={BASE_PROPUESTAS} className={clasesBoton("contorno")}>Volver a Propuestas de actividades</Link>
+                    <Link to={BASE_PROPUESTAS} className={`${clasesBoton("contorno")} panel-regresar`}>Volver a Propuestas de actividades</Link>
                 </div>
                 <PieDatos />
             </Pagina>

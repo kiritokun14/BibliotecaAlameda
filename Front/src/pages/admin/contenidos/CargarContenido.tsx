@@ -32,7 +32,7 @@ function CargarContenido({ children }: { children: (contenido: Contenido) => Rea
             {actual?.error ? (
                 <div className="contenidos-panel">
                     <p className="contenidos-error" role="alert">{actual.error}</p>
-                    <Link to="/admin/contenidos/editor" className="contenidos-boton contenidos-boton--principal">Volver a Mis contenidos</Link>
+                    <Link to="/admin/contenidos/editor" className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a Mis contenidos</Link>
                 </div>
             ) : (
                 <p className="contenidos-cargando" role="status">Cargando {folio}…</p>

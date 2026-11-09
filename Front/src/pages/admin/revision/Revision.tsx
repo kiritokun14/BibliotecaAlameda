@@ -720,7 +720,7 @@ function VistaPrevia() {
                     <Encabezado tarjeta etiqueta={`Vista previa · ${c.folio}`} titulo={c.titulo} texto={`Así se verá en ${dondeSeVe(c)} cuando lo autorices.`} />
                     <Previa c={c} completa />
                     <div className="contenidos-previa__acciones">
-                        <Link to={`${BASE}/${c.folio}`} className="contenidos-boton contenidos-boton--principal">Volver a la revisión</Link>
+                        <Link to={`${BASE}/${c.folio}`} className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a la revisión</Link>
                     </div>
                 </>
             )}
@@ -934,7 +934,7 @@ function Publicado({ c }: { c: ContenidoRevision }) {
                         Ver en el portal ↗<span className="solo-lectores"> (se abre en otra pestaña)</span>
                     </a>
                 )}
-                <Link to={BASE} className="contenidos-boton contenidos-boton--contorno">Volver a Revisión y publicación</Link>
+                <Link to={BASE} className="contenidos-boton contenidos-boton--contorno panel-regresar">Volver a Revisión y publicación</Link>
                 <Link to={`${BASE}/historial`} className="contenidos-boton contenidos-boton--suave-azul">Ver historial de publicaciones</Link>
             </div>
         </>
@@ -954,7 +954,7 @@ function ObservacionesEnviadas({ c }: { c: ContenidoRevision }) {
                 ["Decides de nuevo", "Puedes autorizar, pedir más cambios o rechazar."],
             ]} />
             <div className="contenidos-previa__acciones">
-                <Link to={BASE} className="contenidos-boton contenidos-boton--principal">Volver a Revisión y publicación</Link>
+                <Link to={BASE} className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a Revisión y publicación</Link>
             </div>
         </>
     );
@@ -974,7 +974,7 @@ function Rechazado({ c }: { c: ContenidoRevision }) {
                 </Panel>
             )}
             <div className="contenidos-previa__acciones">
-                <Link to={BASE} className="contenidos-boton contenidos-boton--principal">Volver a Revisión y publicación</Link>
+                <Link to={BASE} className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a Revisión y publicación</Link>
                 <Link to={`${BASE}/historial`} className="contenidos-boton contenidos-boton--suave-azul">Ver historial de publicaciones</Link>
             </div>
         </>

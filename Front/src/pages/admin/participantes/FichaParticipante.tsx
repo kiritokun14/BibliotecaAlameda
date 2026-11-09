@@ -83,7 +83,7 @@ export function FichaParticipante() {
                 <div className="cn-acciones">
                     <button type="button" className={clasesBoton("verde")} disabled={estado !== "por-entregar"} onClick={() => { setFallo(false); setVentana("entregar"); }}>Entregar recompensa</button>
                     {!p.entregada && <button type="button" className={clasesBoton("contorno")} onClick={() => { setMotivo(""); setError(""); setCambio("1"); setVentana("ajustar"); }}>Ajustar progreso</button>}
-                    <Link to={BASE_PROGRESO} className={clasesBoton("suave")}>Volver</Link>
+                    <Link to={BASE_PROGRESO} className={`${clasesBoton("suave")} panel-regresar`}>Volver</Link>
                 </div>
                 {estado === "sin" && <p className="cn-nota">«Entregar recompensa» se habilita cuando la persona completa la meta.</p>}
                 <PieDatos />
@@ -151,7 +151,7 @@ export function ResultadoParticipante({ tipo }: { tipo: "entregada" | "ajustado"
                 />
                 <div className="cn-acciones">
                     <Link to={`${BASE_PROGRESO}/${p.folio}`} className={clasesBoton("verde")}>Ver ficha</Link>
-                    <Link to={BASE_PROGRESO} className={clasesBoton("contorno")}>Volver a Progreso y recompensas</Link>
+                    <Link to={BASE_PROGRESO} className={`${clasesBoton("contorno")} panel-regresar`}>Volver a Progreso y recompensas</Link>
                 </div>
                 <PieDatos />
             </Pagina>

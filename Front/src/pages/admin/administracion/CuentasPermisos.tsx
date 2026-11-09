@@ -217,7 +217,7 @@ function Ficha({ c }: { c: CuentaResumen }) {
                 <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={guardando} onClick={() => setVentana("restablecer")}>Restablecer acceso</button>
                 {c.estatus === "activo" && <button type="button" className="contenidos-boton at-boton--guinda" disabled={guardando} onClick={() => setVentana("suspender")}>Suspender cuenta</button>}
                 {c.estatus === "inactivo" && <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={guardando} onClick={() => setVentana("reactivar")}>Reactivar cuenta</button>}
-                <Link to={RUTA} className="contenidos-boton contenidos-boton--suave-azul">Volver</Link>
+                <Link to={RUTA} className="contenidos-boton contenidos-boton--suave-azul panel-regresar">Volver</Link>
             </div>
 
             {ventana === "restablecer" && (
@@ -345,7 +345,7 @@ export function ResultadoPersonal({ tipo }: { tipo: "suspendida" | "reactivada" 
                         <AvisoResultado tono={tipo === "suspendida" ? "error" : "exito"} titulo={nombreCompleto(c) || "Sin nombre"} texto={rolesTexto(c)} chip={estadoCuenta(c)} />
                         <div className="contenidos-previa__acciones">
                             <Link to={`${RUTA}/${c.id}`} className="contenidos-boton contenidos-boton--principal">Ver la cuenta</Link>
-                            <Link to={RUTA} className="contenidos-boton contenidos-boton--suave-azul">Volver a Cuentas y permisos</Link>
+                            <Link to={RUTA} className="contenidos-boton contenidos-boton--suave-azul panel-regresar">Volver a Cuentas y permisos</Link>
                         </div>
                     </>
                 );

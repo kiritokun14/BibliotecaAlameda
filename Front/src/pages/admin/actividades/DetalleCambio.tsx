@@ -171,7 +171,7 @@ export function CancelarActividad() {
                 <div className="cn-acciones">
                     <button type="button" className={clasesBoton("guinda")} onClick={revisar}>Cancelar actividad</button>
                     <Link to={`${BASE_CAMBIOS}/reprogramar${folio ? `?actividad=${folio}` : ""}`} className={clasesBoton("contorno")}>Mejor reprogramar</Link>
-                    <Link to={BASE_CAMBIOS} className={clasesBoton("suave")}>Volver</Link>
+                    <Link to={BASE_CAMBIOS} className={`${clasesBoton("suave")} panel-regresar`}>Volver</Link>
                 </div>
                 <PieDatos />
             </Pagina>
@@ -282,7 +282,7 @@ export function ResultadoCambio({ tipo }: { tipo: "aplicado" | "rechazado" | "ca
                     </Tarjeta>
                 )}
                 <div className="cn-acciones">
-                    <Link to={BASE_CAMBIOS} className={clasesBoton("verde")}>Volver a Cambios y cancelaciones</Link>
+                    <Link to={BASE_CAMBIOS} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Cambios y cancelaciones</Link>
                     {tipo === "enviada" ? <Link to={`${BASE_CAMBIOS}/${c.folio}`} className={clasesBoton("contorno")}>Ver solicitud</Link> : <Link to={`${BASE_CAMBIOS}?vista=historial`} className={clasesBoton("suave")}>Ver historial de cambios</Link>}
                 </div>
                 <PieDatos />
