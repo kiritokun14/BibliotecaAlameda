@@ -173,7 +173,7 @@ function DetalleCredencial() {
     const cerrar = () => setVentana(null);
 
     return (
-        <PanelLayout titulo="Atención">
+        <PanelLayout titulo="Atención" tema="contenidos">
             <DetalleSolicitud
                 area="credenciales"
                 solicitud={solicitud}

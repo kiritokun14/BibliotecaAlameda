@@ -1,13 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
-import { Chip, EncabezadoPagina, EstadoVacio, type TonoChip } from "../componentes";
+import { Chip, EncabezadoPagina, EstadoVacio, Migas, type TonoChip } from "../componentes";
+import { IconoAviso, IconoBuscar, IconoLista, IconoReloj } from "../contenidos/piezas";
 import type { Estado } from "./datos";
-import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
-import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
-import flechaResumen from "../../../assets/admin/resumen-flecha.svg";
-import resumenCheck from "../../../assets/admin/resumen-check.svg";
-import bandejaLista from "../../../assets/admin/bandeja-list.svg";
-import iconoBuscar from "../../../assets/admin/icono-search.svg";
 import vacioCheck from "../../../assets/admin/vacio-check.svg";
 import vacioBuscar from "../../../assets/admin/vacio-search.svg";
 
@@ -94,74 +89,65 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
         { valor: "rechazada", texto: "Rechazadas" },
     ];
 
-    const tarjetasResumen = [
-        { ...config.resumen[0], cantidad: pendientes, chip: "Urgente", filtro: "pendiente" as Filtro },
-        { ...config.resumen[1], cantidad: observaciones, chip: "Atención", filtro: "observaciones" as Filtro },
-        {
-            icono: resumenCheck,
-            detalle: "Aprobadas o rechazadas",
-            texto: (n: number) => `${n} resueltas ${config.periodoResueltas}`,
-            cantidad: resueltas,
-            chip: "Al día",
-            filtro: "aprobada" as Filtro,
-        },
+    // Bloque «Accesos rápidos»: mismas tarjetas que la bandeja del Editor
+    const tarjetasResumen: { tono: "gris" | "guinda" | "azul"; icono: ReactNode; cantidad: number; titulo: string; texto: string; enlace: string; filtro: Filtro }[] = [
+        { tono: "gris", icono: <IconoReloj />, cantidad: pendientes, titulo: config.estados.pendiente, texto: config.resumen[0].detalle, enlace: `Ver ${config.estados.pendiente.toLowerCase()}`, filtro: "pendiente" },
+        { tono: "guinda", icono: <IconoAviso />, cantidad: observaciones, titulo: config.filtroObservaciones, texto: config.resumen[1].detalle, enlace: "Ver observaciones", filtro: "observaciones" },
+        { tono: "azul", icono: <IconoCheck />, cantidad: resueltas, titulo: `Resueltas ${config.periodoResueltas}`, texto: "Aprobadas o rechazadas.", enlace: "Ver aprobadas", filtro: "aprobada" },
     ];
+
+    const columnasRejilla = `110px ${columnas.map((c) => (c.ancho ? `${c.ancho}px` : "minmax(160px, 1fr)")).join(" ")} 170px 100px`;
+    const paginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA));
 
     return (
         <>
             {vista === "bandeja" ? (
-                <EncabezadoPagina etiqueta="ATENCIÓN" titulo={config.titulo} texto={config.descripcion} />
+                <>
+                    <Migas pasos={[[config.titulo]]} />
+                    <EncabezadoPagina
+                        etiqueta={`Atención · ${config.titulo}`}
+                        titulo={config.titulo}
+                        texto={config.descripcion}
+                    />
+                </>
             ) : (
-                <EncabezadoPagina
-                    volver={{ texto: `Volver a ${config.titulo.toLowerCase()}`, ruta: config.ruta }}
-                    etiqueta="ATENCIÓN · LISTADO COMPLETO"
-                    titulo={config.tituloTodas}
-                    texto="Consulta el historial completo, con cualquier estado. Datos de ejemplo."
-                />
+                <>
+                    <Migas pasos={[[config.titulo, config.ruta], ["Todas"]]} />
+                    <EncabezadoPagina
+                        volver={{ texto: `Volver a ${config.titulo.toLowerCase()}`, ruta: config.ruta }}
+                        etiqueta="Atención · Listado completo"
+                        titulo={config.tituloTodas}
+                        texto="Consulta el historial completo, con cualquier estado. Datos de ejemplo."
+                    />
+                </>
             )}
 
             {vista === "bandeja" && (
-                <section className="bloque-resumen">
-                    <img className="bloque-resumen__circulo bloque-resumen__circulo--1" src={circulo1} alt="" />
-                    <img className="bloque-resumen__circulo bloque-resumen__circulo--2" src={circulo2} alt="" />
-                    <div className="bloque-resumen__titular">
-                        <span className="bloque-resumen__etiqueta">{config.etiquetaBloque}</span>
-                        <h2>{config.pregunta}</h2>
-                    </div>
-                    <div className="bloque-resumen__tarjetas">
-                        {tarjetasResumen.map((tarjeta, indice) => (
-                            <article key={indice} className={`tarjeta-resumen tarjeta-resumen--${indice + 1}`}>
-                                <div className="tarjeta-resumen__texto">
-                                    <span className="tarjeta-resumen__icono">
-                                        <img src={tarjeta.icono} alt="" />
-                                    </span>
-                                    <h3>{tarjeta.texto(tarjeta.cantidad)}</h3>
-                                    <p>{tarjeta.detalle}</p>
-                                </div>
-                                <div className="tarjeta-resumen__accion">
-                                    <button
-                                        type="button"
-                                        className="tarjeta-resumen__flecha"
-                                        aria-label={`Filtrar: ${tarjeta.texto(tarjeta.cantidad)}`}
-                                        onClick={() => elegirFiltro(tarjeta.filtro)}
-                                    >
-                                        <img src={flechaResumen} alt="" />
+                <section className="contenidos-resumen" aria-labelledby="atencion-resumen-titulo">
+                    <h2 id="atencion-resumen-titulo">Accesos rápidos</h2>
+                    <div className="contenidos-resumen__tarjetas">
+                        {tarjetasResumen.map((t) => (
+                            <article key={t.filtro} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${t.tono}${filtro === t.filtro ? " at-tarjeta--activa" : ""}`}>
+                                <div className="contenidos-resumen__fila">
+                                    <span className="contenidos-resumen__icono">{t.icono}</span>
+                                    <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.filtro} onClick={() => elegirFiltro(t.filtro)}>
+                                        {t.enlace} →
                                     </button>
-                                    <Chip tono={(["guinda", "dorado", "verde"] as const)[indice]}>{tarjeta.chip}</Chip>
                                 </div>
+                                <p className="contenidos-resumen__cifra">{t.cantidad}</p>
+                                <p className="contenidos-resumen__titulo">{t.titulo}</p>
+                                <p className="contenidos-resumen__texto">{t.texto}</p>
                             </article>
                         ))}
                     </div>
                 </section>
             )}
 
-            <section className="tarjeta-panel tarjeta-panel--blanca tarjeta-bandeja">
-                <div className="tarjeta-panel__cabecera">
-                    <span className="icono-tarjeta icono-tarjeta--verde">
-                        <img src={bandejaLista} alt="" />
-                    </span>
-                    <div className="tarjeta-panel__textos">
-                        <h2>{vista === "bandeja" ? `Bandeja de ${config.sustantivo}` : "Listado completo"}</h2>
+            <section className="contenidos-lista" aria-labelledby="atencion-lista-titulo">
+                <div className="contenidos-lista__cabecera">
+                    <span className="contenidos-lista__icono"><IconoLista /></span>
+                    <div>
+                        <h2 id="atencion-lista-titulo">{vista === "bandeja" ? `Bandeja de ${config.sustantivo}` : "Listado completo"}</h2>
                         <p>
                             {vista === "bandeja"
                                 ? "Ordenadas de la más antigua a la más reciente."
@@ -170,13 +156,13 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                     </div>
                 </div>
 
-                <div className="barra-filtros">
-                    <div className="filtros" role="group" aria-label="Filtrar por estado">
+                <div className="contenidos-lista__herramientas">
+                    <div className="contenidos-filtros" role="group" aria-label="Filtrar por estado">
                         {filtros.map((opcion) => (
                             <button
                                 key={opcion.valor}
                                 type="button"
-                                className={`filtro ${filtro === opcion.valor ? "filtro--activo" : ""}`}
+                                className={`contenidos-filtro${filtro === opcion.valor ? " contenidos-filtro--activo" : ""}`}
                                 aria-pressed={filtro === opcion.valor}
                                 onClick={() => elegirFiltro(opcion.valor)}
                             >
@@ -184,8 +170,8 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                             </button>
                         ))}
                     </div>
-                    <label className="buscador">
-                        <img src={iconoBuscar} alt="" />
+                    <label className="contenidos-buscar">
+                        <IconoBuscar />
                         <input
                             type="search"
                             placeholder={`Buscar por ${config.buscarPor}`}
@@ -211,41 +197,27 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                         <EstadoVacio icono={vacioCheck} titulo={`No hay ${config.sustantivo} por ahora`} texto={config.textoVacio} />
                     )
                 ) : (
-                    <div className="tabla" role="table">
-                        <div className="tabla__fila tabla__fila--encabezado" role="row">
-                            <span role="columnheader" style={{ width: 130 }}>FOLIO</span>
-                            {columnas.map((columna) => (
-                                <span key={columna.titulo} role="columnheader" style={estiloColumna(columna)}>
-                                    {columna.titulo}
-                                </span>
-                            ))}
-                            <span role="columnheader" style={{ width: 190 }}>ESTADO</span>
-                            <span role="columnheader" style={{ width: 130 }} />
+                    <div className="contenidos-tabla" tabIndex={0} role="table" aria-label={vista === "bandeja" ? `Bandeja de ${config.sustantivo}` : "Listado completo"}>
+                        <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row" style={{ gridTemplateColumns: columnasRejilla }}>
+                            <span role="columnheader">Folio</span>
+                            {columnas.map((columna) => <span key={columna.titulo} role="columnheader">{columna.titulo}</span>)}
+                            <span role="columnheader">Estado</span>
+                            <span role="columnheader">Acción</span>
                         </div>
 
                         {visibles.map((solicitud) => (
-                            <div key={solicitud.folio} className="tabla__fila" role="row">
-                                <span role="cell" className="tabla__fuerte" style={{ width: 130 }}>
-                                    {solicitud.folio}
-                                </span>
+                            <div key={solicitud.folio} className="contenidos-tabla__fila" role="row" style={{ gridTemplateColumns: columnasRejilla }}>
+                                <span role="cell" className="contenidos-tabla__folio">{solicitud.folio}</span>
                                 {columnas.map((columna) => (
-                                    <span key={columna.titulo} role="cell" className="tabla__fuerte" style={estiloColumna(columna)}>
-                                        {columna.celda(solicitud)}
-                                    </span>
+                                    <span key={columna.titulo} role="cell" className="at-celda">{columna.celda(solicitud)}</span>
                                 ))}
-                                <span role="cell" style={{ width: 190 }}>
+                                <span role="cell">
                                     <Chip tono={TONO_ESTADO[solicitud.estado]}>{config.estados[solicitud.estado]}</Chip>
                                 </span>
-                                <span role="cell" style={{ width: 130 }}>
-                                    {solicitud.estado === "pendiente" ? (
-                                        <Link to={`${config.ruta}/${solicitud.folio}`} className="boton-panel boton-panel--verde boton-panel--mediano">
-                                            {config.accionPendiente}
-                                        </Link>
-                                    ) : (
-                                        <Link to={`${config.ruta}/${solicitud.folio}`} className="boton-panel boton-panel--oscuro boton-panel--mediano">
-                                            Ver
-                                        </Link>
-                                    )}
+                                <span role="cell">
+                                    <Link to={`${config.ruta}/${solicitud.folio}`} className="contenidos-tabla__accion">
+                                        {solicitud.estado === "pendiente" ? config.accionPendiente : "Ver"} →<span className="solo-lectores"> {solicitud.folio}</span>
+                                    </Link>
                                 </span>
                             </div>
                         ))}
@@ -253,36 +225,25 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                 )}
 
                 {vista === "bandeja" ? (
-                    <div className="pie-bandeja">
+                    <div className="contenidos-lista__pie">
                         <p>
                             Mostrando {visibles.length} de {solicitudes.length} {config.sustantivo} (ejemplo). {config.notaBandeja}
                         </p>
-                        <Link to={`${config.ruta}/todas`} className="boton-panel boton-panel--guinda">
+                        <Link to={`${config.ruta}/todas`} className="contenidos-boton contenidos-boton--oscuro">
                             Ver todas las {config.sustantivo}
                         </Link>
                     </div>
                 ) : (
                     filtradas.length > 0 && (
-                        <div className="pie-bandeja">
+                        <div className="contenidos-lista__pie">
                             <p>
                                 Mostrando {inicio + 1} a {inicio + visibles.length} de {filtradas.length} {config.sustantivo} (ejemplo)
                             </p>
-                            <button
-                                type="button"
-                                className="boton-panel boton-panel--oscuro boton-panel--mediano-alto"
-                                disabled={pagina === 0}
-                                onClick={() => setPagina(pagina - 1)}
-                            >
-                                Anterior
-                            </button>
-                            <button
-                                type="button"
-                                className="boton-panel boton-panel--guinda boton-panel--mediano-alto"
-                                disabled={inicio + POR_PAGINA >= filtradas.length}
-                                onClick={() => setPagina(pagina + 1)}
-                            >
-                                Siguiente
-                            </button>
+                            <div className="contenidos-paginas" role="group" aria-label="Páginas">
+                                <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>‹ Anterior</button>
+                                <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
+                                <button type="button" disabled={inicio + POR_PAGINA >= filtradas.length} onClick={() => setPagina(pagina + 1)}>Siguiente ›</button>
+                            </div>
                         </div>
                     )
                 )}
@@ -291,17 +252,18 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
     );
 }
 
-// Sin ancho = la columna ocupa el espacio que sobra
-function estiloColumna(columna: { ancho?: number }) {
-    return columna.ancho ? { width: columna.ancho } : { flex: 1, minWidth: 0 };
-}
+const IconoCheck = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M20 6 9 17l-5-5" />
+    </svg>
+);
 
 // Celda de dos renglones (nombre + "(ejemplo)", fecha + horario...)
 export function CeldaDoble({ arriba, abajo }: { arriba: ReactNode; abajo: ReactNode }) {
     return (
-        <span className="celda-doble">
+        <span className="at-celda-doble">
             <span>{arriba}</span>
-            <span className="celda-doble__abajo">{abajo}</span>
+            <small>{abajo}</small>
         </span>
     );
 }

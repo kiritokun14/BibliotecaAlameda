@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -34,7 +36,7 @@ export function FichaInscripcion() {
     }[i.estado];
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Inscripciones y cupos", BASE_INSCRIPCIONES], [cancelando ? "Cancelar inscripción" : "Ficha de inscripción"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Inscripciones y cupos", ruta }} etiqueta="Inscripción" titulo={i.persona} texto={`${a.nombre} · ${a.folio}`} />
@@ -87,7 +89,7 @@ export function InscribirPersona() {
     const clase = (c: string) => `cn-control ${errores[c] ? "cn-control--error" : ""}`;
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Inscripciones y cupos", BASE_INSCRIPCIONES], [completo ? "Cupo completo" : "Inscribir persona"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Inscripciones y cupos", ruta: a ? `${BASE_INSCRIPCIONES}/${a.folio}` : BASE_INSCRIPCIONES }} etiqueta="Inscripciones" titulo="Inscribir a una persona" texto="Para quien no puede inscribirse desde el portal." />
@@ -140,7 +142,7 @@ export function ResultadoInscripcion({ tipo }: { tipo: "inscrita" | "ofrecido" |
         cupo: { titulo: "Cupo ajustado", texto: "El portal ya muestra los lugares disponibles.", tono: "verde" as const, icono: iconoCheck, nombre: a.nombre, linea: `Nuevo cupo: ${a.cupo} · ${lugaresLibres(a)} lugares libres` },
     }[tipo];
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Inscripciones y cupos", BASE_INSCRIPCIONES], [datos.titulo]]} />
                 <Encabezado grande etiqueta={`Actividad ${a.folio}`} titulo={datos.titulo} texto={datos.texto} />

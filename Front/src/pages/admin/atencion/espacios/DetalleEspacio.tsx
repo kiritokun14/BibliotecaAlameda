@@ -196,7 +196,7 @@ function DetalleEspacio() {
                         </Chip>
                     )}
                     {/* TODO: pantalla de agenda completa de espacios */}
-                    <button type="button" className="boton-panel boton-panel--oscuro boton-panel--mediano-alto">
+                    <button type="button" className="contenidos-boton contenidos-boton--oscuro">
                         Ver agenda completa de espacios
                     </button>
                 </div>
@@ -295,7 +295,7 @@ function DetalleEspacio() {
     const cerrar = () => setVentana(null);
 
     return (
-        <PanelLayout titulo="Atención">
+        <PanelLayout titulo="Atención" tema="contenidos">
             <DetalleSolicitud
                 area="espacios"
                 solicitud={solicitud}

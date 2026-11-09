@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -80,7 +82,7 @@ function FormularioBloqueo({ inicial, id }: { inicial: DatosBloqueo; id?: string
     });
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", BASE_CALENDARIO], [conflicto ? "Conflicto detectado" : id ? "Editar bloqueo" : "Bloquear"]]} />
                 <EncabezadoTarjeta
@@ -166,7 +168,7 @@ export function BloqueoGuardado() {
     const b: Bloqueo | undefined = obtenerBloqueo(id);
     if (!b) return <Navigate to={BASE_CALENDARIO} replace />;
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", BASE_CALENDARIO], ["Bloqueo guardado"]]} />
                 <div className="cn-encabezado"><div className="cn-encabezado__textos">
