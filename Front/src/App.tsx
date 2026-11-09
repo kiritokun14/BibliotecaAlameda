@@ -62,6 +62,9 @@ const Noticias = lazy(() => import("./pages/publico/noticias/Noticias.tsx"));
 const TodasNoticias = lazy(() => import("./pages/publico/noticias/TodasNoticias.tsx"));
 const DetalleNoticia = lazy(() => import("./pages/publico/noticias/DetalleNoticia.tsx"));
 const AbrirAsistente = lazy(() => import("./pages/publico/asistente/AbrirAsistente.tsx"));
+const AgendaPublica = lazy(() => import("./pages/publico/eventos/Agenda.tsx"));
+const TodasActividadesPublicas = lazy(() => import("./pages/publico/eventos/TodasActividades.tsx"));
+const CalendarioPublico = lazy(() => import("./pages/publico/eventos/CalendarioActividades.tsx"));
 const Eventos = lazy(() => import("./pages/publico/eventos/Eventos.tsx"));
 const CuentaSuspendida = lazy(() => import("./pages/publico/sesion/EstadosSesion.tsx").then(m => ({ default: m.CuentaSuspendida })));
 const SesionCaducada = lazy(() => import("./pages/publico/sesion/EstadosSesion.tsx").then(m => ({ default: m.SesionCaducada })));
@@ -106,9 +109,9 @@ const FichaSala = lazy(() => import("./pages/admin/actividades/FichaSala.tsx").t
 const BloqueoGuardado = lazy(() => import("./pages/admin/actividades/FormularioBloqueo.tsx").then(m => ({ default: m.BloqueoGuardado })));
 const EditarBloqueo = lazy(() => import("./pages/admin/actividades/FormularioBloqueo.tsx").then(m => ({ default: m.EditarBloqueo })));
 const NuevoBloqueo = lazy(() => import("./pages/admin/actividades/FormularioBloqueo.tsx").then(m => ({ default: m.NuevoBloqueo })));
-const ConfirmarVisita = lazy(() => import("./pages/admin/actividades/DetalleVisita.tsx").then(m => ({ default: m.ConfirmarVisita })));
-const DetalleVisita = lazy(() => import("./pages/admin/actividades/DetalleVisita.tsx").then(m => ({ default: m.DetalleVisita })));
-const ProponerFecha = lazy(() => import("./pages/admin/actividades/DetalleVisita.tsx").then(m => ({ default: m.ProponerFecha })));
+const ConfirmarVisita = lazy(() => import("./pages/admin/atencion/espacios/DetalleEspacio.tsx"));
+const DetalleVisita = lazy(() => import("./pages/admin/atencion/espacios/DetalleEspacio.tsx"));
+const ProponerFecha = lazy(() => import("./pages/admin/atencion/espacios/DetalleEspacio.tsx"));
 const ResultadoVisita = lazy(() => import("./pages/admin/actividades/DetalleVisita.tsx").then(m => ({ default: m.ResultadoVisita })));
 const FichaUso = lazy(() => import("./pages/admin/actividades/UsoEspacio.tsx").then(m => ({ default: m.FichaUso })));
 const RegistrarUso = lazy(() => import("./pages/admin/actividades/UsoEspacio.tsx").then(m => ({ default: m.RegistrarUso })));
@@ -266,14 +269,16 @@ function App() {
         <Route path="/mi-perfil/:seccion" element={<PerfilPropio />} />
         <Route path="/mis-tramites/credencial" element={<Tramites />} />
         <Route path="/mis-tramites/credencial/:id" element={<Tramites />} />
-        <Route path="/mis-tramites/propuestas" element={<Tramites />} />
-        <Route path="/mis-tramites/propuestas/:id" element={<Tramites />} />
-        <Route path="/proponer-evento" element={<Tramites />} />
+        <Route path="/mis-tramites/propuestas" element={<Navigate to="/mi-perfil/propuestas" replace />} />
+        <Route path="/mis-tramites/propuestas/:id" element={<DetallePropuestaUsuario />} />
+        <Route path="/proponer-evento" element={<Navigate to="/proponer" replace />} />
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/noticias/todas" element={<TodasNoticias />} />
         <Route path="/noticias/:id" element={<DetalleNoticia />} />
         <Route path="/asistente" element={<AbrirAsistente />} />
-        <Route path="/eventos" element={<Eventos />} />
+        <Route path="/eventos" element={<AgendaPublica />} />
+        <Route path="/eventos/todas" element={<TodasActividadesPublicas />} />
+        <Route path="/eventos/calendario" element={<CalendarioPublico />} />
         <Route path="/eventos/:id" element={<Eventos />} />
         <Route path="/eventos/:id/mi-inscripcion" element={<MiInscripcion />} />
         <Route path="/credencial" element={<Credencial />} />

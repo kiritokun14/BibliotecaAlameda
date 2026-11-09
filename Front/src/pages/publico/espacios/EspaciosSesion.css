@@ -78,6 +78,7 @@ button.espacios-area:hover { background: #f7f5f0; }
 .espacios-area--elegida,
 button.espacios-area--elegida:hover { border: 2px solid #e6d194; background: #164f44; }
 .espacios-area--elegida strong { color: #fff; }
+.espacios-area--elegida > span:not(.cred-chip):not(.espacios-area__chip) { color: #e4efeb; }
 .espacios-area--apagada { border-color: #e2ded5; background: #f1efea; }
 
 .espacios-area__chip {

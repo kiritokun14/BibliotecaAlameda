@@ -4,7 +4,8 @@ DO $$
 #variable_conflict use_variable
 DECLARE usuario uuid:=gen_random_uuid(); otro uuid:=gen_random_uuid(); personal uuid:=gen_random_uuid(); moderador uuid:=gen_random_uuid();
  sesion uuid:=gen_random_uuid(); sesion_otro uuid:=gen_random_uuid(); sesion_personal uuid:=gen_random_uuid(); sesion_moderador uuid:=gen_random_uuid();
- id_actual uuid; r jsonb; anterior jsonb; lista jsonb; credencial uuid; propuesta uuid; rechazo boolean; cantidad_actividades bigint;
+ id_actual uuid; r jsonb; anterior jsonb; lista jsonb; credencial uuid; propuesta uuid; rechazo boolean; cantidad_actividades bigint; propia jsonb; buscar_estado text;
+ acuerdo jsonb:='{"responsable":"Dirección temporal","fecha":"2026-01-01","referencia":"PRUEBA-REVERSIBLE"}';
  registro jsonb:='{"nombres":"Prueba atencion","primerApellido":"Temporal","fechaNacimiento":"2000-01-01","telefono":"3110000000","aceptaAviso":true,"domicilio":{"calle":"Prueba","numeroExterior":"sin número","coloniaLocalidad":"Prueba","codigoPostal":"63000","municipio":"Tepic","estadoProvincia":"Nayarit"}}';
  datos_propuesta jsonb:='{"tituloPropuesta":"Club reversible","descripcion":"Lecturas compartidas","tipoPropuesta":"Club","publicoDirigido":"Juventud","necesidadEspacio":"Sala","frecuenciaReunion":"Semanal","diasSolicitados":"Viernes","horarioSolicitado":"16:00 a 17:00","abiertaAlPublico":true,"sinFinesDeLucro":true}';
 BEGIN
@@ -108,8 +109,33 @@ BEGIN
  RESET ROLE;
  PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',personal,'role','authenticated','session_id',sesion_personal)::text,true);
  SET LOCAL ROLE authenticated;
- r:=public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','estadoRevision','aprobada'));
+ -- El coordinador con permiso tampoco puede resolver su propia propuesta.
+ propia:=public.atencion_solicitudes('propuesta','crear',datos_propuesta);
+ FOREACH buscar_estado IN ARRAY ARRAY['aprobada','rechazada','requiere_correccion'] LOOP
+  rechazo:=false;
+  BEGIN PERFORM public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propia->>'id','actualizadoEn',propia->>'actualizadoEn','estadoRevision',buscar_estado,'observacionesInstitucionales','Prueba','acuerdoDireccion',acuerdo));
+  EXCEPTION WHEN insufficient_privilege THEN rechazo:=true; END;
+  IF NOT rechazo THEN RAISE EXCEPTION 'El titular resolvió su propia propuesta: %',buscar_estado; END IF;
+ END LOOP;
+ -- El permiso de coordinación no reemplaza el acuerdo de dirección.
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','estadoRevision','aprobada','observacionesInstitucionales','Favorable'));
+ EXCEPTION WHEN check_violation THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Aprobó sin acuerdo de dirección'; END IF;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','estadoRevision','rechazada','observacionesInstitucionales','No procede','acuerdoDireccion',acuerdo||'{"fecha":"2999-01-01"}'));
+ EXCEPTION WHEN check_violation THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Aceptó acuerdo futuro'; END IF;
+ r:=public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','estadoRevision','aprobada','observacionesInstitucionales','Acuerdo favorable de dirección','acuerdoDireccion',acuerdo));
+ IF r->'historial'->3->'acuerdoDireccion' IS DISTINCT FROM acuerdo OR r->'historial'->3->>'registradoPor'<>personal::text
+ THEN RAISE EXCEPTION 'No distinguió acuerdo externo y registrador'; END IF;
+
  IF r->>'actividadId' IS NOT NULL OR r->>'revisadoPor'<>personal::text THEN RAISE EXCEPTION 'Aprobación con efectos incorrectos'; END IF;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',usuario,'role','authenticated','session_id',sesion)::text,true);
+ SET LOCAL ROLE authenticated;
+ r:=public.atencion_solicitudes('propuesta','obtener',jsonb_build_object('id',propuesta));
+ IF r->'historial'->3 ? 'acuerdoDireccion' OR r->'historial'->3 ? 'registradoPor' THEN RAISE EXCEPTION 'Expuso referencia interna a solicitante'; END IF;
  RESET ROLE;
  IF (SELECT count(*) FROM public.actividad)<>cantidad_actividades THEN RAISE EXCEPTION 'Se creó una actividad automáticamente'; END IF;
  IF (SELECT count(*) FROM privado."historialSolicitud" WHERE "propuestaEventoId"=propuesta)<>4 THEN RAISE EXCEPTION 'Historial incompleto'; END IF;

@@ -1,13 +1,9 @@
-// Proponer una actividad (Figma A-02, 476:29028).
-// TODO backend: POST /propuestas { tipo, titulo, descripcion, publico, participantes, fecha, horaInicio, horaFin, espacio,
-// material, responsable, telefono } → folio; PATCH /propuestas/{id} para reenviar una corrección. La lista sale de GET /mis-solicitudes.
-// Mientras, las propuestas nuevas viven solo en esta pestaña.
-
+// Datos y validación del formulario de Aldahir; el envío se realiza mediante servicios/propuestasUsuario.ts.
 export type TipoPropuesta = "evento" | "club";
 export type DatosPropuesta = {
     tipo: TipoPropuesta; titulo: string; descripcion: string; publico: string; participantes: string;
     fecha: string; horaInicio: string; horaFin: string; espacio: string; material: string;
-    responsable: string; telefono: string; acepta: boolean;
+    responsable: string; telefono: string; acepta: boolean; abiertaAlPublico: boolean; sinFinesDeLucro: boolean;
 };
 export type ErroresPropuesta = Partial<Record<keyof DatosPropuesta, string>>;
 
@@ -16,7 +12,7 @@ export const publicos = ["Infancias", "Jóvenes", "Personas adultas", "Familias"
 
 export function propuestaVacia(responsable = "", telefono = ""): DatosPropuesta {
     return { tipo: "evento", titulo: "", descripcion: "", publico: "", participantes: "", fecha: "", horaInicio: "", horaFin: "",
-        espacio: "", material: "", responsable, telefono, acepta: false };
+        espacio: "", material: "", responsable, telefono, acepta: false, abiertaAlPublico: false, sinFinesDeLucro: false };
 }
 
 export function validarPropuesta(d: DatosPropuesta, hoy: string): ErroresPropuesta {
@@ -33,37 +29,8 @@ export function validarPropuesta(d: DatosPropuesta, hoy: string): ErroresPropues
     if (!d.responsable.trim()) e.responsable = "Escribe el nombre de la persona responsable.";
     if (!/^\d{10}$/.test(d.telefono.trim())) e.telefono = "Escribe un teléfono de 10 dígitos.";
     if (!d.acepta) e.acepta = "Confirma que entiendes que proponer no aprueba ni reserva.";
+    if (!d.abiertaAlPublico) e.abiertaAlPublico = "Confirma que será abierta al público.";
+    if (!d.sinFinesDeLucro) e.sinFinesDeLucro = "Confirma que será sin fines de lucro.";
+    if (!!d.horaInicio !== !!d.horaFin) e.horaFin = "Indica tanto la hora de inicio como la de término.";
     return e;
-}
-
-export type EstadoPropuesta = "en-revision" | "con-observaciones" | "no-aprobada";
-export type Propuesta = { id: string; folio: string | null; titulo: string; estado: EstadoPropuesta; observaciones?: string };
-
-// Ejemplos de Figma («Propuesta con observaciones» y «Propuesta no aprobada»). Los ids coinciden con perfil/solicitudes.ts.
-let propuestas: Propuesta[] = [
-    { id: "p1", folio: "PR-0112", titulo: "Taller de encuadernación (ejemplo)", estado: "en-revision" },
-    { id: "p2", folio: "PR-0098", titulo: "Tertulia de poesía regional", estado: "con-observaciones",
-        observaciones: "Indica el cupo máximo y una fecha alternativa (ejemplo). Puedes corregir la propuesta y reenviarla." },
-    { id: "p5", folio: "PR-0105", titulo: "Taller de fotografía (ejemplo)", estado: "no-aprobada" },
-];
-
-export const obtenerPropuesta = (id: string | undefined) => propuestas.find((p) => p.id === id) ?? null;
-
-export function enviarPropuesta(d: DatosPropuesta): Propuesta {
-    const nueva: Propuesta = { id: `pr-${Date.now()}`, folio: null, titulo: d.titulo.trim(), estado: "en-revision" };
-    propuestas = [nueva, ...propuestas];
-    return nueva;
-}
-
-export type Correccion = { cupo: string; fecha: string; comentarios: string };
-export function validarCorreccion(c: Correccion, hoy: string) {
-    const e: Partial<Record<keyof Correccion, string>> = {};
-    const n = Number(c.cupo);
-    if (!c.cupo || !Number.isInteger(n) || n < 1 || n > 500) e.cupo = "Escribe el cupo máximo (de 1 a 500).";
-    if (c.fecha && c.fecha < hoy) e.fecha = "Elige una fecha a partir de hoy.";
-    if (c.comentarios.length > 500) e.comentarios = "Usa 500 caracteres o menos.";
-    return e;
-}
-export function reenviarPropuesta(id: string) {
-    propuestas = propuestas.map((p) => (p.id === id ? { ...p, estado: "en-revision", observaciones: undefined } : p));
 }

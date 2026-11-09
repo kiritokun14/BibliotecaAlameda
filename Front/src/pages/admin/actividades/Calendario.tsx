@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
 import "../contenidos/Contenidos.css";
 import "./EditorActividades.css";
@@ -7,10 +7,11 @@ import "../contenidoDemo/Contenidos.css";
 import "./Actividades.css";
 import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, PieDatos, Tabla, Tarjeta, type Columna } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
-import { NOMBRE_ESTADO_ACTIVIDAD, useActividades, type Actividad } from "./datos";
-import { hoyISO, horarioBloqueo, useSalas, type Bloqueo, type Sala } from "./salas";
+import { NOMBRE_ESTADO_ACTIVIDAD, type Actividad } from "./datos";
+import { hoyISO, horarioBloqueo, type Bloqueo, type Sala } from "./salas";
 import { celdasDelMes, desdeISO, diaLargo, estadoSala, eventosDelDia, nombreMes, ocupa, ocupacion, semanaDe, type Evento } from "./calendario";
 import { BASE_CALENDARIO, TONO_ACTIVIDAD } from "./utiles";
+import { useCalendarioPersonal } from "../../../servicios/usarCalendarioPersonal";
 import iconoArchivo from "../../../assets/admin/actividades/resumen-archivo.svg";
 import iconoReloj from "../../../assets/admin/contenidos/resumen-reloj-dorado.svg";
 import iconoX from "../../../assets/admin/actividades/resumen-x-guinda.svg";
@@ -28,13 +29,12 @@ const DIAS_SEMANA = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 // vacíos 566:25437, 619:50919, 619:51079)
 function Calendario() {
     const [params, setParams] = useSearchParams();
-    const navigate = useNavigate();
     const vista = (["mes", "semana", "dia", "salas"].includes(params.get("vista") ?? "") ? params.get("vista") : "mes") as Vista;
     const hoy = hoyISO();
     const fecha = /^\d{4}-\d{2}-\d{2}$/.test(params.get("fecha") ?? "") ? params.get("fecha")! : hoy;
     const [busqueda, setBusqueda] = useState("");
-    const actividades = useActividades();
-    const { salas, bloqueos } = useSalas();
+    const { actividades, salas, cargando, error, reintentar } = useCalendarioPersonal();
+    const bloqueos: Bloqueo[] = [];
 
     function ir(nueva: Vista, nuevaFecha = fecha) {
         setParams({ vista: nueva, fecha: nuevaFecha });
@@ -48,12 +48,11 @@ function Calendario() {
     const d = desdeISO(fecha);
     const delMes = actividades.filter((a) => ocupa(a) && a.fecha.startsWith(fecha.slice(0, 7))).length;
     const libresHoy = salas.filter((s) => s.habilitada && !bloqueos.some((b) => b.sala === s.nombre && b.fecha === hoy) && !actividades.some((a) => ocupa(a) && a.espacio === s.nombre && a.fecha === hoy)).length;
-    const activos = bloqueos.filter((b) => b.fecha >= hoy).length;
     const eventosDia = eventosDelDia(fecha, activas, bloqueosVisibles);
     const diaVacio = vista === "dia" && eventosDia.length === 0 && !texto;
 
     const encabezado = {
-        mes: { titulo: "Calendario de actividades", texto: `${nombreMes(d.getFullYear(), d.getMonth())} · Todas las salas (ejemplo).`, miga: "Mes" },
+        mes: { titulo: "Calendario de actividades", texto: `${nombreMes(d.getFullYear(), d.getMonth())} · Todas las salas.`, miga: "Mes" },
         semana: { titulo: "Semana por sala", texto: `${semanaTexto(fecha)} · Disponibilidad por horario.`, miga: "Semana por sala" },
         dia: { titulo: diaLargo(fecha), texto: "Actividades y bloqueos de este día.", miga: diaVacio ? "Día sin actividades" : "Día" },
         salas: { titulo: "Salas de la biblioteca", texto: "Capacidad y estado de cada espacio.", miga: "Salas" },
@@ -62,6 +61,9 @@ function Calendario() {
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
+                {cargando && <p role="status">Cargando calendario del personal…</p>}
+                {error && <p role="alert">{error} <button onClick={reintentar}>Reintentar</button></p>}
+                <p className="cn-nota">Actividades registradas. La edición de salas y los bloqueos aún no tienen servicio; la disponibilidad definitiva se verifica al atender una solicitud.</p>
                 <Migas pasos={[["Actividades"], ["Calendario y salas"], [encabezado.miga]]} />
                 <Encabezado etiqueta="Calendario y salas" titulo={encabezado.titulo} texto={encabezado.texto} />
 
@@ -70,11 +72,11 @@ function Calendario() {
                         insignia="Calendario y salas"
                         titulo="Resumen del"
                         resalte="calendario"
-                        subtitulo="Lo que pasa en las salas este mes · cifras de ejemplo"
+                        subtitulo="Actividades registradas por la biblioteca"
                         accesos={[
-                            { icono: iconoArchivo, numero: delMes, titulo: "Actividades del mes", texto: `Programadas en ${nombreMes(d.getFullYear(), d.getMonth()).split(" ")[0].toLowerCase()} (ejemplo)`, enlace: "Ver el día", tono: "verde", alPresionar: () => ir("dia", hoy) },
-                            { icono: iconoReloj, numero: `${libresHoy} de ${salas.filter((s) => s.habilitada).length}`, titulo: "Salas libres hoy", texto: "Sin actividad ni bloqueo (ejemplo)", enlace: "Ver salas", tono: "dorado", alPresionar: () => ir("salas") },
-                            { icono: iconoX, numero: activos, titulo: "Bloqueos activos", texto: "Mantenimiento y uso interno (ejemplo)", enlace: "Bloquear", tono: "guinda", alPresionar: () => navigate(`${BASE_CALENDARIO}/bloquear`) },
+                            { icono: iconoArchivo, numero: delMes, titulo: "Actividades del mes", texto: `Programadas en ${nombreMes(d.getFullYear(), d.getMonth()).split(" ")[0].toLowerCase()}`, enlace: "Ver el día", tono: "verde", alPresionar: () => ir("dia", hoy) },
+                            { icono: iconoReloj, numero: `${libresHoy} de ${salas.filter((s) => s.habilitada).length}`, titulo: "Sin actividades hoy", texto: "Disponibilidad por confirmar en Atención", enlace: "Ver salas", tono: "dorado", alPresionar: () => ir("salas") },
+                            { icono: iconoX, numero: "—", titulo: "Bloqueos", texto: "Servicio pendiente; no indica disponibilidad", enlace: "Ver salas", tono: "guinda", alPresionar: () => ir("salas") },
                         ]}
                     />
                 )}
@@ -95,7 +97,7 @@ function Calendario() {
                             <button type="button" className={clasesBoton("contorno")} onClick={() => ir("mes", mesRelativo(fecha, -1))}>‹ {nombreMes(d.getFullYear(), d.getMonth() - 1).split(" ")[0]}</button>
                             <button type="button" className={clasesBoton("suave")} onClick={() => ir("mes", hoy)}>Hoy</button>
                             <button type="button" className={clasesBoton("contorno")} onClick={() => ir("mes", mesRelativo(fecha, 1))}>{nombreMes(d.getFullYear(), d.getMonth() + 1).split(" ")[0]} ›</button>
-                            <Link to={`${BASE_CALENDARIO}/bloquear`} className={clasesBoton("verde")}>Bloquear sala u horario</Link>
+                            <span className="cn-nota">Bloqueos todavía no disponibles</span>
                         </div>
                         <Mes fecha={fecha} hoy={hoy} actividades={activas} bloqueos={bloqueosVisibles} alElegir={(dia) => ir("dia", dia)} />
                     </>
@@ -113,13 +115,13 @@ function Calendario() {
                                     <span className="cn-vacio__icono" aria-hidden="true"><img src={vacioReloj} alt="" /></span>
                                     <p className="cn-vacio__titulo">Sin actividades este día</p>
                                     <p className="cn-vacio__texto">Puedes programar una o bloquear una sala.</p>
-                                    <Link to={`${BASE_CALENDARIO}/bloquear?fecha=${fecha}`} className={clasesBoton("contorno")}>Bloquear sala u horario</Link>
+                                    <span className="cn-nota">Bloqueos: servicio pendiente</span>
                                 </div>
                             )
                         ) : (
                             <>
-                                <Tabla columnas={columnasDia(salas)} filas={eventosDia} clave={(e) => (e.clase === "actividad" ? e.actividad.folio : e.bloqueo.id)} />
-                                <p className="cn-nota">{eventosDia.length} {eventosDia.length === 1 ? "elemento" : "elementos"} (ejemplo)</p>
+                                <Tabla columnas={columnasDia(salas)} filas={eventosDia} clave={(e) => (e.clase === "actividad" ? `${e.actividad.folio}:${e.actividad.fecha}:${e.actividad.inicio}` : e.bloqueo.id)} />
+                                <p className="cn-nota">{eventosDia.length} {eventosDia.length === 1 ? "elemento" : "elementos"}</p>
                             </>
                         )}
                     </Tarjeta>
@@ -163,7 +165,7 @@ function Mes({ fecha, hoy, actividades, bloqueos, alElegir }: { fecha: string; h
                         <button key={dia} type="button" className={`ac-dia ${dia === hoy ? "ac-dia--hoy" : ""}`} onClick={() => alElegir(dia)} aria-label={`${diaLargo(dia)}: ${eventos.length ? `${eventos.length} en agenda` : "sin actividades"}. Ver el día`}>
                             <span className="ac-dia__numero">{Number(dia.slice(8))}</span>
                             {eventos.slice(0, 3).map((e) => (
-                                <span key={e.clase === "actividad" ? e.actividad.folio : e.bloqueo.id} className={`ac-evento ac-evento--${e.clase === "bloqueo" ? "guinda" : e.actividad.estado === "publicada" ? "verde" : "dorado"}`}>
+                                <span key={e.clase === "actividad" ? `${e.actividad.folio}:${e.actividad.fecha}:${e.actividad.inicio}` : e.bloqueo.id} className={`ac-evento ac-evento--${e.clase === "bloqueo" ? "guinda" : e.actividad.estado === "publicada" ? "verde" : "dorado"}`}>
                                     {e.clase === "bloqueo" ? `${e.sala} bloqueada` : e.titulo}
                                 </span>
                             ))}
@@ -181,7 +183,7 @@ function Semana({ fecha, hoy, salas, actividades, bloqueos, alElegir }: { fecha:
     const elegido = dias.includes(fecha) ? fecha : dias[0];
     const hayAlgo = salas.some((s) => HORAS.some((h) => ocupacion(s.nombre, elegido, h, actividades, bloqueos).tipo !== "libre"));
     return (
-        <Tarjeta icono={iconoCalendario} titulo={elegido === hoy ? "Ocupación de hoy por sala" : "Ocupación del día por sala"} subtitulo={`${diaLargo(elegido)} (ejemplo).`}>
+        <Tarjeta icono={iconoCalendario} titulo={elegido === hoy ? "Ocupación de hoy por sala" : "Ocupación del día por sala"} subtitulo={`${diaLargo(elegido)}.`}>
             <div className="cn-filtros" role="group" aria-label="Día de la semana">
                 {dias.map((dia) => (
                     <button key={dia} type="button" className={`cn-filtro ${dia === elegido ? "cn-filtro--activo" : ""}`} aria-pressed={dia === elegido} onClick={() => alElegir(dia)}>
@@ -194,26 +196,26 @@ function Semana({ fecha, hoy, salas, actividades, bloqueos, alElegir }: { fecha:
                     <span className="cn-vacio__icono" aria-hidden="true"><img src={vacioReloj} alt="" /></span>
                     <p className="cn-vacio__titulo">Sin actividades esta semana</p>
                     <p className="cn-vacio__texto">Todas las salas están libres en este horario.</p>
-                    <Link to={`${BASE_CALENDARIO}/bloquear?fecha=${elegido}`} className={clasesBoton("contorno")}>Bloquear sala u horario</Link>
+                    <span className="cn-nota">Bloqueos: servicio pendiente</span>
                 </div>
             ) : (
                 <>
                     <Tabla
                         columnas={[
-                            { titulo: "SALA", fuerte: true, celda: (s: Sala) => <Link to={`${BASE_CALENDARIO}/salas/${s.id}`} className="cn-enlace">{s.nombre}</Link> },
+                            { titulo: "SALA", fuerte: true, celda: (s: Sala) => <span>{s.nombre}</span> },
                             ...HORAS.map((h) => ({
                                 titulo: h.replace(/^0/, ""),
                                 ancho: 130,
                                 celda: (s: Sala) => {
                                     const o = ocupacion(s.nombre, elegido, h, actividades, bloqueos);
-                                    return <Chip tono={o.tipo === "libre" ? "verde" : o.tipo === "bloqueada" ? "guinda" : "dorado"} ancho={120}>{o.texto}</Chip>;
+                                    return <Chip tono={o.tipo === "libre" ? "verde" : o.tipo === "bloqueada" ? "guinda" : "dorado"} ancho={120}>{o.tipo === "libre" ? "Sin actividad registrada" : o.texto}</Chip>;
                                 },
                             })),
                         ]}
                         filas={salas}
                         clave={(s) => s.id}
                     />
-                    <p className="cn-nota">Toca una sala para ver su ficha (ejemplo)</p>
+                    <p className="cn-nota">Toca una sala para ver su ficha</p>
                 </>
             )}
         </Tarjeta>
@@ -265,7 +267,7 @@ function Salas({ salas, hoy, actividades, bloqueos, busqueda, alLimpiar }: { sal
                         { titulo: "EQUIPO", ancho: 200, celda: (s: Sala) => s.equipo },
                         { titulo: "HOY", ancho: 140, celda: hoyEn },
                         { titulo: "ESTADO", ancho: 150, celda: (s: Sala) => { const e = estadoSala(s, hoy, bloqueos); return <Chip tono={e.tono} ancho={140}>{e.texto}</Chip>; } },
-                        { titulo: "ACCIÓN", ancho: 100, celda: (s: Sala) => <Link to={`${BASE_CALENDARIO}/salas/${s.id}`} className="cn-enlace">Ver ficha →<span className="cn-solo-lectores"> {s.nombre}</span></Link> },
+                        { titulo: "ACCIÓN", ancho: 100, celda: () => <span>Edición pendiente</span> },
                     ]}
                     filas={salas}
                     clave={(s) => s.id}

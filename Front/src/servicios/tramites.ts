@@ -1,7 +1,9 @@
+import type { ActividadGestion, DatosActividadReal } from './actividades';
 import { ErrorServicio, obtenerSupabase, pedirApi } from './api';
 import { consultasEditor } from './consultas';
 
 export type TipoTramite = 'credencial' | 'propuesta';
+export interface AcuerdoDireccion { responsable: string; fecha: string; referencia: string }
 export const ESTADOS_CREDENCIAL: Record<string, string> = { recibida: 'Recibida', en_atencion: 'En atención', cita_programada: 'Cita programada', atendida: 'Atendida', rechazada: 'Rechazada', cancelada: 'Cancelada' };
 export const ESTADOS_PROPUESTA: Record<string, string> = { borrador: 'Borrador', en_revision: 'En revisión', requiere_correccion: 'Requiere corrección', aprobada: 'Aprobada', rechazada: 'Rechazada', cancelada: 'Cancelada' };
 export interface DatosPropuesta {
@@ -14,9 +16,9 @@ export interface SolicitudAtencion {
     tipoSolicitud?: string; estadoSolicitud?: string; fechaCita?: string | null; observaciones?: string | null;
     tituloPropuesta?: string; descripcion?: string; tipoPropuesta?: string; publicoDirigido?: string;
     necesidadEspacio?: string; frecuenciaReunion?: string; diasSolicitados?: string; horarioSolicitado?: string;
-    estadoRevision?: string; observacionesInstitucionales?: string | null; actividadId?: string | null;
+    estadoRevision?: string; observacionesInstitucionales?: string | null; actividadId?: string | null; propuestoPor?: string;
     perfil?: { nombres: string; primerApellido: string; segundoApellido?: string; telefono: string; municipio?: string };
-    historial: { accion: string; estadoAnterior: string | null; estadoNuevo: string; nota: string | null; fecha: string }[];
+    historial: { accion: string; estadoAnterior: string | null; estadoNuevo: string; nota: string | null; fecha: string; registradoPor?: string; acuerdoDireccion?: AcuerdoDireccion | null }[];
 }
 export interface ListaTramites { total: number; solicitudes: SolicitudAtencion[] }
 export function estadoTramite(s: SolicitudAtencion) { return s.estadoSolicitud ?? s.estadoRevision ?? ''; }
@@ -45,9 +47,15 @@ export function enviarPropuesta(datos: DatosPropuesta, anterior?: SolicitudAtenc
         method: anterior ? 'PUT' : 'POST', body: JSON.stringify({ ...datos, ...(anterior ? { actualizadoEn: anterior.actualizadoEn } : {}) }),
     });
 }
-export function resolverTramite(tipo: TipoTramite, anterior: SolicitudAtencion, estado: string, nota: string, fechaCita?: string) {
+export function resolverTramite(tipo: TipoTramite, anterior: SolicitudAtencion, estado: string, nota: string, fechaCita?: string, acuerdoDireccion?: AcuerdoDireccion) {
     const cuerpo = tipo === 'credencial' ? { estadoSolicitud: estado, actualizadaEn: anterior.actualizadaEn,
         observaciones: nota.trim() || null, fechaCita: fechaCita || null }
-        : { estadoRevision: estado, actualizadoEn: anterior.actualizadoEn, observacionesInstitucionales: nota.trim() || null };
+        : { estadoRevision: estado, actualizadoEn: anterior.actualizadoEn, observacionesInstitucionales: nota.trim() || null, ...(acuerdoDireccion ? { acuerdoDireccion } : {}) };
     return pedir<SolicitudAtencion>(tipo, `/${encodeURIComponent(anterior.id)}`, { method: 'PATCH', body: JSON.stringify(cuerpo) });
+}
+
+export function publicarPropuesta(anterior: SolicitudAtencion, datos: DatosActividadReal) {
+    return pedir<ActividadGestion>('propuesta', `/${encodeURIComponent(anterior.id)}/publicar`, {
+        method: 'POST', body: JSON.stringify({ ...datos, actualizadoEn: anterior.actualizadoEn, confirmacion: true }),
+    });
 }

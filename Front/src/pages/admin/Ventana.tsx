@@ -18,6 +18,8 @@ type VentanaProps = {
     alConfirmar: () => void;
     alCerrar: () => void;
     children?: ReactNode;
+    error?: string; // error del servidor al confirmar (se muestra arriba de los botones)
+    ocupada?: boolean; // mientras se guarda: desactiva confirmar
 };
 
 export function Ventana({
@@ -31,6 +33,8 @@ export function Ventana({
     alConfirmar,
     alCerrar,
     children,
+    error,
+    ocupada,
 }: VentanaProps) {
     const formulario = useRef<HTMLFormElement>(null);
 
@@ -72,12 +76,13 @@ export function Ventana({
                 </div>
 
                 {children && <div className="at-ventana__cuerpo">{children}</div>}
+                {error && <p className="contenidos-campo__error" role="alert">{error}</p>}
 
                 <div className="contenidos-dialogo__acciones">
                     <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={alCerrar}>
                         {textoCancelar}
                     </button>
-                    <button type="submit" className={`contenidos-boton ${tono === "guinda" ? "at-boton--guinda-lleno" : "contenidos-boton--principal"}`}>
+                    <button type="submit" disabled={ocupada} className={`contenidos-boton ${tono === "guinda" ? "at-boton--guinda-lleno" : "contenidos-boton--principal"}`}>
                         {textoConfirmar}
                     </button>
                 </div>
@@ -92,7 +97,7 @@ export function Ventana({
 export type CampoVentana = {
     nombre: string;
     etiqueta: string;
-    tipo?: "texto" | "select" | "fecha";
+    tipo?: "texto" | "select" | "fecha" | "hora";
     obligatorio?: boolean;
     placeholder?: string;
     opciones?: string[];
@@ -207,7 +212,7 @@ function CampoFormulario({ campo, valor, error, alCambiar }: CampoFormularioProp
             ) : (
                 <input
                     id={id}
-                    type={campo.tipo === "fecha" ? "date" : "text"}
+                    type={campo.tipo === "fecha" ? "date" : campo.tipo === "hora" ? "time" : "text"}
                     className={error ? "contenidos-campo--error" : undefined}
                     placeholder={campo.placeholder}
                     value={valor}

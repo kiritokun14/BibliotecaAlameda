@@ -6,10 +6,12 @@ import "../noticias/Noticias.css";
 import { useSesion } from "../perfil/usarSesion";
 import { Fila, TarjetaProponer } from "./Agenda";
 import {
-    HOY_EJEMPLO, agendaEjemplo, agruparPorMes, estadoActividad, fechaCaja, filtrarTodas, filtrosCategoria, filtrosVacios, nombreCorto,
+     agruparPorMes, estadoActividad, fechaCaja, filtrarTodas, filtrosCategoria, filtrosVacios, nombreCorto,
     type ActividadAgenda, type Disponibilidad, type FiltrosAgenda, type Horario,
 } from "./datosAgenda";
 import "./Agenda.css";
+import { useAgendaPublica } from "../../../servicios/usarAgendaPublica";
+import { fechaHoyTepic } from "../../../servicios/propuestasUsuario";
 import iconoBuscar from "../../../assets/noticias/buscar.svg";
 import iconoBuscarBlanco from "../../../assets/noticias/buscar-blanco.svg";
 import iconoCalendario from "../../../assets/noticias/calendario.svg";
@@ -26,7 +28,7 @@ import pinTarjeta from "../../../assets/eventos/tarjeta-pin.svg";
 import iconoVistaCalendario from "../../../assets/eventos/vista-calendario.svg";
 
 // T-052 · «Todas las actividades» (Figma A-02, 476:11303 tarjetas, 534:16014 lista, 535:16031 filtros, 535:16547 fecha).
-// TODO backend: ver datosAgenda.ts. La búsqueda y los filtros se aplican aquí sobre los datos de ejemplo.
+// La búsqueda y los filtros se aplican sobre las sesiones publicadas del servidor.
 type Vista = "tarjetas" | "lista";
 
 export default function TodasActividades() {
@@ -37,11 +39,12 @@ export default function TodasActividades() {
     const [panelAbierto, setPanelAbierto] = useState(false);
     const [calendarioAbierto, setCalendarioAbierto] = useState(false);
     const [vista, setVista] = useState<Vista>("tarjetas");
-    const hoy = HOY_EJEMPLO;
+    const hoy = fechaHoyTepic();
+    const { actividades, cargando, error, reintentar } = useAgendaPublica();
 
-    const resultados = useMemo(() => filtrarTodas(agendaEjemplo, filtros, hoy), [filtros, hoy]);
+    const resultados = useMemo(() => filtrarTodas(actividades, filtros, hoy, new Set()), [actividades, filtros, hoy]);
     const grupos = agruparPorMes(resultados, hoy);
-    const fechasConActividades = useMemo(() => new Set(agendaEjemplo.map((a) => a.fecha)), []);
+    const fechasConActividades = useMemo(() => new Set(actividades.map((a) => a.fecha)), [actividades]);
     const cerrarCalendario = useCallback(() => setCalendarioAbierto(false), []);
 
     function buscar(e: FormEvent) { e.preventDefault(); setFiltros((f) => ({ ...f, texto })); }
@@ -55,12 +58,11 @@ export default function TodasActividades() {
     const cantidadFiltros = [filtros.categoria !== "todas", filtros.disponibilidad, filtros.horario !== "todo", filtros.fecha].filter(Boolean).length;
     const meses = grupos.map((g) => g.titulo.split(" ")[0].toLowerCase());
     const resumen = resultados.length
-        ? `Mostrando ${resultados.length} ${resultados.length === 1 ? "actividad" : "actividades"}${meses.length ? ` de ${meses.join(" y ")}` : ""} (ejemplo)`
+        ? `Mostrando ${resultados.length} ${resultados.length === 1 ? "sesión" : "sesiones"}${meses.length ? ` de ${meses.join(" y ")}` : ""}`
         : "No encontramos actividades con esos filtros";
 
     const disponibilidades: { valor: Disponibilidad; texto: string }[] = [
-        { valor: "abierta", texto: "Inscripción abierta" }, { valor: "cupo", texto: "Cupo completo" },
-        ...(sesion ? [{ valor: "inscrito" as const, texto: "Ya estoy inscrito" }] : []),
+        { valor: "abierta", texto: "Inscripción habilitada" },
     ];
     const horarios: { valor: Horario; texto: string }[] = [
         { valor: "todo", texto: "Todo el día" }, { valor: "manana", texto: "Mañana" }, { valor: "tarde", texto: "Tarde" },
@@ -72,6 +74,8 @@ export default function TodasActividades() {
                 titulo={<>Todas las <span>actividades</span></>} texto="Próximas y pasadas, ordenadas por fecha." />
 
             <div className="agenda-cuerpo">
+                {cargando && <p role="status">Cargando actividades…</p>}
+                {error && <p role="alert">{error} <button onClick={reintentar}>Reintentar</button></p>}
                 {sesion && <TarjetaProponer />}
 
                 <form className="buscador-noticias" role="search" onSubmit={buscar}>
@@ -168,8 +172,8 @@ export default function TodasActividades() {
                             <span className="agenda-grupo__chip">{g.pasado ? "Pasadas" : "Próximas"} · {g.actividades.length}</span>
                         </div>
                         {vista === "tarjetas"
-                            ? <ul className="agenda-tarjetas">{g.actividades.map((a) => <li key={a.id}><Tarjeta actividad={a} hoy={hoy} /></li>)}</ul>
-                            : <ul className="agenda-filas">{g.actividades.map((a) => <li key={a.id}><Fila actividad={a} /></li>)}</ul>}
+                            ? <ul className="agenda-tarjetas">{g.actividades.map((a) => <li key={a.sesionId ?? a.id}><Tarjeta actividad={a} hoy={hoy} /></li>)}</ul>
+                            : <ul className="agenda-filas">{g.actividades.map((a) => <li key={a.sesionId ?? a.id}><Fila actividad={a} /></li>)}</ul>}
                     </section>
                 )) : (
                     <div className="agenda-vacio" role="status">
@@ -199,7 +203,7 @@ function Tarjeta({ actividad: a, hoy }: { actividad: ActividadAgenda; hoy: strin
             <div className="agenda-tarjeta__contenido">
                 <p className="agenda-tarjeta__meta">
                     <span className={`agenda-pastilla agenda-pastilla--${a.categoria}`}>{nombreCorto[a.categoria]}</span>
-                    <span className={`agenda-pastilla agenda-pastilla--${estado}`}>{textoEstado[estado]}</span>
+                    <span className={`agenda-pastilla agenda-pastilla--${estado}`}>{a.cancelada ? 'Cancelada' : estado === 'finalizada' ? textoEstado[estado] : a.inscripcionAbierta === false ? 'Consulta al personal' : textoEstado[estado]}</span>
                 </p>
                 <h3>{a.titulo}</h3>
                 <p className="agenda-tarjeta__datos">

@@ -127,8 +127,8 @@ BEGIN
   IF a."estadoPublicacion"<>'borrador' THEN RAISE EXCEPTION 'Solo se envían borradores' USING ERRCODE='55000'; END IF;
   SELECT "datosBorrador" INTO d FROM privado."estadoAgenda" WHERE "actividadId"=a.id;
   IF length(btrim(a.descripcion))=0 OR length(btrim(a.responsable))=0 OR coalesce(d->>'cupo','') !~ '^[0-9]{1,6}$'
-  OR (d->>'cupo')::integer<1 OR coalesce(d->>'fecha','') !~ '^\d{4}-\d{2}-\d{2}$'
-  OR coalesce(d->>'inicio','') !~ '^\d{2}:\d{2}(:\d{2})?$' OR coalesce(d->>'fin','') !~ '^\d{2}:\d{2}(:\d{2})?$'
+  OR (d->>'cupo')::integer<1 OR coalesce(d->>'fecha','') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+  OR coalesce(d->>'inicio','') !~ '^[0-9]{2}:[0-9]{2}(:[0-9]{2})?$' OR coalesce(d->>'fin','') !~ '^[0-9]{2}:[0-9]{2}(:[0-9]{2})?$'
   THEN RAISE EXCEPTION 'Faltan datos de programación' USING ERRCODE='23514'; END IF;
   SELECT * INTO e FROM public.espacio WHERE nombre=d->>'espacio' AND activo FOR UPDATE;
   IF NOT FOUND OR (d->>'cupo')::integer>e.capacidad THEN RAISE EXCEPTION 'Espacio o cupo inválido' USING ERRCODE='23514'; END IF;

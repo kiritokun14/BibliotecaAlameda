@@ -8,6 +8,8 @@ import { ContextoPanel } from '../../../servicios/accesoPanel';
 import { consultarTramite, listarTramites, resolverTramite, estadoTramite, ESTADOS_CREDENCIAL, ESTADOS_PROPUESTA,
     type ListaTramites, type SolicitudAtencion, type TipoTramite } from '../../../servicios/tramites';
 import { mensajeError } from '../../../servicios/api';
+import PublicarPropuesta from './propuestas/PublicarPropuesta';
+import { permisoGlobal } from '../../../servicios/accesoPanel';
 import { FichaTramite } from '../../publico/tramites/piezas';
 
 export default function AtencionTramites() {
@@ -48,22 +50,31 @@ export default function AtencionTramites() {
         {actual?.solicitud && <section className="cn-tarjeta"><FichaTramite solicitud={actual.solicitud} />
             <Datos filas={[["Última actualización", new Date((actual.solicitud.actualizadaEn ?? actual.solicitud.actualizadoEn)!).toLocaleString('es-MX')]]} />
             <Resolver key={actual.solicitud.actualizadaEn ?? actual.solicitud.actualizadoEn} tipo={tipo} solicitud={actual.solicitud} alGuardar={() => recargar(x => x + 1)} />
-            {actual.solicitud.estadoRevision === 'aprobada' && <p>La programación y publicación se realiza en la sección Actividades por el personal con esos permisos.</p>}
+            {actual.solicitud.estadoRevision === 'aprobada' && (pathname.endsWith('/publicar')
+                ? <PublicarPropuesta key={actual.solicitud.actualizadoEn} solicitud={actual.solicitud} />
+                : actual.solicitud.actividadId ? <p>Esta propuesta ya tiene una actividad vinculada. <Link to="/eventos/todas">Consultar la agenda publicada</Link></p>
+                : <p>La propuesta está aprobada y falta programarla y publicarla.
+                    {identidad && permisoGlobal(identidad.acceso, 'publicar_contenidos') && <Link className="boton-panel" to={`${base}/${actual.solicitud.id}/publicar`}>Programar y publicar en Eventos</Link>}</p>)}
         </section>}
     </Pagina></PanelLayout>;
 }
 function Resolver({ tipo, solicitud: s, alGuardar }: { tipo: TipoTramite; solicitud: SolicitudAtencion; alGuardar: () => void }) {
+    const identidad = useContext(ContextoPanel);
     const estado = estadoTramite(s);
     const opciones = tipo === 'propuesta' ? estado === 'en_revision' ? ['requiere_correccion', 'aprobada', 'rechazada'] : []
         : estado === 'recibida' ? ['en_atencion', 'cita_programada', 'rechazada', 'cancelada'] : ['en_atencion', 'cita_programada'].includes(estado) ? ['en_atencion', 'cita_programada', 'atendida', 'rechazada', 'cancelada'].filter(e => e !== estado || e === 'cita_programada') : [];
     const [decision, setDecision] = useState(opciones[0] ?? ''); const [error, setError] = useState(''); const [guardando, setGuardando] = useState(false); const bloqueo = useRef(false);
     const etiquetas = tipo === 'credencial' ? ESTADOS_CREDENCIAL : ESTADOS_PROPUESTA;
+    const requiereAcuerdo = tipo === 'propuesta' && ['aprobada', 'rechazada'].includes(decision);
+    if (tipo === 'propuesta' && s.propuestoPor === identidad?.acceso.usuarioId) return <p>Otra persona autorizada debe resolver tu propuesta. No puedes aprobarla, rechazarla ni pedirte correcciones.</p>;
     if (!opciones.length) return <p>No hay decisiones pendientes para este estado.</p>;
     async function enviar(e: FormEvent<HTMLFormElement>) {
         e.preventDefault(); if (bloqueo.current) return;
         const f = new FormData(e.currentTarget); const nota = String(f.get('nota') ?? '').trim();
         setError('');
-        if (['requiere_correccion', 'rechazada', 'cancelada'].includes(decision) && !nota) return setError('Escribe las observaciones o el motivo.');
+        if ((tipo === 'propuesta' || ['rechazada', 'cancelada'].includes(decision)) && !nota) return setError('Escribe las observaciones o el motivo.');
+        const acuerdo = requiereAcuerdo ? { responsable: String(f.get('responsableDireccion') ?? '').trim(), fecha: String(f.get('fechaAcuerdo') ?? ''), referencia: String(f.get('referenciaAcuerdo') ?? '').trim() } : undefined;
+        if (acuerdo && (!acuerdo.responsable || !acuerdo.fecha || !acuerdo.referencia)) return setError('Completa quién emitió el acuerdo de dirección, la fecha y su referencia.');
         let cita: string | undefined;
         if (decision === 'cita_programada') {
             const fecha = new Date(String(f.get('cita')));
@@ -71,14 +82,20 @@ function Resolver({ tipo, solicitud: s, alGuardar }: { tipo: TipoTramite; solici
             cita = fecha.toISOString();
         }
         bloqueo.current = true; setGuardando(true);
-        try { await resolverTramite(tipo, s, decision, nota, cita); alGuardar(); }
+        try { await resolverTramite(tipo, s, decision, nota, cita, acuerdo); alGuardar(); }
         catch (error) { setError(mensajeError(error)); }
         finally { bloqueo.current = false; setGuardando(false); }
     }
     return <form onSubmit={enviar}><h3>Registrar atención o resolución</h3><fieldset className="tramites-campos" disabled={guardando}>
         <label>Decisión<select value={decision} onChange={e => setDecision(e.target.value)}>{opciones.map(op => <option value={op} key={op}>{etiquetas[op]}</option>)}</select></label>
         {decision === 'cita_programada' && <label>Cita (hora local de este equipo)<input name="cita" type="datetime-local" required /></label>}
-        <label>Observaciones para la persona solicitante<textarea name="nota" maxLength={tipo === 'credencial' ? 1000 : 5000} required={['requiere_correccion', 'rechazada', 'cancelada'].includes(decision)} /></label>
+        {requiereAcuerdo && <>
+            <p>Registra el acuerdo emitido por dirección. Tu cuenta registra la resolución; esta acción no publica ni reserva la actividad.</p>
+            <label>Quién emitió el acuerdo de dirección<input name="responsableDireccion" maxLength={200} required /></label>
+            <label>Fecha del acuerdo de dirección<input name="fechaAcuerdo" type="date" required /></label>
+            <label>Referencia del acuerdo (folio, oficio o minuta)<input name="referenciaAcuerdo" maxLength={500} required /></label>
+        </>}
+        <label>Observaciones para la persona solicitante<textarea name="nota" maxLength={tipo === 'credencial' ? 1000 : 5000} required={tipo === 'propuesta' || ['rechazada', 'cancelada'].includes(decision)} /></label>
         <label><input type="checkbox" required /> Revisé la solicitud y confirmo esta decisión.</label>
         <button className="boton-panel">{guardando ? 'Guardando…' : 'Confirmar decisión'}</button>
     </fieldset>{error && <p role="alert">{error} <button type="button" onClick={alGuardar}>Recargar versión actual</button></p>}</form>;

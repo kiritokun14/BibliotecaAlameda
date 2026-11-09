@@ -1,54 +1,80 @@
-import { useRef, useState, type FormEvent, type ReactNode } from "react";
-import { Link, useNavigate } from "react-router";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useNavigate } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
-import { useTramite } from "../credencial/datos";
 import { Chip, Nota } from "../credencial/piezas";
 import "../credencial/CredencialSesion.css";
-import { HOY_EJEMPLO } from "../eventos/datosAgenda";
-import { notificaciones } from "../notificaciones/datos";
-import { areas, separarAreas, type Area } from "./datos";
-import { disponibilidad, enviarSolicitudEspacio, validarSolicitud, type DatosSolicitud, type ErroresSolicitud } from "./datosSesion";
+import { mensajeError } from "../../../servicios/api";
+import { enviarSolicitud, hoyLocal, listarAreas, type AreaEspacio } from "../../../servicios/espacios";
+import { separarAreas } from "./datos";
+import { validarSolicitud, type DatosSolicitud, type ErroresSolicitud } from "./datosSesion";
+import "../../../components/portal/Visitante.css";
 import "./EspaciosSesion.css";
 import iconoPin from "../../../assets/espacios/pin-verde.svg";
 import checkPaso from "../../../assets/credencial/paso-check.svg";
-import checkBlanco from "../../../assets/perfil/tarjeta-check.svg";
-import alerta from "../../../assets/credencial/alerta-dorada.svg";
 import infoDorado from "../../../assets/credencial/info-dorado.svg";
 import enviar from "../../../assets/perfil/tarjeta-enviar.svg";
 
-// Agenda de espacios con sesión (Figma A-02, 476:28196; sin credencial vigente, 476:28399).
-const pasos = ["Credencial verificada", "Elige un área", "Fecha y horario", "Envía tu solicitud"];
-const vacio: DatosSolicitud = { fecha: "", horaInicio: "", horaFin: "", personas: "", motivo: "" };
+// Agenda de espacios con sesión (Figma A-02, 476:28196).
+// HU-16 (CA-16.1): cualquier cuenta con sesión puede solicitar; no se pide credencial.
+// Las áreas que se pueden solicitar vienen de GET /espacios/areas; enviar no reserva el espacio (CA-16.2).
+const pasos = ["Elige un área", "Fecha y horario", "Envía tu solicitud"];
+const vacio: DatosSolicitud = { tipo: "uso_espacio", fecha: "", horaInicio: "", horaFin: "", personas: "", motivo: "", institucion: "" };
+
+type CargaAreas = { areas: AreaEspacio[] } | { error: string } | null;
 
 export default function AgendaEspacios() {
     const navegar = useNavigate();
-    const tramite = useTramite(); // GET /mis-solicitudes
-    const vigente = tramite.estado === "vigente";
-    const { solicitables, noSolicitables } = separarAreas();
-    const [areaId, setAreaId] = useState(areas.find((a) => a.id === "area-actividades")?.id ?? solicitables[0].id);
+    const hoy = hoyLocal();
+    const { noSolicitables } = separarAreas(); // solo informativas (no se solicitan)
+    const [carga, setCarga] = useState<CargaAreas>(null);
+    const [intento, setIntento] = useState(0);
+    const [areaId, setAreaId] = useState("");
     const [datos, setDatos] = useState(vacio);
     const [errores, setErrores] = useState<ErroresSolicitud>({});
+    const [errorEnvio, setErrorEnvio] = useState("");
+    const [enviando, setEnviando] = useState(false);
     const bloqueo = useRef(false);
-    const area = areas.find((a) => a.id === areaId)!;
-    const paso = !vigente ? 1 : datos.fecha && datos.horaInicio && datos.horaFin ? 4 : 3;
+
+    useEffect(() => {
+        let vigente = true;
+        listarAreas()
+            .then((areas) => {
+                if (!vigente) return;
+                setCarga({ areas });
+                setAreaId((actual) => actual || areas[0]?.slug || "");
+            })
+            .catch((e) => { if (vigente) setCarga({ error: mensajeError(e) }); });
+        return () => { vigente = false; };
+    }, [intento]);
+
+    const areas = carga && "areas" in carga ? carga.areas : [];
+    const area = areas.find((a) => a.slug === areaId);
+    const paso = !area ? 1 : datos.fecha && datos.horaInicio && datos.horaFin ? 3 : 2;
 
     function cambiar(campo: keyof DatosSolicitud, valor: string) { setDatos((d) => ({ ...d, [campo]: valor })); }
 
-    function enviarSolicitud(e: FormEvent) {
+    async function enviarFormulario(e: FormEvent) {
         e.preventDefault();
-        if (!vigente || bloqueo.current) return;
-        const encontrados = validarSolicitud(datos, HOY_EJEMPLO);
+        if (bloqueo.current) return;
+        const encontrados = validarSolicitud(datos, hoy, area?.capacidad);
+        if (!area && datos.tipo === "uso_espacio") encontrados.area = "Elige el área que quieres solicitar.";
         setErrores(encontrados);
+        setErrorEnvio("");
         const primero = Object.keys(encontrados)[0];
         if (primero) { document.getElementById(`esp-${primero}`)?.focus(); return; }
         bloqueo.current = true;
-        const s = enviarSolicitudEspacio(areaId, datos);
-        notificaciones.agregar({
-            area: "espacios", titulo: "Recibimos tu solicitud de espacio", cuando: "Ahora",
-            texto: `${area.nombre}. El personal revisará la disponibilidad y te responderá aquí.`,
-            accion: { texto: "Ver solicitud", ruta: `/espacios/solicitud/${s.id}` },
-        });
-        navegar(`/espacios/enviada?id=${s.id}`);
+        setEnviando(true);
+        try {
+            const s = await enviarSolicitud({
+                tipo: datos.tipo, areaId: area?.slug ?? null, fecha: datos.fecha, horaInicio: datos.horaInicio, horaFin: datos.horaFin,
+                personas: Number(datos.personas), motivo: datos.motivo.trim(), institucion: datos.institucion.trim() || undefined,
+            });
+            navegar(`/espacios/enviada?folio=${encodeURIComponent(s.folio)}`);
+        } catch (error) {
+            setErrorEnvio(mensajeError(error));
+            bloqueo.current = false;
+            setEnviando(false);
+        }
     }
 
     return (
@@ -56,48 +82,38 @@ export default function AgendaEspacios() {
             <EncabezadoPublico etiqueta="AGENDA DE ESPACIOS" titulo="Elige el área que quieres solicitar"
                 texto="Selecciona un área, indica fecha y horario y envía tu solicitud. La biblioteca la revisa y confirma." />
             <div className="espacios-cuerpo">
-                <ol className="cred-pasos espacios-pasos">
+                <ol className="cred-pasos espacios-pasos espacios-pasos--centro">
                     {pasos.map((p, i) => {
                         const numero = i + 1;
-                        const estado = vigente ? (numero < Math.max(paso, 2) ? "hecho" : numero === Math.max(paso, 2) ? "actual" : "pendiente") : numero === 1 ? "actual" : "pendiente";
+                        const estado = numero < paso ? "hecho" : numero === paso ? "actual" : "pendiente";
                         return (
                             <li key={p} className={`cred-paso cred-paso--${estado}`} aria-current={estado === "actual" ? "step" : undefined}>
                                 <span className="cred-paso__numero">{estado === "hecho" ? <img src={checkPaso} alt="Completado:" /> : numero}</span>
-                                {numero === 1 && !vigente ? "Valida tu credencial" : p}
+                                {p}
                             </li>
                         );
                     })}
                 </ol>
 
-                {vigente ? (
-                    <div className="espacios-aviso">
-                        <span className="espacios-aviso__icono"><img src={checkBlanco} alt="" /></span>
-                        <strong>Credencial validada y vigente. Puedes solicitar espacios.</strong>
-                        <Link to="/mi-perfil/credencial" className="boton-visitante cred-boton-contorno">Ver mi credencial</Link>
-                    </div>
-                ) : (
-                    <div className="espacios-aviso espacios-aviso--dorado">
-                        <span className="espacios-aviso__icono"><img src={alerta} alt="" /></span>
-                        <strong>
-                            Necesitas una credencial validada y vigente para solicitar espacios.
-                            {tramite.estado === "en-revision" ? " Tu trámite está en revisión." : ""}
-                        </strong>
-                        <Link to={tramite.estado === "sin-solicitud" ? "/credencial" : "/credencial/seguimiento"} className="boton-visitante cred-boton-contorno">
-                            {tramite.estado === "sin-solicitud" ? "Solicitar mi credencial" : "Ver mi trámite"}
-                        </Link>
-                    </div>
-                )}
-
                 <div className="espacios-columnas">
                     <section className="cred-tarjeta espacios-plano" aria-labelledby="titulo-plano">
                         <div className="espacios-plano__cabecera">
                             <span><img src={iconoPin} alt="" /></span>
-                            <div><h2 id="titulo-plano">Plano de la biblioteca</h2><p>Plano esquemático ilustrativo · áreas por confirmar</p></div>
+                            <div><h2 id="titulo-plano">Áreas de la biblioteca</h2><p>Nombres y capacidades por confirmar con la biblioteca</p></div>
                         </div>
                         <p className="cred-sobretitulo">SE PUEDEN SOLICITAR</p>
-                        <div className="espacios-areas" role="radiogroup" aria-label="Áreas que se pueden solicitar">
-                            {solicitables.map((a) => <AreaBoton key={a.id} area={a} elegida={a.id === areaId} alElegir={() => setAreaId(a.id)} />)}
+                        {!carga && <p className="cred-texto" role="status">Cargando áreas…</p>}
+                        {carga && "error" in carga && (
+                            <div>
+                                <p className="cred-texto" role="alert">{carga.error}</p>
+                                <button type="button" className="boton-visitante cred-boton-contorno" onClick={() => { setCarga(null); setIntento((x) => x + 1); }}>Reintentar</button>
+                            </div>
+                        )}
+                        {carga && "areas" in carga && carga.areas.length === 0 && <p className="cred-texto">Por ahora no hay áreas que se puedan solicitar.</p>}
+                        <div id="esp-area" tabIndex={-1} className="espacios-areas" role="radiogroup" aria-label="Áreas que se pueden solicitar">
+                            {areas.map((a) => <AreaBoton key={a.slug} area={a} elegida={a.slug === areaId} alElegir={() => setAreaId(a.slug)} />)}
                         </div>
+                        {errores.area && <p className="cred-error-campo espacios-error">{errores.area}</p>}
                         <p className="cred-sobretitulo">NO SE SOLICITAN</p>
                         <div className="espacios-areas">
                             {noSolicitables.map((a) => (
@@ -106,16 +122,25 @@ export default function AgendaEspacios() {
                                 </div>
                             ))}
                         </div>
-                        <Nota color="dorada" icono={infoDorado}>La disponibilidad que ves es de ejemplo. Las áreas y el plano real están por confirmar con la biblioteca.</Nota>
+                        <Nota color="dorada" icono={infoDorado}>Que un área se pueda solicitar no significa que esté libre: el personal revisa la agenda y te confirma.</Nota>
                     </section>
 
-                    <form className="cred-tarjeta espacios-formulario" onSubmit={enviarSolicitud} noValidate>
+                    <form className="cred-tarjeta espacios-formulario" onSubmit={enviarFormulario} noValidate>
                         <p className="cred-sobretitulo">ÁREA SELECCIONADA</p>
-                        <h2>{area.nombre}</h2>
-                        <p className="espacios-formulario__nota">Capacidad y equipamiento: por confirmar con la biblioteca.</p>
-                        <fieldset disabled={!vigente}>
+                        <h2>{area?.nombre ?? "Elige un área"}</h2>
+                        <p className="espacios-formulario__nota">
+                            {area?.capacidad ? `Hasta ${area.capacidad} personas. ` : ""}{area?.descripcion ?? "Capacidad y equipamiento: por confirmar con la biblioteca."}
+                        </p>
+                        <fieldset disabled={enviando}>
+                            <div className="cred-campo">
+                                <label htmlFor="esp-tipo">¿Qué necesitas?</label>
+                                <select id="esp-tipo" value={datos.tipo} onChange={(e) => cambiar("tipo", e.target.value)}>
+                                    <option value="uso_espacio">Usar el área para una actividad</option>
+                                    <option value="visita">Una visita guiada (escuela o grupo)</option>
+                                </select>
+                            </div>
                             <Campo id="fecha" etiqueta="Fecha" error={errores.fecha}>
-                                <input id="esp-fecha" type="date" min={HOY_EJEMPLO} value={datos.fecha} onChange={(e) => cambiar("fecha", e.target.value)} required aria-invalid={errores.fecha ? true : undefined} />
+                                <input id="esp-fecha" type="date" min={hoy} value={datos.fecha} onChange={(e) => cambiar("fecha", e.target.value)} required aria-invalid={errores.fecha ? true : undefined} />
                             </Campo>
                             <div className="cred-fila">
                                 <Campo id="horaInicio" etiqueta="Hora de inicio" error={errores.horaInicio} sinObligatorio>
@@ -133,9 +158,18 @@ export default function AgendaEspacios() {
                                 <input id="esp-motivo" placeholder="Describe brevemente la actividad" maxLength={300} value={datos.motivo}
                                     onChange={(e) => cambiar("motivo", e.target.value)} aria-invalid={errores.motivo ? true : undefined} />
                             </Campo>
+                            {datos.tipo === "visita" && (
+                                <Campo id="institucion" etiqueta="Escuela o institución (opcional)" error={errores.institucion} sinObligatorio>
+                                    <input id="esp-institucion" placeholder="Ej. Primaria Amado Nervo" maxLength={150} value={datos.institucion}
+                                        onChange={(e) => cambiar("institucion", e.target.value)} aria-invalid={errores.institucion ? true : undefined} />
+                                </Campo>
+                            )}
                         </fieldset>
-                        <Nota color="dorada" icono={infoDorado}>El personal revisa cada solicitud. Recibirás la respuesta en tu cuenta.</Nota>
-                        <button type="submit" className="espacios-enviar" disabled={!vigente}>Enviar solicitud <img src={enviar} alt="" /></button>
+                        {errorEnvio && <p className="cred-error-campo espacios-error" role="alert">{errorEnvio}</p>}
+                        <Nota color="dorada" icono={infoDorado}>Enviar la solicitud no reserva el espacio. El personal la revisa y te responde en tu cuenta.</Nota>
+                        <button type="submit" className="espacios-enviar" disabled={enviando || !carga || "error" in carga}>
+                            {enviando ? "Enviando…" : "Enviar solicitud"} <img src={enviar} alt="" />
+                        </button>
                     </form>
                 </div>
             </div>
@@ -143,15 +177,12 @@ export default function AgendaEspacios() {
     );
 }
 
-function AreaBoton({ area, elegida, alElegir }: { area: Area; elegida: boolean; alElegir: () => void }) {
-    const disp = disponibilidad(area);
-    if (disp === "no-disponible") {
-        return <div className="espacios-area espacios-area--apagada"><strong>{area.nombre}</strong><Chip color="gris">No disponible</Chip></div>;
-    }
+function AreaBoton({ area, elegida, alElegir }: { area: AreaEspacio; elegida: boolean; alElegir: () => void }) {
     return (
         <button type="button" role="radio" aria-checked={elegida} onClick={alElegir} className={`espacios-area${elegida ? " espacios-area--elegida" : ""}`}>
             <strong>{area.nombre}</strong>
-            {elegida ? <span className="espacios-area__chip">Seleccionada</span> : <Chip color="verde">Disponible</Chip>}
+            {area.capacidad ? <span>Hasta {area.capacidad} personas</span> : null}
+            {elegida ? <span className="espacios-area__chip">Seleccionada</span> : <Chip color="verde">Se puede solicitar</Chip>}
         </button>
     );
 }

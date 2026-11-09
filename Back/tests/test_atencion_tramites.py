@@ -100,6 +100,30 @@ class AtencionTramitesTests(unittest.TestCase):
         self.assertEqual(args['datos']['id'], self.id)
         self.assertNotIn('revisadoPor', args['datos'])
 
+    def test_resolucion_exige_acuerdo_externo_completo_y_motivo(self):
+        acuerdo = {'responsable': 'Dirección de la biblioteca', 'fecha': '2026-01-01', 'referencia': 'Minuta 001'}
+        for estado in ('aprobada', 'rechazada'):
+            base = {'estadoRevision': estado, 'actualizadoEn': VERSION, 'observacionesInstitucionales': 'Acuerdo institucional'}
+            for extra in ({}, {'acuerdoDireccion': {}}, {'acuerdoDireccion': acuerdo | {'responsable': ' '}},
+                          {'acuerdoDireccion': acuerdo | {'fecha': '2026-02-30'}},
+                          {'acuerdoDireccion': acuerdo | {'referencia': ''}},
+                          {'acuerdoDireccion': acuerdo, 'observacionesInstitucionales': None}):
+                self.assertEqual(self.http.patch('/propuestas/'+self.id, headers=self.headers, json=base | extra).status_code, 422)
+            self.cliente.rpc.assert_not_called()
+            r = self.http.patch('/propuestas/'+self.id, headers=self.headers, json=base | {'acuerdoDireccion': acuerdo})
+            self.assertEqual(r.status_code, 200)
+            datos = self.cliente.rpc.call_args.args[1]['datos']
+            self.assertEqual(datos['acuerdoDireccion'], acuerdo)
+            self.assertNotIn('revisadoPor', datos)
+            self.cliente.rpc.reset_mock()
+
+    def test_pedir_correcciones_no_suplanta_acuerdo_de_direccion(self):
+        datos = {'estadoRevision': 'requiere_correccion', 'actualizadoEn': VERSION,
+                 'observacionesInstitucionales': 'Aclara horario',
+                 'acuerdoDireccion': {'responsable': 'Dirección', 'fecha': '2026-01-01', 'referencia': 'Minuta'}}
+        self.assertEqual(self.http.patch('/propuestas/'+self.id, headers=self.headers, json=datos).status_code, 422)
+        self.cliente.rpc.assert_not_called()
+
     def test_paginacion_y_filtros_validan_limites(self):
         r = self.http.get('/propuestas?estadoRevision=en_revision&limite=20&desplazamiento=40', headers=self.headers)
         self.assertEqual(r.status_code, 200)
@@ -121,3 +145,28 @@ class AtencionTramitesTests(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.cliente.rpc.call_args.args[1]['operacion'], 'mias')
         self.assertNotIn('propuestoPor', self.cliente.rpc.call_args.args[1]['datos'])
+
+    def test_publicacion_unica_transaccion_y_sesion(self):
+        datos = {'nombre': 'Evento', 'tipo': 'Evento', 'descripcion': 'Texto público', 'fecha': '2035-06-12',
+                 'inicio': '10:00', 'fin': '11:00', 'espacio': 'Sala', 'cupo': '10', 'responsable': 'Biblioteca',
+                 'actualizadoEn': VERSION, 'confirmacion': True}
+        ruta = f'/propuestas/{self.id}/publicar'
+        self.assertEqual(self.http.post(ruta, json=datos).status_code, 401)
+        self.assertEqual(self.http.post(ruta, headers=self.headers, json=datos).status_code, 200)
+        llamada = self.cliente.rpc.call_args
+        self.assertEqual(llamada.args[0], 'publicar_propuesta')
+        self.assertEqual(llamada.args[1]['datos']['id'], self.id)
+        self.assertEqual(llamada.args[1]['datos']['actualizadoEn'], VERSION.replace('Z', 'Z'))
+        self.cliente.rpc.reset_mock()
+        for cambio in ({'confirmacion': False}, {'inicio': '12:00'}, {'creadoPor': self.id}, {'actualizadoEn': 'ayer'}):
+            self.assertEqual(self.http.post(ruta, headers=self.headers, json={**datos, **cambio}).status_code, 422)
+        self.cliente.rpc.assert_not_called()
+
+    def test_publicacion_errores_controlados(self):
+        datos = {'nombre': 'Evento', 'tipo': 'Evento', 'fecha': '2035-06-12', 'inicio': '10:00', 'fin': '11:00',
+                 'actualizadoEn': VERSION, 'confirmacion': True}
+        for codigo, estado in [('42501',403),('40001',409),('55000',409),('23514',422),('XX000',503)]:
+            self.cliente.rpc.return_value.execute.side_effect = APIError({'code': codigo, 'message':'secreto interno','details':None,'hint':None})
+            respuesta = self.http.post(f'/propuestas/{self.id}/publicar', headers=self.headers, json=datos)
+            self.assertEqual(respuesta.status_code, estado)
+            self.assertNotIn('secreto interno', respuesta.text)

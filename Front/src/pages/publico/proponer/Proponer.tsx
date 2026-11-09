@@ -1,5 +1,5 @@
-import { useRef, useState, type FormEvent, type ReactNode } from "react";
-import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import { EncabezadoNoticias } from "../noticias/piezas";
 import "../noticias/Noticias.css";
@@ -8,16 +8,19 @@ import "../credencial/CredencialSesion.css";
 import { useSesion, usePerfil } from "../perfil/usarSesion";
 import { nombreCompleto } from "../perfil/datos";
 import { separarAreas } from "../espacios/datos";
-import { HOY_EJEMPLO } from "../eventos/datosAgenda";
-import { notificaciones } from "../notificaciones/datos";
+import { fechaHoyTepic, registrarPropuestaUsuario } from "../../../servicios/propuestasUsuario";
+import { consultarTramite, type SolicitudAtencion } from "../../../servicios/tramites";
+import { useCuentaTramites } from "../../../servicios/useCuentaTramites";
+import { mensajeError } from "../../../servicios/api";
+import { FichaTramite, FormularioPropuesta } from "../tramites/piezas";
+
 import {
-    enviarPropuesta, obtenerPropuesta, propuestaVacia, publicos, reenviarPropuesta, validarCorreccion, validarPropuesta,
-    type DatosPropuesta, type ErroresPropuesta, type Propuesta,
+    propuestaVacia, publicos, validarPropuesta,
+    type DatosPropuesta, type ErroresPropuesta,
 } from "./datos";
 import "./Proponer.css";
 import radioMarcado from "../../../assets/credencial/radio.svg";
 import infoDorado from "../../../assets/credencial/info-dorado.svg";
-import alertaGuinda from "../../../assets/credencial/alerta-guinda.svg";
 import checkEnviada from "../../../assets/credencial/enviada-check.svg";
 import estrella from "../../../assets/perfil/tarjeta-estrella.svg";
 import libro from "../../../assets/credencial/libro.svg";
@@ -68,9 +71,11 @@ function Campo({ id, etiqueta, error, obligatorio = false, children }: { id: str
 // ---------- Formulario ----------
 export default function Proponer() {
     const sesion = useSesion();
-    const carga = usePerfil(sesion);
+    const [intento, reintentar] = useState(0);
+    const carga = usePerfil(sesion, intento);
     if (sesion === null) return <SinSesion />;
-    if (!carga || "error" in carga) return <PaginaPublica><p className="cred-estado" role="status">Cargando…</p></PaginaPublica>;
+    if (!carga) return <PaginaPublica><p className="cred-estado" role="status">Cargando…</p></PaginaPublica>;
+    if ("error" in carga) return <PaginaPublica><div className="cred-estado"><p role="alert">{carga.error}</p><button type="button" onClick={() => reintentar(v => v + 1)}>Reintentar</button></div></PaginaPublica>;
     return <Formulario key={carga.perfil.id} responsable={nombreCompleto(carga.perfil)} telefono={carga.perfil.telefono} />;
 }
 
@@ -79,24 +84,32 @@ function Formulario({ responsable, telefono }: { responsable: string; telefono: 
     const [datos, setDatos] = useState<DatosPropuesta>(() => propuestaVacia(responsable, telefono));
     const [errores, setErrores] = useState<ErroresPropuesta>({});
     const bloqueo = useRef(false);
+    const montado = useRef(true);
+    const [guardando, setGuardando] = useState(false);
+    const [errorEnvio, setErrorEnvio] = useState('');
+    const hoy = fechaHoyTepic();
+    useEffect(() => { montado.current = true; return () => { montado.current = false; }; }, []);
     const { solicitables } = separarAreas();
     const cambiar = <K extends keyof DatosPropuesta>(campo: K, valor: DatosPropuesta[K]) => setDatos((d) => ({ ...d, [campo]: valor }));
     const invalido = (c: keyof DatosPropuesta) => (errores[c] ? { "aria-invalid": true, "aria-describedby": `pro-${c}-error` } : {});
 
-    function enviarFormulario(e: FormEvent) {
+    async function enviarFormulario(e: FormEvent) {
         e.preventDefault();
         if (bloqueo.current) return;
-        const encontrados = validarPropuesta(datos, HOY_EJEMPLO);
+        const encontrados = validarPropuesta(datos, hoy);
         setErrores(encontrados);
         const primero = Object.keys(encontrados)[0];
         if (primero) { document.getElementById(`pro-${primero}`)?.focus(); return; }
-        bloqueo.current = true;
-        const p = enviarPropuesta(datos);
-        notificaciones.agregar({
-            area: "propuesta", titulo: "Recibimos tu propuesta", cuando: "Ahora",
-            texto: `${p.titulo}. El personal la revisará y te responderá aquí.`, accion: { texto: "Ver propuesta", ruta: `/proponer/${p.id}` },
-        });
-        navegar(`/proponer/enviada?id=${p.id}`);
+        bloqueo.current = true; setGuardando(true); setErrorEnvio('');
+        try {
+            const p = await registrarPropuestaUsuario(datos);
+            if (montado.current) navegar(`/proponer/enviada?id=${p.id}`);
+        } catch (error) {
+            if (montado.current) setErrorEnvio(mensajeError(error));
+        } finally {
+            bloqueo.current = false;
+            if (montado.current) setGuardando(false);
+        }
     }
 
     return (
@@ -104,7 +117,9 @@ function Formulario({ responsable, telefono }: { responsable: string; telefono: 
             <EncabezadoNoticias regreso={regresoEventos} etiqueta="PROPUESTA" titulo={<>Propón un evento <span>o club</span></>}
                 texto="Cuéntanos tu idea. Proponer no aprueba ni reserva: el personal la revisa y te responde." />
             <div className="proponer-cuerpo">
-                <form className="proponer-formulario" onSubmit={enviarFormulario} noValidate>
+                <form className="proponer-formulario" onSubmit={enviarFormulario} noValidate aria-busy={guardando}>
+                    {errorEnvio && <p role="alert">{errorEnvio}</p>}
+                    <fieldset className="proponer-campos" disabled={guardando}>
                     <Seccion icono={estrella} titulo="Tipo de propuesta" dorado>
                         <div className="cred-opciones" role="radiogroup" aria-label="Tipo de propuesta">
                             {([["evento", "Evento", "Una actividad puntual"], ["club", "Club", "Un grupo que se reúne con regularidad"]] as const).map(([v, t, x]) => (
@@ -140,7 +155,7 @@ function Formulario({ responsable, telefono }: { responsable: string; telefono: 
                     <Seccion icono={calendario} titulo="Fecha, lugar y material">
                         <div className="cred-fila">
                             <Campo id="fecha" etiqueta="Fecha propuesta" error={errores.fecha}>
-                                <input id="pro-fecha" type="date" min={HOY_EJEMPLO} value={datos.fecha} onChange={(e) => cambiar("fecha", e.target.value)} {...invalido("fecha")} />
+                                <input id="pro-fecha" type="date" min={hoy} value={datos.fecha} onChange={(e) => cambiar("fecha", e.target.value)} {...invalido("fecha")} />
                             </Campo>
                             <div className="cred-campo">
                                 <label htmlFor="pro-horaInicio">Horario propuesto</label>
@@ -156,7 +171,7 @@ function Formulario({ responsable, telefono }: { responsable: string; telefono: 
                             <Campo id="espacio" etiqueta="Espacio sugerido">
                                 <select id="pro-espacio" value={datos.espacio} onChange={(e) => cambiar("espacio", e.target.value)}>
                                     <option value="">Selecciona un área</option>
-                                    {solicitables.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                                    {solicitables.map((a) => <option key={a.id} value={a.nombre}>{a.nombre}</option>)}
                                 </select>
                             </Campo>
                             <Campo id="material" etiqueta="Material que necesitas">
@@ -175,12 +190,19 @@ function Formulario({ responsable, telefono }: { responsable: string; telefono: 
                             </Campo>
                         </div>
                     </Seccion>
+                    {(['abiertaAlPublico', 'sinFinesDeLucro'] as const).map(campo => <div key={campo}>
+                        <label className="cred-casilla"><input id={`pro-${campo}`} type="checkbox" checked={datos[campo]} onChange={e => cambiar(campo, e.target.checked)} {...invalido(campo)} />
+                            {campo === 'abiertaAlPublico' ? 'Confirmo que la actividad será abierta al público.' : 'Confirmo que la actividad será sin fines de lucro.'}
+                        </label>
+                        {errores[campo] && <p id={`pro-${campo}-error`} className="cred-error-campo">{errores[campo]}</p>}
+                    </div>)}
                     <label className="cred-casilla">
                         <input id="pro-acepta" type="checkbox" checked={datos.acepta} onChange={(e) => cambiar("acepta", e.target.checked)} {...invalido("acepta")} />
                         Entiendo que enviar la propuesta no la aprueba ni reserva el espacio.
                     </label>
                     {errores.acepta && <p id="pro-acepta-error" className="cred-error-campo">{errores.acepta}</p>}
-                    <div><button type="submit" className="proponer-enviar">Enviar propuesta <img src={enviar} alt="" /></button></div>
+                    <div><button type="submit" className="proponer-enviar">{guardando ? 'Enviando…' : 'Enviar propuesta'} <img src={enviar} alt="" /></button></div>
+                    </fieldset>
                 </form>
                 <aside className="cred-tarjeta proponer-lateral">
                     <h2>¿Qué pasa con tu propuesta?</h2>
@@ -188,7 +210,7 @@ function Formulario({ responsable, telefono }: { responsable: string; telefono: 
                         <li><span>1</span><div><strong>La envías</strong>Queda registrada como propuesta.</div></li>
                         <li><span>2</span><div><strong>El personal la revisa</strong>Evalúa espacio, fechas y material.</div></li>
                         <li><span>3</span><div><strong>El personal decide</strong>Aprueba, pide cambios o rechaza.</div></li>
-                        <li><span>4</span><div><strong>Si se aprueba, se publica</strong>Aparecerá en Eventos y Actividades.</div></li>
+                        <li><span>4</span><div><strong>La biblioteca programa y publica</strong>La aprobación no publica ni reserva automáticamente.</div></li>
                     </ol>
                     <Nota color="dorada" icono={infoDorado}>Puedes dar seguimiento a tus propuestas desde tu Perfil. Los cambios o cancelaciones se solicitan, no se aplican directamente.</Nota>
                 </aside>
@@ -200,7 +222,8 @@ function Formulario({ responsable, telefono }: { responsable: string; telefono: 
 // ---------- Propuesta enviada ----------
 export function PropuestaEnviada() {
     const [parametros] = useSearchParams();
-    const propuesta = obtenerPropuesta(parametros.get("id") ?? undefined);
+    const { solicitud: propuesta, error, cargando } = usePropuestaReal(parametros.get("id") ?? undefined);
+    if (!propuesta) return <PaginaPublica><div className="cred-estado"><p role={error ? 'alert' : 'status'}>{error || (cargando ? 'Comprobando tu propuesta…' : 'Inicia sesión para consultar tu propuesta.')}</p><Link to="/mi-perfil/propuestas">Volver a mis propuestas</Link></div></PaginaPublica>;
     return (
         <PaginaPublica>
             <EncabezadoNoticias regreso={regresoEventos} etiqueta="PROPUESTA" titulo={<>Propón un evento <span>o club</span></>}
@@ -211,10 +234,10 @@ export function PropuestaEnviada() {
                     <h2>Propuesta enviada</h2>
                     <p className="cred-texto">Tu propuesta quedó registrada. Enviarla no la aprueba ni reserva el espacio: el personal la revisará y te responderá.</p>
                     <div className="proponer-enviada__chips">
-                        <Chip color="gris">{propuesta?.folio ? `Folio: ${propuesta.folio}` : "Folio: por asignar"}</Chip>
-                        <Chip color="dorado">Pendiente de revisión por el personal</Chip>
+                        <Chip color="gris">{`Folio: ${propuesta.id}`}</Chip>
+                        <Chip color="dorado">Consulta el estado actual en el seguimiento</Chip>
                     </div>
-                    <p className="proponer-suave">Recibirás los cambios en tus notificaciones.</p>
+                    <p className="proponer-suave">Puedes consultar el estado y las observaciones desde Mis propuestas.</p>
                     <div className="cred-acciones">
                         <Link to="/mi-perfil/propuestas" className="boton-visitante">Ver mis propuestas <img src={flechaBlanca} alt="" /></Link>
                         <Link to="/eventos" className="boton-visitante cred-boton-contorno">Volver a Eventos y actividades</Link>
@@ -225,80 +248,39 @@ export function PropuestaEnviada() {
     );
 }
 
-// ---------- Detalle de una propuesta: con observaciones, no aprobada o en revisión ----------
+// La respuesta se mantiene asociada a la cuenta actual; no se reutilizan ejemplos.
+function usePropuestaReal(id?: string, version = 0) {
+    const usuario = useCuentaTramites();
+    const clave = JSON.stringify([usuario, id, version]);
+    const [resultado, setResultado] = useState<{ clave: string; solicitud?: SolicitudAtencion; error?: string }>();
+    useEffect(() => {
+        if (!usuario || !id) return;
+        let vigente = true;
+        consultarTramite('propuesta', id).then(solicitud => { if (vigente) setResultado({ clave, solicitud }); })
+            .catch(error => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
+        return () => { vigente = false; };
+    }, [usuario, id, clave]);
+    const actual = resultado?.clave === clave ? resultado : undefined;
+    return { solicitud: actual?.solicitud, error: !id ? 'No se indicó una propuesta.' : actual?.error,
+        cargando: usuario === undefined || !!usuario && !!id && !actual };
+}
+
 export function DetallePropuesta() {
     const { id } = useParams();
     const [version, setVersion] = useState(0);
-    const propuesta = obtenerPropuesta(id);
-    if (!propuesta) return <Navigate to="/mi-perfil/propuestas" replace />;
-    return <VistaPropuesta key={version} propuesta={propuesta} alReenviar={() => setVersion((v) => v + 1)} />;
-}
-
-function VistaPropuesta({ propuesta: p, alReenviar }: { propuesta: Propuesta; alReenviar: () => void }) {
-    const [correccion, setCorreccion] = useState({ cupo: "", fecha: "", comentarios: "" });
-    const [errores, setErrores] = useState<Partial<Record<"cupo" | "fecha" | "comentarios", string>>>({});
-    const folio = p.folio ?? "por asignar";
-
-    function reenviar(e: FormEvent) {
-        e.preventDefault();
-        const encontrados = validarCorreccion(correccion, HOY_EJEMPLO);
-        setErrores(encontrados);
-        if (encontrados.cupo || encontrados.fecha || encontrados.comentarios) {
-            document.getElementById(encontrados.cupo ? "cor-cupo" : encontrados.fecha ? "cor-fecha" : "cor-comentarios")?.focus();
-            return;
-        }
-        reenviarPropuesta(p.id);
-        alReenviar();
-    }
-
-    if (p.estado === "no-aprobada") return <NoAprobada etiqueta="MIS PROPUESTAS" titulo={p.titulo} folio={folio} tipo="propuesta" regreso={regresoPropuestas} />;
-
-    const texto = p.estado === "con-observaciones" ? `Folio ${folio} · el personal dejó observaciones.` : `Folio ${folio} · en revisión por el personal.`;
-    return (
-        <PaginaPublica>
-            <EncabezadoNoticias regreso={regresoPropuestas} etiqueta="MIS PROPUESTAS" titulo={p.titulo} texto={texto} />
-            <div className="proponer-cuerpo">
-                <div className="proponer-formulario">
-                    {p.estado === "con-observaciones" ? <>
-                        <Nota color="guinda" icono={alertaGuinda}><strong>Observaciones del personal.</strong> {p.observaciones}</Nota>
-                        <form className="cred-tarjeta proponer-seccion" onSubmit={reenviar} noValidate>
-                            <h2>Corregir propuesta</h2>
-                            <div className="cred-fila">
-                                <div className="cred-campo">
-                                    <label htmlFor="cor-cupo">Cupo máximo<span className="proponer-obligatorio">(obligatorio)</span></label>
-                                    <input id="cor-cupo" inputMode="numeric" placeholder="Ejemplo: 25 personas" maxLength={3} value={correccion.cupo}
-                                        onChange={(e) => setCorreccion((c) => ({ ...c, cupo: e.target.value.replace(/\D/g, "") }))} aria-invalid={errores.cupo ? true : undefined} />
-                                    {errores.cupo && <p className="cred-error-campo proponer-error">{errores.cupo}</p>}
-                                </div>
-                                <div className="cred-campo">
-                                    <label htmlFor="cor-fecha">Fecha alternativa</label>
-                                    <input id="cor-fecha" type="date" min={HOY_EJEMPLO} value={correccion.fecha}
-                                        onChange={(e) => setCorreccion((c) => ({ ...c, fecha: e.target.value }))} aria-invalid={errores.fecha ? true : undefined} />
-                                    {errores.fecha && <p className="cred-error-campo proponer-error">{errores.fecha}</p>}
-                                </div>
-                            </div>
-                            <div className="cred-campo">
-                                <label htmlFor="cor-comentarios">Comentarios para el personal</label>
-                                <textarea id="cor-comentarios" rows={3} placeholder="Explica los cambios" maxLength={500} value={correccion.comentarios}
-                                    onChange={(e) => setCorreccion((c) => ({ ...c, comentarios: e.target.value }))} />
-                            </div>
-                            <div><button type="submit" className="boton-visitante">Reenviar propuesta <img src={flechaBlanca} alt="" /></button></div>
-                        </form>
-                    </> : (
-                        <section className="cred-tarjeta proponer-seccion" role="status">
-                            <h2>Tu propuesta está en revisión</h2>
-                            <p className="cred-texto">El personal la está revisando. Recibirás la respuesta en tus notificaciones.</p>
-                        </section>
-                    )}
-                </div>
-                <aside className="cred-tarjeta proponer-lateral">
-                    <p className="cred-sobretitulo">ESTADO</p>
-                    <Chip color="dorado">En atención</Chip>
-                    <p className="cred-texto">Al reenviar, la propuesta vuelve a revisión y recibirás un aviso con la respuesta.</p>
-                </aside>
-            </div>
-        </PaginaPublica>
-    );
+    const { solicitud, error, cargando } = usePropuestaReal(id, version);
+    return <PaginaPublica>
+        <EncabezadoNoticias regreso={regresoPropuestas} etiqueta="MIS PROPUESTAS" titulo={solicitud?.tituloPropuesta || 'Seguimiento de propuesta'} texto="Consulta la revisión y las observaciones registradas por la biblioteca." />
+        <div className="proponer-cuerpo proponer-cuerpo--una">
+            {!solicitud ? <p role={error ? 'alert' : 'status'}>{error || (cargando ? 'Cargando propuesta…' : 'Inicia sesión para consultar tu propuesta.')}</p> :
+                <section className="cred-tarjeta proponer-seccion">
+                    <FichaTramite solicitud={solicitud} />
+                    {['borrador', 'requiere_correccion'].includes(solicitud.estadoRevision ?? '') &&
+                        <FormularioPropuesta key={solicitud.actualizadoEn} anterior={solicitud} alGuardar={() => setVersion(v => v + 1)} />}
+                </section>}
+            <Link to="/mi-perfil/propuestas">Volver a mis propuestas</Link>
+        </div>
+    </PaginaPublica>;
 }
 
 // «Propuesta no aprobada» y «Solicitud de espacio no aprobada» (Figma 543:15773 y 543:15939).

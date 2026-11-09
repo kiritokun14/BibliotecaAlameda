@@ -17,6 +17,8 @@ export const filtrosCategoria: { valor: FiltroCategoria; texto: string }[] = [
 ];
 
 export type ActividadAgenda = {
+    sesionId?: string;
+    inscripcionAbierta?: boolean;
     id: string; categoria: Categoria; titulo: string; fecha: string; // AAAA-MM-DD
     horario: string; lugar: string; publico: string; cupoCompleto?: boolean; imagen: string;
     resumen?: string; descripcion?: string[];          // texto del encabezado y «Sobre la actividad»
@@ -107,7 +109,7 @@ export function filtrarTodas(lista: ActividadAgenda[], f: FiltrosAgenda, hoy: st
         if (f.fecha && a.fecha !== f.fecha) return false;
         if (f.categoria !== "todas" && a.categoria !== f.categoria) return false;
         if (f.disponibilidad === "inscrito" && !inscritas.has(a.id)) return false;
-        if (f.disponibilidad === "abierta" && estadoActividad(a, hoy) !== "abierta") return false;
+        if (f.disponibilidad === "abierta" && (estadoActividad(a, hoy) !== "abierta" || a.inscripcionAbierta === false)) return false;
         if (f.disponibilidad === "cupo" && estadoActividad(a, hoy) !== "cupo") return false;
         const inicio = Number(a.horario.slice(0, 2));
         if (f.horario === "manana" && inicio >= 14) return false;

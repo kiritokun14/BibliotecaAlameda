@@ -8,6 +8,7 @@ export function HistorialTramite({ solicitud: s }: { solicitud: SolicitudAtencio
         {s.historial.length ? <ol>{s.historial.map((h, i) => <li key={i}>
             {new Date(h.fecha).toLocaleString('es-MX')} · {(ESTADOS_CREDENCIAL[h.estadoNuevo] ?? ESTADOS_PROPUESTA[h.estadoNuevo]) || h.estadoNuevo}
             {h.nota && <p>{h.nota}</p>}
+            {h.acuerdoDireccion && <p>Acuerdo de dirección: {h.acuerdoDireccion.responsable} · {h.acuerdoDireccion.fecha} · Referencia: {h.acuerdoDireccion.referencia}. Registrado por la cuenta de coordinación: {h.registradoPor}.</p>}
         </li>)}</ol> : <p>No hay decisiones posteriores registradas.</p>}
     </section>;
 }

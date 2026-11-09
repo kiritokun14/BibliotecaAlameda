@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import { useSesion } from "../perfil/usarSesion";
-import { HOY_EJEMPLO, agendaEjemplo, fechaCaja, filtrosCategoria, hoyLocal, nombreCategoria, proximas, type ActividadAgenda, type FiltroCategoria } from "./datosAgenda";
+import {  fechaCaja, filtrosCategoria, nombreCategoria, proximas, type ActividadAgenda, type FiltroCategoria } from "./datosAgenda";
 import "./Agenda.css";
+import { useAgendaPublica } from "../../../servicios/usarAgendaPublica";
+import { fechaHoyTepic } from "../../../servicios/propuestasUsuario";
 import circuloGrande from "../../../assets/comun/iconos/circulo-grande.svg";
 import circuloChico from "../../../assets/comun/iconos/circulo-chico.svg";
 import flechaOscura from "../../../assets/comun/iconos/flecha-oscura.svg";
@@ -18,13 +20,14 @@ import pinItem from "../../../assets/eventos/item-pin.svg";
 
 // T-052 · Agenda pública: «Participa en lo que viene» (Figma A-02, 476:11136).
 // La ven visitantes y personas con sesión; con sesión aparece además «¿Tienes una idea para la biblioteca?».
-// TODO backend: ver datosAgenda.ts.
+// Datos reales de la agenda publicada; diseño de Aldahir.
 
 export default function Agenda() {
     const sesion = useSesion();
     const [filtro, setFiltro] = useState<FiltroCategoria>("todas");
-    const hoy = hoyLocal() < HOY_EJEMPLO ? hoyLocal() : HOY_EJEMPLO; // TODO backend: usar siempre hoyLocal()
-    const lista = proximas(agendaEjemplo, hoy, filtro);
+    const hoy = fechaHoyTepic();
+    const { actividades, cargando, error, reintentar } = useAgendaPublica(hoy);
+    const lista = proximas(actividades.filter(a => !a.cancelada), hoy, filtro);
     const [destacada, ...resto] = lista;
 
     return (
@@ -56,13 +59,13 @@ export default function Agenda() {
                     <SelectorVistaAgenda actual="lista" />
                     </div>
 
-                    {destacada ? <>
+                    {cargando ? <p role="status">Consultando agenda…</p> : error ? <div role="alert"><p>{error}</p><button className="agenda-boton agenda-boton--verde" onClick={reintentar}>Reintentar</button></div> : destacada ? <>
                         <Destacada actividad={destacada} />
                         {resto.length > 0 && (
                             <div className="agenda-mas">
                                 <h3>Más actividades</h3>
                                 <p>Reserva tu lugar con tiempo: algunas tienen cupo limitado.</p>
-                                <ul>{resto.slice(0, 4).map((a) => <li key={a.id}><Fila actividad={a} /></li>)}</ul>
+                                <ul>{resto.slice(0, 4).map((a) => <li key={a.sesionId ?? a.id}><Fila actividad={a} /></li>)}</ul>
                             </div>
                         )}
                     </> : (
@@ -85,7 +88,8 @@ function Destacada({ actividad: a }: { actividad: ActividadAgenda }) {
             <img className="agenda-destacada__circulo agenda-destacada__circulo--1" src={circuloGrande} alt="" />
             <img className="agenda-destacada__circulo agenda-destacada__circulo--2" src={circuloChico} alt="" />
             <div className="agenda-destacada__imagen">
-                <img src={a.imagen} alt="" />
+                <img src={a.imagen} alt="Imagen ilustrativa de una actividad de lectura" />
+                <span className="agenda-imagen-ilustrativa">Imagen ilustrativa</span>
                 <span className="agenda-destacada__fecha"><strong>{dia}</strong>{mes}</span>
             </div>
             <div className="agenda-destacada__textos">

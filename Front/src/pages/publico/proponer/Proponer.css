@@ -2,6 +2,7 @@
 .proponer-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; gap: 24px; max-width: 1000px; margin: 0 auto; padding: 36px 24px 72px; box-sizing: content-box; }
 .proponer-cuerpo--una { grid-template-columns: minmax(0, 1fr); }
 .proponer-formulario { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.proponer-campos { display: flex; flex-direction: column; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
 .proponer-seccion { gap: 14px; }
 .proponer-seccion h2 { margin: 0; color: #161a1d; font-size: 19px; }
 .proponer-seccion__cabecera { display: flex; align-items: center; gap: 12px; }
@@ -34,6 +35,20 @@
 
 .proponer-seccion textarea:focus-visible { outline: 3px solid #c9a24a; outline-offset: 1px; border-color: #164f44; }
 .proponer-obligatorio { color: #9b2247 !important; font-size: 11px !important; }
+/* Reserva la misma altura para etiquetas de una o dos líneas en cada fila. */
+.proponer-seccion .cred-fila > .cred-campo > label {
+  display: block;
+  min-block-size: 2lh;
+  line-height: 20px;
+}
+.proponer-seccion .proponer-obligatorio {
+  display: inline;
+  margin-inline-start: 6px;
+  white-space: nowrap;
+}
+.proponer-seccion .cred-fila { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.proponer-seccion .cred-campo > input,
+.proponer-seccion .cred-campo > select { width: 100%; box-sizing: border-box; }
 .proponer-error { margin: 0; }
 .proponer-horario { display: flex; align-items: center; gap: 8px; }
 .proponer-horario input { flex: 1; min-width: 0; }

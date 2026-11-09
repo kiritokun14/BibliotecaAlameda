@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS privado."historialSolicitud" (
  fecha timestamptz NOT NULL DEFAULT clock_timestamp(),
  CHECK (num_nonnulls("solicitudCredencialId","propuestaEventoId")=1)
 );
+ALTER TABLE privado."historialSolicitud" ADD COLUMN IF NOT EXISTS "acuerdoDireccion" jsonb;
 ALTER TABLE privado."historialSolicitud" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON privado."historialSolicitud" FROM PUBLIC,anon,authenticated;
 CREATE INDEX IF NOT EXISTS historial_solicitud_credencial ON privado."historialSolicitud"("solicitudCredencialId",fecha);
@@ -58,7 +59,8 @@ BEGIN
    'segundoApellido',p."segundoApellido",'telefono',p.telefono)||CASE WHEN tipo='credencial' THEN jsonb_build_object('municipio',p.municipio) ELSE '{}'::jsonb END);
  END IF;
  RETURN r||jsonb_build_object('historial',coalesce((SELECT jsonb_agg(jsonb_build_object('accion',h.accion,
-  'estadoAnterior',h."estadoAnterior",'estadoNuevo',h."estadoNuevo",'nota',h.nota,'fecha',h.fecha) ORDER BY h.fecha,h.id)
+  'estadoAnterior',h."estadoAnterior",'estadoNuevo',h."estadoNuevo",'nota',h.nota,'fecha',h.fecha)
+   ||CASE WHEN personal THEN jsonb_build_object('registradoPor',h."realizadoPor",'acuerdoDireccion',h."acuerdoDireccion") ELSE '{}'::jsonb END ORDER BY h.fecha,h.id)
   FROM privado."historialSolicitud" h WHERE (tipo='credencial' AND h."solicitudCredencialId"=identificador)
    OR (tipo='propuesta' AND h."propuestaEventoId"=identificador)),'[]'::jsonb));
 END; $$;
@@ -69,7 +71,7 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
 #variable_conflict use_variable
 DECLARE actor uuid; personal boolean; titular uuid; identificador uuid; anterior text; nuevo text; version_actual timestamptz;
  c public."solicitudCredencial"%ROWTYPE; p public."propuestaEvento"%ROWTYPE; nota text;
- limite integer; desplazamiento integer; filtro text; buscar text; total integer; filas jsonb; cita timestamptz;
+ limite integer; desplazamiento integer; filtro text; buscar text; total integer; filas jsonb; cita timestamptz; acuerdo jsonb; fecha_acuerdo date;
 BEGIN
  actor:=privado.comprobar_sesion_cuenta();
  IF tipo_solicitud IS NULL OR tipo_solicitud NOT IN ('credencial','propuesta') OR operacion IS NULL
@@ -175,16 +177,36 @@ BEGIN
      "estadoRevision"=nuevo WHERE id=identificador;
    END IF;
   ELSIF operacion='resolver' THEN
-   IF EXISTS(SELECT 1 FROM jsonb_object_keys(datos) k WHERE k NOT IN ('id','actualizadoEn','estadoRevision','observacionesInstitucionales')) THEN RAISE EXCEPTION 'Campos inválidos' USING ERRCODE='22023'; END IF;
+   IF EXISTS(SELECT 1 FROM jsonb_object_keys(datos) k WHERE k NOT IN ('id','actualizadoEn','estadoRevision','observacionesInstitucionales','acuerdoDireccion')) THEN RAISE EXCEPTION 'Campos inválidos' USING ERRCODE='22023'; END IF;
+   IF titular=actor THEN RAISE EXCEPTION 'No puedes resolver tu propia propuesta' USING ERRCODE='42501'; END IF;
    nuevo:=datos->>'estadoRevision'; nota:=nullif(btrim(datos->>'observacionesInstitucionales'),'');
    IF nuevo IS NULL OR nuevo NOT IN ('requiere_correccion','aprobada','rechazada') OR anterior<>'en_revision' THEN RAISE EXCEPTION 'Transición no permitida' USING ERRCODE='55000'; END IF;
    IF (datos ? 'observacionesInstitucionales' AND jsonb_typeof(datos->'observacionesInstitucionales') NOT IN ('string','null'))
-   OR length(nota)>5000 OR (nuevo IN ('requiere_correccion','rechazada') AND nota IS NULL) THEN RAISE EXCEPTION 'Motivo requerido' USING ERRCODE='23514'; END IF;
+   OR length(nota)>5000 OR nota IS NULL THEN RAISE EXCEPTION 'Motivo requerido' USING ERRCODE='23514'; END IF;
+   -- A04 registra un acuerdo externo; el permiso no lo convierte en dirección.
+   IF nuevo IN ('aprobada','rechazada') THEN
+    acuerdo:=datos->'acuerdoDireccion';
+    IF jsonb_typeof(acuerdo) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION 'Registra el acuerdo de dirección' USING ERRCODE='23514'; END IF;
+    IF EXISTS(SELECT 1 FROM jsonb_object_keys(acuerdo) k WHERE k NOT IN ('responsable','fecha','referencia'))
+    OR EXISTS(SELECT 1 FROM unnest(ARRAY['responsable','fecha','referencia']) k
+      WHERE jsonb_typeof(acuerdo->k) IS DISTINCT FROM 'string' OR length(btrim(acuerdo->>k))<1
+      OR length(acuerdo->>k)>CASE k WHEN 'responsable' THEN 200 WHEN 'referencia' THEN 500 ELSE 10 END)
+    OR coalesce(acuerdo->>'fecha','') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+    THEN RAISE EXCEPTION 'Acuerdo de dirección incompleto' USING ERRCODE='23514'; END IF;
+    BEGIN fecha_acuerdo:=(acuerdo->>'fecha')::date;
+    EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN
+     RAISE EXCEPTION 'Fecha del acuerdo inválida' USING ERRCODE='23514'; END;
+    IF NOT isfinite(fecha_acuerdo) OR fecha_acuerdo>(statement_timestamp() AT TIME ZONE 'America/Mazatlan')::date
+    THEN RAISE EXCEPTION 'Fecha del acuerdo futura o inválida' USING ERRCODE='23514'; END IF;
+    acuerdo:=jsonb_build_object('responsable',btrim(acuerdo->>'responsable'),'fecha',fecha_acuerdo,'referencia',btrim(acuerdo->>'referencia'));
+   ELSIF datos->'acuerdoDireccion' IS NOT NULL AND datos->'acuerdoDireccion'<>'null'::jsonb THEN
+    RAISE EXCEPTION 'Pedir correcciones no es una resolución de dirección' USING ERRCODE='23514';
+   END IF;
    UPDATE public."propuestaEvento" SET "estadoRevision"=nuevo,"observacionesInstitucionales"=nota,"revisadoPor"=actor WHERE id=identificador;
   ELSE RAISE EXCEPTION 'Operación inválida' USING ERRCODE='22023'; END IF;
  END IF;
- INSERT INTO privado."historialSolicitud"("solicitudCredencialId","propuestaEventoId",accion,"estadoAnterior","estadoNuevo",nota,"realizadoPor")
- VALUES(CASE WHEN tipo_solicitud='credencial' THEN identificador END,CASE WHEN tipo_solicitud='propuesta' THEN identificador END,operacion,anterior,nuevo,nota,actor);
+ INSERT INTO privado."historialSolicitud"("solicitudCredencialId","propuestaEventoId",accion,"estadoAnterior","estadoNuevo",nota,"realizadoPor","acuerdoDireccion")
+ VALUES(CASE WHEN tipo_solicitud='credencial' THEN identificador END,CASE WHEN tipo_solicitud='propuesta' THEN identificador END,operacion,anterior,nuevo,nota,actor,acuerdo);
  RETURN privado.solicitud_para_atencion(tipo_solicitud,identificador,personal AND operacion='resolver');
 END; $$;
 CREATE OR REPLACE FUNCTION public.atencion_solicitudes(tipo_solicitud text,operacion text,datos jsonb DEFAULT '{}')

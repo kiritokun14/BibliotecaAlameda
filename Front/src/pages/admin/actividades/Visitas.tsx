@@ -7,8 +7,9 @@ import "../contenidoDemo/Contenidos.css";
 import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton, paginar } from "../contenidoDemo/utiles";
 import { fechaCorta } from "./datos";
-import { enFiltro, NOMBRE_ESTADO_VISITA, useVisitas, type FiltroVisita, type UsoEspacio, type Visita } from "./visitas";
+import { enFiltro, NOMBRE_ESTADO_VISITA, type FiltroVisita, type UsoEspacio, type Visita } from "./visitas";
 import { BASE_VISITAS, TONO_VISITA } from "./utiles";
+import { useVisitasPersonal } from "../../../servicios/usarVisitasPersonal";
 import iconoReloj from "../../../assets/admin/contenidos/resumen-reloj-dorado.svg";
 import iconoCheck from "../../../assets/admin/contenidos/resumen-check.svg";
 import iconoArchivo from "../../../assets/admin/actividades/resumen-archivo.svg";
@@ -26,7 +27,8 @@ function Visitas() {
     const [params, setParams] = useSearchParams();
     const navigate = useNavigate();
     const uso = params.get("vista") === "uso";
-    const { visitas, usos } = useVisitas();
+    const { visitas, cargando, error, reintentar } = useVisitasPersonal();
+    const usos: UsoEspacio[] = [];
     const [filtro, setFiltro] = useState<FiltroVisita>("todas");
     const [busqueda, setBusqueda] = useState("");
     const [pagina, setPagina] = useState(0);
@@ -60,6 +62,9 @@ function Visitas() {
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
+                {cargando && <p role="status">Cargando visitas…</p>}
+                {error && <p role="alert">{error} <button onClick={reintentar}>Reintentar</button></p>}
+                {uso && <p role="status">El registro de uso efectivo de salas todavía no tiene backend. Las solicitudes se atienden desde la bandeja de visitas.</p>}
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios"], [uso ? "Registro" : "Bandeja"]]} />
 
                 {uso ? (
@@ -116,7 +121,7 @@ function Visitas() {
                             insignia="Visitas y uso de espacios"
                             titulo="Visitas por"
                             resalte="atender"
-                            subtitulo="Solicitudes de grupos y uso de salas · cifras de ejemplo"
+                            subtitulo="Solicitudes de visitas registradas en el portal"
                             accesos={[
                                 { icono: iconoReloj, numero: cuenta("por-confirmar"), titulo: "Por confirmar", texto: "Esperan respuesta", enlace: "Ver por confirmar", tono: "dorado", activo: filtro === "por-confirmar", alPresionar: () => elegir("por-confirmar") },
                                 { icono: iconoCheck, numero: cuenta("confirmada"), titulo: "Confirmadas", texto: "Próximas", enlace: "Ver confirmadas", tono: "verde", activo: filtro === "confirmada", alPresionar: () => elegir("confirmada") },
@@ -150,7 +155,7 @@ function Visitas() {
                                         { titulo: "FECHA SOLICITADA", ancho: 140, celda: (v: Visita) => fechaCorta(v.fecha) },
                                         { titulo: "ESPACIO", ancho: 150, celda: (v: Visita) => v.espacio },
                                         { titulo: "ESTADO", ancho: 160, celda: (v: Visita) => <Chip tono={TONO_VISITA[v.estado]} ancho={150}>{NOMBRE_ESTADO_VISITA[v.estado]}</Chip> },
-                                        { titulo: "ACCIÓN", ancho: 90, celda: (v: Visita) => <Link to={`${BASE_VISITAS}/${v.folio}`} className="cn-enlace">{v.estado === "por-confirmar" ? "Revisar" : "Abrir"} →<span className="cn-solo-lectores"> {v.folio}</span></Link> },
+                                        { titulo: "ACCIÓN", ancho: 90, celda: (v: Visita) => <Link to={`/admin/atencion/espacios/${v.folio}`} className="cn-enlace">{v.estado === "por-confirmar" ? "Revisar" : "Abrir"} →<span className="cn-solo-lectores"> {v.folio}</span></Link> },
                                     ]}
                                     filas={visibles}
                                     clave={(v) => v.folio}
@@ -158,7 +163,7 @@ function Visitas() {
                             )}
                             {filtradas.length > 0 && (
                                 <div className="cn-pie-tabla">
-                                    <p>Mostrando {visibles.length} de {filtradas.length} visitas (ejemplo)</p>
+                                    <p>Mostrando {visibles.length} de {filtradas.length} visitas registradas</p>
                                     <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
                                 </div>
                             )}

@@ -53,7 +53,8 @@ export const quitar = (lista: Notificacion[], id: string) => lista.filter((n) =>
 export const quitarLeidas = (lista: Notificacion[]) => lista.filter((n) => !n.leida);
 
 // ---------- Estado compartido de la pestaña ----------
-let actual: Notificacion[] = EJEMPLO;
+// Los ejemplos no son avisos de una cuenta real. El servicio de lectura aún está pendiente.
+let actual: Notificacion[] = [];
 const oyentes = new Set<() => void>();
 function cambiar(nueva: Notificacion[]) { actual = nueva; oyentes.forEach((o) => o()); }
 function suscribir(oyente: () => void) { oyentes.add(oyente); return () => { oyentes.delete(oyente); }; }

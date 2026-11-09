@@ -14,6 +14,7 @@ export function capacidadPanel(ruta: string): string | null {
     if (ruta.startsWith('/admin/administracion/cuentas') || ruta.startsWith('/admin/administracion/bitacora')
         || ruta.startsWith('/admin/administracion/configuracion')) return 'administrar_cuentas';
     if (ruta.startsWith('/admin/contenidos/revision')) return 'publicar_contenidos';
+    if (ruta.startsWith('/admin/actividades/visitas')) return 'registrar_resoluciones_actividades';
     if (ruta.startsWith('/admin/actividades/asistencia')) return 'registrar_asistencia';
     if (ruta.startsWith('/admin/actividades/inscripciones')) return 'confirmar_inscripciones';
     if (ruta.startsWith('/admin/actividades/evidencias')) return 'gestionar_evidencias';

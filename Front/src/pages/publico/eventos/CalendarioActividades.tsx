@@ -4,9 +4,11 @@ import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/Pag
 import { useSesion } from "../perfil/usarSesion";
 import { SelectorVistaAgenda, TarjetaProponer } from "./Agenda";
 import {
-    HOY_EJEMPLO, agendaEjemplo, diaInicial, diaLargo, moverMes, nombreCategoria, nombreMes, semanasDelMes, type Categoria,
+     diaInicial, diaLargo, moverMes, nombreCategoria, nombreMes, semanasDelMes, type Categoria,
 } from "./datosAgenda";
 import "./Agenda.css";
+import { useAgendaPublica } from "../../../servicios/usarAgendaPublica";
+import { fechaHoyTepic } from "../../../servicios/propuestasUsuario";
 import mesAnterior from "../../../assets/noticias/mes-anterior.svg";
 import mesSiguiente from "../../../assets/noticias/mes-siguiente.svg";
 import listaVerde from "../../../assets/noticias/vista-lista-verde.svg";
@@ -19,17 +21,20 @@ const diasSemana = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
 
 export default function CalendarioActividades() {
     const sesion = useSesion();
-    const hoy = HOY_EJEMPLO;
+    const hoy = fechaHoyTepic();
     const [inicial] = useState(() => { const [a, m] = hoy.split("-").map(Number); return { anio: a, mes: m }; });
     const [mes, setMes] = useState(inicial);
-    const semanas = semanasDelMes(mes.anio, mes.mes, agendaEjemplo);
-    const [elegido, setElegido] = useState<string | null>(() => diaInicial(semanas, hoy));
-    const dia = semanas.flat().find((d) => d.fecha === elegido && d.delMes) ?? null;
+    const desde = `${mes.anio}-${String(mes.mes).padStart(2, "0")}-01`;
+    const hasta = `${mes.anio}-${String(mes.mes).padStart(2, "0")}-${new Date(mes.anio, mes.mes, 0).getDate()}`;
+    const { actividades, cargando, error, reintentar } = useAgendaPublica(desde, hasta);
+    const semanas = semanasDelMes(mes.anio, mes.mes, actividades);
+    const [elegido, setElegido] = useState<string | null>(null);
+    const dia = semanas.flat().find((d) => d.fecha === (elegido ?? diaInicial(semanas, hoy)) && d.delMes) ?? null;
 
     function cambiarMes(paso: number) {
         const nuevo = moverMes(mes.anio, mes.mes, paso);
         setMes(nuevo);
-        setElegido(diaInicial(semanasDelMes(nuevo.anio, nuevo.mes, agendaEjemplo), hoy));
+        setElegido(null);
     }
 
     return (
@@ -39,6 +44,8 @@ export default function CalendarioActividades() {
             <div className="agenda-cuerpo">
                 {sesion && <TarjetaProponer />}
 
+                {cargando && <p role="status">Cargando calendario…</p>}
+                {error && <p role="alert">{error} <button onClick={reintentar}>Reintentar</button></p>}
                 <section className="calendario-agenda" aria-labelledby="titulo-mes">
                     <div className="calendario-agenda__barra">
                         <div className="calendario-agenda__mes">
@@ -69,7 +76,7 @@ export default function CalendarioActividades() {
                                     <tr key={semana[0].fecha}>
                                         {semana.map((d) => {
                                             const con = d.delMes && d.actividades.length > 0;
-                                            const activo = d.fecha === elegido && d.delMes;
+                                            const activo = d.fecha === (elegido ?? diaInicial(semanas, hoy)) && d.delMes;
                                             const clase = `calendario-agenda__dia${d.delMes ? "" : " calendario-agenda__dia--fuera"}${con ? " calendario-agenda__dia--con" : ""}${activo ? " calendario-agenda__dia--activo" : ""}`;
                                             return (
                                                 <td key={d.fecha}>
@@ -78,7 +85,7 @@ export default function CalendarioActividades() {
                                                             aria-label={`${d.numero} de ${nombreMes(mes.mes).toLowerCase()}, ${d.actividades.length} ${d.actividades.length === 1 ? "actividad" : "actividades"}`}>
                                                             <span className="calendario-agenda__numero">{d.numero}</span>
                                                             <span className="calendario-agenda__puntos" aria-hidden="true">
-                                                                {d.actividades.slice(0, 3).map((a) => <span key={a.id} className={`calendario-agenda__punto calendario-agenda__punto--${a.categoria}`} />)}
+                                                                {d.actividades.slice(0, 3).map((a) => <span key={a.sesionId ?? a.id} className={`calendario-agenda__punto calendario-agenda__punto--${a.categoria}`} />)}
                                                             </span>
                                                         </button>
                                                     ) : (
@@ -99,7 +106,7 @@ export default function CalendarioActividades() {
                                 <p className="calendario-agenda__cuenta">{dia.actividades.length} {dia.actividades.length === 1 ? "actividad" : "actividades"}</p>
                                 <ul>
                                     {dia.actividades.map((a) => (
-                                        <li key={a.id}>
+                                        <li key={a.sesionId ?? a.id}>
                                             <p className="calendario-agenda__categoria">
                                                 <span className={`calendario-agenda__punto calendario-agenda__punto--${a.categoria as Categoria}`} />
                                                 {nombreCategoria[a.categoria]} <strong>{a.horario.slice(0, 5)}</strong>

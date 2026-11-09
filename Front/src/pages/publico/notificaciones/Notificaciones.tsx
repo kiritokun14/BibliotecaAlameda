@@ -56,6 +56,7 @@ export default function Notificaciones() {
 
     return (
         <PaginaPublica>
+            <p className="cred-estado" role="status">El centro de notificaciones aún no tiene un servicio de consulta conectado. Los ejemplos del diseño no representan avisos de tu cuenta; consulta el seguimiento de tus solicitudes desde Mi perfil.</p>
             <section className="encabezado-visitante">
                 <img className="encabezado-visitante__circulo encabezado-visitante__circulo--1" src={circulo1} alt="" />
                 <img className="encabezado-visitante__circulo encabezado-visitante__circulo--2" src={circulo2} alt="" />

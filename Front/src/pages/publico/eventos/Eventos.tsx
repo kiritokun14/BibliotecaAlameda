@@ -1,81 +1,75 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import PaginaPublica from '../../../components/portal/PaginaPublica';
-import { consultarActividadPublica, consultarAgenda, type ActividadPublica, type ListaAgenda } from '../../../servicios/actividades';
+import { EncabezadoNoticias } from '../noticias/piezas';
+import { consultarActividadPublica, type ActividadPublica } from '../../../servicios/actividades';
 import { mensajeError } from '../../../servicios/api';
-import './Eventos.css';
-import './AgendaReal.css';
+import { sesionesDeAgenda } from '../../../servicios/agendaPublica';
+import { fechaCompleta } from './datosAgenda';
+import './Agenda.css';
+import calendario from '../../../assets/eventos/detalle-calendario.svg';
+import reloj from '../../../assets/eventos/detalle-reloj.svg';
+import pin from '../../../assets/eventos/destacada-pin.svg';
+import cupo from '../../../assets/eventos/detalle-cupo.svg';
+import circuloGrande from '../../../assets/comun/iconos/circulo-grande.svg';
+import circuloChico from '../../../assets/comun/iconos/circulo-chico.svg';
 
 export default function Eventos() {
-    const { id: parametro } = useParams();
-    const id = ['todas', 'calendario'].includes(parametro ?? '') ? undefined : parametro;
-    const [parametros, setParametros] = useSearchParams();
-    const [recarga, recargar] = useState(0);
-    const desde = parametros.get('desde') ?? '';
-    const hasta = parametros.get('hasta') ?? '';
-    const busqueda = parametros.get('busqueda') ?? '';
-    const tipo = parametros.get('tipo') ?? '';
-    const pagina = Math.max(0, Number(parametros.get('pagina')) || 0);
-    const clave = JSON.stringify([id, desde, hasta, busqueda, tipo, pagina, recarga]);
-    const [resultado, setResultado] = useState<{ clave: string; lista?: ListaAgenda; actividad?: ActividadPublica; error?: string }>({ clave: '' });
-    const actual = resultado.clave === clave ? resultado : undefined;
+    const { id = '' } = useParams();
+    const [intento, recargar] = useState(0);
+    const clave = JSON.stringify([id, intento]);
+    const [resultado, setResultado] = useState<{ clave: string; actividad?: ActividadPublica; error?: string }>();
+    const actual = resultado?.clave === clave ? resultado : undefined;
     useEffect(() => {
         let vigente = true;
-        const consulta = id ? consultarActividadPublica(id).then(actividad => ({ actividad }))
-            : consultarAgenda({ desde, hasta, busqueda, tipo, pagina, limite: 12 }).then(lista => ({ lista }));
-        consulta.then(datos => { if (vigente) setResultado({ clave, ...datos }); })
+        consultarActividadPublica(id).then(actividad => { if (vigente) setResultado({ clave, actividad }); })
             .catch(error => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
         return () => { vigente = false; };
-    }, [clave, id, desde, hasta, busqueda, tipo, pagina]);
-    function filtrar(datos: FormData) {
-        const siguiente = new URLSearchParams();
-        for (const campo of ['desde', 'hasta', 'tipo', 'busqueda']) {
-            const valor = String(datos.get(campo) ?? '').trim();
-            if (valor) siguiente.set(campo, valor);
-        }
-        setParametros(siguiente);
-    }
-    function ir(numero: number) {
-        const siguientes = new URLSearchParams(parametros); siguientes.set('pagina', String(numero)); setParametros(siguientes);
-    }
-    return <PaginaPublica><div className="agenda-publica">
-        <Link to={id ? '/eventos' : '/'}>{id ? '← Volver a la agenda' : '← Volver al inicio'}</Link>
-        <p><Link to="/proponer-evento">Proponer un evento o club</Link> · <Link to="/mis-tramites/propuestas">Consultar mis propuestas</Link></p>
-        <h1>{id ? 'Detalle de la actividad' : 'Agenda de actividades'}</h1>
-        <p>Consulta fechas, horarios, espacios y requisitos sin iniciar sesión. Horarios de Tepic, Nayarit.</p>
-        {!id && <form key={`${desde}:${hasta}:${busqueda}:${tipo}`} className="agenda-filtros" onSubmit={e => { e.preventDefault(); filtrar(new FormData(e.currentTarget)); }}>
-            <label>Desde<input type="date" name="desde" defaultValue={desde} /></label>
-            <label>Hasta<input type="date" name="hasta" defaultValue={hasta} /></label>
-            <label>Tipo<select name="tipo" defaultValue={tipo}><option value="">Todos</option>{['Taller', 'Club', 'Curso', 'Charla', 'Visita', 'Cuentacuentos', 'Presentación', 'Exposición'].map(t => <option key={t}>{t}</option>)}</select></label>
-            <label>Buscar por nombre<input name="busqueda" maxLength={100} defaultValue={busqueda} /></label>
-            <button type="submit">Buscar actividades</button><Link to="/eventos">Limpiar filtros</Link>
-        </form>}
-        {!actual && <p role="status">Consultando agenda…</p>}
-        {actual?.error && <div role="alert"><p>{actual.error}</p><button onClick={() => recargar(x => x + 1)}>Reintentar</button></div>}
-        {actual?.lista && <>
-            <p role="status">{actual.lista.total} actividades encontradas</p>
-            {actual.lista.actividades.length === 0 && <p>No hay actividades publicadas para esos filtros.</p>}
-            <div className="agenda-lista">{actual.lista.actividades.map(a => <article className="agenda-tarjeta" key={a.folio}>
-                <p>{a.tipo}</p><h2><Link to={`/eventos/${a.folio}`}>{a.nombre}</Link></h2><p>{a.descripcion}</p>
-                {a.sesiones.filter(s => (!desde || s.fecha >= desde) && (!hasta || s.fecha <= hasta)).map(s => <p key={s.id}>{s.fecha} · {s.inicio} a {s.fin} · {s.espacio}{s.estado === 'cancelada' ? ' · Sesión cancelada' : ''}</p>)}
-            </article>)}</div>
-            <nav aria-label="Páginas de la agenda"><button disabled={pagina === 0} onClick={() => ir(pagina - 1)}>Anterior</button>
-                <span> Página {pagina + 1} de {Math.max(1, Math.ceil(actual.lista.total / 12))} </span>
-                <button disabled={(pagina + 1) * 12 >= actual.lista.total} onClick={() => ir(pagina + 1)}>Siguiente</button></nav>
-        </>}
-        {actual?.actividad && <Detalle actividad={actual.actividad} />}
-    </div></PaginaPublica>;
+    }, [id, clave]);
+    return <PaginaPublica>
+        <EncabezadoNoticias regreso={{ texto: 'Volver a Eventos y actividades', ruta: '/eventos' }} etiqueta={actual?.actividad?.tipo ?? 'Eventos y actividades'} titulo={actual?.actividad?.nombre ?? 'Detalle de actividad'} texto={actual?.actividad?.publico ?? 'Consulta la información publicada por la biblioteca.'} />
+        <div className="agenda-cuerpo">
+            {!actual && <p role="status">Consultando actividad…</p>}
+            {actual?.error && <p role="alert">{actual.error} <button className="agenda-boton agenda-boton--verde" onClick={() => recargar(v => v + 1)}>Reintentar</button></p>}
+            {actual?.actividad && <Detalle actividad={actual.actividad} />}
+        </div>
+    </PaginaPublica>;
 }
 
 function Detalle({ actividad: a }: { actividad: ActividadPublica }) {
-    return <article className="agenda-tarjeta"><p>{a.tipo} · {a.folio}</p><h2>{a.nombre}</h2>
-        <p style={{ whiteSpace: 'pre-wrap' }}>{a.descripcion}</p>
-        <dl><dt>Público</dt><dd>{a.publico}</dd><dt>Área o responsable</dt><dd>{a.responsable || 'Consulta con la biblioteca'}</dd>
-            <dt>Materiales y requisitos</dt><dd>{a.materiales || 'Sin requisitos adicionales'}</dd>
-            <dt>Participación</dt><dd>{a.inscripcion ? 'Requiere inscripción; consultar una actividad no reserva un lugar.' : 'Entrada libre, sujeta al cupo del espacio.'}</dd></dl>
-        <h3>Sesiones y avisos</h3>{a.sesiones.map(s => <section key={s.id}><h4>{s.fecha} · {s.inicio} a {s.fin}</h4>
-            <p>{s.espacio} · cupo {s.cupo}</p><p>{s.estado === 'cancelada' ? 'Aviso: esta sesión está cancelada.' : s.estado === 'finalizada' ? 'Sesión finalizada.' : s.estado === 'en_curso' ? 'Sesión en curso.' : 'Sesión programada.'}</p>
-        </section>)}
-        <p>Para gestionar tu participación, consulta al personal de la biblioteca. Esta pantalla no realiza inscripciones.</p>
-    </article>;
+    const sesiones = sesionesDeAgenda(a);
+    const primera = sesiones[0];
+    return <>
+        <div className="detalle-actividad">
+            <div className="detalle-actividad__contenido">
+                {primera && <><img className="detalle-actividad__foto" src={primera.imagen} alt="Imagen ilustrativa de una actividad de lectura" /><p className="detalle-actividad__nota">Imagen ilustrativa</p></>}
+                <p className="agenda-sobretitulo agenda-sobretitulo--verde">SOBRE LA ACTIVIDAD</p>
+                <p className="detalle-actividad__texto" style={{ whiteSpace: 'pre-wrap' }}>{a.descripcion}</p>
+                <h2>Materiales y requisitos</h2><p>{a.materiales || 'Sin requisitos adicionales publicados.'}</p>
+                <h2>Área o responsable</h2><p>{a.responsable || 'Consulta con el personal de la biblioteca.'}</p>
+            </div>
+            <aside className="detalle-actividad__info">
+                <img className="detalle-actividad__circulo detalle-actividad__circulo--1" src={circuloGrande} alt="" />
+                <img className="detalle-actividad__circulo detalle-actividad__circulo--2" src={circuloChico} alt="" />
+                <span className="detalle-actividad__chip">Información publicada</span>
+                <dl>{primera && <>
+                    <Dato icono={calendario} etiqueta="FECHA" valor={fechaCompleta(primera.fecha)} />
+                    <Dato icono={reloj} etiqueta="HORARIO" valor={primera.horario} />
+                    <Dato icono={pin} etiqueta="LUGAR" valor={primera.lugar} />
+                    <Dato icono={cupo} etiqueta="CAPACIDAD" valor={`${a.sesiones[0].cupo} personas; disponibilidad por confirmar`} />
+                </>}</dl>
+                <p className="detalle-actividad__nota">{a.inscripcion ? 'Requiere inscripción. El registro en línea de participación todavía no está habilitado; consulta al personal.' : 'Entrada libre, sujeta a la disponibilidad del espacio.'}</p>
+            </aside>
+        </div>
+        <section className="agenda-mas"><h2>Sesiones y avisos</h2><p>Horarios de Tepic, Nayarit.</p>
+            {a.sesiones.map(s => <article className="agenda-vacio" key={s.id}>
+                <h3>{fechaCompleta(s.fecha)} · {s.inicio} a {s.fin}</h3><p>{s.espacio} · Capacidad: {s.cupo}</p>
+                <p>{s.estado === 'cancelada' ? 'Esta sesión está cancelada.' : s.estado === 'finalizada' ? 'Sesión finalizada.' : s.estado === 'en_curso' ? 'Sesión en curso.' : 'Sesión programada.'}</p>
+            </article>)}
+            <Link className="agenda-boton agenda-boton--verde" to="/eventos/todas">Ver todas las actividades</Link>
+        </section>
+    </>;
+}
+function Dato({ icono, etiqueta, valor }: { icono: string; etiqueta: string; valor: string }) {
+    return <div><img src={icono} alt="" /><dt>{etiqueta}</dt><dd>{valor}</dd></div>;
 }
