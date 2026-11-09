@@ -92,12 +92,11 @@ export const servicios: Servicio[] = [
         titulo: "Bibliocomunidad",
         descripcion: "Club Alameda: comunidad de lectores con foro y actividades propias.",
         icono: "personas",
-        proximamente: true,
         accion: { texto: "Conocer el programa", ruta: "/servicios/bibliocomunidad" },
         detalle: {
             nombre: { normal: "Club", resaltado: "Alameda" },
             subtitulo: "Una comunidad de lectores con foro y actividades propias.",
-            etiqueta: "Bibliocomunidad · Próximamente",
+            etiqueta: "Bibliocomunidad",
             requisitos: [
                 "Tener una cuenta en el portal",
                 "Credencial de la biblioteca vigente",
@@ -105,8 +104,8 @@ export const servicios: Servicio[] = [
             ],
             actividades: ["Círculo de lectura", "Tertulia mensual", "Intercambio de libros"],
             aviso: {
-                titulo: "En desarrollo",
-                texto: "Estamos preparando el Club Alameda. Pronto podrás conocer cómo participar.",
+                titulo: "Conversa en el foro del club",
+                texto: "Lee y comparte opiniones sobre libros en el foro Club Alameda.",
             },
         },
     },

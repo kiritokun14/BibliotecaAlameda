@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton, paginar } from "../contenidoDemo/utiles";
@@ -56,7 +58,7 @@ function Visitas() {
     const limpiar = { texto: "Limpiar filtros", alPresionar: () => { setBusqueda(""); elegir("todas"); } };
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios"], [uso ? "Registro" : "Bandeja"]]} />
 

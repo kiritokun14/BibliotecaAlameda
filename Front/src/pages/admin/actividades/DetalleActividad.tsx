@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, Datos, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -80,7 +82,7 @@ function Contenido({ actividad: a, previa }: { actividad: Actividad; previa: boo
     const resumen: [string, string][] = [["Folio", a.folio], ["Fecha", `${fechaCorta(a.fecha)} · ${a.inicio || "--:--"}`], ["Cupo", a.cupo || "—"]];
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades", BASE_PROPUESTAS], [ventana === "publicar" || ventana === "error" ? "Confirmar publicación" : ventana === "archivar" ? "Archivar actividad" : "Detalle"]]} />
 

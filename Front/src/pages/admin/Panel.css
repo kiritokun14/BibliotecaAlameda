@@ -1568,3 +1568,54 @@ a.panel-submenu__item.active {
     .ventana__pie,
     .pie-bandeja { flex-direction: column; align-items: stretch; }
 }
+
+/* Armazón de escritorio: la navegación permanece visible al recorrer el contenido. */
+@media (min-width: 1101px) {
+    .panel { height: 100dvh; min-height: 0; overflow: hidden; }
+    .panel-gobierno { flex-shrink: 0; padding-inline: 40px; }
+    .panel-cuerpo { min-height: 0; overflow: hidden; }
+    .panel-lateral { width: 264px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+    .panel-lateral > * { flex-shrink: 0; }
+    .panel-principal { min-height: 0; overflow: hidden; }
+    .panel-cabecera { flex-shrink: 0; height: 72px; padding-inline: 32px; }
+    .panel-desplazamiento { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+    .panel-contenido { padding: 32px; }
+    .panel-desplazamiento .pie-portal { --margen-portal: 32px; }
+    .panel-desplazamiento .pie-portal__contenido { gap: 28px; }
+    .panel-desplazamiento .pie-portal__logos { padding-right: 24px; }
+    .panel-desplazamiento .pie-portal__columnas { gap: 20px; }
+    .panel-cuenta { max-width: 320px; }
+    .panel-cuenta > span:last-child { min-width: 0; }
+    .panel-cuenta__nombre, .panel-cuenta__rol { overflow-wrap: anywhere; }
+}
+
+/* Iconos originales del menú en blanco, también en la sección activa. */
+.panel .panel-lateral .panel-menu__item img { filter: brightness(0) invert(1); opacity: 1; }
+.panel .panel-lateral a.panel-menu__item.active,
+.panel .panel-lateral a.panel-menu__item.active:hover { background: #164f44; color: #fff; }
+
+/* Navegación compacta: una sola jerarquía visual en todos los módulos. */
+.panel .panel-lateral { padding: 20px 14px 24px; gap: 4px; background: #0b3b33; }
+.panel .panel-marca { gap: 10px; padding: 0 8px 14px; }
+.panel .panel-marca__sello { width: 34px; height: 34px; border-radius: 10px; background: #164f44; }
+.panel .panel-marca__sello img { width: 20px; height: 20px; filter: brightness(0) invert(1); }
+.panel .panel-marca__nombre { font-size: 13px; line-height: 19px; font-weight: 600; }
+.panel .panel-marca__subtitulo { margin-top: 3px; color: #c8dcd5; font-size: 9px; line-height: 14px; letter-spacing: .7px; font-weight: 500; }
+.panel .panel-rol { margin: 0 8px 8px; padding: 12px 0; gap: 5px; border: 0; border-top: 1px solid #31594f; border-bottom: 1px solid #31594f; border-radius: 0; background: transparent; }
+.panel .panel-rol__titulo { color: #c8dcd5; font-size: 10px; line-height: 14px; font-weight: 500; }
+.panel .panel-rol__texto { color: #fff; font-size: 12px; line-height: 18px; }
+.panel .panel-lateral__espacio { display: none; }
+.panel .panel-lateral .panel-menu__item { min-height: 42px; height: auto; padding: 10px 12px; gap: 10px; border-radius: 8px; font-size: 13px; line-height: 20px; font-weight: 500; }
+.panel .panel-lateral .panel-menu__item img { width: 18px; height: 18px; flex-shrink: 0; }
+.panel .panel-lateral .panel-menu__item img:last-child:not(:first-child) { width: 14px; height: 14px; }
+.panel .panel-lateral .panel-menu__item > span { min-width: 0; }
+.panel .panel-lateral .panel-menu__item--abierto { background: transparent; }
+.panel .panel-lateral .panel-menu__item--actual { font-weight: 700; }
+.panel .panel-lateral .panel-menu__item:hover { background: #164f44; }
+.panel .panel-lateral .panel-submenu { margin: 0 0 8px 20px; padding-left: 12px; gap: 2px; border-left: 1px solid #31594f; }
+.panel .panel-lateral .panel-submenu__item { min-height: 36px; height: auto; padding: 8px 10px; gap: 8px; border-radius: 7px; font-size: 12px; line-height: 18px; color: #dce9e4; }
+.panel .panel-lateral a.panel-submenu__item.active,
+.panel .panel-lateral a.panel-submenu__item.active:hover { background: #164f44; color: #fff; box-shadow: inset 3px 0 #fff; font-weight: 600; }
+.panel .panel-lateral a.panel-menu__item.active { box-shadow: inset 3px 0 #fff; font-weight: 600; }
+.panel .panel-lateral .etiqueta-pronto { margin-left: auto; padding: 1px 5px; background: transparent; border-color: #54776b; color: #dce9e4; font-size: 10px; font-weight: 500; }
+.panel .panel-lateral :is(a, button):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }

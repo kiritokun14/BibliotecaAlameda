@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import "./Actividades.css";
 import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, PieDatos, Tabla, Tarjeta, type Columna } from "../contenidoDemo/piezas";
@@ -58,7 +60,7 @@ function Calendario() {
     }[vista];
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas"], [encabezado.miga]]} />
                 <Encabezado etiqueta="Calendario y salas" titulo={encabezado.titulo} texto={encabezado.texto} />

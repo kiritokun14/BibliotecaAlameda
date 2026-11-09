@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import "./Actividades.css";
 import { BloqueResumen, Buscador, CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Resultado, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
@@ -55,7 +57,7 @@ function Evidencias() {
     const elegir = (f: Filtro) => { setFiltro(f); setPagina(0); };
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Evidencias privadas"], ["Lista"]]} />
                 <Encabezado etiqueta="Actividades · Evidencias" titulo="Evidencias privadas" texto="Fotos, listas firmadas e informes que respaldan las actividades." />
@@ -143,7 +145,7 @@ export function SubirEvidencia() {
     }
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Evidencias privadas", BASE], [problema ? "Error al subir" : "Subir evidencia"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Evidencias privadas", ruta: BASE }} etiqueta="Evidencias privadas" titulo="Subir evidencia" texto="Respalda una actividad con un archivo privado." />
@@ -228,7 +230,7 @@ export function DetalleEvidencia() {
 
     if (!puedeVer(e)) {
         return (
-            <PanelLayout titulo="Actividades">
+            <PanelLayout titulo="Actividades" tema="contenidos">
                 <Pagina>
                     <Migas pasos={[["Actividades"], ["Evidencias privadas", BASE], ["Acceso restringido"]]} />
                     <EncabezadoTarjeta volver={{ texto: "Volver a Evidencias privadas", ruta: BASE }} etiqueta={`Evidencia ${e.folio}`} titulo="Acceso restringido" texto="Esta evidencia no está disponible con tu cuenta." />
@@ -244,7 +246,7 @@ export function DetalleEvidencia() {
     }
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Evidencias privadas", BASE], [ventana === "descargar" ? "Confirmar descarga" : ventana === "acceso" ? "Cambiar acceso" : ventana === "retirar" ? "Retirar evidencia" : "Detalle"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Evidencias privadas", ruta: BASE }} etiqueta={`Evidencia ${e.folio}`} titulo={`${e.tipo} · ${e.actividadTexto.split(" · ")[0]}`} texto={`${fechaCorta(e.fecha)} · Subida por ${e.subio}.${e.retirada ? " Retirada." : ""}`} />
@@ -329,7 +331,7 @@ export function ResultadoEvidencia({ tipo }: { tipo: "guardada" | "solicitado" |
         retirada: { titulo: "Evidencia retirada", texto: "Ya no está disponible para el personal. El registro se conserva.", tono: "guinda" as const, icono: iconoResultadoX, linea: `Motivo: ${e.retirada?.motivo ?? ""}`, chip: <Chip tono="gris">Retirada</Chip> },
     }[tipo];
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Evidencias privadas", BASE], [datos.titulo]]} />
                 <Encabezado grande etiqueta={`Evidencia ${e.folio}`} titulo={datos.titulo} texto={datos.texto} />

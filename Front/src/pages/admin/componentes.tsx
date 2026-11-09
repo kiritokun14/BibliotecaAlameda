@@ -1,83 +1,85 @@
+// Piezas de las pantallas de Atención (credenciales, espacios y propuestas).
+// Diseño: el del Editor de contenidos (clases «contenidos-*» del tema "contenidos") más atencion/Atencion.css.
+// Mismos nombres y propiedades que antes, para no cambiar las pantallas que las usan.
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
-import puntoEtiqueta from "../../assets/admin/punto-etiqueta.svg";
-import volverFlecha from "../../assets/admin/volver-flecha.svg";
-import puntoGuinda from "../../assets/admin/punto-guinda.svg";
-import puntoDorado from "../../assets/admin/punto-dorado.svg";
-import puntoVerde from "../../assets/admin/punto-verde-chip.svg";
-import puntoGris from "../../assets/admin/punto-gris.svg";
-import puntoBlanco from "../../assets/admin/punto-blanco.svg";
-import casillaCheck from "../../assets/admin/casilla-check.svg";
-import historialClock from "../../assets/admin/historial-clock.svg";
+import { IconoFlechaIzq } from "./contenidos/piezas";
+import "./contenidos/Contenidos.css";
+import "./atencion/Atencion.css";
+import iconoLock from "../../assets/admin/icono-lock.svg";
 import tarjetaClock from "../../assets/admin/tarjeta-clock.svg";
 import tarjetaUser from "../../assets/admin/tarjeta-user.svg";
-import iconoLock from "../../assets/admin/icono-lock.svg";
-import avatarVerde from "../../assets/admin/avatar-user-verde.svg";
-import avatarChico from "../../assets/admin/avatar-user-chico.svg";
 import avisoCheck from "../../assets/admin/aviso-check.svg";
 import avisoClock from "../../assets/admin/aviso-clock.svg";
 import avisoX from "../../assets/admin/aviso-x.svg";
-import flechaDorada from "../../assets/admin/opcion-flecha-dorada.svg";
-import flechaGuinda from "../../assets/admin/opcion-flecha-guinda.svg";
 
 // ---------- Encabezado de cada pantalla ----------
 
 type EncabezadoPaginaProps = {
-    volver?: { texto: string; ruta: string };
+    volver?: { texto: string; ruta: string }; // solo en pantallas internas (detalle, listado completo)
     etiqueta: string;
     titulo: string;
     texto: string;
+    accion?: ReactNode;
 };
 
-export function EncabezadoPagina({ volver, etiqueta, titulo, texto }: EncabezadoPaginaProps) {
+export function EncabezadoPagina({ volver, etiqueta, titulo, texto, accion }: EncabezadoPaginaProps) {
     return (
-        <div className="encabezado-panel">
-            {volver && (
-                <Link to={volver.ruta} className="boton-volver">
-                    <span className="boton-volver__circulo">
-                        <img src={volverFlecha} alt="" />
-                    </span>
-                    {volver.texto}
-                </Link>
-            )}
-            <p className="encabezado-panel__etiqueta">
-                <img src={puntoEtiqueta} alt="" />
-                {etiqueta}
-            </p>
-            <h1>{titulo}</h1>
-            <p className="encabezado-panel__texto">{texto}</p>
+        <div className={`contenidos-encabezado${volver ? " contenidos-encabezado--tarjeta" : ""}`}>
+            <div>
+                {volver && (
+                    <Link to={volver.ruta} className="contenidos-volver">
+                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
+                        {volver.texto}
+                    </Link>
+                )}
+                <p className="contenidos-etiqueta">{etiqueta}</p>
+                <h1>{titulo}</h1>
+                {texto && <p className="contenidos-encabezado__texto">{texto}</p>}
+            </div>
+            {accion}
         </div>
     );
 }
 
-// ---------- Chip de estado ----------
+// Contenidos › Revisión… en Atención: «Atención › Solicitudes de credencial › CT-0051»
+export function Migas({ pasos, raiz = "Atención" }: { pasos: [string, string?][]; raiz?: string }) {
+    return (
+        <nav className="contenidos-migas" aria-label="Ruta">
+            <span>{raiz}</span>
+            {pasos.map(([texto, ruta], i) => (
+                <span key={texto} className="at-miga">
+                    <span aria-hidden="true">›</span>
+                    {i === pasos.length - 1 ? <strong aria-current="page">{texto}</strong> : ruta ? <Link to={ruta}>{texto}</Link> : <span>{texto}</span>}
+                </span>
+            ))}
+        </nav>
+    );
+}
+
+// ---------- Chip de estado (mismas etiquetas del Editor) ----------
 
 export type TonoChip = "guinda" | "dorado" | "verde" | "gris" | "verde-solido";
 
-const puntos: Record<TonoChip, string> = {
-    guinda: puntoGuinda,
-    dorado: puntoDorado,
-    verde: puntoVerde,
-    gris: puntoGris,
-    "verde-solido": puntoBlanco,
+const CLASE_CHIP: Record<TonoChip, string> = {
+    guinda: "con_observaciones",
+    dorado: "por_autorizar",
+    verde: "publicado",
+    "verde-solido": "publicado",
+    gris: "borrador",
 };
 
 type ChipProps = {
     tono: TonoChip;
-    icono?: string; // si no se pasa, se dibuja el puntito del color del chip
+    icono?: string; // se conserva por compatibilidad; el diseño del Editor usa el punto
     children: ReactNode;
 };
 
-export function Chip({ tono, icono, children }: ChipProps) {
-    return (
-        <span className={`chip chip--${tono}`}>
-            <img src={icono ?? puntos[tono]} alt="" className={icono ? "chip__icono" : "chip__punto"} />
-            {children}
-        </span>
-    );
+export function Chip({ tono, children }: ChipProps) {
+    return <span className={`contenidos-estado contenidos-estado--${CLASE_CHIP[tono]}`}>{children}</span>;
 }
 
-// ---------- Tarjeta blanca con cabecera de ícono ----------
+// ---------- Tarjeta con cabecera de ícono ----------
 
 type TarjetaProps = {
     icono?: string;
@@ -90,23 +92,12 @@ type TarjetaProps = {
     children?: ReactNode;
 };
 
-export function Tarjeta({
-    icono,
-    tonoIcono = "verde",
-    titulo,
-    subtitulo,
-    extra,
-    variante = "blanca",
-    className = "",
-    children,
-}: TarjetaProps) {
+export function Tarjeta({ icono, titulo, subtitulo, extra, variante = "blanca", className = "", children }: TarjetaProps) {
     return (
-        <section className={`tarjeta-panel tarjeta-panel--${variante} ${className}`}>
-            <div className="tarjeta-panel__cabecera">
-                <span className={`icono-tarjeta icono-tarjeta--${tonoIcono}`}>
-                    {icono && <img src={icono} alt="" />}
-                </span>
-                <div className="tarjeta-panel__textos">
+        <section className={`contenidos-panel${variante === "decision" ? " contenidos-panel--estado" : ""} ${className}`}>
+            <div className="contenidos-lista__cabecera">
+                <span className="contenidos-lista__icono">{icono ? <img src={icono} alt="" className="at-icono" /> : <IconoBalanza />}</span>
+                <div className="at-cabecera__textos">
                     <h2>{titulo}</h2>
                     {subtitulo && <p>{subtitulo}</p>}
                 </div>
@@ -117,17 +108,24 @@ export function Tarjeta({
     );
 }
 
+// Ícono por defecto (tarjetas de decisión), con el trazo de los íconos del Editor
+const IconoBalanza = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 3v18M7 21h10M5 7h14M5 7l-3 6a3 3 0 0 0 6 0Zm14 0-3 6a3 3 0 0 0 6 0Z" />
+    </svg>
+);
+
 // ---------- Datos (etiqueta pequeña + valor) ----------
 
 export function Datos({ children }: { children: ReactNode }) {
-    return <div className="datos">{children}</div>;
+    return <div className="at-datos">{children}</div>;
 }
 
 export function Dato({ etiqueta, children, alto }: { etiqueta: string; children: ReactNode; alto?: boolean }) {
     return (
-        <div className={`dato ${alto ? "dato--alto" : ""}`}>
-            <p className="dato__etiqueta">{etiqueta}</p>
-            <p className="dato__valor">{children}</p>
+        <div className={`at-dato${alto ? " at-dato--alto" : ""}`}>
+            <p className="at-dato__etiqueta">{etiqueta}</p>
+            <p className="at-dato__valor">{children}</p>
         </div>
     );
 }
@@ -144,23 +142,17 @@ type ListaCotejoProps = {
 
 export function ListaCotejo({ puntos, marcados, alCambiar }: ListaCotejoProps) {
     return (
-        <ul className="lista-cotejo">
+        <ul className="at-cotejo">
             {puntos.map((punto, indice) => {
                 const marcado = marcados[indice];
-                const clase = marcado ? "punto-cotejo--marcado" : punto.alerta ? "punto-cotejo--alerta" : "";
+                const clase = marcado ? "at-cotejo--marcado" : punto.alerta ? "at-cotejo--alerta" : "";
                 return (
                     <li key={punto.titulo}>
-                        <label className={`punto-cotejo ${clase}`}>
-                            <input
-                                type="checkbox"
-                                checked={marcado}
-                                disabled={!alCambiar}
-                                onChange={() => alCambiar?.(indice)}
-                            />
-                            <span className="punto-cotejo__casilla">{marcado && <img src={casillaCheck} alt="" />}</span>
-                            <span className="punto-cotejo__textos">
+                        <label className={clase}>
+                            <input type="checkbox" checked={marcado} disabled={!alCambiar} onChange={() => alCambiar?.(indice)} />
+                            <span>
                                 <strong>{punto.titulo}</strong>
-                                {punto.detalle && <span>{punto.detalle}</span>}
+                                {punto.detalle && <small>{punto.detalle}</small>}
                             </span>
                         </label>
                     </li>
@@ -172,23 +164,17 @@ export function ListaCotejo({ puntos, marcados, alCambiar }: ListaCotejoProps) {
 
 // ---------- Historial (línea de tiempo) ----------
 
-// hecho = check verde, proceso = reloj dorado, pendiente = círculo vacío
+// hecho = ya pasó, proceso = en curso, pendiente = todavía no
 export type EventoHistorial = { titulo: string; detalle: string; tipo: "hecho" | "proceso" | "pendiente" };
 
 export function TarjetaHistorial({ eventos }: { eventos: EventoHistorial[] }) {
     return (
         <Tarjeta icono={tarjetaClock} titulo="Historial">
-            <ol className="historial">
+            <ol className="at-eventos">
                 {eventos.map((evento) => (
-                    <li key={evento.titulo} className={`historial__evento historial__evento--${evento.tipo}`}>
-                        <span className="historial__punto">
-                            {evento.tipo === "hecho" && <img src={casillaCheck} alt="" />}
-                            {evento.tipo === "proceso" && <img src={historialClock} alt="" />}
-                        </span>
-                        <div className="historial__textos">
-                            <strong>{evento.titulo}</strong>
-                            <span>{evento.detalle}</span>
-                        </div>
+                    <li key={evento.titulo} className={`at-eventos--${evento.tipo}`}>
+                        <strong>{evento.titulo}</strong>
+                        <small>{evento.detalle}</small>
                     </li>
                 ))}
             </ol>
@@ -196,7 +182,7 @@ export function TarjetaHistorial({ eventos }: { eventos: EventoHistorial[] }) {
     );
 }
 
-// ---------- Aviso de resultado (franja arriba de las columnas) ----------
+// ---------- Aviso de resultado (bloque de «Enviado a autorización» del Editor) ----------
 
 type TonoAviso = "exito" | "espera" | "error";
 
@@ -207,36 +193,30 @@ type AvisoResultadoProps = { tono: TonoAviso; titulo: string; texto: string; chi
 
 export function AvisoResultado({ tono, titulo, texto, chip }: AvisoResultadoProps) {
     return (
-        <div className={`aviso-resultado aviso-resultado--${tono}`} role="status">
-            <span className="aviso-resultado__icono">
-                <img src={iconosAviso[tono]} alt="" />
-            </span>
-            <div className="aviso-resultado__textos">
-                <strong>{titulo}</strong>
-                <span>{texto}</span>
+        <section className={`contenidos-enviado at-aviso--${tono}`} role="status">
+            <span className="contenidos-enviado__palomita"><img src={iconosAviso[tono]} alt="" className="at-icono" /></span>
+            <div className="contenidos-enviado__textos">
+                <p className="contenidos-enviado__titulo">{titulo}</p>
+                <p className="contenidos-enviado__detalle">{texto}</p>
             </div>
             <Chip tono={chipsAviso[tono]}>{chip}</Chip>
-        </div>
+        </section>
     );
 }
 
-// ---------- Botón de "Otras opciones" en la tarjeta de decisión ----------
+// ---------- Botón de «Otras opciones» en la tarjeta de decisión ----------
 
 type BotonOpcionProps = {
-    icono: string;
-    peligro?: boolean; // rojo (rechazar / cancelar)
+    icono?: string; // se conserva por compatibilidad
+    peligro?: boolean; // guinda (rechazar / cancelar)
     alPresionar: () => void;
     children: ReactNode;
 };
 
-export function BotonOpcion({ icono, peligro, alPresionar, children }: BotonOpcionProps) {
+export function BotonOpcion({ peligro, alPresionar, children }: BotonOpcionProps) {
     return (
-        <button type="button" className={`boton-opcion ${peligro ? "boton-opcion--peligro" : ""}`} onClick={alPresionar}>
-            <span className="boton-opcion__icono">
-                <img src={icono} alt="" />
-            </span>
-            <span className="boton-opcion__texto">{children}</span>
-            <img src={peligro ? flechaGuinda : flechaDorada} alt="" />
+        <button type="button" className={`contenidos-boton contenidos-boton--ancho ${peligro ? "at-boton--guinda" : "contenidos-boton--contorno"}`} onClick={alPresionar}>
+            {children}
         </button>
     );
 }
@@ -265,48 +245,27 @@ export function TarjetaResponsable({ responsable, notas, alGuardarNota }: Tarjet
             icono={tarjetaUser}
             titulo="Responsable y notas"
             subtitulo="Solo el personal ve esta parte."
-            extra={
-                <Chip tono="gris" icono={iconoLock}>
-                    Solo el personal
-                </Chip>
-            }
+            extra={<span className="at-candado"><img src={iconoLock} alt="" />Solo el personal</span>}
         >
-            <div className="responsable">
-                <span className="responsable__avatar">
-                    <img src={avatarVerde} alt="" />
-                </span>
-                <div className="responsable__textos">
-                    <span>RESPONSABLE</span>
+            <div className="at-persona">
+                <span className="at-persona__inicial" aria-hidden="true">{responsable.charAt(0).toUpperCase()}</span>
+                <div>
+                    <small>Responsable</small>
                     <strong>{responsable}</strong>
                 </div>
                 {/* TODO: elegir a otra persona del personal cuando exista la lista */}
-                <button type="button" className="boton-panel boton-panel--contorno boton-panel--chico">
-                    Cambiar
-                </button>
+                <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico">Cambiar</button>
             </div>
 
-            <div className="nota-interna">
+            <div className="contenidos-campo">
                 <label htmlFor="nota-interna">Nota interna</label>
-                <textarea
-                    id="nota-interna"
-                    className="entrada-panel entrada-panel--area"
-                    placeholder="Escribe una nota para el personal"
-                    value={nota}
-                    onChange={(e) => setNota(e.target.value)}
-                />
-                <button type="button" className="boton-panel boton-panel--verde boton-panel--mediano" onClick={guardar}>
-                    Guardar nota
-                </button>
+                <textarea id="nota-interna" rows={3} placeholder="Escribe una nota para el personal" value={nota} onChange={(e) => setNota(e.target.value)} />
             </div>
+            <button type="button" className="contenidos-boton contenidos-boton--principal contenidos-boton--chico at-alinear-inicio" onClick={guardar}>Guardar nota</button>
 
             {notas.map((guardada, indice) => (
-                <div key={indice} className="nota-guardada">
-                    <p className="nota-guardada__autor">
-                        <span>
-                            <img src={avatarChico} alt="" />
-                        </span>
-                        {guardada.autor} · {guardada.cuando}
-                    </p>
+                <div key={indice} className="at-nota">
+                    <p className="at-nota__autor">{guardada.autor} · {guardada.cuando}</p>
                     <p>{guardada.texto}</p>
                 </div>
             ))}
@@ -325,17 +284,17 @@ type EstadoVacioProps = {
 
 export function EstadoVacio({ icono, titulo, texto, accion }: EstadoVacioProps) {
     return (
-        <div className="estado-vacio">
-            <span className="estado-vacio__icono">
-                <img src={icono} alt="" />
+        <div className="contenidos-vacio at-vacio">
+            <span>
+                <span className="contenidos-vacio__icono"><img src={icono} alt="" className="at-icono-vacio" /></span>
+                <strong>{titulo}</strong>
+                <span>{texto}</span>
+                {accion && (
+                    <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={accion.alPresionar}>
+                        {accion.texto}
+                    </button>
+                )}
             </span>
-            <h3>{titulo}</h3>
-            <p>{texto}</p>
-            {accion && (
-                <button type="button" className="boton-panel boton-panel--contorno" onClick={accion.alPresionar}>
-                    {accion.texto}
-                </button>
-            )}
         </div>
     );
 }

@@ -47,7 +47,7 @@ function RedactarResena({ inicial }: { inicial?: Contenido }) {
     };
 
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <Migas actual="Borrador" />
 
             <div className="contenidos-encabezado contenidos-encabezado--tarjeta">

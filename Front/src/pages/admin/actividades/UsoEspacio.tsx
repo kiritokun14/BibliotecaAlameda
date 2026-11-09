@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -45,7 +47,7 @@ function Formulario({ existente }: { existente?: UsoEspacio }) {
     const clase = (c: string) => `cn-control ${errores[c] ? "cn-control--error" : ""}`;
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios", REGISTRO], [existente?.estado === "registrado" ? "Editar registro" : "Registrar uso"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Visitas y uso de espacios", ruta: REGISTRO }} etiqueta="Uso de espacios" titulo={existente?.estado === "registrado" ? "Editar registro de uso" : "Registrar uso de un espacio"} texto="Anota cuántas personas usaron la sala y qué pasó." />
@@ -86,7 +88,7 @@ export function FichaUso() {
     if (!u) return <Navigate to={REGISTRO} replace />;
     const capacidad = capacidadDe(u.sala);
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios", REGISTRO], ["Ficha de uso"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Visitas y uso de espacios", ruta: REGISTRO }} etiqueta="Uso de espacios" titulo={`${u.sala} · ${fechaCorta(u.fecha)}`} texto={`${u.actividad || "Uso libre"}.`} />
@@ -110,7 +112,7 @@ export function UsoGuardado() {
     const u = obtenerUso(id);
     if (!u) return <Navigate to={REGISTRO} replace />;
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios", REGISTRO], ["Registro guardado"]]} />
                 <Encabezado grande etiqueta="Uso de espacios" titulo="Registro guardado" texto="El uso de la sala quedó registrado." />

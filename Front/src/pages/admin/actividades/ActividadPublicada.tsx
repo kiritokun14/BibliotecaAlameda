@@ -1,5 +1,7 @@
 import { Link, Navigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { Chip, Encabezado, Migas, Pagina, Pasos, PieDatos, Resultado, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -17,7 +19,7 @@ function ActividadPublicada() {
     if (!a || a.estado !== "publicada") return <Navigate to={a ? `${BASE_PROPUESTAS}/${a.folio}` : BASE_PROPUESTAS} replace />;
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades", BASE_PROPUESTAS], ["Publicada"]]} />
                 <Encabezado grande etiqueta={`Actividad ${a.folio} · Publicada`} titulo="Actividad publicada" texto={a.inscripcion ? "Ya aparece en Eventos y acepta inscripciones." : "Ya aparece en Eventos del portal."} />

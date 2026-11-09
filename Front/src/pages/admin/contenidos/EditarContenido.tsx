@@ -21,7 +21,7 @@ function Formulario({ contenido }: { contenido: Contenido }) {
         if (contenido.tipo === "memoria") return <RedactarMemoria inicial={contenido} />;
     }
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <Migas actual={contenido.folio} />
             <div className="contenidos-panel">
                 <p className="contenidos-error" role="alert">

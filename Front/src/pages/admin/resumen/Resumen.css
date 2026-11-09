@@ -12,7 +12,7 @@
 .resumen-encabezado {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
 }
 
 .panel .resumen-encabezado__etiqueta {
@@ -38,49 +38,12 @@
 }
 
 /* ---------- Bloque guinda de prioridades ---------- */
-.resumen-prioridades {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
-  padding: 48px;
-  overflow: hidden;
-  border-radius: 44px;
-  background: linear-gradient(156deg, #611232 0%, #9b2247 71%);
-  box-shadow: 0 24px 56px rgba(107, 21, 54, 0.35);
-}
-
-.resumen-prioridades__circulo { position: absolute; pointer-events: none; }
-.resumen-prioridades__circulo--1 { top: -200px; right: -60px; width: 420px; height: 420px; }
-.resumen-prioridades__circulo--2 { bottom: -120px; left: -100px; width: 260px; height: 260px; }
-
-.resumen-prioridades > :not(.resumen-prioridades__circulo) { position: relative; }
-
+.resumen-prioridades { display: flex; flex-direction: column; gap: 12px; }
 .resumen-prioridades__titular {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  display: flex; align-items: center; min-height: 44px; padding: 0 16px;
+  box-sizing: border-box; border-radius: 14px; background: #611232;
 }
-
-.resumen-etiqueta {
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: #e4efeb;
-  color: #164f44;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.panel .resumen-prioridades__titular h2 {
-  color: #fff;
-  font-size: 46px;
-  font-weight: 700;
-  line-height: 52px;
-  letter-spacing: -0.92px;
-  text-align: center;
-}
+.panel .resumen-prioridades__titular h2 { color: #fff; font-size: 17px; line-height: 24px; font-weight: 700; }
 
 .resumen-prioridades__lista {
   display: grid;
@@ -95,18 +58,18 @@
   justify-content: space-between;
   gap: 16px;
   height: 100%;
-  min-height: 250px;
-  padding: 26px;
+  min-height: 164px;
+  padding: 20px;
   box-sizing: border-box;
-  border-radius: 32px;
+  border-radius: 16px;
   color: #161a1d;
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 a.resumen-prioridad:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(11, 59, 51, 0.08);
 }
 
 .resumen-prioridad--rosa { background: #f6eaee; }
@@ -384,6 +347,8 @@ a.boton-resumen--contorno:hover { background: #e4efeb; }
 
 .resumen-tabla {
   width: 100%;
+  min-width: 960px;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 15px;
 }
@@ -398,6 +363,9 @@ a.boton-resumen--contorno:hover { background: #e4efeb; }
 }
 
 .resumen-tabla td {
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
   padding: 12px 8px 12px 0;
   border-top: 1px solid #efebe2;
   color: #161a1d;
@@ -536,22 +504,60 @@ a.boton-resumen--contorno:hover { background: #e4efeb; }
 .resumen-tabla td:nth-child(5),
 .resumen-tabla td:nth-child(6) { white-space: nowrap; }
 
-/* Hasta 1600 px: la columna lateral pasa abajo (tres tarjetas en fila) para que la tabla respire */
-@media (max-width: 1600px) {
-  .resumen-columnas { grid-template-columns: minmax(0, 1fr); }
-  .resumen-lateral {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: start;
-  }
-}
-
-/* A 1440 px o menos, las 4 prioridades van en dos filas */
-@media (max-width: 1440px) {
-  .resumen-prioridades__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .resumen-prioridad { transition: none; }
   a.resumen-prioridad:hover { transform: none; }
+}
+
+/* Escala del Resumen normalizada para escritorio, conservando los iconos originales. */
+.resumen { gap: 22px; }
+.panel .resumen-encabezado h2 { font-size: 25px; line-height: 32px; }
+.panel .resumen-encabezado__etiqueta { font-size: 11px; letter-spacing: .6px; }
+.resumen-prioridades__lista { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.resumen-prioridad { background: #fff; border: 1px solid #e2ded5; gap: 12px; padding: 16px; }
+.resumen-prioridad__textos { gap: 8px; }
+.resumen-prioridad__icono { width: 32px; height: 32px; }
+.resumen-prioridad__icono img { width: 20px; height: 20px; }
+.resumen-prioridad__titulo { font-size: 16px; line-height: 23px; letter-spacing: 0; }
+.resumen-prioridad__detalle { font-size: 13px; line-height: 20px; }
+.resumen-prioridad .chip-resumen { font-size: 11px; padding: 4px 8px; }
+.resumen-prioridad--rosa .chip-resumen { background: #f6eaee; }
+.resumen-prioridad--dorado .chip-resumen { background: #f6eeda; }
+.resumen-prioridad--verde .chip-resumen { background: #e4efeb; }
+.resumen-columnas { grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; }
+.resumen-columna, .resumen-lateral { min-width: 0; gap: 20px; }
+.resumen-lateral { display: flex; }
+.resumen-tarjeta, .resumen-indicador, .resumen-capacidades, .resumen-reglas { padding: 20px; border-radius: 18px; box-shadow: 0 2px 8px rgb(11 59 51 / 4%); }
+.resumen-tarjeta__icono, .resumen-indicador__icono { width: 32px; height: 32px; }
+.resumen-tarjeta__icono img, .resumen-indicador__icono img { width: 18px; height: 18px; }
+.panel .resumen-tarjeta__cabecera h3 { font-size: 16px; line-height: 23px; }
+.resumen-filtros { flex-wrap: wrap; }
+.resumen-pestanas { flex-basis: 100%; }
+.resumen-pestana { font-size: 12px; padding: 6px 10px; gap: 6px; }
+.resumen-tabla-desplazable { max-width: 100%; max-height: clamp(240px, 42vh, 400px); overflow: auto; scrollbar-width: thin; scrollbar-gutter: stable; }
+.resumen-tabla thead th { position: sticky; top: 0; z-index: 1; background: #f7f5f0; }
+.resumen-tabla { font-size: 13px; }
+.resumen-tabla th { font-size: 10px; }
+.resumen-tabla td { padding-block: 12px; }
+.resumen-tabla .chip-resumen { font-size: 11px; padding: 4px 8px; }
+.boton-resumen--fila { height: 32px; padding-inline: 14px; font-size: 12px; }
+.resumen-tabla__pie { gap: 12px; flex-wrap: wrap; font-size: 12px; }
+.resumen-enlace { font-size: 12px; }
+.resumen-actividades li { flex-wrap: wrap; padding: 12px; gap: 10px; border-radius: 12px; }
+.panel .resumen-actividades__titulo { font-size: 15px; }
+.panel .resumen-actividades__detalle { font-size: 12px; }
+.resumen-actividades .boton-resumen { height: 34px; padding-inline: 14px; font-size: 12px; }
+.panel .resumen-indicador__cifra { font-size: 34px; }
+.resumen-capacidades li { padding: 7px 10px; font-size: 12px; }
+.resumen-reglas ul { gap: 10px; }
+.resumen-reglas li { font-size: 13px; line-height: 21px; }
+@media (max-width: 1500px) {
+  .resumen-columnas { grid-template-columns: minmax(0, 1fr); }
+  .resumen-lateral { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+}
+@media (max-width: 1100px) {
+  .resumen-prioridades__lista, .resumen-lateral { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .resumen-prioridades__lista, .resumen-lateral { grid-template-columns: minmax(0, 1fr); }
 }
