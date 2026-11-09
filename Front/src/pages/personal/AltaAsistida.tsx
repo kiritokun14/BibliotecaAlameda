@@ -1,19 +1,25 @@
-import { useCallback, useEffect, useState, type ChangeEvent, type SubmitEvent } from "react";
+// Atención › Altas asistidas (HU-09 / T-033). Conectada al backend (servicios/altaAsistida.ts).
+// Diseño: el del Editor de contenidos, dentro del panel. Misma ruta y mismo flujo de antes:
+// formulario, resultado arriba y solicitudes pendientes abajo con sus decisiones.
+import { useCallback, useEffect, useState, type ChangeEvent, type ReactNode, type SubmitEvent } from "react";
 import { Link } from "react-router";
 import AccesoLayout from "../../components/acceso/AccesoLayout";
 import Aviso from "../../components/acceso/Aviso";
-import { Campo, CampoSelect } from "../../components/acceso/Campo";
-import { mensajeError, ErrorServicio } from "../../servicios/api";
-import { cerrarSesion } from "../../servicios/auth";
+import PanelLayout from "../admin/PanelLayout";
+import { Migas } from "../admin/componentes";
+import { IconoAviso, IconoLapiz, IconoLista, IconoReloj } from "../admin/contenidos/piezas";
+import "../admin/contenidos/Contenidos.css";
+import "../admin/atencion/Atencion.css";
+import "./AltaAsistida.css";
+import { mensajeError, ErrorServicio, obtenerSupabase } from "../../servicios/api";
+import { cerrarSesion, consultarMiAcceso } from "../../servicios/auth";
+import { ContextoPanel, type IdentidadPanel } from "../../servicios/accesoPanel";
 import {
     cancelarSolicitud, listarSolicitudes, prepararAlta, puedeHacerAltaAsistida, reintentarInvitacion,
     resolverDuplicado, type DatosAltaAsistida, type ResultadoAlta, type SolicitudAbierta,
 } from "../../servicios/altaAsistida";
 import { calcularEdad, esCorreoValido, tieneDigitos, MENSAJE_CORREO, MENSAJE_OBLIGATORIO } from "../../servicios/validaciones";
 import iconoFlechaDer from "../../assets/comun/iconos/flecha-derecha.svg";
-import iconoCargando from "../../assets/comun/iconos/cargando.svg";
-import iconoErrorCampo from "../../assets/comun/iconos/error-campo.svg";
-import "./AltaAsistida.css";
 
 const pasos = [
     "Captura los datos con la persona",
@@ -89,10 +95,78 @@ function armarSolicitud(datos: Datos, conTutor: boolean, mismoDomicilio: boolean
     } as DatosAltaAsistida;
 }
 
+
 type Acceso = "comprobando" | "sin-sesion" | "sin-permiso" | "error-servicio" | "permitido";
+
+// ---------- Campos con el diseño del Editor ----------
+
+type CampoProps = {
+    id: keyof Datos;
+    etiqueta: string;
+    datos: Datos;
+    errores: Errores;
+    alCambiar: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+    obligatorio?: boolean;
+    ayuda?: string;
+    type?: string;
+    placeholder?: string;
+    maxLength?: number;
+    inputMode?: "numeric" | "text";
+    opciones?: string[]; // si viene, es una lista desplegable
+};
+
+function CampoAlta({ id, etiqueta, datos, errores, alCambiar, obligatorio, ayuda, opciones, type = "text", ...props }: CampoProps) {
+    const error = errores[id];
+    const nota = error || ayuda ? `${id}-nota` : undefined;
+    return (
+        <div className="contenidos-campo">
+            <label htmlFor={id}>
+                {etiqueta}
+                {obligatorio && <span className="contenidos-campo__obligatorio" aria-label="obligatorio"> *</span>}
+            </label>
+            {opciones ? (
+                <select id={id} name={id} value={datos[id]} onChange={alCambiar} aria-invalid={!!error} aria-describedby={nota}>
+                    <option value="">Elige una opción</option>
+                    {opciones.map((o) => <option key={o}>{o}</option>)}
+                </select>
+            ) : (
+                <input id={id} name={id} type={type} value={datos[id]} onChange={alCambiar} className={error ? "contenidos-campo--error" : undefined}
+                    aria-invalid={!!error} aria-describedby={nota} {...props} />
+            )}
+            {error ? <p id={nota} className="contenidos-campo__error" role="alert">{error}</p>
+                : ayuda && <p id={nota} className="contenidos-campo__ayuda">{ayuda}</p>}
+        </div>
+    );
+}
+
+function Panel({ id, icono, titulo, subtitulo, clase = "", children }: { id: string; icono: ReactNode; titulo: string; subtitulo?: string; clase?: string; children: ReactNode }) {
+    return (
+        <section className={`contenidos-panel ${clase}`} aria-labelledby={id}>
+            <div className="contenidos-lista__cabecera">
+                <span className="contenidos-lista__icono">{icono}</span>
+                <div className="at-cabecera__textos">
+                    <h2 id={id}>{titulo}</h2>
+                    {subtitulo && <p>{subtitulo}</p>}
+                </div>
+            </div>
+            {children}
+        </section>
+    );
+}
+
+// Aviso con el aspecto del Editor (mensajes de error, advertencia o información)
+function AvisoPanel({ tono, titulo, children }: { tono: "error" | "advertencia" | "info" | "exito"; titulo: string; children: ReactNode }) {
+    return (
+        <div className={`alta-aviso alta-aviso--${tono}`} role={tono === "error" ? "alert" : "status"}>
+            <strong>{titulo}</strong>
+            <p>{children}</p>
+        </div>
+    );
+}
 
 function AltaAsistida() {
     const [acceso, setAcceso] = useState<Acceso>("comprobando");
+    const [identidad, setIdentidad] = useState<IdentidadPanel | null>(null);
     const [datos, setDatos] = useState(datosIniciales);
     const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
     const [mismoDomicilio, setMismoDomicilio] = useState(false);
@@ -114,6 +188,12 @@ function AltaAsistida() {
         puedeHacerAltaAsistida()
             .then(async permitido => {
                 if (!activo) return;
+                if (permitido) {
+                    // El panel (menú lateral y cabecera) necesita saber quién entró
+                    const [cuenta, sesion] = await Promise.all([consultarMiAcceso(), (await obtenerSupabase()).auth.getSession()]);
+                    if (!activo) return;
+                    setIdentidad({ acceso: cuenta, correo: sesion.data.session?.user.email ?? "Cuenta del personal" });
+                }
                 setAcceso(permitido ? "permitido" : "sin-permiso");
                 if (permitido) setSolicitudes(await listarSolicitudes());
             })
@@ -145,7 +225,7 @@ function AltaAsistida() {
         const nuevosErrores = validar(datos, aceptaPrivacidad, conTutor, mismoDomicilio);
         setErrores(nuevosErrores);
         if (Object.keys(nuevosErrores).length > 0) {
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            document.getElementById("alta-avisos")?.scrollIntoView({ behavior: "smooth", block: "start" });
             return;
         }
         setEnviando(true);
@@ -154,12 +234,13 @@ function AltaAsistida() {
             setResultado(await prepararAlta(armarSolicitud(datos, conTutor, mismoDomicilio)));
             window.scrollTo({ top: 0, behavior: "smooth" });
             await cargarSolicitudes();
-        } catch (error) { setErrorServidor(mensajeError(error)); window.scrollTo({ top: 0, behavior: "smooth" }); }
+        } catch (error) { setErrorServidor(mensajeError(error)); document.getElementById("alta-avisos")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
         finally { setEnviando(false); }
     }
 
     if (acceso === "comprobando") return <main className="confirmacion" role="status">Comprobando tu sesión…</main>;
 
+    // Sin sesión o sin permiso: los mismos avisos de antes (no se muestra el panel)
     if (acceso !== "permitido") {
         return (
             <AccesoLayout etiqueta="PERSONAL DE LA BIBLIOTECA" titulo={<>Alta <span>asistida</span></>}
@@ -185,122 +266,156 @@ function AltaAsistida() {
         );
     }
 
+    const enRevision = solicitudes.filter((s) => s.estado === "en_revision").length;
+    const props = { datos, errores, alCambiar: cambiar };
+
     return (
-        <AccesoLayout etiqueta="PERSONAL DE LA BIBLIOTECA" titulo={<>Alta <span>asistida</span></>}
-            texto="Registra la cuenta de una persona que pide apoyo en la biblioteca. Nunca escribas ni conozcas su contraseña."
-            beneficios={pasos}>
-            <div className="alta-asistida">
-                {resultado ? <ResultadoAltaAviso resultado={resultado} onNueva={nuevaAlta}
-                    onReintentar={async () => {
-                        try { setResultado(await reintentarInvitacion(resultado.id)); await cargarSolicitudes(); }
-                        catch (error) { setErrorServidor(mensajeError(error)); }
-                    }} errorServidor={errorServidor} /> : (
-                <form className="tarjeta tarjeta--ancha" onSubmit={enviar} noValidate>
-                    <div className="tarjeta__encabezado">
-                        <h2>Alta asistida de cuenta</h2>
-                        <p>Captura los datos junto con la persona. Ella recibirá un correo para confirmar y elegir su contraseña.</p>
-                    </div>
+        <ContextoPanel.Provider value={identidad}>
+            <PanelLayout titulo="Atención" tema="contenidos">
+                <Migas pasos={[["Altas asistidas"]]} />
 
-                    {errorServidor && <Aviso tipo="error" titulo="No se pudo registrar la solicitud">{errorServidor}</Aviso>}
-                    {Object.keys(errores).length > 0 && (
-                        <Aviso tipo="error" titulo="Revisa los datos marcados">Corrígelos y vuelve a enviar. Lo escrito se conserva.</Aviso>
-                    )}
-                    {conTutor && (
-                        <Aviso tipo="info" titulo="La persona es menor de 18 años">
-                            Captura el contacto de su madre, padre o tutor. No se crea una cuenta para esa persona.
-                        </Aviso>
-                    )}
+                <div className="contenidos-encabezado">
+                    <div>
+                        <p className="contenidos-etiqueta">Atención · Altas asistidas</p>
+                        <h1>Altas asistidas</h1>
+                        <p className="contenidos-encabezado__texto">Registra la cuenta de una persona que pide apoyo en la biblioteca. Nunca escribas ni conozcas su contraseña.</p>
+                    </div>
+                </div>
 
-                    <p className="seccion">DATOS PERSONALES</p>
-                    <div className="fila">
-                        <Campo id="nombre" etiqueta="Nombre(s)" value={datos.nombre} onChange={cambiar} error={errores.nombre} required />
-                        <Campo id="primerApellido" etiqueta="Primer apellido" value={datos.primerApellido} onChange={cambiar} error={errores.primerApellido} required />
+                <section className="contenidos-resumen" aria-labelledby="alta-resumen-titulo">
+                    <h2 id="alta-resumen-titulo">Accesos rápidos</h2>
+                    <div className="contenidos-resumen__tarjetas">
+                        <article className="contenidos-resumen__tarjeta contenidos-resumen__tarjeta--gris">
+                            <div className="contenidos-resumen__fila"><span className="contenidos-resumen__icono"><IconoReloj /></span></div>
+                            <p className="contenidos-resumen__cifra">{solicitudes.length - enRevision}</p>
+                            <p className="contenidos-resumen__titulo">Invitación pendiente</p>
+                            <p className="contenidos-resumen__texto">Falta que la persona confirme su correo.</p>
+                        </article>
+                        <article className="contenidos-resumen__tarjeta contenidos-resumen__tarjeta--guinda">
+                            <div className="contenidos-resumen__fila"><span className="contenidos-resumen__icono"><IconoAviso /></span></div>
+                            <p className="contenidos-resumen__cifra">{enRevision}</p>
+                            <p className="contenidos-resumen__titulo">Posible duplicado</p>
+                            <p className="contenidos-resumen__texto">Esperan la decisión del personal.</p>
+                        </article>
+                        <article className="contenidos-resumen__tarjeta contenidos-resumen__tarjeta--azul">
+                            <div className="contenidos-resumen__fila"><span className="contenidos-resumen__icono"><IconoLista /></span></div>
+                            <p className="contenidos-resumen__cifra">{solicitudes.length}</p>
+                            <p className="contenidos-resumen__titulo">Solicitudes abiertas</p>
+                            <p className="contenidos-resumen__texto">Se listan abajo para atenderlas.</p>
+                        </article>
                     </div>
-                    <div className="fila">
-                        <Campo id="segundoApellido" etiqueta="Segundo apellido" placeholder="Si lo tiene" value={datos.segundoApellido} onChange={cambiar} />
-                        <Campo id="fechaNacimiento" etiqueta="Fecha de nacimiento" type="date"
-                            ayuda="También sirve para detectar cuentas repetidas."
-                            value={datos.fechaNacimiento} onChange={cambiar} error={errores.fechaNacimiento} required />
-                    </div>
-                    <Campo id="telefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos" inputMode="numeric" maxLength={10}
-                        ayuda="Dato de contacto; no sustituye al correo." value={datos.telefono} onChange={cambiar} error={errores.telefono} required />
+                </section>
 
-                    <p className="seccion">DOMICILIO</p>
-                    <div className="fila">
-                        <Campo id="calle" etiqueta="Calle" value={datos.calle} onChange={cambiar} error={errores.calle} required />
-                        <Campo id="numeroExterior" etiqueta="Número exterior" placeholder="Número o «sin número»"
-                            value={datos.numeroExterior} onChange={cambiar} error={errores.numeroExterior} required />
-                    </div>
-                    <div className="fila">
-                        <Campo id="numeroInterior" etiqueta="Número interior" placeholder="Si existe" value={datos.numeroInterior} onChange={cambiar} />
-                        <Campo id="colonia" etiqueta="Colonia o localidad" value={datos.colonia} onChange={cambiar} error={errores.colonia} required />
-                    </div>
-                    <div className="fila">
-                        <Campo id="codigoPostal" etiqueta="Código postal" placeholder="5 dígitos" inputMode="numeric" maxLength={5}
-                            value={datos.codigoPostal} onChange={cambiar} error={errores.codigoPostal} required />
-                        <Campo id="municipio" etiqueta="Municipio" value={datos.municipio} onChange={cambiar} error={errores.municipio} required />
-                    </div>
-                    <Campo id="estado" etiqueta="Estado" value={datos.estado} onChange={cambiar} error={errores.estado} required />
-
-                    {conTutor && (
-                        <>
-                            <p className="seccion">DATOS DE LA MADRE, PADRE O TUTOR</p>
-                            <div className="fila">
-                                <Campo id="tutorNombre" etiqueta="Nombre(s)" value={datos.tutorNombre} onChange={cambiar} error={errores.tutorNombre} required />
-                                <Campo id="tutorApellidos" etiqueta="Apellidos" value={datos.tutorApellidos} onChange={cambiar} error={errores.tutorApellidos} required />
+                {resultado ? (
+                    <ResultadoAltaAviso resultado={resultado} onNueva={nuevaAlta} errorServidor={errorServidor}
+                        onReintentar={async () => {
+                            try { setResultado(await reintentarInvitacion(resultado.id)); await cargarSolicitudes(); }
+                            catch (error) { setErrorServidor(mensajeError(error)); }
+                        }} />
+                ) : (
+                    <form className="contenidos-formulario" onSubmit={enviar} noValidate>
+                        <div className="at-columna">
+                            <div id="alta-avisos" className="at-columna">
+                                {errorServidor && <AvisoPanel tono="error" titulo="No se pudo registrar la solicitud">{errorServidor}</AvisoPanel>}
+                                {Object.keys(errores).length > 0 && <AvisoPanel tono="error" titulo="Revisa los datos marcados">Corrígelos y vuelve a enviar. Lo escrito se conserva.</AvisoPanel>}
+                                {conTutor && <AvisoPanel tono="info" titulo="La persona es menor de 18 años">Captura el contacto de su madre, padre o tutor. No se crea una cuenta para esa persona.</AvisoPanel>}
                             </div>
-                            <div className="fila">
-                                <Campo id="tutorTelefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos" inputMode="numeric" maxLength={10}
-                                    value={datos.tutorTelefono} onChange={cambiar} error={errores.tutorTelefono} required />
-                                <Campo id="tutorCorreo" etiqueta="Correo electrónico" type="email"
-                                    ayuda="Solo es un contacto; no recibe acceso a la cuenta."
-                                    value={datos.tutorCorreo} onChange={cambiar} error={errores.tutorCorreo} required />
-                            </div>
-                            <CampoSelect id="tutorRelacion" etiqueta="Relación con la persona menor" opciones={["Madre", "Padre", "Tutor o tutora"]}
-                                value={datos.tutorRelacion} onChange={cambiar} error={errores.tutorRelacion} required />
-                            <label className="casilla">
-                                <input type="checkbox" checked={mismoDomicilio} onChange={e => setMismoDomicilio(e.target.checked)} />
-                                El responsable vive en el mismo domicilio que la persona menor.
-                            </label>
-                            {!mismoDomicilio && <div className="campos">
-                                <Campo id="tutorCalle" etiqueta="Calle" value={datos.tutorCalle} onChange={cambiar} error={errores.tutorCalle} required />
-                                <Campo id="tutorNumeroExterior" etiqueta="Número exterior" value={datos.tutorNumeroExterior} onChange={cambiar} error={errores.tutorNumeroExterior} required />
-                                <Campo id="tutorNumeroInterior" etiqueta="Número interior" value={datos.tutorNumeroInterior} onChange={cambiar} />
-                                <Campo id="tutorColonia" etiqueta="Colonia o localidad" value={datos.tutorColonia} onChange={cambiar} error={errores.tutorColonia} required />
-                                <Campo id="tutorCodigoPostal" etiqueta="Código postal" value={datos.tutorCodigoPostal} onChange={cambiar} error={errores.tutorCodigoPostal} required />
-                                <Campo id="tutorMunicipio" etiqueta="Municipio" value={datos.tutorMunicipio} onChange={cambiar} error={errores.tutorMunicipio} required />
-                                <Campo id="tutorEstado" etiqueta="Estado" value={datos.tutorEstado} onChange={cambiar} error={errores.tutorEstado} required />
-                            </div>}
-                        </>
-                    )}
 
-                    <p className="seccion">CORREO DE LA CUENTA</p>
-                    <Campo id="correo" etiqueta="Correo electrónico de la persona" type="email" placeholder="nombre@ejemplo.mx"
-                        ayuda="Debe ser un correo al que la persona tenga acceso: ahí llega la invitación."
-                        value={datos.correo} onChange={cambiar} error={errores.correo} required />
-                    <Campo id="motivo" etiqueta="Motivo del alta asistida" placeholder="Ej. La persona pidió apoyo en el módulo de Servicios Digitales"
-                        maxLength={500} value={datos.motivo} onChange={cambiar} error={errores.motivo} required />
+                            <Panel id="alta-personales" icono={<IconoLapiz />} titulo="Datos personales" subtitulo="Captúralos junto con la persona.">
+                                <div className="alta-fila">
+                                    <CampoAlta id="nombre" etiqueta="Nombre(s)" obligatorio {...props} />
+                                    <CampoAlta id="primerApellido" etiqueta="Primer apellido" obligatorio {...props} />
+                                </div>
+                                <div className="alta-fila">
+                                    <CampoAlta id="segundoApellido" etiqueta="Segundo apellido" placeholder="Si lo tiene" {...props} />
+                                    <CampoAlta id="fechaNacimiento" etiqueta="Fecha de nacimiento" type="date" obligatorio ayuda="También sirve para detectar cuentas repetidas." {...props} />
+                                </div>
+                                <CampoAlta id="telefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos" inputMode="numeric" maxLength={10} obligatorio ayuda="Dato de contacto; no sustituye al correo." {...props} />
+                            </Panel>
 
-                    <div className="casilla-con-error">
-                        <label className="casilla">
-                            <input type="checkbox" checked={aceptaPrivacidad} onChange={e => setAceptaPrivacidad(e.target.checked)} />
-                            La persona leyó y aceptó el aviso de privacidad (texto por confirmar)
-                        </label>
-                        {errores.privacidad && (
-                            <p className="campo__error"><img src={iconoErrorCampo} alt="" />{errores.privacidad}</p>
-                        )}
-                    </div>
+                            <Panel id="alta-domicilio" icono={<IconoLista />} titulo="Domicilio">
+                                <div className="alta-fila">
+                                    <CampoAlta id="calle" etiqueta="Calle" obligatorio {...props} />
+                                    <CampoAlta id="numeroExterior" etiqueta="Número exterior" placeholder="Número o «sin número»" obligatorio {...props} />
+                                </div>
+                                <div className="alta-fila">
+                                    <CampoAlta id="numeroInterior" etiqueta="Número interior" placeholder="Si existe" {...props} />
+                                    <CampoAlta id="colonia" etiqueta="Colonia o localidad" obligatorio {...props} />
+                                </div>
+                                <div className="alta-fila">
+                                    <CampoAlta id="codigoPostal" etiqueta="Código postal" placeholder="5 dígitos" inputMode="numeric" maxLength={5} obligatorio {...props} />
+                                    <CampoAlta id="municipio" etiqueta="Municipio" obligatorio {...props} />
+                                </div>
+                                <CampoAlta id="estado" etiqueta="Estado" obligatorio {...props} />
+                            </Panel>
 
-                    <button type="submit" className="boton-principal" disabled={enviando}>
-                        {enviando ? "Registrando…" : "Registrar y enviar invitación"}
-                        <img src={enviando ? iconoCargando : iconoFlechaDer} className={enviando ? "girando" : undefined} alt="" />
-                    </button>
-                </form>
+                            {conTutor && (
+                                <Panel id="alta-tutor" icono={<IconoAviso />} titulo="Datos de la madre, padre o tutor" subtitulo="Solo es un contacto; no recibe acceso a la cuenta.">
+                                    <div className="alta-fila">
+                                        <CampoAlta id="tutorNombre" etiqueta="Nombre(s)" obligatorio {...props} />
+                                        <CampoAlta id="tutorApellidos" etiqueta="Apellidos" obligatorio {...props} />
+                                    </div>
+                                    <div className="alta-fila">
+                                        <CampoAlta id="tutorTelefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos" inputMode="numeric" maxLength={10} obligatorio {...props} />
+                                        <CampoAlta id="tutorCorreo" etiqueta="Correo electrónico" type="email" obligatorio ayuda="Solo es un contacto; no recibe acceso a la cuenta." {...props} />
+                                    </div>
+                                    <CampoAlta id="tutorRelacion" etiqueta="Relación con la persona menor" opciones={["Madre", "Padre", "Tutor o tutora"]} obligatorio {...props} />
+                                    <label className="alta-casilla">
+                                        <input type="checkbox" checked={mismoDomicilio} onChange={e => setMismoDomicilio(e.target.checked)} />
+                                        El responsable vive en el mismo domicilio que la persona menor.
+                                    </label>
+                                    {!mismoDomicilio && (
+                                        <>
+                                            <div className="alta-fila">
+                                                <CampoAlta id="tutorCalle" etiqueta="Calle" obligatorio {...props} />
+                                                <CampoAlta id="tutorNumeroExterior" etiqueta="Número exterior" obligatorio {...props} />
+                                            </div>
+                                            <div className="alta-fila">
+                                                <CampoAlta id="tutorNumeroInterior" etiqueta="Número interior" {...props} />
+                                                <CampoAlta id="tutorColonia" etiqueta="Colonia o localidad" obligatorio {...props} />
+                                            </div>
+                                            <div className="alta-fila">
+                                                <CampoAlta id="tutorCodigoPostal" etiqueta="Código postal" obligatorio {...props} />
+                                                <CampoAlta id="tutorMunicipio" etiqueta="Municipio" obligatorio {...props} />
+                                            </div>
+                                            <CampoAlta id="tutorEstado" etiqueta="Estado" obligatorio {...props} />
+                                        </>
+                                    )}
+                                </Panel>
+                            )}
+
+                            <Panel id="alta-correo" icono={<IconoLapiz />} titulo="Correo de la cuenta" subtitulo="Ahí llega la invitación para confirmar y elegir la contraseña.">
+                                <CampoAlta id="correo" etiqueta="Correo electrónico de la persona" type="email" placeholder="nombre@ejemplo.mx" obligatorio
+                                    ayuda="Debe ser un correo al que la persona tenga acceso: ahí llega la invitación." {...props} />
+                                <CampoAlta id="motivo" etiqueta="Motivo del alta asistida" placeholder="Ej. La persona pidió apoyo en el módulo de Servicios Digitales" maxLength={500} obligatorio {...props} />
+                                <div>
+                                    <label className="alta-casilla">
+                                        <input type="checkbox" checked={aceptaPrivacidad} onChange={e => setAceptaPrivacidad(e.target.checked)}
+                                            aria-describedby={errores.privacidad ? "privacidad-nota" : undefined} />
+                                        La persona leyó y aceptó el aviso de privacidad (texto por confirmar)
+                                    </label>
+                                    {errores.privacidad && <p id="privacidad-nota" className="contenidos-campo__error" role="alert">{errores.privacidad}</p>}
+                                </div>
+                            </Panel>
+                        </div>
+
+                        <aside className="contenidos-formulario__lateral">
+                            <Panel id="alta-pasos" icono={<IconoReloj />} titulo="Cómo funciona" clase="contenidos-panel--estado">
+                                <ol className="alta-pasos">
+                                    {pasos.map((paso, i) => <li key={paso}><span className="contenidos-como__numero">{i + 1}</span>{paso}</li>)}
+                                </ol>
+                                <button type="submit" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho" disabled={enviando}>
+                                    {enviando ? "Registrando…" : "Registrar y enviar invitación"}
+                                </button>
+                                <p className="contenidos-nota">Nunca escribas ni conozcas la contraseña de la persona.</p>
+                            </Panel>
+                        </aside>
+                    </form>
                 )}
 
                 <SolicitudesAbiertas solicitudes={solicitudes} onCambio={cargarSolicitudes} />
-            </div>
-        </AccesoLayout>
+            </PanelLayout>
+        </ContextoPanel.Provider>
     );
 }
 
@@ -308,47 +423,57 @@ function ResultadoAltaAviso({ resultado, onNueva, onReintentar, errorServidor }:
     resultado: ResultadoAlta; onNueva: () => void; onReintentar: () => Promise<void>; errorServidor: string;
 }) {
     const [reintentando, setReintentando] = useState(false);
+    const enviada = resultado.estado === "lista" && resultado.invitacionEnviada;
+    const sinCorreo = resultado.estado === "lista" && !resultado.invitacionEnviada;
+    const revision = resultado.estado === "en_revision";
     return (
-        <div className="tarjeta tarjeta--ancha">
-            {resultado.estado === "lista" && resultado.invitacionEnviada && (
-                <Aviso tipo="exito" titulo="Invitación enviada">
-                    Enviamos un correo a {resultado.correo}. La persona debe abrirlo, confirmar su correo y elegir su contraseña.
-                </Aviso>
-            )}
-            {resultado.estado === "lista" && !resultado.invitacionEnviada && (
-                <Aviso tipo="advertencia" titulo="La solicitud quedó registrada, pero el correo no salió">
-                    Puede ser el límite de envíos del proyecto. Intenta reenviarla en unos minutos.
-                </Aviso>
-            )}
-            {resultado.estado === "en_revision" && (
-                <Aviso tipo="info" titulo="Posible cuenta repetida: quedó en revisión">
-                    Encontramos una cuenta con la misma fecha de nacimiento y el mismo teléfono o nombre. Revísala abajo antes de invitar.
-                </Aviso>
-            )}
-            {errorServidor && <Aviso tipo="error" titulo="No se pudo completar">{errorServidor}</Aviso>}
-            {resultado.estado === "lista" && !resultado.invitacionEnviada && (
-                <button type="button" className="boton-secundario" disabled={reintentando}
-                    onClick={async () => { setReintentando(true); await onReintentar(); setReintentando(false); }}>
-                    {reintentando ? "Reenviando…" : "Reenviar invitación"}
-                </button>
-            )}
-            <button type="button" className="boton-principal" onClick={onNueva}>
-                Registrar a otra persona
-                <img src={iconoFlechaDer} alt="" />
-            </button>
-        </div>
+        <>
+            <section className={`contenidos-enviado${enviada ? "" : revision ? " at-aviso--espera" : " at-aviso--error"}`} role="status">
+                <span className="contenidos-enviado__palomita">{enviada ? "✓" : "!"}</span>
+                <div className="contenidos-enviado__textos">
+                    <p className="contenidos-enviado__titulo">
+                        {enviada ? "Invitación enviada" : sinCorreo ? "La solicitud quedó registrada, pero el correo no salió" : revision ? "Posible cuenta repetida: quedó en revisión" : "Solicitud registrada"}
+                    </p>
+                    <p className="contenidos-enviado__detalle">
+                        {enviada && `Enviamos un correo a ${resultado.correo}. La persona debe abrirlo, confirmar su correo y elegir su contraseña.`}
+                        {sinCorreo && "Puede ser el límite de envíos del proyecto. Intenta reenviarla en unos minutos."}
+                        {revision && "Encontramos una cuenta con la misma fecha de nacimiento y el mismo teléfono o nombre. Revísala abajo antes de invitar."}
+                    </p>
+                </div>
+            </section>
+            {errorServidor && <AvisoPanel tono="error" titulo="No se pudo completar">{errorServidor}</AvisoPanel>}
+            <div className="contenidos-previa__acciones">
+                {sinCorreo && (
+                    <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={reintentando}
+                        onClick={async () => { setReintentando(true); await onReintentar(); setReintentando(false); }}>
+                        {reintentando ? "Reenviando…" : "Reenviar invitación"}
+                    </button>
+                )}
+                <button type="button" className="contenidos-boton contenidos-boton--principal" onClick={onNueva}>Registrar a otra persona</button>
+            </div>
+        </>
     );
 }
 
 function SolicitudesAbiertas({ solicitudes, onCambio }: { solicitudes: SolicitudAbierta[]; onCambio: () => Promise<void> }) {
-    if (solicitudes.length === 0) return null;
     return (
-        <section className="tarjeta tarjeta--ancha">
-            <div className="tarjeta__encabezado">
-                <h2>Solicitudes pendientes</h2>
-                <p>Las que tienen un posible duplicado no se invitan hasta que alguien del personal decida.</p>
+        <section className="contenidos-lista" aria-labelledby="alta-pendientes-titulo">
+            <div className="contenidos-lista__cabecera">
+                <span className="contenidos-lista__icono"><IconoLista /></span>
+                <div>
+                    <h2 id="alta-pendientes-titulo">Solicitudes pendientes</h2>
+                    <p>Las que tienen un posible duplicado no se invitan hasta que alguien del personal decida.</p>
+                </div>
             </div>
-            {solicitudes.map(solicitud => <Pendiente key={solicitud.id} solicitud={solicitud} onCambio={onCambio} />)}
+            {solicitudes.length === 0 ? (
+                <div className="contenidos-vacio">
+                    <span>
+                        <span className="contenidos-vacio__icono"><IconoLista /></span>
+                        <strong>No hay solicitudes pendientes</strong>
+                        <span>Cuando registres un alta, aparecerá aquí hasta que la persona active su cuenta.</span>
+                    </span>
+                </div>
+            ) : solicitudes.map(solicitud => <Pendiente key={solicitud.id} solicitud={solicitud} onCambio={onCambio} />)}
         </section>
     );
 }
@@ -372,52 +497,54 @@ function Pendiente({ solicitud, onCambio }: { solicitud: SolicitudAbierta; onCam
     }
 
     return (
-        <article className="pendiente">
-            <div className="pendiente__encabezado">
+        <article className="alta-pendiente">
+            <div className="alta-pendiente__encabezado">
                 <div>
-                    <p className="pendiente__nombre">{nombre}</p>
-                    <p className="pendiente__dato">{solicitud.correo} · Tel. {solicitud.telefono} · Nac. {solicitud.fechaNacimiento}</p>
+                    <p className="alta-pendiente__nombre">{nombre}</p>
+                    <p className="alta-pendiente__dato">{solicitud.correo} · Tel. {solicitud.telefono} · Nac. {solicitud.fechaNacimiento}</p>
                 </div>
-                <span className={`pendiente__estado pendiente__estado--${solicitud.estado}`}>
+                <span className={`contenidos-estado contenidos-estado--${solicitud.estado === "en_revision" ? "con_observaciones" : "por_autorizar"}`}>
                     {solicitud.estado === "en_revision" ? "En revisión" : "Invitación pendiente"}
                 </span>
             </div>
 
             {solicitud.candidatos.length > 0 && (
-                <div className="pendiente__candidatos">
-                    <p className="pendiente__subtitulo">Cuentas parecidas</p>
+                <div className="at-nota">
+                    <p className="at-nota__autor">Cuentas parecidas</p>
                     {solicitud.candidatos.map(c => (
-                        <p key={c.id} className="pendiente__dato">
+                        <p key={c.id} className="alta-pendiente__dato">
                             {[c.nombres, c.primerApellido, c.segundoApellido].filter(Boolean).join(" ")} · {c.correo} · Tel. {c.telefono} · Nac. {c.fechaNacimiento}
                         </p>
                     ))}
                 </div>
             )}
 
-            {error && <Aviso tipo="error" titulo="No se pudo completar">{error}</Aviso>}
-            {aviso && <Aviso tipo="advertencia" titulo="Correo pendiente">{aviso}</Aviso>}
+            {error && <AvisoPanel tono="error" titulo="No se pudo completar">{error}</AvisoPanel>}
+            {aviso && <AvisoPanel tono="advertencia" titulo="Correo pendiente">{aviso}</AvisoPanel>}
 
-            <Campo id={`motivo-${solicitud.id}`} etiqueta="Motivo de la decisión" value={motivo} maxLength={500}
-                onChange={e => setMotivo(e.target.value)} placeholder="Ej. Se verificó con identificación" required />
-            <div className="pendiente__acciones">
+            <div className="contenidos-campo">
+                <label htmlFor={`motivo-${solicitud.id}`}>Motivo de la decisión <span className="contenidos-campo__obligatorio" aria-label="obligatorio">*</span></label>
+                <input id={`motivo-${solicitud.id}`} type="text" value={motivo} maxLength={500} onChange={e => setMotivo(e.target.value)} placeholder="Ej. Se verificó con identificación" />
+            </div>
+            <div className="alta-pendiente__acciones">
                 {solicitud.estado === "en_revision" ? (
                     <>
-                        <button type="button" className="boton-secundario" disabled={ocupado}
+                        <button type="button" className="contenidos-boton contenidos-boton--principal contenidos-boton--chico" disabled={ocupado}
                             onClick={() => ejecutar(() => resolverDuplicado(solicitud.id, "persona_distinta", motivo.trim()))}>
                             Es otra persona: invitar
                         </button>
-                        <button type="button" className="boton-secundario" disabled={ocupado}
+                        <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" disabled={ocupado}
                             onClick={() => ejecutar(() => resolverDuplicado(solicitud.id, "misma_persona", motivo.trim()))}>
                             Es la misma persona: no crear
                         </button>
                     </>
                 ) : (
-                    <button type="button" className="boton-secundario" disabled={ocupado}
+                    <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" disabled={ocupado}
                         onClick={() => ejecutar(() => reintentarInvitacion(solicitud.id), false)}>
                         Reenviar invitación
                     </button>
                 )}
-                <button type="button" className="boton-secundario pendiente__cancelar" disabled={ocupado}
+                <button type="button" className="contenidos-boton contenidos-boton--chico at-boton--guinda" disabled={ocupado}
                     onClick={() => ejecutar(() => cancelarSolicitud(solicitud.id, motivo.trim()))}>
                     Cancelar solicitud
                 </button>

@@ -43,10 +43,10 @@ export function EncabezadoPagina({ volver, etiqueta, titulo, texto, accion }: En
 }
 
 // Contenidos › Revisión… en Atención: «Atención › Solicitudes de credencial › CT-0051»
-export function Migas({ pasos }: { pasos: [string, string?][] }) {
+export function Migas({ pasos, raiz = "Atención" }: { pasos: [string, string?][]; raiz?: string }) {
     return (
         <nav className="contenidos-migas" aria-label="Ruta">
-            <span>Atención</span>
+            <span>{raiz}</span>
             {pasos.map(([texto, ruta], i) => (
                 <span key={texto} className="at-miga">
                     <span aria-hidden="true">›</span>

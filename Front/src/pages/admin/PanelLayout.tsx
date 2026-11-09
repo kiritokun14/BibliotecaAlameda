@@ -211,7 +211,7 @@ function PanelLayout({ titulo, children, tema }: PanelLayoutProps) {
                     <Cabecera titulo={titulo} />
                     <div className="panel-desplazamiento" key={pathname}>
                         <main className="panel-contenido">
-                            {!pathname.startsWith("/admin/contenidos/editor") && !pathname.startsWith("/admin/contenidos/revision") && !pathname.startsWith("/admin/atencion/contactos") && !pathname.startsWith("/admin/atencion/bibliocomunidad") && !pathname.startsWith("/admin/administracion/fuentes") && <p role="status" className="panel-nota">Demostración: estas acciones usan datos de ejemplo y no se guardan en la base de datos.</p>}
+                            {!pathname.startsWith("/admin/contenidos/editor") && !pathname.startsWith("/admin/contenidos/revision") && !pathname.startsWith("/admin/atencion/contactos") && !pathname.startsWith("/admin/administracion/fuentes") && !pathname.startsWith("/personal/alta-asistida") && !pathname.startsWith("/admin/atencion/cuentas") && !pathname.startsWith("/admin/administracion/cuentas") && <p role="status" className="panel-nota">Demostración: estas acciones usan datos de ejemplo y no se guardan en la base de datos.</p>}
                             {children}
                             <p className="panel-nota">Biblioteca Solón Argüello · Panel del personal</p>
                         </main>

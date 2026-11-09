@@ -25,6 +25,20 @@ const DetalleEspacio = lazy(() => import("./pages/admin/atencion/espacios/Detall
 const Propuestas = lazy(() => import("./pages/admin/atencion/propuestas/Propuestas.tsx"));
 const DetallePropuesta = lazy(() => import("./pages/admin/atencion/propuestas/DetallePropuesta.tsx"));
 const VistaPrevia = lazy(() => import("./pages/admin/atencion/propuestas/VistaPrevia.tsx"));
+const Recuperacion = lazy(() => import("./pages/admin/atencion/recuperacion/Recuperacion.tsx"));
+const CuentaEncontrada = lazy(() => import("./pages/admin/atencion/recuperacion/Recuperacion.tsx").then(m => ({ default: m.CuentaEncontrada })));
+const VerificarIdentidad = lazy(() => import("./pages/admin/atencion/recuperacion/Recuperacion.tsx").then(m => ({ default: m.VerificarIdentidad })));
+const ResultadoRecuperacion = lazy(() => import("./pages/admin/atencion/recuperacion/Recuperacion.tsx").then(m => ({ default: m.ResultadoRecuperacion })));
+const HistorialRecuperacion = lazy(() => import("./pages/admin/atencion/recuperacion/Recuperacion.tsx").then(m => ({ default: m.HistorialRecuperacion })));
+const CuentasAtencion = lazy(() => import("./pages/admin/atencion/cuentas/Cuentas.tsx"));
+const FichaCuenta = lazy(() => import("./pages/admin/atencion/cuentas/Cuentas.tsx").then(m => ({ default: m.FichaCuenta })));
+const BitacoraCuenta = lazy(() => import("./pages/admin/atencion/cuentas/Cuentas.tsx").then(m => ({ default: m.BitacoraCuenta })));
+const ResultadoCuenta = lazy(() => import("./pages/admin/atencion/cuentas/Cuentas.tsx").then(m => ({ default: m.ResultadoCuenta })));
+const AvisosAtencion = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx"));
+const FormularioAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.FormularioAviso })));
+const VistaPreviaAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.VistaPreviaAviso })));
+const DetalleAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.DetalleAviso })));
+const ResultadoAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.ResultadoAviso })));
 import AccesoPanel from "./pages/admin/AccesoPanel";
 const EditorContenidos = lazy(() => import("./pages/admin/contenidos/EditorContenidos.tsx"));
 const NuevoContenido = lazy(() => import("./pages/admin/contenidos/NuevoContenido.tsx"));
@@ -137,6 +151,14 @@ const ContenidoPropio = lazy(() => import("./pages/admin/revision/Revision.tsx")
 
 const AtencionComunidad = lazy(() => import("./pages/admin/comunidad/AtencionComunidad"));
 const FuentesAsistente = lazy(() => import("./pages/admin/comunidad/Fuentes"));
+const CuentasPermisos = lazy(() => import("./pages/admin/administracion/CuentasPermisos.tsx"));
+const FichaPersonal = lazy(() => import("./pages/admin/administracion/CuentasPermisos.tsx").then(m => ({ default: m.FichaPersonal })));
+const PermisosCuenta = lazy(() => import("./pages/admin/administracion/CuentasPermisos.tsx").then(m => ({ default: m.PermisosCuenta })));
+const ResultadoPersonal = lazy(() => import("./pages/admin/administracion/CuentasPermisos.tsx").then(m => ({ default: m.ResultadoPersonal })));
+const EstadisticasAdmin = lazy(() => import("./pages/admin/administracion/Estadisticas.tsx"));
+const BitacoraAdmin = lazy(() => import("./pages/admin/administracion/Bitacora.tsx"));
+const DetalleMovimiento = lazy(() => import("./pages/admin/administracion/Bitacora.tsx").then(m => ({ default: m.DetalleMovimiento })));
+const ConfiguracionAdmin = lazy(() => import("./pages/admin/administracion/Configuracion.tsx"));
 const PerfilPropio = lazy(() => import("./pages/publico/perfil/Perfil"));
 
 function App() {
@@ -179,10 +201,40 @@ function App() {
         <Route path="/admin/atencion/propuestas/todas" element={<AccesoPanel><Propuestas key="todas" vista="todas" /></AccesoPanel>} />
         <Route path="/admin/atencion/propuestas/:folio" element={<AccesoPanel><DetallePropuesta /></AccesoPanel>} />
         <Route path="/admin/atencion/propuestas/:folio/publicar" element={<AccesoPanel><VistaPrevia /></AccesoPanel>} />
+        {/* Atención: Recuperación asistida, Consulta de cuentas y Avisos */}
+        <Route path="/admin/atencion/recuperacion" element={<AccesoPanel><Recuperacion /></AccesoPanel>} />
+        <Route path="/admin/atencion/recuperacion/historial" element={<AccesoPanel><HistorialRecuperacion /></AccesoPanel>} />
+        <Route path="/admin/atencion/recuperacion/:id" element={<AccesoPanel><CuentaEncontrada /></AccesoPanel>} />
+        <Route path="/admin/atencion/recuperacion/:id/verificar" element={<AccesoPanel><VerificarIdentidad /></AccesoPanel>} />
+        <Route path="/admin/atencion/recuperacion/:id/enviado" element={<AccesoPanel><ResultadoRecuperacion tipo="enviado" /></AccesoPanel>} />
+        <Route path="/admin/atencion/recuperacion/:id/fallida" element={<AccesoPanel><ResultadoRecuperacion tipo="fallida" /></AccesoPanel>} />
+        <Route path="/admin/atencion/cuentas" element={<AccesoPanel><CuentasAtencion /></AccesoPanel>} />
+        <Route path="/admin/atencion/cuentas/:id" element={<AccesoPanel><FichaCuenta /></AccesoPanel>} />
+        <Route path="/admin/atencion/cuentas/:id/bitacora" element={<AccesoPanel><BitacoraCuenta /></AccesoPanel>} />
+        <Route path="/admin/atencion/cuentas/:id/suspendida" element={<AccesoPanel><ResultadoCuenta tipo="suspendida" /></AccesoPanel>} />
+        <Route path="/admin/atencion/cuentas/:id/reactivada" element={<AccesoPanel><ResultadoCuenta tipo="reactivada" /></AccesoPanel>} />
+        <Route path="/admin/atencion/avisos" element={<AccesoPanel><AvisosAtencion /></AccesoPanel>} />
+        <Route path="/admin/atencion/avisos/nuevo" element={<AccesoPanel><FormularioAviso /></AccesoPanel>} />
+        <Route path="/admin/atencion/avisos/:folio" element={<AccesoPanel><DetalleAviso /></AccesoPanel>} />
+        <Route path="/admin/atencion/avisos/:folio/editar" element={<AccesoPanel><FormularioAviso /></AccesoPanel>} />
+        <Route path="/admin/atencion/avisos/:folio/vista-previa" element={<AccesoPanel><VistaPreviaAviso /></AccesoPanel>} />
+        <Route path="/admin/atencion/avisos/:folio/publicado" element={<AccesoPanel><ResultadoAviso tipo="publicado" /></AccesoPanel>} />
+        <Route path="/admin/atencion/avisos/:folio/retirado" element={<AccesoPanel><ResultadoAviso tipo="retirado" /></AccesoPanel>} />
+        <Route path="/admin/atencion/avisos/:folio/borrador" element={<AccesoPanel><ResultadoAviso tipo="borrador" /></AccesoPanel>} />
 
         <Route path="/admin/atencion/contactos" element={<AccesoPanel><AtencionComunidad key="contactos" /></AccesoPanel>} />
-        <Route path="/admin/atencion/bibliocomunidad" element={<AccesoPanel><AtencionComunidad key="bibliocomunidad" bibliocomunidad /></AccesoPanel>} />
         <Route path="/admin/administracion/fuentes" element={<AccesoPanel><FuentesAsistente /></AccesoPanel>} />
+        {/* Administración: Cuentas y permisos, Estadísticas, Bitácora y Configuración */}
+        <Route path="/admin/administracion/cuentas" element={<AccesoPanel><CuentasPermisos /></AccesoPanel>} />
+        <Route path="/admin/administracion/cuentas/:id" element={<AccesoPanel><FichaPersonal /></AccesoPanel>} />
+        <Route path="/admin/administracion/cuentas/:id/permisos" element={<AccesoPanel><PermisosCuenta /></AccesoPanel>} />
+        <Route path="/admin/administracion/cuentas/:id/permisos-guardados" element={<AccesoPanel><ResultadoPersonal tipo="permisos" /></AccesoPanel>} />
+        <Route path="/admin/administracion/cuentas/:id/suspendida" element={<AccesoPanel><ResultadoPersonal tipo="suspendida" /></AccesoPanel>} />
+        <Route path="/admin/administracion/cuentas/:id/reactivada" element={<AccesoPanel><ResultadoPersonal tipo="reactivada" /></AccesoPanel>} />
+        <Route path="/admin/administracion/estadisticas" element={<AccesoPanel><EstadisticasAdmin /></AccesoPanel>} />
+        <Route path="/admin/administracion/bitacora" element={<AccesoPanel><BitacoraAdmin /></AccesoPanel>} />
+        <Route path="/admin/administracion/bitacora/:folio" element={<AccesoPanel><DetalleMovimiento /></AccesoPanel>} />
+        <Route path="/admin/administracion/configuracion" element={<AccesoPanel><ConfiguracionAdmin /></AccesoPanel>} />
         {/* Editor conectado a los borradores de T-054. */}
         <Route path="/admin/contenidos" element={<Navigate to="/admin/contenidos/editor" replace />} />
         <Route path="/admin/contenidos/editor" element={<AccesoPanel><EditorContenidos /></AccesoPanel>} />

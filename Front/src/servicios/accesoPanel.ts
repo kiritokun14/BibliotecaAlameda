@@ -6,8 +6,10 @@ export const PANEL_GENERAL = 'panel_general';
 export function capacidadPanel(ruta: string): string | null {
     if (['/admin/resumen', '/admin/notificaciones'].includes(ruta)) return PANEL_GENERAL;
     if (ruta.startsWith('/admin/atencion/contactos')) return 'atender_contactos';
-    if (ruta.startsWith('/admin/atencion/bibliocomunidad')) return 'atender_bibliocomunidad';
     if (ruta.startsWith('/admin/administracion/fuentes')) return 'gestionar_fuentes_asistente';
+    if (ruta.startsWith('/admin/administracion/estadisticas')) return 'consultar_estadisticas';
+    if (ruta.startsWith('/admin/administracion/cuentas') || ruta.startsWith('/admin/administracion/bitacora')
+        || ruta.startsWith('/admin/administracion/configuracion')) return 'administrar_cuentas';
     if (ruta.startsWith('/admin/contenidos/revision')) return 'publicar_contenidos';
     if (ruta.startsWith('/admin/actividades/asistencia')) return 'registrar_asistencia';
     if (ruta.startsWith('/admin/actividades/inscripciones')) return 'confirmar_inscripciones';
@@ -17,6 +19,9 @@ export function capacidadPanel(ruta: string): string | null {
     if (ruta.startsWith('/admin/participantes/progreso')) return 'registrar_recompensas';
     if (ruta.startsWith('/admin/participantes/cotejo')) return 'validar_credenciales';
     if (ruta.startsWith('/admin/participantes/foro')) return 'moderar_foro';
+    if (ruta.startsWith('/admin/atencion/recuperacion')) return 'orientar_recuperacion';
+    if (ruta.startsWith('/admin/atencion/cuentas')) return 'consultar_cuentas_atencion';
+    if (ruta.startsWith('/admin/atencion/avisos')) return 'enviar_avisos';
     if (ruta.startsWith('/admin/atencion/credenciales')) return 'validar_credenciales';
     if (ruta.startsWith('/admin/atencion/espacios')) return 'registrar_resoluciones_actividades';
     if (ruta.startsWith('/admin/atencion/propuestas'))

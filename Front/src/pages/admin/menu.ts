@@ -76,7 +76,6 @@ export const SECCIONES_MENU: SeccionMenu[] = [
             { texto: "Solicitudes de espacios", ruta: "/admin/atencion/espacios" },
             { texto: "Propuestas de eventos", ruta: "/admin/atencion/propuestas" },
             { texto: "Contactos y sugerencias", ruta: "/admin/atencion/contactos" },
-            { texto: "Bibliocomunidad", ruta: "/admin/atencion/bibliocomunidad" },
             { texto: "Altas asistidas", ruta: "/personal/alta-asistida", capacidad: "alta_asistida" },
             { texto: "Recuperación asistida", ruta: "/admin/atencion/recuperacion" },
             { texto: "Consulta de cuentas", ruta: "/admin/atencion/cuentas" },

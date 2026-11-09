@@ -153,3 +153,22 @@
 @media (max-width: 1100px) {
     .at-datos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---------- Formularios y avisos de Avisos, Recuperación y Cuentas ---------- */
+.at-fila { display: flex; gap: 14px; }
+.at-fila > * { flex: 1; min-width: 0; }
+.at-bloque { padding: 12px 16px; border: 1px solid var(--solon-borde); border-radius: 12px; background: var(--solon-neutro-suave); font-size: 13px; }
+.at-bloque strong { display: block; margin-bottom: 2px; font-size: 14px; }
+.at-bloque p { margin: 0; color: var(--solon-gris); }
+.at-bloque--error { border-color: var(--solon-guinda); background: var(--solon-guinda-suave); }
+.at-bloque--error strong { color: var(--solon-guinda); }
+.at-bloque--info { border-color: var(--solon-acento); background: var(--solon-azul-suave); }
+.at-casilla { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.45; cursor: pointer; }
+.at-casilla input { width: 18px; height: 18px; margin: 1px 0 0; flex: none; accent-color: var(--solon-primario); }
+
+.avisos-tabla .contenidos-tabla__fila { grid-template-columns: 90px minmax(180px, 2fr) 110px 150px 130px 130px 90px; }
+.panel--contenidos .avisos-previa { max-width: none; padding: 24px; gap: 10px; }
+.panel--contenidos .avisos-previa h2 { font-size: 24px; }
+.cuentas-tabla .contenidos-tabla__fila { grid-template-columns: minmax(180px, 1.6fr) minmax(180px, 1.4fr) 130px 150px 90px; }
+.recuperacion-tabla .contenidos-tabla__fila { grid-template-columns: 110px minmax(160px, 1.5fr) 150px 140px 150px; }
+.cuentas-error { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

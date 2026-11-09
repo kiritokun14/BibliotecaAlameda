@@ -17,3 +17,4 @@
 .comunidad-casilla { display: flex; align-items: center; gap: 10px; font-size: 14px; }
 .comunidad-casilla input { width: 18px; height: 18px; margin: 0; accent-color: var(--solon-primario); }
 .contenidos-panel .comunidad-formulario { margin: 0; max-width: none; }
+.contenidos-panel.comunidad-formulario { margin: 0; max-width: none; }
