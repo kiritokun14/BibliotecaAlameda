@@ -197,7 +197,6 @@ export const tiposAvisoEjemplo: Preferencia[] = [
     { clave: "credencial", titulo: "Credencial", activo: true },
     { clave: "solicitudes", titulo: "Mis solicitudes", activo: true },
     { clave: "novedades", titulo: "Novedades de la biblioteca", activo: true },
-    { clave: "bibliocomunidad", titulo: "Bibliocomunidad", activo: false, proximamente: true },
     { clave: "importantes", titulo: "Avisos importantes", activo: true, fijo: true },
 ];
 let preferenciasGuardadas = { canales: canalesEjemplo, tipos: tiposAvisoEjemplo };

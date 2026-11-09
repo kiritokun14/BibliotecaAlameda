@@ -40,6 +40,7 @@ const VistaPreviaAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos
 const DetalleAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.DetalleAviso })));
 const ResultadoAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.ResultadoAviso })));
 import AccesoPanel from "./pages/admin/AccesoPanel";
+import { RUTAS_ANTERIORES } from "./pages/admin/rutasAnteriores";
 const EditorContenidos = lazy(() => import("./pages/admin/contenidos/EditorContenidos.tsx"));
 const NuevoContenido = lazy(() => import("./pages/admin/contenidos/NuevoContenido.tsx"));
 const RedactarNoticia = lazy(() => import("./pages/admin/contenidos/RedactarNoticia.tsx"));
@@ -223,6 +224,8 @@ function App() {
         <Route path="/admin/atencion/avisos/:folio/borrador" element={<AccesoPanel><ResultadoAviso tipo="borrador" /></AccesoPanel>} />
 
         <Route path="/admin/atencion/contactos" element={<AccesoPanel><AtencionComunidad key="contactos" /></AccesoPanel>} />
+        {/* Bibliocomunidad se atiende solo desde Participantes: la ruta anterior de Atención redirige */}
+        {Object.entries(RUTAS_ANTERIORES).map(([anterior, actual]) => <Route key={anterior} path={`${anterior}/*`} element={<Navigate to={actual} replace />} />)}
         <Route path="/admin/administracion/fuentes" element={<AccesoPanel><FuentesAsistente /></AccesoPanel>} />
         {/* Administración: Cuentas y permisos, Estadísticas, Bitácora y Configuración */}
         <Route path="/admin/administracion/cuentas" element={<AccesoPanel><CuentasPermisos /></AccesoPanel>} />

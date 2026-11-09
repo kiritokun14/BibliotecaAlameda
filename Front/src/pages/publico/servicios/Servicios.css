@@ -181,11 +181,11 @@
 }
 
 .tarjeta-servicio--destacada .tarjeta-servicio__icono { background: rgba(255, 255, 255, 0.14); }
-.tarjeta-servicio--destacada .tarjeta-servicio__tipo { color: #e6d194; }
+.tarjeta-servicio--destacada .tarjeta-servicio__tipo { color: #f2e3b8; }
 .tarjeta-servicio--destacada .tarjeta-servicio__punto { background: #e6d194; }
 .tarjeta-servicio--destacada h3 { color: #fff; }
 .tarjeta-servicio--destacada .tarjeta-servicio__descripcion { color: #e4efeb; }
-.tarjeta-servicio--destacada .tarjeta-servicio__enlace { color: #e6d194; }
+.tarjeta-servicio--destacada .tarjeta-servicio__enlace { color: #f2e3b8; }
 
 .tarjeta-servicio > .tarjeta-servicio__circulo {
   position: absolute;

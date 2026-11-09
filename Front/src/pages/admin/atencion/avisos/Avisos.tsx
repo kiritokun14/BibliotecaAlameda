@@ -254,7 +254,7 @@ export function VistaPreviaAviso() {
 
             <div className="contenidos-previa__acciones">
                 <button type="button" className="contenidos-boton contenidos-boton--principal" onClick={() => setConfirmando(true)}>Publicar aviso</button>
-                <Link to={`${RUTA}/${aviso.folio}/editar`} className="contenidos-boton contenidos-boton--contorno">Volver a editar</Link>
+                <Link to={`${RUTA}/${aviso.folio}/editar`} className="contenidos-boton contenidos-boton--contorno panel-regresar">Volver a editar</Link>
             </div>
 
             {confirmando && (
@@ -299,7 +299,7 @@ export function DetalleAviso() {
 
             <div className="contenidos-previa__acciones">
                 {activo && <button type="button" className="contenidos-boton at-boton--guinda" onClick={() => setRetirando(true)}>Retirar aviso</button>}
-                <Link to={RUTA} className="contenidos-boton contenidos-boton--suave-azul">Volver</Link>
+                <Link to={RUTA} className="contenidos-boton contenidos-boton--suave-azul panel-regresar">Volver</Link>
             </div>
 
             {retirando && (
@@ -339,7 +339,7 @@ export function ResultadoAviso({ tipo }: { tipo: "publicado" | "retirado" | "bor
             <AvisoResultado tono={tipo === "retirado" ? "error" : tipo === "borrador" ? "espera" : "exito"} titulo={`${aviso.folio} · ${aviso.titulo}`}
                 texto={`${vigencia(aviso)} · ${aviso.donde}`} chip={NOMBRE_ESTADO[aviso.estado]} />
             <div className="contenidos-previa__acciones">
-                <Link to={RUTA} className="contenidos-boton contenidos-boton--principal">Volver a Avisos</Link>
+                <Link to={RUTA} className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a Avisos</Link>
                 {tipo === "borrador" && <Link to={`${RUTA}/${aviso.folio}/editar`} className="contenidos-boton contenidos-boton--contorno">Seguir editando</Link>}
                 {tipo === "publicado" && <Link to={`${RUTA}/${aviso.folio}`} className="contenidos-boton contenidos-boton--contorno">Ver aviso</Link>}
             </div>

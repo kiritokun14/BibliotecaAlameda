@@ -85,7 +85,7 @@ export function DetalleCotejo() {
                     {pendiente && (tipo === "diferencias" || tipo === "sin-coincidencia") && <Link to={`${ruta}/correccion`} className={clasesBoton("verde")}>Pedir corrección</Link>}
                     {pendiente && tipo === "vencida" && <button type="button" className={clasesBoton("verde")} onClick={() => { avisarRenovacion(c.folio); navigate(`${ruta}/aviso`); }}>Enviar aviso de renovación</button>}
                     {pendiente && <button type="button" className={clasesBoton("contorno-guinda")} onClick={() => { setMotivo(""); setError(""); setVentana("rechazar"); }}>Rechazar vínculo</button>}
-                    <Link to={BASE_COTEJO} className={clasesBoton("suave")}>Volver</Link>
+                    <Link to={BASE_COTEJO} className={`${clasesBoton("suave")} panel-regresar`}>Volver</Link>
                 </div>
                 <PieDatos />
             </Pagina>
@@ -169,7 +169,7 @@ export function ResultadoCotejo({ tipo }: { tipo: "vinculada" | "correccion" | "
                 <Encabezado grande etiqueta={`Cotejo ${c.folio}`} titulo={datos.titulo} texto={datos.texto} />
                 <Resultado tono={datos.tono} icono={datos.icono} titulo={c.persona} linea={`${c.resolucion?.detalle} · ${c.resolucion?.quien}`} chip={<Chip tono={TONO_COTEJO[c.estado]}>{NOMBRE_ESTADO_COTEJO[c.estado]}</Chip>} />
                 <div className="cn-acciones">
-                    <Link to={BASE_COTEJO} className={clasesBoton("verde")}>Volver a Cotejo de credenciales</Link>
+                    <Link to={BASE_COTEJO} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Cotejo de credenciales</Link>
                     <Link to={`${BASE_COTEJO}?vista=historial`} className={clasesBoton("suave")}>Ver historial de cotejos</Link>
                 </div>
                 <PieDatos />

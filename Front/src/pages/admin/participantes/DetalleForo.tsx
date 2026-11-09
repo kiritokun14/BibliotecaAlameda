@@ -286,7 +286,7 @@ export function ResultadoForo({ tipo }: { tipo: "retirada" | "aprobada" | "adver
                 <Encabezado grande etiqueta={`Publicación ${p.folio} · ${datos.chip}`} titulo={datos.titulo} texto={datos.texto} />
                 <Resultado tono={datos.tono} icono={datos.icono} titulo={datos.cabeza} linea={datos.linea} chip={<Chip tono={datos.tono}>{datos.chip}</Chip>} />
                 <div className="cn-acciones">
-                    <Link to={BASE_FORO} className={clasesBoton("verde")}>Volver a Bibliocomunidad</Link>
+                    <Link to={BASE_FORO} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Bibliocomunidad</Link>
                     {tipo === "retirada" && !silencio && <Link to={`${ruta}?accion=silenciar`} className={clasesBoton("contorno")}>Silenciar a la persona</Link>}
                     {tipo === "silenciada" && <Link to={`${BASE_FORO}?vista=silenciadas`} className={clasesBoton("contorno")}>Ver personas silenciadas</Link>}
                     {(tipo === "aprobada" || tipo === "advertencia") && <Link to={ruta} className={clasesBoton("contorno")}>Ver publicación</Link>}
@@ -308,7 +308,7 @@ export function ParticipacionRestaurada() {
                 <Encabezado grande etiqueta="Participantes · Foro" titulo="Participación restaurada" texto="La persona ya puede volver a publicar en el foro." />
                 <Resultado tono="verde" icono={iconoCheck} titulo={state.persona} linea="Silencio terminado hoy · se le avisó por correo" chip={<Chip tono="verde">Restaurada</Chip>} />
                 <div className="cn-acciones">
-                    <Link to={`${BASE_FORO}?vista=silenciadas`} className={clasesBoton("verde")}>Volver a Personas silenciadas</Link>
+                    <Link to={`${BASE_FORO}?vista=silenciadas`} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Personas silenciadas</Link>
                     <Link to={BASE_FORO} className={clasesBoton("contorno")}>Ir a la cola de moderación</Link>
                 </div>
                 <PieDatos />

@@ -21,7 +21,8 @@ import checkEnviada from "../../../assets/credencial/enviada-check.svg";
 import infoVerde from "../../../assets/credencial/info-verde.svg";
 import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 
-// Club Alameda · foro de la Bibliocomunidad (HU-26). Figma A-02: 759:93132 inicio, 759:93772 detalle de un hilo.
+// Bibliocomunidad · foro de lectura (HU-26, alcance reducido 762:95841). Figma A-02: 759:93132 inicio, 759:93772 detalle de un hilo;
+// A-01: 280:1065 vista de visitante (sin sesión se invita a iniciar sesión; no se pide credencial). La URL /club-alameda se conserva.
 // Sin diseño en Figma (se armó con las piezas del portal): el reporte de una respuesta, la respuesta «En revisión»,
 // la invitación a iniciar sesión y el aviso de cuenta silenciada.
 const ICONOS: Record<ColorTema, string> = { verde: libroVerde, dorado: libroDorado, rosa: libroRosa, gris: libroGris };
@@ -36,16 +37,19 @@ function useParticipante(): { sesion: string | null | undefined; nombre: string 
 // ---------- Inicio del foro ----------
 export default function ClubAlameda() {
     const { respuestas } = useClub();
+    const sesion = useSesion();
+    if (sesion === undefined) return <PaginaPublica><p className="club-cuerpo" role="status">Cargando Bibliocomunidad…</p></PaginaPublica>;
+    if (sesion === null) return <BibliocomunidadVisitante />;
     return (
         <PaginaPublica>
             <EncabezadoNoticias
-                etiqueta="CLUB ALAMEDA"
-                titulo={<>Club <span>Alameda</span></>}
-                texto="Las buenas historias se disfrutan más cuando se comparten."
+                etiqueta="BIBLIOCOMUNIDAD"
+                titulo="Bibliocomunidad"
+                texto="Un foro para conversar sobre libros, lecturas y actividades."
             />
             <div className="club-cuerpo">
-                <h2 className="club-titulo">Elige un tema</h2>
-                <p className="club-subtitulo">Lee las respuestas y comparte tu opinión.</p>
+                <h2 className="club-titulo">Temas del foro</h2>
+                <p className="club-subtitulo">Elige un tema para leer las respuestas o escribir la tuya.</p>
                 <div className="club-temas">
                     {TEMAS.map((t) => <TarjetaTema key={t.slug} tema={t} {...resumenTema(t, respuestas)} />)}
                 </div>
@@ -53,6 +57,43 @@ export default function ClubAlameda() {
                     <h2>Un espacio para compartir con respeto</h2>
                     <p>Libros, lectura y actividades · Respeto entre participantes</p>
                     <p>Sin ventas ni publicidad no autorizada · Sin datos personales de otras personas</p>
+                </section>
+            </div>
+        </PaginaPublica>
+    );
+}
+
+// Sin sesión (Figma A-01 280:1065): cómo funciona, temas y acceso con cuenta
+function BibliocomunidadVisitante() {
+    return (
+        <PaginaPublica>
+            <EncabezadoNoticias
+                regreso={{ texto: "Volver a Servicios y programas", ruta: "/servicios" }}
+                etiqueta="FORO DE LECTURA"
+                titulo="Bibliocomunidad"
+                texto="Un espacio para compartir lecturas y conversar con otras personas."
+            />
+            <div className="club-cuerpo">
+                <div className="club-visitante">
+                    <section aria-labelledby="club-como-titulo">
+                        <p className="club-inicial__sobretitulo">PARA PARTICIPAR</p>
+                        <h2 id="club-como-titulo" className="club-titulo">Cómo funciona</h2>
+                        <ol className="club-pasos">
+                            <li>Inicia sesión con tu cuenta del portal</li>
+                            <li>Elige un tema y escribe una respuesta</li>
+                            <li>Respeta las normas del foro</li>
+                        </ol>
+                    </section>
+                    <section className="club-visitante__temas" aria-labelledby="club-temas-titulo">
+                        <p id="club-temas-titulo" className="club-inicial__sobretitulo">TEMAS PARA CONVERSAR</p>
+                        <ul>{TEMAS.map((t) => <li key={t.slug}>{t.titulo.replace(" (ejemplo)", "")}</li>)}</ul>
+                    </section>
+                </div>
+                <section className="club-respeto club-unete" aria-labelledby="club-unete-titulo">
+                    <p className="club-inicial__sobretitulo">ACCESO CON CUENTA</p>
+                    <h2 id="club-unete-titulo">Únete a la conversación</h2>
+                    <p>Inicia sesión para consultar los temas y responder. El personal revisará tu primera respuesta.</p>
+                    <Link className="club-boton" to="/iniciar-sesion">Iniciar sesión para participar <img src={flechaBlanca} alt="" /></Link>
                 </section>
             </div>
         </PaginaPublica>
@@ -83,6 +124,8 @@ export function HiloClub() {
     const [reportando, setReportando] = useState<Respuesta | null>(null);
     const [reportado, setReportado] = useState(false);
     if (!tema) return <Navigate to="/club-alameda" replace />;
+    // El foro requiere sesión (alcance reducido): sin sesión se va a iniciar sesión
+    if (sesion === null) return <Navigate to="/iniciar-sesion" replace />;
     const lista = respuestasDe(tema.slug, club.respuestas);
     const publicadas = lista.filter((x) => x.estado === "publicada").length;
 
@@ -90,9 +133,9 @@ export function HiloClub() {
         <PaginaPublica>
             <EncabezadoNoticias
                 regreso={{ texto: "Volver al foro", ruta: "/club-alameda" }}
-                etiqueta="CLUB ALAMEDA"
+                etiqueta="BIBLIOCOMUNIDAD"
                 titulo={tema.titulo.replace(/^Reseña: /, "")}
-                texto="Una de las cuatro conversaciones del Club Alameda"
+                texto="Una de las cuatro conversaciones de Bibliocomunidad"
             />
             <div className="club-cuerpo club-hilo">
                 <div className="club-hilo__principal">
@@ -150,7 +193,7 @@ export function HiloClub() {
             )}
             {reportado && (
                 <ModalAgenda titulo="Gracias por avisarnos" sobretitulo="Reporte enviado" icono={checkEnviada} alCerrar={() => setReportado(false)}>
-                    <p className="modal-agenda__texto">El personal revisará la respuesta según las normas del Club Alameda. No le diremos a nadie quién la reportó.</p>
+                    <p className="modal-agenda__texto">El personal revisará la respuesta según las normas de Bibliocomunidad. No le diremos a nadie quién la reportó.</p>
                     <div className="modal-agenda__acciones">
                         <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => setReportado(false)}>Entendido</button>
                     </div>

@@ -237,7 +237,7 @@ export function DetalleEvidencia() {
                     <Resultado tono="guinda" icono={iconoResultadoOjo} titulo={e.solicitada ? "Ya pediste acceso" : "No tienes permiso para abrirla"} linea={e.solicitada ? "Coordinación revisará tu solicitud. Te avisaremos en tus notificaciones." : "Solo Coordinación y Administración pueden verla. Puedes pedir acceso."} chip={<Chip tono="guinda">Restringida</Chip>} />
                     <div className="cn-acciones">
                         {!e.solicitada && <button type="button" className={clasesBoton("verde")} onClick={() => { pedirAcceso(e.folio); navigate(`${ruta}/solicitado`); }}>Pedir acceso</button>}
-                        <Link to={BASE} className={clasesBoton("contorno")}>Volver a Evidencias privadas</Link>
+                        <Link to={BASE} className={`${clasesBoton("contorno")} panel-regresar`}>Volver a Evidencias privadas</Link>
                     </div>
                     <PieDatos />
                 </Pagina>
@@ -337,7 +337,7 @@ export function ResultadoEvidencia({ tipo }: { tipo: "guardada" | "solicitado" |
                 <Encabezado grande etiqueta={`Evidencia ${e.folio}`} titulo={datos.titulo} texto={datos.texto} />
                 <Resultado tono={datos.tono} icono={datos.icono} titulo={`${e.tipo} · ${e.actividadTexto}`} linea={datos.linea} chip={datos.chip} />
                 <div className="cn-acciones">
-                    <Link to={BASE} className={clasesBoton("verde")}>Volver a Evidencias privadas</Link>
+                    <Link to={BASE} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Evidencias privadas</Link>
                     {tipo === "guardada" && <Link to={`${BASE}/subir`} className={clasesBoton("contorno")}>Subir otra evidencia</Link>}
                 </div>
                 <PieDatos />

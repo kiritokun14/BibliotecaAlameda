@@ -255,7 +255,7 @@ export function PasarLista() {
 
                 <div className="cn-acciones">
                     {cerrada ? (
-                        <Link to={BASE_ASISTENCIA} className={clasesBoton("suave")}>Volver</Link>
+                        <Link to={BASE_ASISTENCIA} className={`${clasesBoton("suave")} panel-regresar`}>Volver</Link>
                     ) : (
                         <>
                             <button type="button" className={clasesBoton("contorno")} onClick={() => { setNombre(""); setContacto(""); setErrorCampo(""); setVentana("agregar"); }}>Agregar persona sin inscripción</button>
@@ -328,7 +328,7 @@ export function ListaCerrada() {
                 <Encabezado grande etiqueta={`Actividad ${a.folio} · Asistencia`} titulo="Lista cerrada" texto="La asistencia quedó registrada." />
                 <Resultado tono="verde" icono={iconoResultado} titulo={a.nombre} linea={`${c.presentes} presentes · ${c.ausentes} ausentes · ${porcentaje(c.presentes, c.inscritos + c.sinInscripcion)}% de asistencia`} chip={<Chip tono="verde">Lista cerrada</Chip>} />
                 <div className="cn-acciones">
-                    <Link to={BASE_ASISTENCIA} className={clasesBoton("verde")}>Volver a Asistencia</Link>
+                    <Link to={BASE_ASISTENCIA} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Asistencia</Link>
                     <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className={clasesBoton("contorno")}>Ver la lista</Link>
                 </div>
                 <PieDatos />

@@ -147,7 +147,7 @@ export function SinSistema() {
                 <Resultado tono="guinda" icono={iconoAlerta} titulo="No se pudo consultar el sistema" linea="No se perdió nada. Inténtalo de nuevo en unos minutos o coteja manualmente." chip={<Chip tono="guinda">Sin conexión</Chip>} />
                 <div className="cn-acciones">
                     <button type="button" className={clasesBoton("verde")} onClick={() => window.location.reload()}>Reintentar</button>
-                    <Link to={BASE_COTEJO} className={clasesBoton("contorno")}>Volver a Cotejo de credenciales</Link>
+                    <Link to={BASE_COTEJO} className={`${clasesBoton("contorno")} panel-regresar`}>Volver a Cotejo de credenciales</Link>
                 </div>
                 <PieDatos />
             </Pagina>

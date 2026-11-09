@@ -86,7 +86,7 @@ export function DetalleVisita() {
                             <button type="button" className={clasesBoton("contorno-guinda")} onClick={() => setRechazando(true)}>Rechazar solicitud</button>
                         </>
                     ) : (
-                        <Link to={BASE_VISITAS} className={clasesBoton("verde")}>Volver a Visitas y uso de espacios</Link>
+                        <Link to={BASE_VISITAS} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Visitas y uso de espacios</Link>
                     )}
                 </div>
                 <PieDatos />
@@ -238,7 +238,7 @@ export function ResultadoVisita({ tipo }: { tipo: "confirmada" | "propuesta" | "
                     </Tarjeta>
                 )}
                 <div className="cn-acciones">
-                    <Link to={BASE_VISITAS} className={clasesBoton("verde")}>Volver a Visitas y uso de espacios</Link>
+                    <Link to={BASE_VISITAS} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Visitas y uso de espacios</Link>
                     {tipo === "confirmada" && <Link to={`/admin/actividades/calendario?vista=dia&fecha=${v.fecha}`} className={clasesBoton("contorno")}>Ver en el calendario</Link>}
                 </div>
                 <PieDatos />

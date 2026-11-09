@@ -2,7 +2,7 @@ import { useContext, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
 import "./Resumen.css";
-import { ContextoPanel, capacidadPanel, nombresRoles, permisoGlobal } from "../../../servicios/accesoPanel";
+import { ContextoPanel, nombresRoles } from "../../../servicios/accesoPanel";
 import {
     AREAS,
     NOMBRE_AREA,
@@ -15,6 +15,7 @@ import {
     type AreaPendiente,
     type Prioridad,
     type TonoEstado,
+    vistaEnlace,
 } from "./datos";
 import flechaChica from "../../../assets/admin/resumen-flecha.svg";
 import iconoArchivo from "../../../assets/admin/resumen/file-guinda.svg";
@@ -37,13 +38,11 @@ const ICONOS_PRIORIDAD: Record<Prioridad["icono"], string> = {
 
 const FILAS_INICIALES = 5;
 
-// Una pantalla puede no existir todavía (su sección está «Pronto»): entonces no se enlaza
-const existe = (ruta: string) => capacidadPanel(ruta) !== null;
-
 // Admin · Resumen (Figma 358:3838): prioridades del día, pendientes de todas las áreas,
 // actividades de hoy, indicador de contenidos, capacidades de la cuenta y reglas.
 export default function Resumen() {
     const identidad = useContext(ContextoPanel);
+    const visibles = prioridades.filter((p) => vistaEnlace(p.ruta, identidad?.acceso) !== "oculto");
 
     return (
         <PanelLayout titulo="Resumen">
@@ -53,18 +52,21 @@ export default function Resumen() {
                     <h2>Resumen de hoy</h2>
                 </header>
 
-                <section className="resumen-prioridades" aria-labelledby="titulo-prioridades">
-                    <div className="resumen-prioridades__titular">
-                        <h2 id="titulo-prioridades">Prioridades de hoy</h2>
-                    </div>
-                    <ul className="resumen-prioridades__lista">
-                        {prioridades.map((prioridad) => (
-                            <li key={prioridad.titulo}>
-                                <TarjetaPrioridad prioridad={prioridad} />
-                            </li>
-                        ))}
-                    </ul>
-                </section>
+                {/* Solo las prioridades que la cuenta puede atender; sin ninguna, no se muestra la franja */}
+                {visibles.length > 0 && (
+                    <section className="resumen-prioridades" aria-labelledby="titulo-prioridades">
+                        <div className="resumen-prioridades__titular">
+                            <h2 id="titulo-prioridades">Prioridades de hoy</h2>
+                        </div>
+                        <ul className="resumen-prioridades__lista">
+                            {visibles.map((prioridad) => (
+                                <li key={prioridad.titulo}>
+                                    <TarjetaPrioridad prioridad={prioridad} />
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
 
 
                 <div className="resumen-columnas">
@@ -134,11 +136,13 @@ function rolesDeLaCuenta(nombres: string): string[] {
     return nombres.split(", ").filter((r) => r && r !== "Usuario / Cliente");
 }
 
-// Enlace a otra pantalla del panel; si esa pantalla aún no existe, el mismo aspecto sin poder presionarse
+// Enlace a otra pantalla del panel. Si la cuenta no tiene permiso para esa pantalla, no se muestra;
+// si esa pantalla aún no existe, el mismo aspecto sin poder presionarse.
 function Enlace({ ruta, className, children }: { ruta: string; className: string; children: ReactNode }) {
     const identidad = useContext(ContextoPanel);
-    const capacidad = capacidadPanel(ruta);
-    if (existe(ruta) && identidad && capacidad && permisoGlobal(identidad.acceso, capacidad)) return <Link to={ruta} className={className}>{children}</Link>;
+    const vista = vistaEnlace(ruta, identidad?.acceso);
+    if (vista === "enlace") return <Link to={ruta} className={className}>{children}</Link>;
+    if (vista === "oculto") return null;
     return <span className={`${className} resumen-sin-enlace`} title="Sección en desarrollo">{children}</span>;
 }
 

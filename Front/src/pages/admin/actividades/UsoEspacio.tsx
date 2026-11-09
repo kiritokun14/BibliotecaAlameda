@@ -97,7 +97,7 @@ export function FichaUso() {
                 </Tarjeta>
                 <div className="cn-acciones">
                     <Link to={`${BASE_VISITAS}/uso/${u.id}/editar`} className={clasesBoton("contorno")}>Editar registro</Link>
-                    <Link to={REGISTRO} className={clasesBoton("verde")}>Volver a Visitas y uso de espacios</Link>
+                    <Link to={REGISTRO} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Visitas y uso de espacios</Link>
                 </div>
                 <PieDatos />
             </Pagina>

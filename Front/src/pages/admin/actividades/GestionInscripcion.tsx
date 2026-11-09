@@ -46,7 +46,7 @@ export function FichaInscripcion() {
                 </Tarjeta>
                 <div className="cn-acciones">
                     {i.estado !== "cancelada" && <button type="button" className={clasesBoton("contorno-guinda")} onClick={() => setCancelando(true)}>Cancelar inscripción</button>}
-                    <Link to={ruta} className={clasesBoton("suave")}>Volver</Link>
+                    <Link to={ruta} className={`${clasesBoton("suave")} panel-regresar`}>Volver</Link>
                 </div>
                 <PieDatos />
             </Pagina>

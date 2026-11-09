@@ -43,7 +43,7 @@ export function Resumen({ titulo = "Accesos rápidos", tarjetas }: { titulo?: st
     return (
         <section className="contenidos-resumen" aria-label={titulo}>
             <h2>{titulo}</h2>
-            <div className="contenidos-resumen__tarjetas ad-resumen">
+            <div className="contenidos-resumen__tarjetas">
                 {tarjetas.map((t) => (
                     <article key={t.titulo} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${t.tono}${t.activa ? " at-tarjeta--activa" : ""}`}>
                         <div className="contenidos-resumen__fila">

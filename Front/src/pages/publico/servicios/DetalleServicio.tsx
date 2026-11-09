@@ -117,12 +117,12 @@ function DetalleServicio() {
                 <h2>{id === "bibliocomunidad" ? "La incorporación requiere confirmación" : detalle.aviso.titulo}</h2>
                 <p>{id === "bibliocomunidad" ? "Puedes dejar tu interés mediante el formulario. El personal revisará tu solicitud y te contactará; el envío no equivale a una inscripción al club." : detalle.aviso.texto}</p>
                 {id === "bibliocomunidad" && (
-                    <p>Mientras tanto, ya puedes leer y conversar en el foro del Club Alameda.</p>
+                    <p>Con tu sesión iniciada, ya puedes conversar en el foro de Bibliocomunidad.</p>
                 )}
                 <div className="programa-aviso__botones">
                     {id === "bibliocomunidad" && (
                         <Link to="/club-alameda" className="boton-servicios boton-servicios--verde">
-                            Entrar al foro Club Alameda
+                            Entrar a Bibliocomunidad
                             <img src={flechaBlanca} alt="" />
                         </Link>
                     )}

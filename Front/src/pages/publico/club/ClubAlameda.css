@@ -187,3 +187,15 @@
 @media (max-width: 1400px) {
   .club-hilo { grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; }
 }
+
+/* Vista de visitante (Figma A-01 280:1065) */
+.club-visitante { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 32px; }
+.club-visitante section { display: flex; flex-direction: column; gap: 10px; }
+.club-pasos { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; color: #161a1d; font-size: 15px; }
+.club-pasos li::before { content: "✓"; display: inline-grid; place-items: center; width: 24px; height: 24px; margin-right: 10px; border-radius: 50%; background: #e4efea; color: #164f44; font-size: 13px; font-weight: 700; }
+.club-visitante__temas { padding: 22px 26px; border-radius: 22px; background: #e4efea; }
+.club-visitante__temas ul { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.club-visitante__temas li { padding: 12px 0; border-bottom: 1px solid #cfe0d9; color: #164f44; font-size: 17px; font-weight: 700; }
+.club-visitante__temas li:last-child { border-bottom: 0; }
+.club-unete { align-items: center; text-align: center; }
+.club-unete h2 { margin: 0; }

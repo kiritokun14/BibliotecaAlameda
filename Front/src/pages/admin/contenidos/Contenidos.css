@@ -38,7 +38,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px !important;
+    margin-bottom: 8px;
     color: var(--solon-primario);
     font-size: 12px;
     font-weight: 700;
@@ -61,7 +61,7 @@
 }
 
 .contenidos-encabezado__texto {
-    margin-top: 8px !important;
+    margin-top: 8px;
     color: var(--solon-gris);
     font-size: 15px;
 }

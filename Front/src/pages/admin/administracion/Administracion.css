@@ -2,7 +2,6 @@
    Colores: solo las variables del tema del Editor (--solon-*). */
 
 .ad-error { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.ad-resumen { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; }
 .ad-barra { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 
 /* Tablas */
