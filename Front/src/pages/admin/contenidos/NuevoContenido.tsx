@@ -15,7 +15,7 @@ const PASOS = [
 
 function NuevoContenido() {
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <Migas actual="Elegir tipo" />
 
             <div className="contenidos-encabezado contenidos-encabezado--tarjeta">

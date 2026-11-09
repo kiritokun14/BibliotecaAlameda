@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, Pasos, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -57,7 +59,7 @@ export function DetalleVisita() {
     const turnos = capacidad ? Math.ceil(v.personas / capacidad) : 1;
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios", BASE_VISITAS], [rechazando ? "Rechazar solicitud" : "Detalle"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Visitas y uso de espacios", ruta: BASE_VISITAS }} etiqueta={`Visita ${v.folio}`} titulo={v.grupo} texto={v.descripcion} />
@@ -136,7 +138,7 @@ export function ConfirmarVisita() {
     const clase = (c: string) => `cn-control ${errores[c] ? "cn-control--error" : ""}`;
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios", BASE_VISITAS], ["Confirmar visita"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Visitas y uso de espacios", ruta }} etiqueta={`Visita ${v.folio}`} titulo="Confirmar visita" texto="Define fecha, guía y espacio. Se avisará al contacto." />
@@ -190,7 +192,7 @@ export function ProponerFecha() {
     }
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios", BASE_VISITAS], ["Proponer otra fecha"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Visitas y uso de espacios", ruta }} etiqueta={`Visita ${v.folio}`} titulo="Proponer otra fecha" texto="Ofrece hasta dos opciones al grupo." />
@@ -225,7 +227,7 @@ export function ResultadoVisita({ tipo }: { tipo: "confirmada" | "propuesta" | "
         rechazada: { titulo: "Solicitud rechazada", texto: "El contacto del grupo recibió el motivo.", tono: "guinda" as const, icono: iconoX, linea: `Motivo: ${v.rechazo?.motivo}` },
     }[tipo];
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios", BASE_VISITAS], [datos.titulo]]} />
                 <Encabezado grande etiqueta={`Visita ${v.folio} · ${NOMBRE_ESTADO_VISITA[v.estado]}`} titulo={datos.titulo} texto={datos.texto} />

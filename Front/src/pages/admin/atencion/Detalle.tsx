@@ -5,15 +5,13 @@ import {
     Chip,
     Dato,
     EncabezadoPagina,
+    Migas,
     Tarjeta,
     TarjetaHistorial,
     TarjetaResponsable,
     type EventoHistorial,
 } from "../componentes";
 import { actualizarSolicitud, type Area, type Estado, type Nota, type Resolucion } from "./datos";
-import botonCheck from "../../../assets/admin/boton-check.svg";
-import chipCheck from "../../../assets/admin/chip-check.svg";
-import chipX from "../../../assets/admin/chip-x.svg";
 
 // Lo que dice el encabezado (y el aviso de color) en cada estado
 export type TextosEstado = Record<
@@ -37,11 +35,19 @@ type DetalleSolicitudProps = {
     decision: ReactNode; // primera tarjeta de la columna angosta
 };
 
+// Nombre de cada área en las migas
+const SECCION: Record<Area, string> = {
+    credenciales: "Solicitudes de credencial",
+    espacios: "Solicitudes de espacios",
+    propuestas: "Propuestas de eventos",
+};
+
 function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial, principal, decision }: DetalleSolicitudProps) {
     const texto = textos[solicitud.estado];
 
     return (
         <>
+            <Migas pasos={[[SECCION[area], volver.ruta], [solicitud.folio]]} />
             <EncabezadoPagina
                 volver={volver}
                 etiqueta={`${prefijo} ${solicitud.folio} · ${texto.etiqueta}`}
@@ -51,9 +57,9 @@ function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial,
 
             {texto.aviso && <AvisoResultado {...texto.aviso} />}
 
-            <div className="columnas">
-                <div className="columna-principal">{principal}</div>
-                <div className="columna-lateral">
+            <div className="contenidos-formulario">
+                <div className="at-columna">{principal}</div>
+                <aside className="contenidos-formulario__lateral">
                     {decision}
                     <TarjetaResponsable
                         responsable={solicitud.responsable}
@@ -63,7 +69,7 @@ function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial,
                         }
                     />
                     <TarjetaHistorial eventos={historial} />
-                </div>
+                </aside>
             </div>
         </>
     );
@@ -84,16 +90,15 @@ export function TarjetaDecision({ titulo = "Decisión", subtitulo, aprobar, opci
     return (
         <Tarjeta variante="decision" tonoIcono="dorado" titulo={titulo} subtitulo={subtitulo}>
             {aprobar && (
-                <button type="button" className="boton-panel boton-panel--verde boton-panel--grande boton-panel--ancho" onClick={aprobar.alPresionar}>
+                <button type="button" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho" onClick={aprobar.alPresionar}>
                     {aprobar.texto}
-                    <img src={botonCheck} alt="" />
                 </button>
             )}
-            <p className="decision__subtitulo">OTRAS OPCIONES</p>
+            <p className="at-subtitulo">Otras opciones</p>
             {opciones}
-            <hr className="decision__divisor" />
+            <hr className="at-divisor" />
             {peligro}
-            <p className="decision__nota">{nota}</p>
+            <p className="contenidos-nota">{nota}</p>
         </Tarjeta>
     );
 }
@@ -112,11 +117,11 @@ export function TarjetaResolucion({ estado, resolucion, rutaBandeja, extra }: Ta
 
     return (
         <Tarjeta variante="decision" tonoIcono="dorado" titulo="Resolución" subtitulo="Decisión ya tomada.">
-            <div>
-                <Chip tono={aprobada ? "verde" : "guinda"} icono={aprobada ? chipCheck : chipX}>
+            <p className="contenidos-estado-linea">
+                <Chip tono={aprobada ? "verde" : "guinda"}>
                     {aprobada ? "Aprobada" : resolucion?.cancelada ? "Cancelada" : "Rechazada"}
                 </Chip>
-            </div>
+            </p>
             <Dato etiqueta="DECIDIÓ" alto>
                 Administrador
             </Dato>
@@ -134,12 +139,12 @@ export function TarjetaResolucion({ estado, resolucion, rutaBandeja, extra }: Ta
                 </Dato>
             )}
             {resolucion?.mensaje && (
-                <div className="mensaje-enviado">
-                    <p>MENSAJE ENVIADO A LA PERSONA</p>
+                <div className="at-nota">
+                    <p className="at-nota__autor">Mensaje enviado a la persona</p>
                     <p>{resolucion.mensaje}</p>
                 </div>
             )}
-            <Link to={rutaBandeja} className="boton-panel boton-panel--oscuro boton-panel--ancho boton-panel--alto">
+            <Link to={rutaBandeja} className="contenidos-boton contenidos-boton--oscuro contenidos-boton--ancho">
                 Volver a la bandeja
             </Link>
             {extra}

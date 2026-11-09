@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="39" height="39" viewBox="0 0 39 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Avatar">
+<rect width="38" height="38" rx="19" fill="#164F44"/>
+<g id="Icono &#194;&#183; user">
+<path id="Vector" d="M24.25 25.75V24.25C24.25 23.4544 23.9339 22.6913 23.3713 22.1287C22.8087 21.5661 22.0456 21.25 21.25 21.25H16.75C15.9544 21.25 15.1913 21.5661 14.6287 22.1287C14.0661 22.6913 13.75 23.4544 13.75 24.25V25.75" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+<path id="Vector_2" d="M22 15.25C22 16.9069 20.6569 18.25 19 18.25C17.3431 18.25 16 16.9069 16 15.25C16 13.5931 17.3431 12.25 19 12.25C20.6569 12.25 22 13.5931 22 15.25Z" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+</g>
+<path id="Punto &#194;&#183; en l&#195;&#173;nea" d="M38 33.5C38 35.9853 35.9853 38 33.5 38C31.0147 38 29 35.9853 29 33.5C29 31.0147 31.0147 29 33.5 29C35.9853 29 38 31.0147 38 33.5Z" fill="#2EB67D" stroke-width="2" stroke="white"/>
+</g>
+</svg>

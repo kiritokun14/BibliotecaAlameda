@@ -48,7 +48,7 @@ function Espacios({ vista }: { vista: "bandeja" | "todas" }) {
     const solicitudes = useSolicitudes("espacios");
 
     return (
-        <PanelLayout titulo="Atención">
+        <PanelLayout titulo="Atención" tema="contenidos">
             <Bandeja
                 vista={vista}
                 config={configEspacios}

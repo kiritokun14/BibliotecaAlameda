@@ -7,6 +7,8 @@ import {
     SeccionVisitante,
 } from "../../../components/portal/Visitante";
 import "./Espacios.css";
+import { useSesion } from "../perfil/usarSesion";
+import AgendaEspacios from "./AgendaEspacios";
 import { separarAreas, type Area } from "./datos";
 import iconoPin from "../../../assets/espacios/pin-verde.svg";
 import iconoCandado from "../../../assets/comun/iconos/candado-dorado.svg";
@@ -14,6 +16,9 @@ import iconoCandado from "../../../assets/comun/iconos/candado-dorado.svg";
 // Agenda de espacios · vista de visitante SIN cuenta: áreas y cómo se solicita.
 // Enviar o gestionar una solicitud se hace después, con sesión y credencial vigente.
 function Espacios() {
+    const sesion = useSesion();
+    // Con sesión se muestra la agenda para solicitar (Figma A-02, 476:28196).
+    if (sesion) return <AgendaEspacios />;
     const { solicitables, noSolicitables } = separarAreas();
 
     return (

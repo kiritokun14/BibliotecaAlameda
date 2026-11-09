@@ -12,14 +12,10 @@ import {
     filtrarPendientes,
     pendientes,
     prioridades,
-    saludo,
     type AreaPendiente,
     type Prioridad,
     type TonoEstado,
 } from "./datos";
-import circuloGrande from "../../../assets/comun/iconos/bloque-circulo-1.svg";
-import circuloChico from "../../../assets/comun/iconos/bloque-circulo-2.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import flechaChica from "../../../assets/admin/resumen-flecha.svg";
 import iconoArchivo from "../../../assets/admin/resumen/file-guinda.svg";
 import iconoLista from "../../../assets/admin/resumen/list-dorado.svg";
@@ -48,25 +44,18 @@ const existe = (ruta: string) => capacidadPanel(ruta) !== null;
 // actividades de hoy, indicador de contenidos, capacidades de la cuenta y reglas.
 export default function Resumen() {
     const identidad = useContext(ContextoPanel);
-    const urgentes = pendientes.filter((p) => p.urgente).length;
 
     return (
         <PanelLayout titulo="Resumen">
             <div className="resumen">
                 <header className="resumen-encabezado">
-                    <p className="resumen-encabezado__etiqueta">RESUMEN · DATOS DE EJEMPLO</p>
-                    <h2>{saludo(new Date().getHours())}, equipo de administración</h2>
-                    <p className="resumen-encabezado__texto">
-                        Hoy hay {urgentes} pendientes que vencen y 5 credenciales por cotejar. Cifras de ejemplo.
-                    </p>
+                    <p className="resumen-encabezado__etiqueta">DATOS DE EJEMPLO</p>
+                    <h2>Resumen de hoy</h2>
                 </header>
 
                 <section className="resumen-prioridades" aria-labelledby="titulo-prioridades">
-                    <img className="resumen-prioridades__circulo resumen-prioridades__circulo--1" src={circuloGrande} alt="" />
-                    <img className="resumen-prioridades__circulo resumen-prioridades__circulo--2" src={circuloChico} alt="" />
                     <div className="resumen-prioridades__titular">
-                        <span className="resumen-etiqueta">Prioridades</span>
-                        <h2 id="titulo-prioridades">¿Qué necesita tu atención hoy?</h2>
+                        <h2 id="titulo-prioridades">Prioridades de hoy</h2>
                     </div>
                     <ul className="resumen-prioridades__lista">
                         {prioridades.map((prioridad) => (
@@ -75,18 +64,13 @@ export default function Resumen() {
                             </li>
                         ))}
                     </ul>
-                    <a href="#pendientes" className="boton-resumen boton-resumen--claro">
-                        Ver todos los pendientes
-                        <img src={flechaBlanca} alt="" />
-                    </a>
                 </section>
 
-                <p className="resumen-grupo"><span aria-hidden="true" />EN SEGUIMIENTO</p>
 
                 <div className="resumen-columnas">
                     <div className="resumen-columna">
                         <TablaPendientes />
-                        <Tarjeta icono={iconoCalendarioBlanco} titulo="Actividades de hoy" texto="Programadas para hoy.">
+                        <Tarjeta icono={iconoCalendarioBlanco} titulo="Actividades de hoy">
                             <ul className="resumen-actividades">
                                 {actividadesHoy.map((actividad) => (
                                     <li key={actividad.titulo}>
@@ -120,11 +104,8 @@ export default function Resumen() {
                         <div className="resumen-capacidades">
                             <div className="resumen-tarjeta__cabecera">
                                 <span className="resumen-tarjeta__icono"><img src={iconoUsuarioBlanco} alt="" /></span>
-                                <h3>Mis capacidades</h3>
+                                <h3>Roles de la cuenta</h3>
                             </div>
-                            <p className="resumen-capacidades__texto">
-                                Esta cuenta reúne estos roles del personal; el menú muestra la suma de sus secciones.
-                            </p>
                             <ul>
                                 {rolesDeLaCuenta(identidad ? nombresRoles(identidad.acceso) : "").map((rol) => (
                                     <li key={rol}><img src={iconoCheck} alt="" />{rol}</li>
@@ -135,7 +116,7 @@ export default function Resumen() {
                         <div className="resumen-reglas">
                             <div className="resumen-tarjeta__cabecera">
                                 <span className="resumen-tarjeta__icono resumen-tarjeta__icono--dorado"><img src={iconoInfoBlanco} alt="" /></span>
-                                <h3>Reglas que aplican a tu trabajo</h3>
+                                <h3>Reglas de operación</h3>
                             </div>
                             <ul>
                                 {REGLAS.map((regla) => <li key={regla}>{regla}</li>)}
@@ -186,14 +167,13 @@ function ChipEstado({ tono, children }: { tono: TonoEstado; children: ReactNode 
     );
 }
 
-function Tarjeta({ icono, titulo, texto, children }: { icono: string; titulo: string; texto: string; children: ReactNode }) {
+function Tarjeta({ icono, titulo, children }: { icono: string; titulo: string; children: ReactNode }) {
     return (
         <section className="resumen-tarjeta">
             <div className="resumen-tarjeta__cabecera">
                 <span className="resumen-tarjeta__icono"><img src={icono} alt="" /></span>
                 <div>
                     <h3>{titulo}</h3>
-                    <p>{texto}</p>
                 </div>
             </div>
             {children}
@@ -216,7 +196,6 @@ function TablaPendientes() {
                 <span className="resumen-tarjeta__icono"><img src={iconoListaBlanca} alt="" /></span>
                 <div>
                     <h3 id="titulo-pendientes">Pendientes por atender</h3>
-                    <p>Todo lo que espera una decisión del personal, de todas las áreas.</p>
                 </div>
             </div>
 
@@ -233,7 +212,17 @@ function TablaPendientes() {
                 </label>
             </div>
 
+            <div className="resumen-tabla-desplazable" role="region" aria-label="Pendientes por atender" tabIndex={0}>
             <table className="resumen-tabla">
+                <colgroup>
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "23%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "17%" }} />
+                    <col style={{ width: "10%" }} />
+                </colgroup>
                 <thead>
                     <tr>
                         <th scope="col">FOLIO</th>
@@ -266,6 +255,7 @@ function TablaPendientes() {
                     )}
                 </tbody>
             </table>
+            </div>
 
             <div className="resumen-tabla__pie">
                 <p aria-live="polite">Mostrando {visibles.length} de {filtrados.length} pendientes (ejemplo) · ordenados por vencimiento</p>

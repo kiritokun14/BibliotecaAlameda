@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import "./Actividades.css";
 import { CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, Migas, Pagina, Pasos, PieDatos, Resultado, Tarjeta, Ventana } from "../contenidoDemo/piezas";
@@ -46,7 +48,7 @@ export function DetalleCambio() {
     }[c.estado];
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], [ventana === "aplicar" ? "Confirmar cambio" : ventana === "rechazar" ? "Rechazar cambio" : "Detalle"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Cambios y cancelaciones", ruta: BASE_CAMBIOS }} etiqueta={`Cambio ${c.folio}`} titulo={c.nombre} texto={`${c.tipo} solicitado por ${c.solicito.replace(/ \(ejemplo\)$/, "").toLowerCase() === "personal" ? "el personal" : c.solicito}.`} />
@@ -142,7 +144,7 @@ export function CancelarActividad() {
     }
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], [confirmar ? "Confirmar cancelación" : "Cancelar actividad"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Cambios y cancelaciones", ruta: BASE_CAMBIOS }} etiqueta="Cambios y cancelaciones" titulo="Cancelar una actividad" texto="Se avisará a las personas inscritas y se liberará la sala." />
@@ -221,7 +223,7 @@ export function Reprogramar() {
     const clase = (c: string) => `cn-control ${errores[c] ? "cn-control--error" : ""}`;
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], ["Reprogramar"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Cambios y cancelaciones", ruta: BASE_CAMBIOS }} etiqueta="Cambios y cancelaciones" titulo="Reprogramar una actividad" texto="Elige nueva fecha, hora o sala." />
@@ -269,7 +271,7 @@ export function ResultadoCambio({ tipo }: { tipo: "aplicado" | "rechazado" | "ca
     }[tipo];
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], [datos.titulo]]} />
                 <Encabezado grande etiqueta={datos.etiqueta} titulo={datos.titulo} texto={datos.texto} />

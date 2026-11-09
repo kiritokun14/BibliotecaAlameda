@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../../PanelLayout";
-import { Chip, EncabezadoPagina, Tarjeta } from "../../componentes";
+import { Chip, EncabezadoPagina, Migas, Tarjeta } from "../../componentes";
 import { MENSAJE_OBLIGATORIO } from "../../../../servicios/validaciones";
 import { actualizarSolicitud, useSolicitudes, type Propuesta } from "../datos";
 import { fechaPropuesta } from "./fechaPropuesta";
@@ -46,8 +46,8 @@ function FormularioPublicacion({ propuesta }: { propuesta: Propuesta }) {
     const fechaVisible = fechaHorario.trim() || (propuesta.fecha ? fechaPropuesta(propuesta) : "Fecha por confirmar");
 
     return (
-        <div className="columnas">
-            <div className="columna-principal">
+        <div className="contenidos-formulario">
+            <div className="at-columna">
                 <Tarjeta icono={tarjetaEstrella} titulo="Así se verá en Eventos" subtitulo="Vista de ejemplo, no es la publicación final.">
                     <div className="portada-evento">
                         {portada ? (
@@ -148,13 +148,13 @@ function FormularioPublicacion({ propuesta }: { propuesta: Propuesta }) {
                 </Tarjeta>
             </div>
 
-            <div className="columna-lateral">
+            <div className="contenidos-formulario__lateral">
                 <Tarjeta variante="decision" tonoIcono="dorado" titulo="Publicar" subtitulo="Confirma para aprobar la propuesta.">
-                    <button type="button" className="boton-panel boton-panel--verde boton-panel--grande boton-panel--ancho" onClick={publicar}>
+                    <button type="button" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho" onClick={publicar}>
                         Aprobar y publicar
                         <img src={botonCheck} alt="" />
                     </button>
-                    <Link to={rutaDetalle} className="boton-panel boton-panel--oscuro boton-panel--grande boton-panel--ancho">
+                    <Link to={rutaDetalle} className="contenidos-boton contenidos-boton--contorno contenidos-boton--ancho">
                         Volver a la revisión
                     </Link>
                     <p className="decision__nota">
@@ -178,7 +178,8 @@ function VistaPrevia() {
     }
 
     return (
-        <PanelLayout titulo="Atención">
+        <PanelLayout titulo="Atención" tema="contenidos">
+            <Migas pasos={[["Propuestas de eventos", RUTA], [propuesta.folio, `${RUTA}/${propuesta.folio}`], ["Vista previa"]]} />
             <EncabezadoPagina
                 volver={{ texto: "Volver a la revisión", ruta: `${RUTA}/${propuesta.folio}` }}
                 etiqueta={`PROPUESTA ${propuesta.folio} · POR PUBLICAR`}

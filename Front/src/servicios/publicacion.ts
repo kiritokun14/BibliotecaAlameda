@@ -29,8 +29,9 @@ async function pedir<T>(ruta: string, cuerpo?: unknown): Promise<T> {
     consultasEditor.limpiar();
     try { return await ejecutar(); } finally { consultasEditor.limpiar(); }
 }
-export function listarRevision(estado: string, busqueda: string, pagina: number) {
-    const p = new URLSearchParams({ limite: '10', desplazamiento: String(pagina * 10) });
+// limite: de 1 a 50 (el backend no acepta más); la página se cuenta con ese mismo tamaño
+export function listarRevision(estado: string, busqueda: string, pagina: number, limite = 10) {
+    const p = new URLSearchParams({ limite: String(limite), desplazamiento: String(pagina * limite) });
     if (estado) p.set('estado', estado);
     if (busqueda.trim()) p.set('busqueda', busqueda.trim());
     return pedir<ListaRevision>(`/contenidos/revision?${p}`);

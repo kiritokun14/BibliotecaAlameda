@@ -122,6 +122,10 @@ function SeccionLateral({
     actual: boolean;
     alAlternar: () => void;
 }) {
+    const { pathname } = useLocation();
+    const rutaActiva = seccion.subitems
+        .filter(({ ruta }) => pathname === ruta || pathname.startsWith(`${ruta}/`))
+        .sort((a, b) => b.ruta.length - a.ruta.length)[0]?.ruta;
     const visibles = seccion.subitems
         .map((subitem) => ({ subitem, estado: estadoSubitem(subitem, identidad) }))
         .filter(({ estado }) => estado !== "oculto");
@@ -146,7 +150,9 @@ function SeccionLateral({
                     {visibles.map(({ subitem, estado }) => (
                         <li key={subitem.ruta}>
                             {estado === "enlace" ? (
-                                <NavLink to={subitem.ruta} className="panel-submenu__item">{subitem.texto}</NavLink>
+                                <Link to={subitem.ruta}
+                                    className={`panel-submenu__item${rutaActiva === subitem.ruta ? " active" : ""}`}
+                                    aria-current={rutaActiva === subitem.ruta ? "page" : undefined}>{subitem.texto}</Link>
                             ) : (
                                 <span className="panel-submenu__item panel-submenu__item--pronto">
                                     {subitem.texto}
@@ -203,14 +209,16 @@ function PanelLayout({ titulo, children, tema }: PanelLayoutProps) {
                 <BarraLateral />
                 <div className="panel-principal">
                     <Cabecera titulo={titulo} />
-                    <main className="panel-contenido">
-                        {!pathname.startsWith("/admin/contenidos/editor") && !pathname.startsWith("/admin/contenidos/revision") && !pathname.startsWith("/admin/atencion/contactos") && !pathname.startsWith("/admin/atencion/bibliocomunidad") && !pathname.startsWith("/admin/administracion/fuentes") && <p role="status" className="panel-nota">Demostración: estas acciones usan datos de ejemplo y no se guardan en la base de datos.</p>}
-                        {children}
-                        <p className="panel-nota">Biblioteca Solón Argüello · Panel del personal</p>
-                    </main>
+                    <div className="panel-desplazamiento" key={pathname}>
+                        <main className="panel-contenido">
+                            {(pathname.includes("/demostracion") || ( !pathname.startsWith("/admin/participantes/foro") && !pathname.startsWith("/admin/atencion/avisos") && !pathname.startsWith("/admin/actividades/propuestas") && !pathname.startsWith("/admin/atencion/credenciales") && !pathname.startsWith("/admin/atencion/propuestas") && !pathname.startsWith("/admin/atencion/bibliocomunidad") && !pathname.startsWith("/admin/contenidos/editor") && !pathname.startsWith("/admin/contenidos/revision") && !pathname.startsWith("/admin/atencion/contactos") && !pathname.startsWith("/admin/administracion/fuentes") && !pathname.startsWith("/personal/alta-asistida") && !pathname.startsWith("/admin/atencion/cuentas") && !pathname.startsWith("/admin/administracion/cuentas") )) && <p role="status" className="panel-nota">Demostración: estas acciones usan datos de ejemplo y no se guardan en la base de datos.</p>}
+                            {children}
+                            <p className="panel-nota">Biblioteca Solón Argüello · Panel del personal</p>
+                        </main>
+                        <PiePortal />
+                    </div>
                 </div>
             </div>
-            <PiePortal />
         </div>
     );
 }

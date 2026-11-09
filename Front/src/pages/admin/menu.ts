@@ -51,6 +51,7 @@ export const SECCIONES_MENU: SeccionMenu[] = [
             { texto: "Cambios y cancelaciones", ruta: "/admin/actividades/cambios" },
             { texto: "Inscripciones y cupos", ruta: "/admin/actividades/inscripciones" },
             { texto: "Asistencia", ruta: "/admin/actividades/asistencia" },
+            { texto: "Resumen de asistencia", ruta: "/admin/actividades/asistencia/resumen" },
             { texto: "Evidencias privadas", ruta: "/admin/actividades/evidencias" },
         ],
     },
@@ -62,7 +63,7 @@ export const SECCIONES_MENU: SeccionMenu[] = [
         subitems: [
             { texto: "Progreso y recompensas", ruta: "/admin/participantes/progreso" },
             { texto: "Cotejo de credenciales", ruta: "/admin/participantes/cotejo" },
-            { texto: "Moderación del foro", ruta: "/admin/participantes/foro" },
+            { texto: "Bibliocomunidad", ruta: "/admin/participantes/foro" },
         ],
     },
     {
@@ -75,7 +76,6 @@ export const SECCIONES_MENU: SeccionMenu[] = [
             { texto: "Solicitudes de espacios", ruta: "/admin/atencion/espacios" },
             { texto: "Propuestas de eventos", ruta: "/admin/atencion/propuestas" },
             { texto: "Contactos y sugerencias", ruta: "/admin/atencion/contactos" },
-            { texto: "Bibliocomunidad", ruta: "/admin/atencion/bibliocomunidad" },
             { texto: "Altas asistidas", ruta: "/personal/alta-asistida", capacidad: "alta_asistida" },
             { texto: "Recuperación asistida", ruta: "/admin/atencion/recuperacion" },
             { texto: "Consulta de cuentas", ruta: "/admin/atencion/cuentas" },
