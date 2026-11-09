@@ -14,7 +14,7 @@ import iconoPin from "../../../assets/espacios/pin-verde.svg";
 import iconoCandado from "../../../assets/comun/iconos/candado-dorado.svg";
 
 // Agenda de espacios · vista de visitante SIN cuenta: áreas y cómo se solicita.
-// Enviar o gestionar una solicitud se hace después, con sesión y credencial vigente.
+// Enviar o gestionar una solicitud se hace después, con sesión (HU-16: no se pide credencial).
 function Espacios() {
     const sesion = useSesion();
     // Con sesión se muestra la agenda para solicitar (Figma A-02, 476:28196).
@@ -33,7 +33,7 @@ function Espacios() {
             <SeccionVisitante fondo="crema">
                 <AvisoCuenta
                     titulo="Inicia sesión o crea una cuenta para solicitar un espacio"
-                    texto="Puedes consultar las áreas y el proceso sin cuenta. Para enviar o gestionar una solicitud necesitas una cuenta y una credencial validada y vigente."
+                    texto="Puedes consultar las áreas y el proceso sin cuenta. Para enviar o gestionar una solicitud solo necesitas iniciar sesión con tu cuenta."
                     sinCuenta={["Ver las áreas de la biblioteca", "Conocer cómo se solicita un espacio"]}
                     conCuenta={["Enviar una solicitud de espacio", "Gestionar o cancelar tu solicitud"]}
                 />
@@ -42,7 +42,7 @@ function Espacios() {
             <SeccionVisitante fondo="verde" sobretitulo="EL PROCESO" titulo="Cómo se solicita un espacio">
                 <PasosVisitante
                     pasos={[
-                        { titulo: "Credencial verificada", texto: "Necesitas una credencial validada y vigente." },
+                        { titulo: "Inicia sesión", texto: "Entra con tu cuenta; no necesitas credencial." },
                         { titulo: "Elige un área", texto: "Selecciona un área en el plano de la biblioteca." },
                         { titulo: "Fecha y horario", texto: "Indica fecha, horario y número de personas." },
                         { titulo: "Envía tu solicitud", texto: "La biblioteca la revisa y confirma; enviarla no reserva el espacio." },

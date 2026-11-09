@@ -15,7 +15,7 @@ import {
 } from "./solicitudes";
 import { cambiarContrasena } from "./seguridad";
 import { obtenerPropuesta } from "../proponer/datos";
-import { obtenerSolicitud } from "../espacios/datosSesion";
+import { listarMisSolicitudes, type SolicitudEspacioApi } from "../../../servicios/espacios";
 import { etapasCompletas, etapasEnRevision, fechaLarga, useTramite } from "../credencial/datos";
 import { Chip, EtapasTramite, TarjetaCredencial } from "../credencial/piezas";
 import { sinLeer, useNotificaciones } from "../notificaciones/datos";
@@ -238,12 +238,26 @@ export function MisPropuestas() {
     );
 }
 
+// Mis espacios: GET /espacios/solicitudes (T-076), para tener el folio y abrir el detalle real.
+type CargaEspacios = { solicitudes: SolicitudEspacioApi[] } | { error: string } | null;
 export function MisEspacios() {
-    const [carga, reintentar] = useHistorial();
+    const [carga, setCarga] = useState<CargaEspacios>(sesionSimulada ? { solicitudes: [] } : null);
+    const [intento, setIntento] = useState(0);
+    useEffect(() => {
+        if (sesionSimulada) return;
+        let vigente = true;
+        listarMisSolicitudes()
+            .then((datos) => { if (vigente) setCarga({ solicitudes: datos.solicitudes }); })
+            .catch((e) => { if (vigente) setCarga({ error: mensajeError(e) }); });
+        return () => { vigente = false; };
+    }, [intento]);
+    const reintentar = () => { setCarga(null); setIntento((x) => x + 1); };
     const [filtro, setFiltro] = useState<GrupoFiltro | "todas">("todas");
-    const solicitudes = carga && "datos" in carga ? carga.datos.solicitudes_espacio : [];
-    const cuenta = contarPorGrupo(solicitudes, (s) => estadoEspacio[s.estadoSolicitud].grupo);
-    const visibles = filtro === "todas" ? solicitudes : solicitudes.filter((s) => estadoEspacio[s.estadoSolicitud].grupo === filtro);
+    const solicitudes = carga && "solicitudes" in carga ? carga.solicitudes : [];
+    const cuenta = contarPorGrupo(solicitudes, (s) => estadoEspacio[s.estado].grupo);
+    const visibles = filtro === "todas" ? solicitudes : solicitudes.filter((s) => estadoEspacio[s.estado].grupo === filtro);
+    // EstadoCarga solo distingue cargando / error
+    const estadoCarga: CargaHistorial = !carga ? null : "error" in carga ? carga : { datos: { solicitudes_espacio: [], propuestas_eventos: [] } };
     return (
         <>
             <EncabezadoSeccion sobretitulo="MIS ESPACIOS" titulo="Mis espacios"
@@ -252,19 +266,21 @@ export function MisEspacios() {
                 { valor: "todas", texto: `Todas (${solicitudes.length})` }, { valor: "atencion", texto: `Pendientes (${cuenta.atencion})` },
                 { valor: "observaciones", texto: `Con cambio propuesto (${cuenta.observaciones})` }, { valor: "canceladas", texto: `Canceladas (${cuenta.canceladas})` },
             ]} />
-            <EstadoCarga carga={carga} alReintentar={reintentar} />
-            {carga && "datos" in carga && (
+            <EstadoCarga carga={estadoCarga} alReintentar={reintentar} />
+            {carga && "solicitudes" in carga && (
                 <ListaSolicitudes vacio="Aún no has solicitado espacios." filas={visibles.map((s) => ({
-                    id: s.id, titulo: s.propositoVisita, estado: estadoEspacio[s.estadoSolicitud],
-                    detalle: `Solicitada el ${fechaCorta(s.creadaEn)} · ${s.cantidadPersonas} personas`,
-                    ruta: obtenerSolicitud(s.id) ? "/espacios/solicitud/" + s.id : "/espacios", // TODO backend: detalle de solicitudes reales
+                    id: s.folio, titulo: s.motivo,
+                    // Todas se pueden abrir para ver el detalle, también las canceladas
+                    estado: { ...estadoEspacio[s.estado], accion: estadoEspacio[s.estado].accion ?? "Ver" },
+                    detalle: `${s.folio} · ${(s.acuerdo?.espacio ?? s.espacio)?.nombre ?? "Visita"} · Solicitada el ${fechaCorta(s.creadaEn)} · ${s.personas} personas`,
+                    ruta: "/espacios/solicitud/" + encodeURIComponent(s.folio),
                 }))} />
             )}
             <div className="perfil-acciones">
                 <Link to="/espacios" className="perfil-boton">Solicitar un espacio <img src={flechaBlanca} alt="" /></Link>
                 <Link to="/mi-perfil/propuestas" className="perfil-boton perfil-boton--negro">Ver mis propuestas</Link>
             </div>
-            <NotaInfo>Solicitar no es reservar: el personal te responde en tus notificaciones (ejemplo).</NotaInfo>
+            <NotaInfo>Solicitar no es reservar: el personal te responde en tus notificaciones.</NotaInfo>
         </>
     );
 }

@@ -171,8 +171,8 @@ export function TarjetaHistorial({ eventos }: { eventos: EventoHistorial[] }) {
     return (
         <Tarjeta icono={tarjetaClock} titulo="Historial">
             <ol className="at-eventos">
-                {eventos.map((evento) => (
-                    <li key={evento.titulo} className={`at-eventos--${evento.tipo}`}>
+                {eventos.map((evento, indice) => (
+                    <li key={`${indice}-${evento.titulo}`} className={`at-eventos--${evento.tipo}`}>
                         <strong>{evento.titulo}</strong>
                         <small>{evento.detalle}</small>
                     </li>

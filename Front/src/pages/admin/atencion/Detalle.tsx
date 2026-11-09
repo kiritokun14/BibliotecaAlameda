@@ -33,6 +33,7 @@ type DetalleSolicitudProps = {
     historial: EventoHistorial[];
     principal: ReactNode; // columna ancha
     decision: ReactNode; // primera tarjeta de la columna angosta
+    alGuardarNota?: (nota: Nota) => void; // si no se da, la nota se guarda en los datos de ejemplo
 };
 
 // Nombre de cada área en las migas
@@ -42,7 +43,7 @@ const SECCION: Record<Area, string> = {
     propuestas: "Propuestas de eventos",
 };
 
-function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial, principal, decision }: DetalleSolicitudProps) {
+function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial, principal, decision, alGuardarNota }: DetalleSolicitudProps) {
     const texto = textos[solicitud.estado];
 
     return (
@@ -64,8 +65,8 @@ function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial,
                     <TarjetaResponsable
                         responsable={solicitud.responsable}
                         notas={solicitud.notas}
-                        alGuardarNota={(nota) =>
-                            actualizarSolicitud(area, solicitud.folio, { notas: [...solicitud.notas, nota] })
+                        alGuardarNota={alGuardarNota ?? ((nota) =>
+                            actualizarSolicitud(area, solicitud.folio, { notas: [...solicitud.notas, nota] }))
                         }
                     />
                     <TarjetaHistorial eventos={historial} />
@@ -110,9 +111,10 @@ type TarjetaResolucionProps = {
     resolucion?: Resolucion;
     rutaBandeja: string;
     extra?: ReactNode; // botón adicional abajo (p. ej. "Ver en Eventos")
+    decidio?: string; // quién decidió (si se conoce)
 };
 
-export function TarjetaResolucion({ estado, resolucion, rutaBandeja, extra }: TarjetaResolucionProps) {
+export function TarjetaResolucion({ estado, resolucion, rutaBandeja, extra, decidio = "Administrador" }: TarjetaResolucionProps) {
     const aprobada = estado === "aprobada";
 
     return (
@@ -123,7 +125,7 @@ export function TarjetaResolucion({ estado, resolucion, rutaBandeja, extra }: Ta
                 </Chip>
             </p>
             <Dato etiqueta="DECIDIÓ" alto>
-                Administrador
+                {decidio}
             </Dato>
             <Dato etiqueta="FECHA" alto>
                 {resolucion?.fecha ?? "Hoy (ejemplo)"}

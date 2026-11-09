@@ -1,10 +1,16 @@
-import { useState } from "react";
-import { Navigate, useParams } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router";
 import PanelLayout from "../../PanelLayout";
 import { BotonOpcion, Chip, Dato, Datos, ListaCotejo, Tarjeta, type EventoHistorial } from "../../componentes";
 import { Ventana, VentanaFormulario } from "../../Ventana";
 import DetalleSolicitud, { TarjetaDecision, TarjetaResolucion, type TextosEstado } from "../Detalle";
-import { actualizarSolicitud, formatearFecha, useSolicitudes, type SolicitudEspacio } from "../datos";
+import { formatearFecha, type Nota } from "../datos";
+import { mensajeError } from "../../../../servicios/api";
+import {
+    aprobarEspacio, cancelarEspacioAprobado, detalleEspacio, diaLocal, horarioLocal, listarAreas, proponerEspacio,
+    rechazarEspacio, type AreaEspacio, type SolicitudEspacioPersonal,
+} from "../../../../servicios/espacios";
+import { aSolicitudAdmin, vigente } from "./mapeo";
 import tarjetaCalendario from "../../../../assets/admin/tarjeta-calendar.svg";
 import tarjetaCheck from "../../../../assets/admin/tarjeta-check.svg";
 import tarjetaLista from "../../../../assets/admin/bandeja-list.svg";
@@ -20,25 +26,21 @@ import modalInfo from "../../../../assets/admin/modal-info.svg";
 import modalCalendario from "../../../../assets/admin/modal-calendar.svg";
 import modalAlerta from "../../../../assets/admin/modal-alert.svg";
 
+// Panel › Atención › Espacios › detalle de una solicitud (T-076).
+// Datos y decisiones: /espacios/atencion/solicitudes/{folio} (Back/espacios.py). La BD no deja
+// aprobar dos solicitudes en el mismo horario y guarda quién tomó cada decisión.
 const RUTA = "/admin/atencion/espacios";
-
-// Áreas de ejemplo; la lista real la confirma la biblioteca
-const AREAS = [
-    "Área de usos múltiples (por confirmar)",
-    "Sala de lectura (por confirmar)",
-    "Sala infantil (por confirmar)",
-];
 
 const textos: TextosEstado = {
     pendiente: {
         etiqueta: "POR REVISAR",
         titulo: "Revisión de la solicitud",
-        texto: "Verifica que el área esté libre y decide la solicitud. Datos de ejemplo.",
+        texto: "Verifica que el área esté libre y decide la solicitud.",
     },
     observaciones: {
         etiqueta: "CAMBIO PROPUESTO",
         titulo: "Esperando respuesta de la persona",
-        texto: "Propusiste un cambio de espacio, fecha u horario. Cuando la persona responda, podrás aprobar o ajustar. Datos de ejemplo.",
+        texto: "Propusiste un cambio de espacio, fecha u horario. Cuando la persona responda, la solicitud vuelve a revisión.",
         aviso: {
             tono: "espera",
             titulo: "Cambio propuesto",
@@ -60,7 +62,7 @@ const textos: TextosEstado = {
     rechazada: {
         etiqueta: "RECHAZADA",
         titulo: "Solicitud rechazada",
-        texto: "La solicitud no se aprobó. Aquí puedes consultar el motivo y el historial. Datos de ejemplo.",
+        texto: "La solicitud no se aprobó. Aquí puedes consultar el motivo y el historial.",
         aviso: {
             tono: "error",
             titulo: "Solicitud rechazada",
@@ -70,104 +72,176 @@ const textos: TextosEstado = {
     },
 };
 
-// Si se canceló una solicitud que ya estaba aprobada, cambian los textos
+// Si se canceló la solicitud (la persona o el personal), cambian los textos
 const textosCancelada: TextosEstado["rechazada"] = {
     etiqueta: "CANCELADA",
     titulo: "Solicitud cancelada",
-    texto: "El espacio quedó libre. Aquí puedes consultar el motivo y el historial. Datos de ejemplo.",
+    texto: "El espacio quedó libre. Aquí puedes consultar el motivo y el historial.",
     aviso: {
         tono: "error",
         titulo: "Solicitud cancelada",
-        texto: "La persona ya recibió el motivo en sus notificaciones.",
+        texto: "La solicitud ya no está activa.",
         chip: "Cancelada",
     },
 };
 
-const PUNTOS_DISPONIBILIDAD = [
-    { titulo: "El área está libre en esa fecha y horario", detalle: "Sin empalme con la agenda (ejemplo)." },
-    { titulo: "El aforo alcanza para las personas indicadas" },
-    { titulo: "No coincide con un evento institucional", detalle: "Pendiente de confirmar con la agenda." },
-    { titulo: "La persona tiene cuenta activa" },
-];
+const NOMBRE_ACCION: Record<string, string> = {
+    envio: "Solicitud enviada",
+    alternativa: "Cambio propuesto",
+    aprobacion: "Solicitud aprobada",
+    rechazo: "Solicitud rechazada",
+    cancelacion: "Solicitud cancelada",
+    observaciones: "Observaciones",
+};
 
-function historial(solicitud: SolicitudEspacio): EventoHistorial[] {
-    const enviada: EventoHistorial = {
-        titulo: "Solicitud enviada",
-        detalle: `${formatearFecha(solicitud.enviada)} · por la persona`,
-        tipo: "hecho",
-    };
-    const revision: EventoHistorial = {
-        titulo: "En revisión por el personal",
-        detalle: "6 nov 2026 · se verifica disponibilidad",
-        tipo: "proceso",
-    };
-    const fecha = solicitud.resolucion?.fecha ?? "Hoy";
+function historial(s: SolicitudEspacioPersonal): EventoHistorial[] {
+    const eventos: EventoHistorial[] = (s.historial ?? []).map((h) => {
+        const titulo = h.accion === "respuesta"
+            ? (h.detalles?.acepta ? "La persona aceptó el cambio" : "La persona pidió otra opción")
+            : NOMBRE_ACCION[h.accion] ?? h.accion;
+        const partes = [formatearFecha(diaLocal(h.fecha)), h.realizadoPor ? `por ${h.realizadoPor}` : "", h.nota ?? ""].filter(Boolean);
+        return { titulo, detalle: partes.join(" · "), tipo: "hecho" };
+    });
+    if (s.estado === "en_revision") eventos.push({ titulo: "Decisión del personal", detalle: "Pendiente", tipo: "proceso" });
+    if (s.estado === "requiere_correccion") eventos.push({ titulo: "Respuesta de la persona", detalle: "En espera", tipo: "proceso" });
+    return eventos;
+}
 
-    switch (solicitud.estado) {
-        case "pendiente":
-            return [enviada, revision, { titulo: "Decisión del administrador", detalle: "Pendiente", tipo: "pendiente" }];
-        case "observaciones":
-            return [
-                enviada,
-                {
-                    titulo: "Cambio propuesto",
-                    detalle: `${fecha} · ${solicitud.resolucion?.motivo ?? "otro horario (ejemplo)"}`,
-                    tipo: "proceso",
-                },
-                { titulo: "Respuesta de la persona", detalle: "En espera", tipo: "pendiente" },
-            ];
-        case "aprobada":
-            return [enviada, revision, { titulo: "Solicitud aprobada", detalle: `${fecha} · por el administrador (ejemplo)`, tipo: "pendiente" }];
-        case "rechazada":
-            return [
-                enviada,
-                revision,
-                {
-                    titulo: solicitud.resolucion?.cancelada ? "Solicitud cancelada" : "Solicitud rechazada",
-                    detalle: `${fecha} · por el administrador (ejemplo)`,
-                    tipo: "pendiente",
-                },
-            ];
-    }
+// "Ana Pérez" si la canceló o rechazó alguien del personal; "La persona" si la canceló ella
+function quienDecidio(s: SolicitudEspacioPersonal) {
+    const ultima = [...(s.historial ?? [])].reverse().find((h) => h.accion === "aprobacion" || h.accion === "rechazo" || h.accion === "cancelacion");
+    if (!ultima?.realizadoPor) return "Personal de la biblioteca";
+    return ultima.realizadoPor === s.solicitante.nombre && ultima.accion === "cancelacion" ? `${ultima.realizadoPor} (la persona)` : ultima.realizadoPor;
 }
 
 type VentanaAbierta = "aprobar" | "condiciones" | "espacio" | "fecha" | "rechazar" | "cancelar" | null;
+type Carga = { solicitud: SolicitudEspacioPersonal } | { error: string } | null;
 
 function DetalleEspacio() {
-    const { folio } = useParams();
-    const solicitudes = useSolicitudes("espacios");
-    const solicitud = solicitudes.find((s) => s.folio === folio);
+    const { folio = "" } = useParams();
+    const [carga, setCarga] = useState<Carga>(null);
+    const [intento, setIntento] = useState(0);
+    const [areas, setAreas] = useState<AreaEspacio[]>([]);
     const [ventana, setVentana] = useState<VentanaAbierta>(null);
+    const [cotejo, setCotejo] = useState([false, false, false, false]);
+    const [notas, setNotas] = useState<Nota[]>([]);
+    const [errorVentana, setErrorVentana] = useState("");
+    const [guardando, setGuardando] = useState(false);
+    const bloqueo = useRef(false);
 
-    if (!solicitud) return <Navigate to={RUTA} replace />;
+    useEffect(() => {
+        let vigenteEfecto = true;
+        detalleEspacio(folio)
+            .then((solicitud) => { if (vigenteEfecto) setCarga({ solicitud }); })
+            .catch((e) => { if (vigenteEfecto) setCarga({ error: mensajeError(e) }); });
+        return () => { vigenteEfecto = false; };
+    }, [folio, intento]);
 
+    useEffect(() => {
+        listarAreas().then(setAreas).catch(() => setAreas([]));
+    }, []);
+
+    if (!carga || "error" in carga) {
+        return (
+            <PanelLayout titulo="Atención" tema="contenidos">
+                {!carga ? <p role="status">Cargando la solicitud {folio}…</p> : (
+                    <p role="alert">
+                        {carga.error}{" "}
+                        <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico"
+                            onClick={() => { setCarga(null); setIntento((x) => x + 1); }}>Reintentar</button>
+                    </p>
+                )}
+            </PanelLayout>
+        );
+    }
+
+    const api = carga.solicitud;
+    const solicitud = { ...aSolicitudAdmin(api), cotejo, notas };
     const { estado, resolucion } = solicitud;
+    const actual = vigente(api);
+    const areaActual = areas.find((a) => a.slug === actual.espacio?.slug);
+    const ocupacion = api.ocupacion ?? [];
     const sinFecha = !solicitud.fecha;
+    const cerrada = api.estado === "rechazada" || api.estado === "cancelada";
+    const aforoExcedido = !!areaActual?.capacidad && api.personas > areaActual.capacidad;
 
-    function decidir(cambios: Partial<SolicitudEspacio>) {
-        actualizarSolicitud("espacios", solicitud!.folio, cambios);
-        setVentana(null);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+    const puntos = [
+        {
+            titulo: "El área está libre en esa fecha y horario",
+            detalle: ocupacion.length ? `Choca con ${ocupacion.length} ${ocupacion.length === 1 ? "registro" : "registros"} de la agenda.` : "Sin empalme con solicitudes aprobadas ni actividades programadas.",
+            alerta: ocupacion.length > 0,
+        },
+        {
+            titulo: "El aforo alcanza para las personas indicadas",
+            detalle: areaActual?.capacidad ? `${api.personas} de ${areaActual.capacidad} personas.` : undefined,
+            alerta: aforoExcedido,
+        },
+        { titulo: "No coincide con un evento institucional", detalle: "Confírmalo con la agenda de la biblioteca." },
+        { titulo: "La persona tiene cuenta activa", detalle: "El portal solo recibe solicitudes de cuentas activas." },
+    ];
+
+    // Ejecuta una decisión en el backend y recarga el detalle (con la ocupación actualizada)
+    async function decidir(accion: () => Promise<unknown>) {
+        if (bloqueo.current) return;
+        bloqueo.current = true;
+        setGuardando(true);
+        setErrorVentana("");
+        try {
+            await accion();
+            setVentana(null);
+            setCarga(null);
+            setIntento((x) => x + 1);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (e) {
+            setErrorVentana(mensajeError(e));
+        } finally {
+            bloqueo.current = false;
+            setGuardando(false);
+        }
+    }
+
+    function abrir(nueva: VentanaAbierta) {
+        setErrorVentana("");
+        setVentana(nueva);
+    }
+
+    function aprobar(condiciones?: string, mensaje?: string) {
+        if (!cotejo.every(Boolean)) {
+            setErrorVentana("Marca todos los puntos de disponibilidad antes de aprobar.");
+            return;
+        }
+        decidir(() => aprobarEspacio(api.folio, cotejo, condiciones, mensaje));
     }
 
     function marcar(indice: number) {
-        const cotejo = solicitud!.cotejo.map((valor, i) => (i === indice ? !valor : valor));
-        actualizarSolicitud("espacios", solicitud!.folio, { cotejo });
+        setCotejo((anterior) => anterior.map((valor, i) => (i === indice ? !valor : valor)));
     }
 
     const principal = (
         <>
             <Tarjeta icono={tarjetaCalendario} titulo="Datos de la solicitud" subtitulo="Lo que escribió la persona al pedir el espacio.">
                 <Datos>
-                    <Dato etiqueta="ÁREA SOLICITADA">{solicitud.area}</Dato>
-                    <Dato etiqueta="FECHA">{formatearFecha(solicitud.fecha)}</Dato>
-                    <Dato etiqueta="HORARIO">{solicitud.horario || "Por confirmar"}</Dato>
-                    <Dato etiqueta="PERSONAS">{solicitud.personas}</Dato>
-                    <Dato etiqueta="MOTIVO">{solicitud.motivo}</Dato>
-                    <Dato etiqueta="FOLIO">{solicitud.folio}</Dato>
-                    <Dato etiqueta="PERSONA SOLICITANTE">{solicitud.persona} (ejemplo)</Dato>
+                    <Dato etiqueta="TIPO">{api.tipo === "visita" ? "Visita guiada" : "Uso de un área"}</Dato>
+                    <Dato etiqueta="ÁREA SOLICITADA">{api.espacio?.nombre ?? "Sin área"}</Dato>
+                    <Dato etiqueta="FECHA">{formatearFecha(diaLocal(api.inicio))}</Dato>
+                    <Dato etiqueta="HORARIO">{horarioLocal(api.inicio, api.fin) || "Por confirmar"}</Dato>
+                    <Dato etiqueta="PERSONAS">{api.personas}</Dato>
+                    <Dato etiqueta="MOTIVO">{api.motivo}</Dato>
+                    {api.institucion && <Dato etiqueta="INSTITUCIÓN">{api.institucion}</Dato>}
+                    <Dato etiqueta="FOLIO">{api.folio}</Dato>
+                    <Dato etiqueta="PERSONA SOLICITANTE">{solicitud.persona}</Dato>
                     <Dato etiqueta="CONTACTO">{solicitud.contacto}</Dato>
                     <Dato etiqueta="ENVIADA">{formatearFecha(solicitud.enviada)}</Dato>
+                    {api.acuerdo && (
+                        <Dato etiqueta={estado === "aprobada" ? "LO APROBADO" : "LO ACORDADO CON LA PERSONA"}>
+                            {`${api.acuerdo.espacio?.nombre ?? "Sin área"} · ${formatearFecha(diaLocal(api.acuerdo.inicio))} · ${horarioLocal(api.acuerdo.inicio, api.acuerdo.fin)}`}
+                        </Dato>
+                    )}
+                    {api.propuesta && (
+                        <Dato etiqueta="CAMBIO PROPUESTO">
+                            {`${api.propuesta.espacio?.nombre ?? "Sin área"} · ${formatearFecha(diaLocal(api.propuesta.inicio))} · ${horarioLocal(api.propuesta.inicio, api.propuesta.fin)}`}
+                        </Dato>
+                    )}
                     {estado === "aprobada" && resolucion?.condiciones && (
                         <Dato etiqueta="CONDICIONES DE USO">{resolucion.condiciones}</Dato>
                     )}
@@ -178,35 +252,27 @@ function DetalleEspacio() {
                 icono={tarjetaCheck}
                 tonoIcono="dorado"
                 titulo="Disponibilidad del área"
-                subtitulo="Revisa la agenda de espacios antes de decidir."
+                subtitulo={api.estado === "en_revision" ? "Marca cada punto después de revisarlo; se guardan al aprobar." : "Revisa la agenda de espacios antes de decidir."}
             >
                 <ListaCotejo
-                    puntos={PUNTOS_DISPONIBILIDAD}
-                    marcados={solicitud.cotejo}
-                    alCambiar={estado === "rechazada" ? undefined : marcar}
+                    puntos={puntos}
+                    marcados={api.estado === "aprobada" ? puntos.map(() => true) : cotejo}
+                    alCambiar={api.estado === "en_revision" ? marcar : undefined}
                 />
                 <div className="fila-agenda">
                     {sinFecha ? (
-                        <Chip tono="dorado" icono={chipInfo}>
-                            Sin fecha para comparar
-                        </Chip>
+                        <Chip tono="dorado" icono={chipInfo}>Sin fecha para comparar</Chip>
+                    ) : ocupacion.length ? (
+                        <Chip tono="guinda" icono={chipInfo}>{`${ocupacion.length} ${ocupacion.length === 1 ? "choque" : "choques"} con la agenda`}</Chip>
                     ) : (
-                        <Chip tono="verde" icono={chipCheck}>
-                            Sin choques con la agenda
-                        </Chip>
+                        <Chip tono="verde" icono={chipCheck}>Sin choques con la agenda</Chip>
                     )}
-                    {/* TODO: pantalla de agenda completa de espacios */}
-                    <button type="button" className="contenidos-boton contenidos-boton--oscuro">
-                        Ver agenda completa de espacios
-                    </button>
                 </div>
             </Tarjeta>
 
-            <Tarjeta icono={tarjetaLista} titulo="Agenda del área ese día" subtitulo="Referencia rápida. Datos de ejemplo.">
+            <Tarjeta icono={tarjetaLista} titulo="Agenda del área en ese horario" subtitulo="Solicitudes aprobadas y actividades programadas que se empalman.">
                 {sinFecha ? (
-                    <p className="texto-tarjeta">
-                        La persona no indicó fecha ni horario. Propón uno para poder revisar la agenda del área.
-                    </p>
+                    <p className="texto-tarjeta">La solicitud no tiene fecha ni horario. Propón uno para poder revisar la agenda del área.</p>
                 ) : (
                     <div className="tabla" role="table">
                         <div className="tabla__fila tabla__fila--encabezado" role="row">
@@ -214,25 +280,18 @@ function DetalleEspacio() {
                             <span role="columnheader" style={{ flex: 1 }}>ACTIVIDAD</span>
                             <span role="columnheader" style={{ width: 170 }}>ESTADO</span>
                         </div>
-                        <div className="tabla__fila" role="row">
-                            <span role="cell" className="tabla__fuerte" style={{ width: 170 }}>09:00 a 10:00</span>
-                            <span role="cell" className="tabla__fuerte" style={{ flex: 1 }}>Mantenimiento (ejemplo)</span>
-                            <span role="cell" style={{ width: 170 }}>
-                                <Chip tono="gris">Ocupado</Chip>
-                            </span>
-                        </div>
+                        {ocupacion.map((o) => (
+                            <div key={`${o.tipo}-${o.folio ?? o.titulo}-${o.inicio}`} className="tabla__fila" role="row">
+                                <span role="cell" className="tabla__fuerte" style={{ width: 170 }}>{horarioLocal(o.inicio, o.fin)}</span>
+                                <span role="cell" className="tabla__fuerte" style={{ flex: 1 }}>{o.tipo === "solicitud" ? `Solicitud ${o.folio}` : o.titulo}</span>
+                                <span role="cell" style={{ width: 170 }}><Chip tono="gris">Ocupado</Chip></span>
+                            </div>
+                        ))}
                         <div className="tabla__fila" role="row">
                             <span role="cell" className="tabla__fuerte" style={{ width: 170 }}>{solicitud.horario}</span>
-                            <span role="cell" className="tabla__fuerte" style={{ flex: 1 }}>Solicitud {solicitud.folio}</span>
+                            <span role="cell" className="tabla__fuerte" style={{ flex: 1 }}>Esta solicitud ({api.folio})</span>
                             <span role="cell" style={{ width: 170 }}>
-                                {estado === "aprobada" ? <Chip tono="verde">Apartado</Chip> : <Chip tono="dorado">En revisión</Chip>}
-                            </span>
-                        </div>
-                        <div className="tabla__fila" role="row">
-                            <span role="cell" className="tabla__fuerte" style={{ width: 170 }}>14:00 a 16:00</span>
-                            <span role="cell" className="tabla__fuerte" style={{ flex: 1 }}>Libre</span>
-                            <span role="cell" style={{ width: 170 }}>
-                                <Chip tono="verde">Disponible</Chip>
+                                {estado === "aprobada" ? <Chip tono="verde">Apartado</Chip> : cerrada ? <Chip tono="gris">Liberado</Chip> : <Chip tono="dorado">En revisión</Chip>}
                             </span>
                         </div>
                     </div>
@@ -242,57 +301,68 @@ function DetalleEspacio() {
     );
 
     const rechazar = (
-        <BotonOpcion icono={opcionX} peligro alPresionar={() => setVentana("rechazar")}>
+        <BotonOpcion icono={opcionX} peligro alPresionar={() => abrir("rechazar")}>
             Rechazar solicitud
         </BotonOpcion>
     );
 
     let decision;
-    if (estado === "rechazada") {
-        decision = <TarjetaResolucion estado={estado} resolucion={resolucion} rutaBandeja={RUTA} />;
+    if (cerrada) {
+        decision = <TarjetaResolucion estado={estado} resolucion={resolucion} rutaBandeja={RUTA} decidio={quienDecidio(api)} />;
     } else if (estado === "aprobada") {
         decision = (
             <TarjetaDecision
                 titulo="Gestionar solicitud"
-                subtitulo="Cambios sobre una solicitud ya aprobada."
+                subtitulo={`Aprobada por ${api.autorizadoPor ?? "el personal"}. Cambios sobre una solicitud ya aprobada.`}
                 opciones={
-                    <BotonOpcion icono={opcionCalendario} alPresionar={() => setVentana("fecha")}>
+                    <BotonOpcion icono={opcionCalendario} alPresionar={() => abrir("fecha")}>
                         Reprogramar
                     </BotonOpcion>
                 }
                 peligro={
-                    <BotonOpcion icono={opcionX} peligro alPresionar={() => setVentana("cancelar")}>
+                    <BotonOpcion icono={opcionX} peligro alPresionar={() => abrir("cancelar")}>
                         Cancelar solicitud aprobada
                     </BotonOpcion>
                 }
                 nota="La persona recibe un aviso con el cambio o la cancelación."
             />
         );
+    } else if (estado === "observaciones") {
+        decision = (
+            <TarjetaDecision
+                titulo="Esperando respuesta"
+                subtitulo="La persona debe aceptar o rechazar el cambio. Si ya no procede, puedes rechazar la solicitud."
+                peligro={rechazar}
+                nota="Cuando la persona responda, la solicitud vuelve a «Por revisar»."
+            />
+        );
     } else {
         decision = (
             <TarjetaDecision
                 subtitulo="Elige una acción para esta solicitud."
-                aprobar={{ texto: "Aprobar solicitud", alPresionar: () => setVentana("aprobar") }}
+                aprobar={{ texto: "Aprobar solicitud", alPresionar: () => abrir("aprobar") }}
                 opciones={
                     <>
-                        <BotonOpcion icono={opcionLista} alPresionar={() => setVentana("condiciones")}>
+                        <BotonOpcion icono={opcionLista} alPresionar={() => abrir("condiciones")}>
                             Aprobar con condiciones
                         </BotonOpcion>
-                        <BotonOpcion icono={opcionBuscar} alPresionar={() => setVentana("espacio")}>
+                        <BotonOpcion icono={opcionBuscar} alPresionar={() => abrir("espacio")}>
                             Sugerir otro espacio
                         </BotonOpcion>
-                        <BotonOpcion icono={opcionCalendario} alPresionar={() => setVentana("fecha")}>
+                        <BotonOpcion icono={opcionCalendario} alPresionar={() => abrir("fecha")}>
                             Proponer otra fecha u horario
                         </BotonOpcion>
                     </>
                 }
                 peligro={rechazar}
-                nota="Como administrador decides directamente. La persona recibe el resultado en sus notificaciones."
+                nota="La persona recibe el resultado en sus notificaciones."
             />
         );
     }
 
     const cerrar = () => setVentana(null);
+    const comunes = { error: errorVentana, ocupada: guardando, alCerrar: cerrar };
+    const otrasAreas = areas.filter((a) => a.slug !== actual.espacio?.slug);
 
     return (
         <PanelLayout titulo="Atención" tema="contenidos">
@@ -302,50 +372,53 @@ function DetalleEspacio() {
                 textos={resolucion?.cancelada ? { ...textos, rechazada: textosCancelada } : textos}
                 prefijo="SOLICITUD"
                 volver={{ texto: "Volver a solicitudes de espacios", ruta: RUTA }}
-                historial={historial(solicitud)}
+                historial={historial(api)}
                 principal={principal}
                 decision={decision}
+                // TODO backend: las notas internas todavía no se guardan (solo duran mientras la página está abierta)
+                alGuardarNota={(nota) => setNotas((anteriores) => [...anteriores, nota])}
             />
 
             {ventana === "aprobar" && (
                 <Ventana
+                    {...comunes}
                     tono="verde"
                     icono={modalCheck}
                     titulo="¿Aprobar esta solicitud?"
                     texto="Se apartará el espacio para la persona y recibirá un aviso en sus notificaciones."
-                    textoConfirmar="Sí, aprobar solicitud"
+                    textoConfirmar={guardando ? "Aprobando…" : "Sí, aprobar solicitud"}
                     textoCancelar="Revisar de nuevo"
                     angosta
-                    alConfirmar={() => decidir({ estado: "aprobada", resolucion: { fecha: "Hoy" } })}
-                    alCerrar={cerrar}
+                    alConfirmar={() => aprobar()}
                 />
             )}
 
             {ventana === "condiciones" && (
                 <VentanaFormulario
+                    {...comunes}
                     tono="dorado"
                     icono={modalLista}
                     titulo="Aprobar con condiciones"
                     texto="La solicitud se aprueba y la persona verá las condiciones junto con la aprobación."
-                    textoConfirmar="Aprobar con condiciones"
+                    textoConfirmar={guardando ? "Aprobando…" : "Aprobar con condiciones"}
                     campos={[
                         { nombre: "condiciones", etiqueta: "Condiciones de uso", obligatorio: true, placeholder: "Escribe las condiciones" },
                         { nombre: "mensaje", etiqueta: "Mensaje para la persona", placeholder: "Mensaje opcional" },
                     ]}
                     preparados={["Respetar el cupo máximo del área", "Avisar cualquier cambio con anticipación"]}
                     campoPreparados="condiciones"
-                    alConfirmar={(valores) => decidir({ estado: "aprobada", resolucion: { fecha: "Hoy", ...valores } })}
-                    alCerrar={cerrar}
+                    alConfirmar={(valores) => aprobar(valores.condiciones, valores.mensaje)}
                 />
             )}
 
             {ventana === "espacio" && (
                 <VentanaFormulario
+                    {...comunes}
                     tono="dorado"
                     icono={modalInfo}
                     titulo="Sugerir otro espacio"
-                    texto="La persona recibirá tu sugerencia y podrá aceptarla o pedir otra opción."
-                    textoConfirmar="Enviar sugerencia"
+                    texto="La persona recibirá tu sugerencia y podrá aceptarla o pedir otra opción. Si dejas la fecha y el horario vacíos, se conservan los de la solicitud."
+                    textoConfirmar={guardando ? "Enviando…" : "Enviar sugerencia"}
                     campos={[
                         {
                             nombre: "espacio",
@@ -353,9 +426,11 @@ function DetalleEspacio() {
                             tipo: "select",
                             obligatorio: true,
                             placeholder: "Selecciona un área",
-                            opciones: AREAS.filter((area) => area !== solicitud.area),
+                            opciones: otrasAreas.map((a) => a.nombre),
                         },
-                        { nombre: "fechaHorario", etiqueta: "Fecha y horario", placeholder: "Mantener los de la solicitud" },
+                        { nombre: "fecha", etiqueta: "Fecha (opcional)", tipo: "fecha" },
+                        { nombre: "horaInicio", etiqueta: "Hora de inicio (opcional)", tipo: "hora", mitad: true },
+                        { nombre: "horaFin", etiqueta: "Hora de término (opcional)", tipo: "hora", mitad: true },
                         {
                             nombre: "mensaje",
                             etiqueta: "Mensaje para la persona",
@@ -364,50 +439,47 @@ function DetalleEspacio() {
                         },
                     ]}
                     preparados={["El espacio pedido no está disponible", "El aforo no alcanza"]}
-                    alConfirmar={(valores) =>
-                        decidir({
-                            estado: "observaciones",
-                            resolucion: { fecha: "Hoy", motivo: `otro espacio: ${valores.espacio}`, mensaje: valores.mensaje },
-                        })
-                    }
-                    alCerrar={cerrar}
+                    alConfirmar={(valores) => {
+                        const area = otrasAreas.find((a) => a.nombre === valores.espacio);
+                        decidir(() => proponerEspacio(api.folio, {
+                            areaId: area?.slug, fecha: valores.fecha || undefined, horaInicio: valores.horaInicio || undefined,
+                            horaFin: valores.horaFin || undefined, mensaje: valores.mensaje.trim(),
+                        }));
+                    }}
                 />
             )}
 
             {ventana === "fecha" && (
                 <VentanaFormulario
+                    {...comunes}
                     tono="dorado"
                     icono={modalCalendario}
                     titulo={estado === "aprobada" ? "Reprogramar solicitud" : "Proponer otra fecha u horario"}
                     texto="La persona recibirá tu propuesta y podrá aceptarla o pedir otra opción."
-                    textoConfirmar="Enviar propuesta"
+                    textoConfirmar={guardando ? "Enviando…" : "Enviar propuesta"}
                     campos={[
-                        { nombre: "fecha", etiqueta: "Fecha propuesta", tipo: "fecha", obligatorio: true, mitad: true },
-                        { nombre: "horario", etiqueta: "Horario propuesto", obligatorio: true, placeholder: "00:00 a 00:00", mitad: true },
+                        { nombre: "fecha", etiqueta: "Fecha propuesta", tipo: "fecha", obligatorio: true },
+                        { nombre: "horaInicio", etiqueta: "Hora de inicio", tipo: "hora", obligatorio: true, mitad: true },
+                        { nombre: "horaFin", etiqueta: "Hora de término", tipo: "hora", obligatorio: true, mitad: true },
                         { nombre: "mensaje", etiqueta: "Mensaje para la persona", obligatorio: true, placeholder: "Explica el motivo del cambio" },
                     ]}
                     preparados={["Ese horario ya está ocupado", "Hay un evento institucional ese día"]}
                     alConfirmar={(valores) =>
-                        decidir({
-                            estado: "observaciones",
-                            resolucion: {
-                                fecha: "Hoy",
-                                motivo: `${formatearFecha(valores.fecha)}, ${valores.horario}`,
-                                mensaje: valores.mensaje,
-                            },
-                        })
+                        decidir(() => proponerEspacio(api.folio, {
+                            fecha: valores.fecha, horaInicio: valores.horaInicio, horaFin: valores.horaFin, mensaje: valores.mensaje.trim(),
+                        }))
                     }
-                    alCerrar={cerrar}
                 />
             )}
 
             {ventana === "rechazar" && (
                 <VentanaFormulario
+                    {...comunes}
                     tono="guinda"
                     icono={modalAlerta}
                     titulo="Rechazar solicitud"
                     texto="Explica el motivo. La persona lo verá en sus notificaciones y podrá enviar una nueva solicitud."
-                    textoConfirmar="Sí, rechazar solicitud"
+                    textoConfirmar={guardando ? "Rechazando…" : "Sí, rechazar solicitud"}
                     campos={[
                         {
                             nombre: "motivo",
@@ -425,18 +497,18 @@ function DetalleEspacio() {
                             ayuda: "Evita incluir datos personales de terceros.",
                         },
                     ]}
-                    alConfirmar={(valores) => decidir({ estado: "rechazada", resolucion: { fecha: "Hoy", ...valores } })}
-                    alCerrar={cerrar}
+                    alConfirmar={(valores) => decidir(() => rechazarEspacio(api.folio, valores.motivo, valores.mensaje))}
                 />
             )}
 
             {ventana === "cancelar" && (
                 <VentanaFormulario
+                    {...comunes}
                     tono="guinda"
                     icono={modalAlerta}
                     titulo="¿Cancelar la solicitud aprobada?"
                     texto="El espacio quedará libre y la persona recibirá el motivo en sus notificaciones."
-                    textoConfirmar="Sí, cancelar solicitud"
+                    textoConfirmar={guardando ? "Cancelando…" : "Sí, cancelar solicitud"}
                     textoCancelar="Conservar solicitud"
                     campos={[
                         {
@@ -450,10 +522,7 @@ function DetalleEspacio() {
                         { nombre: "mensaje", etiqueta: "Mensaje para la persona", obligatorio: true, placeholder: "Explica el motivo" },
                     ]}
                     preparados={["El espacio no estará disponible", "Cambio en la agenda de la biblioteca"]}
-                    alConfirmar={(valores) =>
-                        decidir({ estado: "rechazada", resolucion: { fecha: "Hoy", cancelada: true, ...valores } })
-                    }
-                    alCerrar={cerrar}
+                    alConfirmar={(valores) => decidir(() => cancelarEspacioAprobado(api.folio, valores.motivo, valores.mensaje))}
                 />
             )}
         </PanelLayout>
