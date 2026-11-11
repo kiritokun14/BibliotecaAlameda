@@ -17,8 +17,8 @@ export type DatosBiblioteca = {
 export const datosBiblioteca: DatosBiblioteca = {
     direccion: "Av. Allende s/n esq. Oaxaca, Parque Alameda, Tepic, Nayarit",
     horario: "Lunes a viernes de 8:00 a 19:30 h · Sábados de 9:00 a 14:00 h",
-    telefono: null,
-    correo: null,
+    telefono: "311 212 8989",
+    correo: "bp0165@dgb.gob.mx",
 };
 
 // ---------- Formulario ----------

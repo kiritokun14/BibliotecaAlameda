@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { Bloque, Etiqueta } from "./Bloque";
+import { datosBiblioteca } from "../contacto/datos";
 import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import textura from "../../../assets/inicio/contacto-textura.svg";
@@ -14,8 +15,8 @@ import iconoNavegar from "../../../assets/inicio/mapa-google.svg";
 const datosContacto = [
     { titulo: "Dirección", texto: "Av. Allende s/n esq. Oaxaca, Parque Alameda, Tepic", icono: iconoPin },
     { titulo: "Horario", texto: "Lunes a viernes 8:00 a 19:30 h · Sábados 9:00 a 14:00 h", icono: iconoReloj },
-    { titulo: "Teléfono", texto: "Por confirmar", icono: iconoTelefono },
-    { titulo: "Correo", texto: "Por confirmar", icono: iconoCorreo },
+    { titulo: "Teléfono", texto: datosBiblioteca.telefono ?? "Por confirmar", icono: iconoTelefono },
+    { titulo: "Correo", texto: datosBiblioteca.correo ?? "Por confirmar", icono: iconoCorreo },
 ];
 
 // Mapa real de Google Maps. El modo "embed" con ?q= no necesita clave de API.

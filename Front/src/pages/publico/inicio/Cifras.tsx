@@ -5,13 +5,13 @@ import circulo2 from "../../../assets/inicio/cifras-circulo-2.svg";
 import rama from "../../../assets/inicio/cifras-rama.svg";
 import iconoLibro from "../../../assets/inicio/cifras-libro.svg";
 import iconoReloj from "../../../assets/comun/iconos/cifras-reloj.svg";
-import iconoPeriodico from "../../../assets/inicio/cifras-periodico.svg";
+import iconoCalendario from "../../../assets/inicio/cifras-calendario.svg";
 import iconoUsuarios from "../../../assets/inicio/cifras-usuarios.svg";
 
 const cifras = [
-    { valor: "45,000+", texto: "Volúmenes en el acervo", icono: iconoLibro },
+    { valor: "2,000+", texto: "Volúmenes en el acervo", icono: iconoLibro },
     { valor: "8 a 19:30 h", texto: "Atención entre semana", icono: iconoReloj },
-    { valor: "Hemeroteca", texto: "Prensa y revistas de Nayarit", icono: iconoPeriodico },
+    { valor: "Talleres", texto: "Actividades y lecturas para todas las edades", icono: iconoCalendario },
     { valor: "Abierto", texto: "Para todo el público", icono: iconoUsuarios },
 ];
 
