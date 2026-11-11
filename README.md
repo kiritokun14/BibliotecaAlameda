@@ -1,4 +1,4 @@
-﻿# HU-19 / T-097 — Sprint 5
+﻿# HU-19 / T-097 — Sprint 5 Stephanie
 ## Consulta de inscripciones y control de cupos
 
 ### 1. Descripción general
