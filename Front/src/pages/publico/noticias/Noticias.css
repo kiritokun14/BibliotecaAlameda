@@ -8,18 +8,18 @@
 .noticias-seccion {
   display: flex;
   justify-content: center;
-  padding: 64px 24px 88px;
+  padding: 40px 24px 88px; /* 40 px bajo el encabezado verde, igual en todas las páginas del portal */
   background: #f7f5f0;
 }
 
-.noticias-seccion--archivo { padding-top: 48px; }
+.noticias-seccion--archivo { padding-top: 40px; }
 
 .noticias-contenedor {
   display: flex;
   flex-direction: column;
   gap: 40px;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1000px; /* mismo ancho que Eventos, Lecturas, Credencial y Espacios */
 }
 
 .noticias-contenedor ul,
@@ -38,7 +38,7 @@
   top: 32px;
   left: 50%;
   z-index: 1;
-  width: min(1200px, calc(100% - 48px));
+  width: min(1000px, calc(100% - 48px));
   transform: translateX(-50%);
   text-align: left;
 }
@@ -1152,3 +1152,57 @@
   .noticia-principal:hover .noticia-principal__imagen img,
   .tarjeta-noticia:hover .tarjeta-noticia__imagen img { transform: none; }
 }
+
+/* ---------- Medidas comunes con Eventos (Agenda.css) ----------
+   La destacada y las tarjetas de noticias usan las mismas medidas que las de actividades,
+   para que ambas páginas se vean iguales. */
+.noticia-principal {
+  gap: 44px;
+  padding: 18px;
+  border-radius: 34px;
+}
+
+.noticia-principal__imagen {
+  width: 470px;
+  height: 330px;
+  border-radius: 24px;
+}
+
+.noticia-principal__titulo { font-size: 38px; line-height: 44px; letter-spacing: -0.76px; }
+.noticia-principal__resumen { font-size: 17px; line-height: 26px; }
+
+.noticias-fila,
+.noticias-archivo--cuadricula { gap: 22px; }
+
+.tarjeta-noticia {
+  border-radius: 24px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
+}
+
+.tarjeta-noticia--chica .tarjeta-noticia__imagen,
+.tarjeta-noticia--cuadricula .tarjeta-noticia__imagen { height: 170px; }
+
+.tarjeta-noticia--chica .tarjeta-noticia__textos,
+.tarjeta-noticia--cuadricula .tarjeta-noticia__textos { padding: 18px 20px 20px; }
+
+.tarjeta-noticia--chica .tarjeta-noticia__titulo,
+.tarjeta-noticia--cuadricula .tarjeta-noticia__titulo { font-size: 19px; line-height: 24px; letter-spacing: -0.2px; }
+
+@media (max-width: 1400px) {
+  .noticia-principal__imagen { width: 400px; height: 300px; }
+  .noticia-principal__titulo { font-size: 32px; line-height: 38px; }
+  .noticias-fila,
+  .noticias-archivo--cuadricula { gap: 16px; }
+}
+
+/* ---------- Misma posición vertical que Eventos (Agenda.css) ----------
+   Etiqueta, título, texto y espacios entre bloques iguales a «Próximas actividades»,
+   para que títulos, filtros y tarjetas queden a la misma altura en las dos páginas. */
+.noticias-seccion:not(.noticias-seccion--archivo) .noticias-contenedor { gap: 26px; }
+.etiqueta-noticias { padding: 4px 12px; }
+.noticias-titulo h2 { line-height: 40px; }
+.noticias-titulo__textos p { font-size: 16px; }
+.noticias-titulo { align-items: flex-start; }
+.noticias-titulo > .boton-noticias { margin-top: 32px; }
+/* En Eventos los filtros comparten fila con «Lista | Calendario»: misma altura de fila aquí */
+.noticias-contenedor > .chips-filtro { align-items: center; min-height: 45px; }

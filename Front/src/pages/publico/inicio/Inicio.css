@@ -500,63 +500,95 @@
   border-radius: 224px 224px 64px 64px;
 }
 
-.portada__foto {
+/* Marco fijo de la foto (con la sombra): las fotos de adentro solo cambian de opacidad */
+.portada__fotos {
   top: 24px;
   left: 120px;
   width: 400px;
   height: 560px;
-  object-fit: cover;
+  overflow: hidden;
   border-radius: 200px 200px 40px 40px;
+  background: #0b3b33;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
 }
 
+.portada__foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  will-change: opacity;
+}
+
+.portada__foto--activa { opacity: 1; }
+
+/* Las actividades aún no tienen foto propia: se avisa que es ilustrativa */
+.portada__ilustrativa {
+  top: 548px;
+  right: 36px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(22, 26, 29, 0.72);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Tarjeta de la actividad: lleva a su detalle y cambia sola (Portada.tsx).
+   Crece hacia arriba con el texto para que no se corten letras. */
 .portada__tarjeta {
-  top: 400px;
+  bottom: 40px;
   left: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 300px;
-  height: 150px;
+  width: 320px;
+  min-height: 150px;
   padding: 20px 22px;
   box-sizing: border-box;
   border-radius: 28px;
   background: #fff;
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
-}
-
-/* La tarjeta lleva al detalle de la actividad y cambia sola (Portada.tsx) */
-.portada__tarjeta--enlace {
   color: #161a1d;
   text-decoration: none;
-  animation: portada-tarjeta-entra 0.5s ease;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: portada-aparece 0.5s ease;
+  transition: transform 0.2s ease;
 }
 
-.portada__tarjeta--enlace:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.32);
-}
+/* Solo transform: la sombra no se vuelve a dibujar al pasar el mouse */
+.portada__tarjeta:hover { transform: translateY(-3px); }
 
-.portada__tarjeta--enlace:focus-visible {
+.portada__tarjeta:focus-visible,
+.portada__chip--credencial:focus-visible {
   outline: 3px solid #e6d194;
   outline-offset: 4px;
 }
 
-.portada__tarjeta--enlace .portada__tarjeta-titulo {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+@keyframes portada-aparece {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes portada-tarjeta-entra {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+@keyframes insignia-entra {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes insignia-flota {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .portada__tarjeta--enlace { animation: none; transition: none; }
+  .portada__foto,
+  .portada__tarjeta,
+  .portada__insignia,
+  .portada__chip--credencial,
+  .portada__chip--credencial img,
+  .portada__chip--credencial::after { animation: none; transition: none; }
 }
 
 .chip-dorado {
@@ -569,7 +601,9 @@
   background: #f6eeda;
   color: #6b4f12;
   font-size: 13px;
+  line-height: 18px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .chip-dorado img {
@@ -577,11 +611,18 @@
   height: 14px;
 }
 
+/* Hasta 3 renglones; el nombre completo queda en el title y para lectores de pantalla */
 .portada__tarjeta-titulo {
+  display: -webkit-box;
+  overflow: hidden;
+  padding-bottom: 2px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
   font-family: 'Noto Sans', sans-serif;
-  font-size: 19px;
-  line-height: 24px;
+  font-size: 18px;
+  line-height: 25px;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .portada__tarjeta-dato {
@@ -589,6 +630,7 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
+  line-height: 20px;
   color: #4d4d4d;
 }
 
@@ -614,8 +656,55 @@
   height: 18px;
 }
 
-.portada__chip--horario { top: 528px; left: 250px; background: #e6d194; }
-.portada__chip--credencial { top: 56px; left: 0; background: #fff; }
+/* «Tramita tu credencial»: entra deslizándose, un brillo lo cruza de vez en cuando y su ícono
+   se asoma. Todo con transform/opacity (y la propiedad translate), para que no se trabe al cargar. */
+.portada__chip--credencial {
+  top: 56px;
+  left: 0;
+  overflow: hidden;
+  background: #fff;
+  color: #161a1d;
+  text-decoration: none;
+  animation: chip-entra 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both;
+  transition: transform 0.2s ease;
+}
+
+.portada__chip--credencial::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(230, 209, 148, 0.55) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: translateX(-120%);
+  pointer-events: none;
+  animation: chip-brillo 5s ease-in-out 1.2s infinite;
+}
+
+.portada__chip--credencial img {
+  animation: chip-icono 5s ease-in-out 1.2s infinite;
+}
+
+.portada__chip--credencial:hover { transform: translateY(-2px); }
+.portada__chip--credencial:hover img { animation-play-state: paused; }
+
+@keyframes chip-entra {
+  from { opacity: 0; translate: -24px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes chip-brillo {
+  0%, 60% { transform: translateX(-120%); }
+  85%, 100% { transform: translateX(220%); }
+}
+
+@keyframes chip-icono {
+  0%, 62%, 100% { transform: none; }
+  70% { transform: rotate(-10deg) scale(1.12); }
+  78% { transform: rotate(6deg) scale(1.12); }
+  86% { transform: none; }
+}
 
 .portada__insignia {
   top: 8px;
@@ -634,6 +723,8 @@
   font-size: 13px;
   font-weight: 700;
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+  /* Aparece con un pequeño rebote y luego flota despacio */
+  animation: insignia-entra 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both, insignia-flota 4.5s ease-in-out 0.9s infinite;
 }
 
 .portada__insignia strong {
@@ -1772,4 +1863,82 @@
   .noticias { flex-direction: column; }
   .noticia-destacada,
   .otras-noticias { flex: 1 1 auto; }
+}
+
+/* =========================================================
+   ANIMACIONES Y EFECTOS AL PASAR EL MOUSE (Inicio)
+   Solo transform y opacity: no se traban mientras carga la página.
+   ========================================================= */
+
+/* Portada: el texto entra escalonado y la composición de la foto aparece después */
+.portada__texto > * { animation: inicio-sube 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.portada__texto > :nth-child(2) { animation-delay: 0.07s; }
+.portada__texto > :nth-child(3) { animation-delay: 0.14s; }
+.portada__texto > :nth-child(4) { animation-delay: 0.21s; }
+.portada__texto > :nth-child(5) { animation-delay: 0.28s; }
+.portada__composicion { animation: inicio-aparece 0.8s ease-out 0.15s both; }
+
+@keyframes inicio-sube {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes inicio-aparece {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Secciones que aparecen al llegar con el scroll (la clase la pone Inicio.tsx) */
+.seccion-inicio--revelar > * {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.seccion-inicio--revelada > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* Perfiles «Comunitaria · Académica · Cultural» */
+.portada__perfiles li {
+  transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+
+.portada__perfiles li:hover {
+  border-color: rgba(230, 209, 148, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-4px);
+}
+
+.portada__perfil-icono { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.portada__perfiles li:hover .portada__perfil-icono { transform: scale(1.12) rotate(-6deg); }
+
+/* Accesos: el ícono también reacciona */
+.tarjeta-acceso { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.tarjeta-acceso:hover { box-shadow: 0 18px 32px rgba(0, 0, 0, 0.16); }
+
+/* Franja dorada: cada cifra se levanta y su ícono gira un poco */
+.cifra { transition: transform 0.25s ease; }
+.cifra:hover { transform: translateY(-3px); }
+.cifra__icono { transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.cifra:hover .cifra__icono { transform: scale(1.12) rotate(-8deg); }
+
+/* Contacto: cada dato se desliza un poco */
+.datos-contacto li { transition: transform 0.25s ease; }
+.datos-contacto li:hover { transform: translateX(6px); }
+.datos-contacto__icono { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.datos-contacto li:hover .datos-contacto__icono { transform: scale(1.12); }
+
+@media (prefers-reduced-motion: reduce) {
+  .portada__texto > *,
+  .portada__composicion { animation: none; }
+  .seccion-inicio--revelar > * { opacity: 1; transform: none; transition: none; }
+  .portada__perfiles li,
+  .portada__perfil-icono,
+  .tarjeta-acceso,
+  .cifra,
+  .cifra__icono,
+  .datos-contacto li,
+  .datos-contacto__icono { transition: none; }
 }

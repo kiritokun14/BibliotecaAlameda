@@ -2,9 +2,6 @@ import { Link } from "react-router";
 import "./Portal.css";
 import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.png";
 import logoNayarit from "../../assets/comun/logos/logo-nayarit-blanco.png";
-import facebook from "../../assets/portal/red-facebook.svg";
-import instagram from "../../assets/portal/red-instagram.svg";
-import whatsapp from "../../assets/portal/red-whatsapp.svg";
 import facebookGrande from "../../assets/portal/red-facebook-30.svg";
 import instagramGrande from "../../assets/portal/red-instagram-30.svg";
 import whatsappGrande from "../../assets/portal/red-whatsapp-30.svg";
@@ -14,24 +11,14 @@ import whatsappGrande from "../../assets/portal/red-whatsapp-30.svg";
 
 // TODO: la biblioteca debe confirmar las cuentas oficiales; mientras tanto no enlazan a ningún lado
 const redes = [
-    { nombre: "Facebook", icono: facebook, iconoGrande: facebookGrande },
-    { nombre: "Instagram", icono: instagram, iconoGrande: instagramGrande },
-    { nombre: "WhatsApp", icono: whatsapp, iconoGrande: whatsappGrande },
+    { nombre: "Facebook", iconoGrande: facebookGrande },
+    { nombre: "Instagram", iconoGrande: instagramGrande },
+    { nombre: "WhatsApp", iconoGrande: whatsappGrande },
 ];
 
 export function EncabezadoPortal() {
     return (
         <header className="encabezado-portal">
-            <div className="encabezado-portal__franja">
-                <p>Biblioteca Pública Central Estatal Solón Argüello · Tepic, Nayarit</p>
-                <ul className="redes" aria-label="Redes sociales (por confirmar)">
-                    {redes.map((red) => (
-                        <li key={red.nombre}>
-                            <img src={red.icono} alt={red.nombre} />
-                        </li>
-                    ))}
-                </ul>
-            </div>
             <div className="encabezado-portal__logos">
                 <img src={logoMexico} alt="Gobierno de México" className="logo-mexico" />
                 <span className="encabezado-portal__separador" aria-hidden="true" />
@@ -114,13 +101,11 @@ export function PiePortal() {
                                 </li>
                             ))}
                         </ul>
-                        <p className="pie-portal__nota">Cuentas por confirmar</p>
                     </div>
                 </div>
             </div>
 
             <div className="pie-portal__legal">
-                <p>Contenido de ejemplo sujeto a validación de la biblioteca.</p>
                 <p>Gobierno de México · Gobierno de Nayarit · Biblioteca Solón Argüello</p>
             </div>
         </footer>

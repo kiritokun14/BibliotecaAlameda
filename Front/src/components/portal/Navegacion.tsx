@@ -5,6 +5,7 @@ import { cerrarSesion, consultarMiAcceso } from "../../servicios/auth";
 import { obtenerSupabase, mensajeError } from "../../servicios/api";
 import { Link, NavLink } from "react-router";
 import MenuCuenta from "../../pages/publico/perfil/MenuCuenta";
+import { precargarRuta } from "./precarga";
 import "./Navegacion.css";
 import "./Portal.css"; // logo de la biblioteca (.logo-solon)
 
@@ -75,7 +76,8 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
                     {enlaces.map((enlace) => (
                         <li key={enlace.ruta}>
                             {/* NavLink agrega la clase "active" cuando estás en esa página */}
-                            <NavLink to={enlace.ruta} end={enlace.ruta === "/"} className="navegacion__enlace">
+                            <NavLink to={enlace.ruta} end={enlace.ruta === "/"} className="navegacion__enlace"
+                                onMouseEnter={() => precargarRuta(enlace.ruta)} onFocus={() => precargarRuta(enlace.ruta)}>
                                 {enlace.texto}
                             </NavLink>
                         </li>

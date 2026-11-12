@@ -18,14 +18,24 @@ export function sesionesDeAgenda(actividad: ActividadPublica): ActividadAgenda[]
     }));
 }
 
+// Última agenda recibida por periodo, solo en memoria de esta pestaña: al volver a una página se pinta
+// al instante y la consulta nueva la reemplaza en cuanto llega.
+const memoriaAgenda = new Map<string, ActividadAgenda[]>();
+export function agendaEnMemoria(desde = '', hasta = '') { return memoriaAgenda.get(`${desde}|${hasta}`); }
+export function precargarAgendaPublica(desde = '', hasta = '') { cargarAgendaPublica(desde, hasta).catch(() => undefined); }
+
 export async function cargarAgendaPublica(desde = '', hasta = '') {
     const actividades: ActividadPublica[] = [];
     for (let pagina = 0; pagina < 20; pagina++) {
         const lote = await consultarAgenda({ desde, hasta, pagina, limite: 50 });
         actividades.push(...lote.actividades);
-        if (actividades.length >= lote.total || lote.actividades.length < 50) return actividades.flatMap(sesionesDeAgenda)
-            .filter(a => (!desde || a.fecha >= desde) && (!hasta || a.fecha <= hasta))
-            .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.horario.localeCompare(b.horario));
+        if (actividades.length >= lote.total || lote.actividades.length < 50) {
+            const sesiones = actividades.flatMap(sesionesDeAgenda)
+                .filter(a => (!desde || a.fecha >= desde) && (!hasta || a.fecha <= hasta))
+                .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.horario.localeCompare(b.horario));
+            memoriaAgenda.set(`${desde}|${hasta}`, sesiones);
+            return sesiones;
+        }
     }
     throw new Error('La consulta es demasiado amplia. Consulta un periodo más corto.');
 }

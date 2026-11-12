@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { Bloque, EncabezadoSeccion, Etiqueta } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
 import { useCarrusel } from "./useCarrusel";
+import { ChipsFiltro } from "../../../components/portal/BarraFiltros";
 import { type Actividad, type TipoActividad } from "./datos";
 import { consultarAgenda } from "../../../servicios/actividades";
 import { mensajeError } from "../../../servicios/api";
@@ -74,23 +75,15 @@ function Actividades() {
                     boton={{ texto: "Ver todas las actividades", ruta: "/eventos", icono: flechaBlanca }}
                 />
 
-                <div className="filtros-actividad" role="group" aria-label="Filtrar actividades por categoría">
-                    {filtros.map((filtro) => {
-                        const activo = filtro.tipo === tipoElegido;
-                        return (
-                            <button
-                                key={filtro.texto}
-                                type="button"
-                                className={activo ? "filtro-actividad filtro-actividad--activo" : "filtro-actividad"}
-                                aria-pressed={activo}
-                                onClick={() => setTipoElegido(filtro.tipo)}
-                            >
-                                {/* los íconos son verdes; en el filtro activo el CSS los pinta de blanco */}
-                                <img src={filtro.icono} alt="" />
-                                {filtro.texto}
-                            </button>
-                        );
-                    })}
+                {/* Mismas pastillas que los demás filtros del portal, en su versión para fondo oscuro */}
+                <div className="filtros-actividad">
+                    <ChipsFiltro
+                        oscuro
+                        etiqueta="Filtrar actividades por categoría"
+                        opciones={filtros.map((f) => ({ valor: f.tipo ?? "", texto: f.texto, icono: f.icono }))}
+                        activa={tipoElegido ?? ""}
+                        alElegir={(valor) => setTipoElegido((valor || null) as TipoActividad | null)}
+                    />
                 </div>
 
                 <div className="carrusel">
@@ -99,7 +92,7 @@ function Actividades() {
                         {visibles.map((actividad) => (
                             <article key={actividad.id} className="tarjeta-actividad">
                                 <div className="tarjeta-actividad__imagen">
-                                    <img src={actividad.imagen} alt="" />
+                                    <img loading="lazy" decoding="async" src={actividad.imagen} alt="" />
                                     <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
                                 </div>
                                 <div className="tarjeta-actividad__contenido">

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLecturasPublicadas } from "../lecturas/publicados";
 import { Bloque, EncabezadoSeccion } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
@@ -92,11 +93,12 @@ function Ilustracion({ estilo }: { estilo: Libro["estilo"] }) {
 }
 
 function PortadaLibro({ libro }: { libro: Libro }) {
-    // Foto real (cuando el backend la mande)
-    if (libro.portadaUrl) {
+    const [fallo, setFallo] = useState(false);
+    // Foto real (cuando el backend la mande); si no carga, la portada ilustrada
+    if (libro.portadaUrl && !fallo) {
         return (
             <div className="portada-libro portada-libro--foto">
-                <img src={libro.portadaUrl} alt={`Portada de ${libro.titulo}`} />
+                <img src={libro.portadaUrl} alt={`Portada de ${libro.titulo}`} onError={() => setFallo(true)} />
             </div>
         );
     }

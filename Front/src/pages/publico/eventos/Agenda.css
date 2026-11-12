@@ -200,10 +200,11 @@
 .agenda-destacada__datos dd { margin: 0; font-size: 15px; font-weight: 700; }
 
 /* ---------- Más actividades ---------- */
+/* «Más actividades»: mismas medidas que «Más noticias» (título 30 px y tarjetas en 3 columnas) */
 .agenda-mas { display: flex; flex-direction: column; gap: 6px; }
-.agenda-mas h3 { margin: 0; color: #161a1d; font-size: 26px; line-height: 30px; }
-.agenda-mas > p { margin: 0 0 12px; color: #4d4d4d; font-size: 15px; }
-.agenda-mas ul { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.agenda-mas h3 { margin: 0; color: #161a1d; font-size: 30px; line-height: 36px; letter-spacing: -0.6px; }
+.agenda-mas > p { margin: 0 0 18px; color: #4d4d4d; font-size: 16px; }
+.agenda-mas ul:not(.agenda-tarjetas) { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
 
 .agenda-fila {
   display: flex;
@@ -308,7 +309,7 @@
 }
 
 .agenda-tarjeta:hover h3 { text-decoration: underline; }
-.agenda-tarjeta__imagen { position: relative; height: 150px; overflow: hidden; }
+.agenda-tarjeta__imagen { position: relative; height: 170px; overflow: hidden; } /* misma altura que las tarjetas de noticias */
 .agenda-tarjeta__imagen > img { width: 100%; height: 100%; object-fit: cover; }
 
 .agenda-tarjeta__fecha {

@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 64px 24px 72px;
+  padding: 48px 24px 72px; /* el contenido queda a 40 px del encabezado, como en las demás páginas */
 }
 
 .servicios-seccion--crema { background: #f7f5f0; }

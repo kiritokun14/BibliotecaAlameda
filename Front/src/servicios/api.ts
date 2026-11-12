@@ -1,5 +1,5 @@
 import { invalidarConsultas } from './consultas';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export class ErrorServicio extends Error {
     estado: number;
@@ -39,8 +39,12 @@ const almacenamiento = {
 };
 let cliente: Promise<SupabaseClient> | undefined;
 export function obtenerSupabase(): Promise<SupabaseClient> {
-    cliente ??= pedirApi<{ url: string; clavePublicable: string }>('/cuentas/configuracion')
-        .then(({ url, clavePublicable }) => createClient(url, clavePublicable, { auth: {
+    // La librería de Supabase (unos 200 KB) se descarga aquí, en paralelo con la configuración,
+    // y no en el paquete principal: la página se pinta sin esperarla.
+    cliente ??= Promise.all([
+        pedirApi<{ url: string; clavePublicable: string }>('/cuentas/configuracion'),
+        import('@supabase/supabase-js'),
+    ]).then(([{ url, clavePublicable }, { createClient }]) => createClient(url, clavePublicable, { auth: {
             flowType: 'pkce', detectSessionInUrl: false, persistSession: true,
             autoRefreshToken: true, storage: almacenamiento,
         } })).catch(error => { cliente = undefined; throw error; });

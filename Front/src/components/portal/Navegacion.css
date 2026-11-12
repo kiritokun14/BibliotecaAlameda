@@ -37,6 +37,7 @@
 }
 
 .navegacion__enlace {
+  position: relative;
   display: block;
   padding: 10px 11px;
   border-radius: 999px;
@@ -45,6 +46,10 @@
   font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.navegacion__enlace {
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .navegacion__enlace:hover {
@@ -109,4 +114,28 @@
   .navegacion__enlace { padding: 10px 9px; font-size: 14px; }
   .navegacion__cuenta { gap: 8px; }
   .navegacion__boton { height: 42px; padding: 0 16px; font-size: 14px; }
+}
+
+/* Sección activa: además del fondo, una línea dorada que se dibuja al llegar a la página */
+.navegacion__enlace.active::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  bottom: 3px;
+  left: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: #c9a24a;
+  transform-origin: center;
+  animation: navegacion-subraya 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes navegacion-subraya {
+  from { opacity: 0; transform: scaleX(0); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navegacion__enlace { transition: none; }
+  .navegacion__enlace.active::after { animation: none; }
 }

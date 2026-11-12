@@ -1,20 +1,37 @@
+import { useCallback } from "react";
 import { useLecturasPublicadas } from "./publicados";
-import { EstadoPublicados } from "../../../servicios/EstadoPublicados";
+import BarraFiltros from "../../../components/portal/BarraFiltros";
+import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 import { Link, useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import "./Lecturas.css";
-import { GENEROS, porTema, type Genero, type ItemTema } from "./datos";
-import { EncabezadoLecturas, PestanasLecturas, Portada, Subpestanas } from "./piezas";
+import { GENEROS, coincideBusqueda, porTema, type Genero, type ItemTema } from "./datos";
+import { EncabezadoLecturas, FotoMemoria, PestanasLecturas, Portada } from "./piezas";
 
-// Lecturas por tema: mezcla reseñas y registros de memoria. ?tema=novela
+const OPCIONES_TEMA = [{ valor: "", texto: "Todos los temas" }, ...Object.entries(GENEROS).map(([valor, texto]) => ({ valor, texto }))];
+
+// Lecturas por tema: mezcla reseñas y registros de memoria. ?tema=novela&q=rulfo
+// Mismo filtro compacto que Por autor: buscador y «Filtros» con el tema.
 function LecturasTema() {
     const { datos, error, resenas, memorias } = useLecturasPublicadas();
     const [parametros, setParametros] = useSearchParams();
     const temaUrl = parametros.get("tema") ?? "";
     const tema = (temaUrl in GENEROS ? temaUrl : "") as Genero | "";
-    const items = porTema(tema, resenas, memorias);
+    const q = parametros.get("q") ?? "";
+    const items = porTema(tema, resenas, memorias).filter((x) => x.tipo === "resena"
+        ? coincideBusqueda(q, x.item.libro, x.item.autoria, x.item.titulo)
+        : coincideBusqueda(q, x.item.titulo, x.item.entrada));
 
-    if (!datos || error) return <PaginaPublica><EstadoPublicados datos={datos} error={error} /></PaginaPublica>;
+    const actualizar = useCallback((cambios: Record<string, string | null>) => {
+        setParametros((previos) => {
+            const nuevos = new URLSearchParams(previos);
+            for (const [clave, valor] of Object.entries(cambios)) {
+                if (valor) nuevos.set(clave, valor); else nuevos.delete(clave);
+            }
+            return nuevos;
+        }, { replace: true });
+    }, [setParametros]);
+    const buscar = useCallback((texto: string) => actualizar({ q: texto.trim() || null }), [actualizar]);
 
     return (
         <PaginaPublica>
@@ -26,17 +43,23 @@ function LecturasTema() {
 
             <section className="lecturas-seccion">
                 <div className="lecturas-contenedor">
-                    <PestanasLecturas />
-                    <Subpestanas
-                        etiqueta="Temas"
-                        opciones={[{ valor: "" as Genero | "", texto: "Todas" }, ...(Object.entries(GENEROS) as [Genero, string][]).map(([valor, texto]) => ({ valor, texto }))]}
-                        activa={tema}
-                        alElegir={(valor) => setParametros(valor ? { tema: valor } : {}, { replace: true })}
+                    <BarraFiltros
+                        arriba={<PestanasLecturas />}
+                        etiquetaBusqueda="Buscar lecturas"
+                        marcador="Busca un título o autor…"
+                        texto={q}
+                        alBuscar={buscar}
+                        grupos={[{ etiqueta: "Tema", opciones: OPCIONES_TEMA, activa: tema, alElegir: (valor) => actualizar({ tema: valor || null }) }]}
+                        alLimpiar={() => setParametros({}, { replace: true })}
                     />
 
-                    {items.length === 0 ? (
+                    {error ? (
+                        <p role="alert">{error}</p>
+                    ) : !datos ? (
+                        <EsqueletoTarjetas cantidad={3} texto="Cargando lecturas…" />
+                    ) : items.length === 0 ? (
                         <p className="lecturas-vacio" role="status">
-                            Aún no hay lecturas de este tema. <button type="button" onClick={() => setParametros({}, { replace: true })}>Ver todas</button>
+                            {q ? "No encontramos lecturas con esa búsqueda." : "Aún no hay lecturas de este tema."} <button type="button" onClick={() => setParametros({}, { replace: true })}>Ver todas</button>
                         </p>
                     ) : (
                         <ul className="rejilla-temas">
@@ -69,7 +92,7 @@ function TarjetaTema({ elemento }: { elemento: ItemTema }) {
     return (
         <li className="tarjeta-tema">
             <div className="tarjeta-tema__foto">
-                <img src={m.imagen || undefined} alt="" />
+                <FotoMemoria src={m.imagen} />
                 <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
             </div>
             <div className="tarjeta-tema__contenido">

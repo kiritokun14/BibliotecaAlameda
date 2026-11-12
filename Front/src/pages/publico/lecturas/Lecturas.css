@@ -7,7 +7,7 @@
 .lecturas-seccion {
   display: flex;
   justify-content: center;
-  padding: 48px 24px 64px;
+  padding: 40px 24px 64px; /* 40 px bajo el encabezado verde, igual en todas las páginas del portal */
   background: #f7f5f0;
 }
 
@@ -51,7 +51,7 @@
 }
 
 /* ---------- Encabezado (con "Volver" y espacio para la portada) ---------- */
-.encabezado-lecturas { padding-bottom: 56px; }
+.encabezado-lecturas { padding-bottom: 64px; } /* mismo alto que el encabezado de las demás páginas */
 .encabezado-lecturas--con-regreso { padding-top: 28px; }
 .encabezado-lecturas--con-imagen { padding-bottom: 150px; }
 
@@ -111,52 +111,40 @@
 
 /* ---------- Pestañas ---------- */
 .pestanas-lecturas {
-  display: flex;
-  gap: 24px;
+  display: inline-flex;
+  gap: 4px;
   margin: 0;
-  padding: 0;
+  padding: 4px;
+  border-radius: 999px;
+  background: #e4efeb;
   list-style: none;
 }
 
-.pestanas-lecturas__enlace,
-.subpestanas-lecturas button {
-  position: relative;
-  display: inline-block;
-  padding: 6px 0 10px;
-  border: none;
-  background: none;
-  color: #4d4d4d;
-  font-family: inherit;
+/* Secciones como control segmentado: la elegida queda en verde */
+.pestanas-lecturas__enlace {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
+  color: #164f44;
   font-size: 15px;
+  font-weight: 700;
   text-decoration: none;
-  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.pestanas-lecturas__enlace:hover,
-.subpestanas-lecturas button:hover { color: #164f44; }
+.pestanas-lecturas__enlace:hover { background: rgba(255, 255, 255, 0.7); }
 
 .pestanas-lecturas__enlace.active,
-.subpestanas-lecturas button[aria-pressed="true"] { color: #164f44; font-weight: 700; }
-
-/* Rayita dorada debajo de la pestaña activa */
-.pestanas-lecturas__enlace.active::after,
-.subpestanas-lecturas button[aria-pressed="true"]::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 14px;
-  height: 3px;
-  border-radius: 999px;
-  background: #c9a24a;
-  transform: translateX(-50%);
+.pestanas-lecturas__enlace.active:hover {
+  background: #164f44;
+  color: #fff;
 }
 
-.subpestanas-lecturas {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 24px;
+.pestanas-lecturas__enlace:focus-visible {
+  outline: 3px solid #e6d194;
+  outline-offset: 2px;
 }
 
 /* ---------- Buscador ---------- */

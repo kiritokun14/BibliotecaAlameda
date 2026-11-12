@@ -6,7 +6,7 @@ import type { PerfilPropio } from "../../../servicios/perfil";
 // ---------- Secciones del menú lateral ----------
 export type ClaveSeccion =
     | "resumen" | "datos" | "credencial" | "eventos" | "propuestas"
-    | "espacios" | "progreso" | "avisos" | "seguridad";
+    | "espacios" | "progreso" | "mensajes" | "avisos" | "seguridad";
 
 export const seccionesPerfil: { clave: ClaveSeccion; texto: string; ruta: string }[] = [
     { clave: "resumen", texto: "Resumen", ruta: "/mi-perfil" },
@@ -16,6 +16,7 @@ export const seccionesPerfil: { clave: ClaveSeccion; texto: string; ruta: string
     { clave: "propuestas", texto: "Mis propuestas", ruta: "/mi-perfil/propuestas" },
     { clave: "espacios", texto: "Mis espacios", ruta: "/mi-perfil/espacios" },
     { clave: "progreso", texto: "Progreso y recompensas", ruta: "/mi-perfil/progreso" },
+    { clave: "mensajes", texto: "Mis mensajes", ruta: "/mi-perfil/mensajes" },
     { clave: "avisos", texto: "Avisos", ruta: "/mi-perfil/avisos" },
     { clave: "seguridad", texto: "Seguridad", ruta: "/mi-perfil/seguridad" },
 ];

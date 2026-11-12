@@ -192,6 +192,12 @@ export const FILTROS_VACIOS: FiltrosResenas = { q: "", genero: "", orden: "recie
 
 const sinAcentos = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
+// Búsqueda de Por tema y Memoria pública: el texto aparece en alguno de los campos, sin importar acentos ni mayúsculas
+export function coincideBusqueda(busqueda: string, ...campos: (string | undefined)[]): boolean {
+    const q = sinAcentos(busqueda.trim());
+    return !q || campos.some((c) => c && sinAcentos(c).includes(q));
+}
+
 export function filtrarResenas(lista: Resena[], filtros: FiltrosResenas): Resena[] {
     const texto = sinAcentos(filtros.q.trim());
     const resultado = visibles(lista).filter((r) => {

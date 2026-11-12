@@ -1,7 +1,6 @@
-import PaginaPublica from "../../../components/portal/PaginaPublica";
+import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import {
     AvisoCuenta,
-    EncabezadoVisitante,
     LlamadoVisitante,
     PasosVisitante,
     SeccionVisitante,
@@ -23,11 +22,11 @@ function Espacios() {
 
     return (
         <PaginaPublica>
-            <EncabezadoVisitante
-                regreso={{ texto: "Servicios y programas", ruta: "/servicios" }}
-                etiqueta="AGENDA DE ESPACIOS"
+            {/* Encabezado centrado, igual que las demás páginas del menú */}
+            <EncabezadoPublico
+                etiqueta="Espacios"
                 titulo={<>Agenda de <span>espacios</span></>}
-                texto="Conoce las áreas de la biblioteca y cómo se solicita un espacio. La biblioteca revisa y confirma cada solicitud."
+                texto="Conoce las áreas de la biblioteca y cómo solicitar un espacio."
             />
 
             <SeccionVisitante fondo="crema">

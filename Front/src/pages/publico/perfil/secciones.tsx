@@ -50,6 +50,7 @@ export function Resumen({ menor = false }: { menor?: boolean }) {
             { titulo: "Mis propuestas", texto: "Tus ideas de eventos y clubes, con su estado.", icono: filaArchivo, ruta: "/mi-perfil/propuestas" },
             { titulo: "Mis espacios", texto: "Consulta el estado de tus solicitudes de espacio.", icono: filaPin, ruta: "/mi-perfil/espacios" },
         ]),
+        { titulo: "Mis mensajes", texto: "Seguimiento de lo que escribiste en Contacto y sugerencias.", icono: filaArchivo, ruta: "/mi-perfil/mensajes" },
         { titulo: "Seguridad", texto: "Contraseña y sesión actual.", icono: filaCandado, ruta: "/mi-perfil/seguridad" },
     ];
     const avance = porcentajeProgreso(r.progreso.actuales, r.progreso.meta);

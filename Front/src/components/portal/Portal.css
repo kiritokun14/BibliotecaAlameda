@@ -17,18 +17,6 @@
 }
 
 /* ---------- Encabezado ---------- */
-.encabezado-portal__franja {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 9px var(--margen-portal);
-  background: #4a0e26;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-}
-
 .redes {
   display: flex;
   align-items: center;

@@ -1,0 +1,126 @@
+/* Esqueletos de carga (Esqueleto.tsx). El brillo se mueve con transform: no se traba mientras carga la página. */
+.esqueleto__bloque {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e7e2d8;
+}
+
+.esqueleto__bloque::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: translateX(-100%);
+  animation: esqueleto-brillo 1.4s ease-in-out infinite;
+}
+
+/* Sobre fondo verde */
+.esqueleto__bloque--claro { background: rgba(255, 255, 255, 0.16); }
+.esqueleto__bloque--claro::after { background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.18) 50%, rgba(255, 255, 255, 0) 100%); }
+
+@keyframes esqueleto-brillo {
+  to { transform: translateX(100%); }
+}
+
+.esqueleto__chip { width: 96px; height: 22px; border-radius: 999px; }
+.esqueleto__titulo { height: 22px; }
+.esqueleto__titulo--grande { height: 34px; }
+.esqueleto__linea { height: 14px; }
+.esqueleto__boton { width: 170px; height: 44px; border-radius: 999px; }
+
+/* ---------- Tarjetas (mismas medidas que .tarjeta-listado) ---------- */
+.esqueleto-cuadricula {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.esqueleto-cuadricula--libros { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.esqueleto-tarjeta {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.esqueleto-tarjeta__imagen { height: 180px; border-radius: 0; }
+.esqueleto-tarjeta--libro .esqueleto-tarjeta__imagen { height: 260px; }
+
+.esqueleto-tarjeta__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+/* ---------- Destacada ---------- */
+.esqueleto-destacada {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 18px;
+  border-radius: 32px;
+  background: linear-gradient(154deg, #0b3b33 0%, #1f6b5c 71%);
+}
+
+.esqueleto-destacada__imagen {
+  flex-shrink: 0;
+  width: 46%;
+  height: 300px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.esqueleto-destacada__textos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 24px;
+}
+
+/* ---------- Artículo ---------- */
+.esqueleto-articulo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 32px;
+  border-radius: 24px;
+  background: #fff;
+}
+
+.esqueleto-articulo__imagen { height: 220px; margin: 10px 0; border-radius: 18px; }
+
+/* ---------- Página completa (mientras se descarga su código) ---------- */
+.esqueleto-pagina { min-height: 100vh; background: #f7f5f0; }
+.esqueleto-pagina__franja { height: 62px; background: #611232; } /* franja de logos */
+.esqueleto-pagina__menu { height: 86px; border-bottom: 1px solid #ece7dc; background: #fff; }
+
+.esqueleto-pagina__encabezado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 56px 24px 64px;
+  background: linear-gradient(154deg, #0b3b33 0%, #1f6b5c 71%);
+}
+
+.esqueleto-pagina__cuerpo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.esqueleto-pagina--panel .esqueleto-pagina__cuerpo { padding-top: 120px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto__bloque::after { animation: none; }
+}

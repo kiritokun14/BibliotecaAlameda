@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router";
 import { mesAnio, type Memoria, type Resena } from "./datos";
 import { urlCatalogo } from "../../../servicios/catalogo";
@@ -10,6 +10,7 @@ import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import iconoCandado from "../../../assets/comun/iconos/candado.svg";
 import iconoLibro from "../../../assets/lecturas/libro-guinda.svg";
 import iconoExterno from "../../../assets/lecturas/externo-blanco.svg";
+import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.jpg";
 
 // ---------- Pestañas "Por autor · Por tema · Memoria pública" ----------
 export function PestanasLecturas() {
@@ -31,32 +32,11 @@ export function PestanasLecturas() {
     );
 }
 
-// Subpestañas centradas: temas o años (botones que cambian la URL)
-export function Subpestanas<T extends string | number>({
-    opciones,
-    activa,
-    etiqueta,
-    alElegir,
-}: {
-    opciones: { valor: T; texto: string }[];
-    activa: T;
-    etiqueta: string;
-    alElegir: (valor: T) => void;
-}) {
-    return (
-        <div className="subpestanas-lecturas" role="group" aria-label={etiqueta}>
-            {opciones.map((o) => (
-                <button key={String(o.valor)} type="button" aria-pressed={o.valor === activa} onClick={() => alElegir(o.valor)}>
-                    {o.texto}
-                </button>
-            ))}
-        </div>
-    );
-}
-
 // ---------- Portada ilustrada (sin foto de portada real) ----------
+// Si la imagen de la portada no carga, se usa la portada ilustrada
 export function Portada({ resena, tamano = "normal" }: { resena: Resena; tamano?: "normal" | "ancha" | "detalle" }) {
-    if (resena.imagen) return <div className={`portada-lectura portada-lectura--${tamano}`}><img src={resena.imagen} alt={`Portada de ${resena.libro}`} style={{ width: "100%", height: "100%", objectFit: "contain" }} /></div>;
+    const [fallo, setFallo] = useState(false);
+    if (resena.imagen && !fallo) return <div className={`portada-lectura portada-lectura--${tamano}`}><img loading="lazy" decoding="async" src={resena.imagen} alt={`Portada de ${resena.libro}`} style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFallo(true)} /></div>;
     return (
         <div className={`portada-lectura portada-lectura--${resena.color} portada-lectura--${tamano}`} aria-hidden="true">
             <span className="portada-lectura__circulo" />
@@ -64,6 +44,12 @@ export function Portada({ resena, tamano = "normal" }: { resena: Resena; tamano?
             {tamano !== "ancha" && <small>{resena.autoria}</small>}
         </div>
     );
+}
+
+// Foto de un registro de memoria; sin foto (o si no carga), una de la biblioteca como respaldo
+export function FotoMemoria({ src }: { src?: string }) {
+    const [fallo, setFallo] = useState(false);
+    return <img loading="lazy" decoding="async" src={src && !fallo ? src : fotoRespaldo} alt="" onError={() => setFallo(true)} />;
 }
 
 // ---------- Tarjetas ----------
@@ -89,7 +75,7 @@ export function TarjetaMemoria({ memoria, desde }: { memoria: Memoria; desde?: "
     return (
         <li className="tarjeta-memoria">
             <div className="tarjeta-memoria__imagen">
-                <img src={memoria.imagen || undefined} alt="" />
+                <FotoMemoria src={memoria.imagen} />
                 <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
             </div>
             <div className="tarjeta-memoria__contenido">

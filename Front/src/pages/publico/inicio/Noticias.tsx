@@ -51,6 +51,8 @@ function Noticias() {
                             {/* Todas las fotos están encimadas; solo la activa se ve (cambio con desvanecido) */}
                             {noticias.map((noticia, i) => (
                                 <img
+                                    loading="lazy"
+                                    decoding="async"
                                     key={noticia.id}
                                     src={noticia.imagen || undefined}
                                     alt=""

@@ -5,13 +5,6 @@
    - Contorno dorado que gira, halos que "respiran" y punto en línea que late
    ========================================================= */
 
-/* Ángulo animable del contorno dorado (necesario para animar el conic-gradient) */
-@property --giro-asistente {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
 .asistente {
   position: fixed;
   right: 20px;
@@ -94,24 +87,15 @@
   align-items: center;
   gap: 10px;
   padding: 6px 8px 6px 6px;
-  /* Contorno dorado animado: el fondo verde va dentro (padding-box)
-     y el degradado dorado que gira se ve solo en el borde (border-box) */
+  /* El fondo verde va dentro (padding-box) y el borde queda en dorado tenue (border-box);
+     el brillo que gira lo dibuja .asistente__contorno encima del borde */
   border: 2px solid transparent;
   border-radius: 999px;
   background:
     linear-gradient(148deg, #0b3b33 0%, #1f6b5c 76.9%) padding-box,
-    conic-gradient(
-      from var(--giro-asistente),
-      rgba(230, 209, 148, 0.35),
-      #e6d194 20%,
-      #fff3c4 28%,
-      #e6d194 36%,
-      rgba(230, 209, 148, 0.35) 60%,
-      rgba(230, 209, 148, 0.35)
-    ) border-box;
+    linear-gradient(rgba(230, 209, 148, 0.35), rgba(230, 209, 148, 0.35)) border-box;
   text-decoration: none;
-  box-shadow: 0 12px 16px rgba(11, 59, 51, 0.45), 0 0 0 0 rgba(230, 209, 148, 0.45);
-  animation: contorno-gira 4s linear infinite, brillo-dorado 2.8s ease-in-out infinite;
+  box-shadow: 0 12px 16px rgba(11, 59, 51, 0.45);
   transition: transform 0.2s ease;
 }
 
@@ -176,24 +160,74 @@ button.asistente__boton {
   border-radius: 999px;
   background:
     linear-gradient(148deg, #0b3b33 0%, #1f6b5c 76.9%) padding-box,
-    conic-gradient(
-      from var(--giro-asistente),
-      rgba(230, 209, 148, 0.35),
-      #e6d194 20%,
-      #fff3c4 28%,
-      #e6d194 36%,
-      rgba(230, 209, 148, 0.35) 60%,
-      rgba(230, 209, 148, 0.35)
-    ) border-box;
+    linear-gradient(rgba(230, 209, 148, 0.35), rgba(230, 209, 148, 0.35)) border-box;
   box-shadow: 0 14px 18px rgba(11, 59, 51, 0.5);
   cursor: inherit;
-  animation: contorno-gira 4s linear infinite, aparece 0.3s ease; /* sin "both": así el hover puede cambiar el tamaño */
+  animation: aparece 0.3s ease; /* sin "both": así el hover puede cambiar el tamaño */
   transition: transform 0.2s ease;
 }
 
 .asistente__burbuja:hover { transform: scale(1.06); }
 
 /* ---------- Piezas comunes ---------- */
+
+/* Contorno dorado que gira. Solo se ve el anillo del borde (máscara fija) y lo que gira es un
+   cuadro con el degradado, con transform: así lo mueve la tarjeta gráfica y no se traba al cargar. */
+.asistente__contorno {
+  position: absolute;
+  inset: -2px;
+  overflow: hidden;
+  padding: 2px;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+.asistente__contorno > span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 320px;
+  height: 320px;
+  margin: -160px 0 0 -160px;
+  background: conic-gradient(
+    rgba(230, 209, 148, 0) 0%,
+    #e6d194 20%,
+    #fff3c4 28%,
+    #e6d194 36%,
+    rgba(230, 209, 148, 0) 60%
+  );
+  animation: contorno-gira 4s linear infinite;
+  will-change: transform;
+}
+
+/* Brillo dorado que sale de la pastilla (antes animaba box-shadow) */
+.asistente__boton::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 5px rgba(230, 209, 148, 0.45);
+  pointer-events: none;
+  animation: brillo-dorado 2.8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* Onda verde del punto «en línea» (antes animaba box-shadow) */
+.asistente__pulso {
+  position: absolute;
+  top: 3px;
+  left: 37px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(46, 204, 113, 0.5);
+  pointer-events: none;
+  animation: en-linea-late 2s ease-out infinite;
+  will-change: transform, opacity;
+}
 .asistente__halo {
   position: absolute;
   pointer-events: none;
@@ -242,7 +276,6 @@ button.asistente__boton {
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  animation: en-linea-late 2s ease-out infinite;
 }
 
 
@@ -288,12 +321,13 @@ button.asistente__boton {
 
 /* ---------- Animaciones ---------- */
 @keyframes contorno-gira {
-  to { --giro-asistente: 360deg; }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes brillo-dorado {
-  0%, 100% { box-shadow: 0 18px 20px rgba(11, 59, 51, 0.5), 0 0 0 0 rgba(230, 209, 148, 0.45); }
-  50% { box-shadow: 0 18px 20px rgba(11, 59, 51, 0.5), 0 0 0 7px rgba(230, 209, 148, 0); }
+  0%, 100% { opacity: 0; transform: scale(0.98); }
+  15% { opacity: 1; }
+  50% { opacity: 0; transform: scale(1.04); }
 }
 
 @keyframes halo-respira {
@@ -302,8 +336,8 @@ button.asistente__boton {
 }
 
 @keyframes en-linea-late {
-  0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.6); }
-  70%, 100% { box-shadow: 0 0 0 9px rgba(46, 204, 113, 0); }
+  0% { opacity: 1; transform: scale(1); }
+  70%, 100% { opacity: 0; transform: scale(2.1); }
 }
 
 @keyframes robot-saluda {

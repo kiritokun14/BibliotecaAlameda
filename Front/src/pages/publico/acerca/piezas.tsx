@@ -25,7 +25,7 @@ export function FotoConMarco({
 }) {
     return (
         <figure className={`foto-marco ${className}`}>
-            <img src={src} alt={pie} style={{ height: alto }} />
+            <img loading="lazy" decoding="async" src={src} alt={pie} style={{ height: alto }} />
             <figcaption>{pie}</figcaption>
         </figure>
     );

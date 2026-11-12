@@ -5,7 +5,7 @@
    ========================================================= */
 
 .acerca {
-  padding-top: 32px;
+  padding-top: 40px; /* 40 px bajo el encabezado verde, igual en todas las páginas del portal */
   background: #f7f5f0;
 }
 

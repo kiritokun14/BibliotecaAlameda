@@ -3,7 +3,8 @@ import { Link, useLocation, useParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import "./Noticias.css";
 import { fechaLarga, obtenerNoticia, obtenerNoticias, otrasNoticias, type Noticia } from "./datos";
-import { BotonRegreso, CargandoNoticias, EncabezadoNoticias, EstadoNoticias, PuntoCategoria, TarjetaChica, type Origen } from "./piezas";
+import { BotonRegreso, EncabezadoNoticias, EstadoNoticias, ImagenNoticia, PuntoCategoria, TarjetaChica, type Origen } from "./piezas";
+import { EsqueletoArticulo } from "../../../components/portal/Esqueleto";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
@@ -58,7 +59,7 @@ function DetalleNoticia() {
                 <EncabezadoNoticias regreso={regreso} etiqueta="Noticia" titulo="Noticias de la biblioteca" texto="Avisos, actividades y novedades de la comunidad." />
                 <section className="noticias-seccion">
                     <div className="noticias-contenedor">
-                        {carga.estado === "cargando" && <CargandoNoticias />}
+                        {carga.estado === "cargando" && <EsqueletoArticulo texto="Cargando la noticia…" />}
                         {carga.estado === "error" && <EstadoNoticias tipo="error" alAccionar={() => setIntento((n) => n + 1)} />}
                         {carga.estado === "no-disponible" && <EstadoNoticias tipo="no-disponible" />}
                     </div>
@@ -92,8 +93,7 @@ function DetalleNoticia() {
 
                 <div className="detalle-noticia__cuerpo">
                     <div className="detalle-noticia__imagen">
-                        <img src={noticia.imagen || undefined} alt={noticia.textoAlternativo ?? ""} />
-                        <span className="tarjeta-noticia__ilustrativa">Imagen ilustrativa</span>
+                        <ImagenNoticia noticia={noticia} ilustrativa perezosa={false} />
                     </div>
 
                     <div className="detalle-noticia__texto">

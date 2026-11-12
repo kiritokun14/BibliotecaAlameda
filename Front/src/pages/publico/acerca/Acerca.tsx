@@ -1,4 +1,5 @@
 import { usePublicados } from "../../../servicios/usarPublicados.ts";
+import { EsqueletoArticulo } from "../../../components/portal/Esqueleto";
 import type { ReactNode } from "react";
 import { Navigate, NavLink, useParams } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
@@ -110,7 +111,7 @@ function Acerca() {
                         ))}
                     </nav>
 
-                    {!datos ? <p role="status">Cargando información institucional…</p> : !publicado ? <SinInformacion seccion={`«${actual.pestana}»`} otra={otraSeccion(seccion, datos)} /> : <article className="acerca-contenedor"><h2>{publicado.titulo}</h2><div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{publicado.cuerpo}</div>{typeof publicado.datos.lineaTiempo === 'string' && <p style={{ whiteSpace: 'pre-wrap' }}>{publicado.datos.lineaTiempo}</p>}</article>}
+                    {!datos ? <EsqueletoArticulo texto="Cargando información institucional…" /> : !publicado ? <SinInformacion seccion={`«${actual.pestana}»`} otra={otraSeccion(seccion, datos)} /> : <article className="acerca-contenedor"><h2>{publicado.titulo}</h2><div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{publicado.cuerpo}</div>{typeof publicado.datos.lineaTiempo === 'string' && <p style={{ whiteSpace: 'pre-wrap' }}>{publicado.datos.lineaTiempo}</p>}</article>}
                 </div>
             )}
         </PaginaPublica>

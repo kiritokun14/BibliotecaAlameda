@@ -13,6 +13,8 @@ import paginaAnterior from "../../../assets/noticias/pagina-anterior.svg";
 import paginaSiguiente from "../../../assets/noticias/pagina-siguiente.svg";
 import mesAnterior from "../../../assets/noticias/mes-anterior.svg";
 import mesSiguiente from "../../../assets/noticias/mes-siguiente.svg";
+import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.jpg";
+import { EsqueletoDestacada, EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 
 // ---------- Encabezado verde (igual que EncabezadoPublico, con botón opcional para volver) ----------
 
@@ -79,6 +81,21 @@ export function ChipCategoria({ activa, alPresionar, children }: { activa: boole
     );
 }
 
+// ---------- Imagen de una noticia ----------
+// Si la noticia no tiene imagen o no carga, se muestra una foto de la biblioteca marcada como ilustrativa
+// (antes quedaba en blanco o con el ícono de imagen rota).
+export function ImagenNoticia({ noticia, ilustrativa = false, perezosa = true }: { noticia: Noticia; ilustrativa?: boolean; perezosa?: boolean }) {
+    const [fallo, setFallo] = useState(false);
+    const propia = Boolean(noticia.imagen) && !fallo;
+    return (
+        <>
+            <img loading={perezosa ? "lazy" : "eager"} decoding="async" src={propia ? noticia.imagen : fotoRespaldo} alt={propia ? noticia.textoAlternativo ?? "" : ""}
+                onError={() => setFallo(true)} />
+            {(ilustrativa || !propia) && <span className="tarjeta-noticia__ilustrativa">Imagen ilustrativa</span>}
+        </>
+    );
+}
+
 // ---------- Tarjetas ----------
 
 // Enlace al detalle. "desde" permite que el detalle sepa a dónde regresar.
@@ -93,7 +110,7 @@ export function TarjetaChica({ noticia, origen }: { noticia: Noticia; origen: Or
     return (
         <Link to={rutaDetalle(noticia)} state={origen} className="tarjeta-noticia tarjeta-noticia--chica">
             <span className="tarjeta-noticia__imagen">
-                <img src={noticia.imagen || undefined} alt={noticia.textoAlternativo ?? ""} />
+                <ImagenNoticia noticia={noticia} />
             </span>
             <span className="tarjeta-noticia__textos">
                 <PuntoCategoria categoria={noticia.categoria} />
@@ -109,8 +126,7 @@ export function TarjetaArchivo({ noticia, vista, origen }: { noticia: Noticia; v
     return (
         <Link to={rutaDetalle(noticia)} state={origen} className={`tarjeta-noticia tarjeta-noticia--${vista}`}>
             <span className="tarjeta-noticia__imagen">
-                <img src={noticia.imagen || undefined} alt={noticia.textoAlternativo ?? ""} />
-                <span className="tarjeta-noticia__ilustrativa">Imagen ilustrativa</span>
+                <ImagenNoticia noticia={noticia} ilustrativa />
             </span>
             <span className="tarjeta-noticia__textos">
                 <span className="tarjeta-noticia__meta">
@@ -130,12 +146,13 @@ export function TarjetaArchivo({ noticia, vista, origen }: { noticia: Noticia; v
 
 // ---------- Estados: cargando, sin resultados, error y no disponible ----------
 
-export function CargandoNoticias() {
+// Esqueleto: la forma de la noticia destacada y de las tarjetas mientras llegan
+export function CargandoNoticias({ destacada = true }: { destacada?: boolean }) {
     return (
-        <p className="noticias-cargando" role="status">
-            <span className="noticias-cargando__punto" aria-hidden="true" />
-            Cargando noticias…
-        </p>
+        <>
+            {destacada && <EsqueletoDestacada texto="Cargando noticias…" />}
+            <EsqueletoTarjetas cantidad={3} texto={destacada ? "" : "Cargando noticias…"} />
+        </>
     );
 }
 

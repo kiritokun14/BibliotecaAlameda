@@ -93,3 +93,35 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* ---------- Animación al cambiar de sección ----------
+   Cada página se monta al navegar: el contenido aparece con un desvanecido suave y el encabezado
+   verde entra escalonado. Solo opacity y transform (sin transform en <main>, para no afectar
+   a los elementos fijos como ventanas y el asistente). */
+.pagina-publica > main { animation: pagina-entra 0.35s ease-out both; }
+
+.encabezado-publico > .etiqueta-inicio,
+.encabezado-publico > h1,
+.encabezado-publico > p {
+  animation: encabezado-entra 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.encabezado-publico > h1 { animation-delay: 0.06s; }
+.encabezado-publico > p { animation-delay: 0.12s; }
+
+@keyframes pagina-entra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes encabezado-entra {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica > main,
+  .encabezado-publico > .etiqueta-inicio,
+  .encabezado-publico > h1,
+  .encabezado-publico > p { animation: none; }
+}

@@ -71,3 +71,13 @@ describe('Por tema y memoria pública', () => {
         expect(memoriaPorAnio(null)).toHaveLength(visibles(memorias).length);
     });
 });
+
+describe("Búsqueda de Por tema y Memoria pública", () => {
+    it("encuentra el texto en cualquier campo, sin importar acentos ni mayúsculas", async () => {
+        const { coincideBusqueda } = await import("../src/pages/publico/lecturas/datos");
+        expect(coincideBusqueda("", "Pedro Páramo")).toBe(true);
+        expect(coincideBusqueda("paramo", "Pedro Páramo")).toBe(true);
+        expect(coincideBusqueda("RULFO", "Pedro Páramo", "Juan Rulfo")).toBe(true);
+        expect(coincideBusqueda("borges", "Pedro Páramo", undefined)).toBe(false);
+    });
+});

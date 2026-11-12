@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import "./Lecturas.css";
 import { abrir, visibles } from "./datos";
-import { BotonVolverClaro, EncabezadoLecturas, EstadoLecturas, TarjetaMemoria, TituloResaltado } from "./piezas";
+import { BotonVolverClaro, EncabezadoLecturas, EstadoLecturas, FotoMemoria, TarjetaMemoria, TituloResaltado } from "./piezas";
 
 // Memoria pública · registro. ?desde=tema cambia el botón de regreso.
 function DetalleMemoria() {
@@ -54,7 +54,7 @@ function DetalleMemoria() {
             <section className="detalle-memoria">
                 <div className="detalle-memoria__contenido">
                     <div className="detalle-memoria__foto">
-                        <img src={m.imagen || undefined} alt="" />
+                        <FotoMemoria src={m.imagen} />
                         <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
                     </div>
                     <div className="detalle-memoria__texto">

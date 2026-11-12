@@ -14,6 +14,7 @@ import iconoCalendario from "../../../assets/perfil/menu-calendario.svg";
 import iconoPin from "../../../assets/perfil/menu-pin.svg";
 import iconoEstrella from "../../../assets/perfil/menu-estrella.svg";
 import iconoCampana from "../../../assets/perfil/menu-campana.svg";
+import iconoCorreo from "../../../assets/perfil/menu-correo.svg";
 import iconoCandado from "../../../assets/perfil/menu-candado.svg";
 import iconoSalir from "../../../assets/perfil/menu-salir.svg";
 import iconoSalirGrande from "../../../assets/perfil/modal-salir.svg";
@@ -46,7 +47,7 @@ export function EncabezadoPerfil({ nombre, correo, tipoCuenta, credencial }: {
 // ---------- Menú lateral «Secciones del perfil» ----------
 const iconosSeccion: Record<ClaveSeccion, string> = {
     resumen: iconoLista, datos: iconoUsuario, credencial: iconoArchivo, eventos: iconoCalendario,
-    propuestas: iconoArchivo, espacios: iconoPin, progreso: iconoEstrella, avisos: iconoCampana, seguridad: iconoCandado,
+    propuestas: iconoArchivo, espacios: iconoPin, progreso: iconoEstrella, mensajes: iconoCorreo, avisos: iconoCampana, seguridad: iconoCandado,
 };
 
 export function MenuPerfil({ activa, menor, alCerrarSesion }: { activa: ClaveSeccion; menor: boolean; alCerrarSesion: () => void }) {

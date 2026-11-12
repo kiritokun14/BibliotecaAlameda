@@ -61,7 +61,7 @@ function SolonArguello() {
                 <ul className="cuatro-columnas">
                     {obras.map((obra) => (
                         <li key={obra.titulo} className="tarjeta-blanca tarjeta-obra">
-                            <img src={obra.portada} alt={`Portada ilustrativa de ${obra.titulo}`} />
+                            <img loading="lazy" decoding="async" src={obra.portada} alt={`Portada ilustrativa de ${obra.titulo}`} />
                             <h3>{obra.titulo}</h3>
                             <p>{obra.tipo}</p>
                         </li>

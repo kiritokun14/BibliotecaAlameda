@@ -10,6 +10,9 @@ import iconoCorreo from "../../../assets/contacto/dato-correo.svg";
 import iconoAlerta from "../../../assets/contacto/campo-alerta.svg";
 import iconoCheck from "../../../assets/contacto/enviado-check.svg";
 import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
+import { EtapasTramite } from "../credencial/piezas";
+import { etapasContacto } from "./seguimiento";
+import "../credencial/CredencialSesion.css";
 
 // ---------- Tarjeta verde "Cómo encontrarnos" ----------
 
@@ -116,13 +119,17 @@ export const CampoContacto = forwardRef<HTMLInputElement & HTMLTextAreaElement, 
 );
 
 // ---------- Mensaje enviado ----------
+// Con sesión: folio y flujo «Se registró tu petición → En revisión → Atendida», con enlace al seguimiento
+// en Mi perfil › Mis mensajes. Visitante sin cuenta: no ve folio (no tendría dónde consultarlo); se le
+// agradece y se le invita a registrarse para dar seguimiento.
 
 export const Confirmacion = forwardRef<HTMLHeadingElement, {
     etiqueta: string;
     titulo: string;
     alEnviarOtro: () => void;
     folio?: string;
-}>(function Confirmacion({ etiqueta, titulo, alEnviarOtro, folio }, ref) {
+    conSesion: boolean;
+}>(function Confirmacion({ etiqueta, titulo, alEnviarOtro, folio, conSesion }, ref) {
     return (
         <section className="contacto-seccion contacto-seccion--verde">
             <div className="confirmacion-contacto" role="status">
@@ -134,17 +141,117 @@ export const Confirmacion = forwardRef<HTMLHeadingElement, {
                 <p className="confirmacion-contacto__etiqueta">{etiqueta}</p>
                 {/* tabIndex -1: recibe el foco al terminar para que el lector anuncie el resultado */}
                 <h2 ref={ref} tabIndex={-1}>{titulo}</h2>
-                <p className="confirmacion-contacto__texto">{folio && <>Conserva tu folio: <strong>{folio}</strong><br /></>}El personal de la biblioteca lo revisará.</p>
-                <div className="confirmacion-contacto__botones">
-                    <Link to="/" className="boton-contacto boton-contacto--verde">
-                        Volver al inicio
-                        <img src={flechaBlanca} alt="" />
-                    </Link>
-                    <button type="button" className="boton-contacto boton-contacto--contorno" onClick={alEnviarOtro}>
-                        Enviar otro mensaje
-                    </button>
-                </div>
+                {conSesion ? (
+                    <>
+                        <p className="confirmacion-contacto__texto">
+                            Se registró tu petición{folio && <> con el folio <strong>{folio}</strong></>}.
+                            Puedes seguir su avance desde tu perfil.
+                        </p>
+                        <div className="confirmacion-contacto__etapas">
+                            <EtapasTramite etapas={etapasContacto("recibido")} />
+                        </div>
+                        <div className="confirmacion-contacto__botones">
+                            <Link to={folio ? `/mi-perfil/mensajes?folio=${encodeURIComponent(folio)}` : "/mi-perfil/mensajes"}
+                                className="boton-contacto boton-contacto--verde">
+                                Ver el seguimiento en mi perfil
+                                <img src={flechaBlanca} alt="" />
+                            </Link>
+                            <button type="button" className="boton-contacto boton-contacto--contorno" onClick={alEnviarOtro}>
+                                Enviar otro mensaje
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <p className="confirmacion-contacto__texto">
+                            Tu petición será revisada por el personal de la biblioteca. ¡Muchas gracias por escribirnos!
+                        </p>
+                        <p className="confirmacion-contacto__invitacion">
+                            Si quieres un seguimiento más adecuado o más información, regístrate en el portal:
+                            con tu cuenta verás en qué va cada mensaje que nos envíes.
+                        </p>
+                        <div className="confirmacion-contacto__botones">
+                            <Link to="/crear-cuenta" className="boton-contacto boton-contacto--verde">
+                                Crear mi cuenta
+                                <img src={flechaBlanca} alt="" />
+                            </Link>
+                            <Link to="/" className="boton-contacto boton-contacto--contorno">Volver al inicio</Link>
+                            <button type="button" className="boton-contacto boton-contacto--contorno" onClick={alEnviarOtro}>
+                                Enviar otro mensaje
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </section>
     );
 });
+
+// ---------- Otras formas de comunicarte ----------
+// Llamar, escribir o visitar: los datos salen de datosBiblioteca (los mismos de la tarjeta verde).
+const MAPA_BIBLIOTECA = "https://maps.app.goo.gl/3kJpfUj9dDBsZZNz9"; // el mismo enlace del mapa de Inicio
+
+export function CanalesContacto() {
+    const telefono = datosBiblioteca.telefono;
+    const correo = datosBiblioteca.correo;
+    const canales = [
+        telefono && { id: "llamar", titulo: "Llámanos", texto: `En horario de atención: ${telefono}`, accion: "Llamar ahora", href: `tel:+52${telefono.replace(/\D/g, "")}`, icono: iconoTelefono, externo: false },
+        correo && { id: "escribir", titulo: "Escríbenos un correo", texto: correo, accion: "Enviar correo", href: `mailto:${correo}`, icono: iconoCorreo, externo: false },
+        { id: "visitar", titulo: "Visítanos", texto: datosBiblioteca.direccion, accion: "Cómo llegar", href: MAPA_BIBLIOTECA, icono: iconoPin, externo: true },
+    ].filter(Boolean) as { id: string; titulo: string; texto: string; accion: string; href: string; icono: string; externo: boolean }[];
+
+    return (
+        <section className="contacto-seccion contacto-seccion--blanca" aria-labelledby="titulo-canales">
+            <div className="contacto-bloque">
+                <p className="contacto-bloque__etiqueta">OTRAS FORMAS</p>
+                <h2 id="titulo-canales">Otras formas de comunicarte</h2>
+                <ul className="canales-contacto">
+                    {canales.map((c) => (
+                        <li key={c.id}>
+                            <a className="canal-contacto" href={c.href} {...(c.externo ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+                                <span className="canal-contacto__icono"><img src={c.icono} alt="" /></span>
+                                <strong>{c.titulo}</strong>
+                                <span className="canal-contacto__texto">{c.texto}</span>
+                                <span className="canal-contacto__accion">
+                                    {c.accion} <span aria-hidden="true">→</span>
+                                    {c.externo && <span className="solo-lectores"> (se abre en una pestaña nueva)</span>}
+                                </span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </section>
+    );
+}
+
+// ---------- Preguntas frecuentes ----------
+// Respuestas que remiten a lo que ya existe en el portal (no inventan reglas de la biblioteca).
+const PREGUNTAS: { pregunta: string; respuesta: string; enlace: { texto: string; ruta: string } }[] = [
+    { pregunta: "¿Cómo tramito mi credencial?", respuesta: "La solicitas desde el portal con tu cuenta y después acudes a la biblioteca para el cotejo de tus datos.", enlace: { texto: "Ver el trámite de credencial", ruta: "/credencial" } },
+    { pregunta: "¿Cómo solicito un espacio de la biblioteca?", respuesta: "Con tu sesión iniciada eliges el área, la fecha y el horario; la biblioteca revisa y confirma cada solicitud.", enlace: { texto: "Ver la agenda de espacios", ruta: "/espacios" } },
+    { pregunta: "¿Dónde consulto los talleres y actividades?", respuesta: "En Eventos encuentras la agenda con las próximas actividades, sus horarios y lugares.", enlace: { texto: "Ver eventos y actividades", ruta: "/eventos" } },
+    { pregunta: "¿Cómo sé en qué va mi mensaje?", respuesta: "Si lo envías con tu sesión iniciada, recibes un folio y puedes seguir su avance en Mi perfil › Mis mensajes.", enlace: { texto: "Ir a Mis mensajes", ruta: "/mi-perfil/mensajes" } },
+];
+
+export function PreguntasFrecuentes() {
+    return (
+        <section className="contacto-seccion contacto-seccion--crema" aria-labelledby="titulo-preguntas">
+            <div className="contacto-bloque">
+                <p className="contacto-bloque__etiqueta">ANTES DE ESCRIBIR</p>
+                <h2 id="titulo-preguntas">Preguntas frecuentes</h2>
+                <div className="preguntas-contacto">
+                    {PREGUNTAS.map((p) => (
+                        <details key={p.pregunta} className="pregunta-contacto">
+                            <summary>{p.pregunta}</summary>
+                            <div className="pregunta-contacto__respuesta">
+                                <p>{p.respuesta}</p>
+                                <Link to={p.enlace.ruta}>{p.enlace.texto} <span aria-hidden="true">→</span></Link>
+                            </div>
+                        </details>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}

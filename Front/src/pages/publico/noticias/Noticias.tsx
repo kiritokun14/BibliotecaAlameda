@@ -3,7 +3,8 @@ import { Link } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import "./Noticias.css";
 import { CATEGORIAS, fechaLarga, filtrarNoticias, nombreCategoria, type Categoria } from "./datos";
-import { CargandoNoticias, ChipCategoria, EncabezadoNoticias, EstadoNoticias, PuntoCategoria, TarjetaChica } from "./piezas";
+import { CargandoNoticias, EncabezadoNoticias, EstadoNoticias, ImagenNoticia, PuntoCategoria, TarjetaChica } from "./piezas";
+import { ChipsFiltro } from "../../../components/portal/BarraFiltros";
 import { useNoticias } from "./useNoticias";
 import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import flechaOscura from "../../../assets/comun/iconos/flecha-oscura.svg";
@@ -67,14 +68,12 @@ function ContenidoListado({
 
     return (
         <>
-            <div className="filtro-categorias" role="group" aria-label="Filtrar por categoría">
-                <ChipCategoria activa={categoria === null} alPresionar={() => alCambiarCategoria(null)}>Todas</ChipCategoria>
-                {CATEGORIAS.map((c) => (
-                    <ChipCategoria key={c.id} activa={categoria === c.id} alPresionar={() => alCambiarCategoria(c.id)}>
-                        {c.nombre}
-                    </ChipCategoria>
-                ))}
-            </div>
+            <ChipsFiltro
+                etiqueta="Filtrar por categoría"
+                opciones={[{ valor: "", texto: "Todas" }, ...CATEGORIAS.map((c) => ({ valor: c.id as string, texto: c.nombre }))]}
+                activa={categoria ?? ""}
+                alElegir={(valor) => alCambiarCategoria((valor || null) as Categoria | null)}
+            />
 
             {!destacada ? (
                 <EstadoNoticias
@@ -88,7 +87,7 @@ function ContenidoListado({
                         <img className="noticia-principal__circulo noticia-principal__circulo--1" src={circuloGrande} alt="" />
                         <img className="noticia-principal__circulo noticia-principal__circulo--2" src={circuloChico} alt="" />
                         <span className="noticia-principal__imagen">
-                            <img src={destacada.imagen || undefined} alt={destacada.textoAlternativo ?? ""} />
+                            <ImagenNoticia noticia={destacada} perezosa={false} />
                         </span>
                         <span className="noticia-principal__textos">
                             <span className="noticia-principal__meta">

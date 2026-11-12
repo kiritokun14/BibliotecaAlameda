@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { useLocation, useNavigate } from "react-router";
 import "./BotonAsistente.css";
-import PanelAsistente from "../asistente/PanelAsistente";
+// El panel solo se descarga al abrir el asistente (o al pasar el mouse por el botón)
+const cargarPanel = () => import("../asistente/PanelAsistente");
+const PanelAsistente = lazy(cargarPanel);
 import { useConversacion } from "../asistente/conversacion";
 import haloExterior from "../../assets/comun/iconos/asistente-halo-exterior.svg";
 import haloInterior from "../../assets/comun/iconos/asistente-halo-interior.svg";
@@ -180,6 +182,7 @@ function BotonAsistente() {
     // ---------- Panel abierto ----------
     if (ventana !== "cerrada") {
         return (
+            <Suspense fallback={null}>
             <PanelAsistente
                 modo={ventana === "expandida" ? "expandido" : "compacto"}
                 conversacion={conversacion}
@@ -190,6 +193,7 @@ function BotonAsistente() {
                 // Cerrar termina la conversación y regresa la pastilla
                 alCerrar={() => { conversacion.nuevaConsulta(); setVentana("cerrada"); setMinimizado(false); }}
             />
+            </Suspense>
         );
     }
 
@@ -204,6 +208,7 @@ function BotonAsistente() {
             className={clases}
             style={estilo}
             onPointerDown={alPresionar}
+            onPointerEnter={() => { cargarPanel().catch(() => undefined); }}
             title="Puedes arrastrarlo a otro lugar de la pantalla"
         >
             {minimizado ? (
@@ -218,11 +223,14 @@ function BotonAsistente() {
                         else setMinimizado(false);
                     }}
                 >
+                    {/* Contorno dorado que gira: se anima con transform, sin redibujar */}
+                    <span className="asistente__contorno" aria-hidden="true"><span /></span>
                     <img className="asistente__halo asistente__halo--exterior" src={haloExterior} alt="" draggable={false} />
                     <img className="asistente__halo asistente__halo--interior" src={haloInterior} alt="" draggable={false} />
                     <span className="asistente__avatar">
                         <img src={robot} alt="" draggable={false} />
                     </span>
+                    <span className="asistente__pulso" aria-hidden="true" />
                     <img className="asistente__en-linea" src={enLinea} alt="" draggable={false} />
                     {enCurso && <span className="asistente__en-curso" aria-hidden="true" />}
                 </button>
@@ -251,11 +259,14 @@ function BotonAsistente() {
                             aria-haspopup="dialog"
                             onClick={(e) => { if (!evitarClicTrasArrastre(e)) setVentana("compacta"); }}
                         >
+                            {/* Contorno dorado que gira: se anima con transform, sin redibujar */}
+                            <span className="asistente__contorno" aria-hidden="true"><span /></span>
                             <img className="asistente__halo asistente__halo--exterior" src={haloExterior} alt="" draggable={false} />
                             <img className="asistente__halo asistente__halo--interior" src={haloInterior} alt="" draggable={false} />
                             <span className="asistente__avatar">
                                 <img src={robot} alt="" draggable={false} />
                             </span>
+                            <span className="asistente__pulso" aria-hidden="true" />
                             <img className="asistente__en-linea" src={enLinea} alt="" draggable={false} />
                             <span className="asistente__texto">
                                 <strong>¿Tienes dudas?</strong>

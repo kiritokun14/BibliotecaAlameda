@@ -124,7 +124,7 @@ function ImagenEtapa({ etapa }: { etapa: Etapa }) {
     const porConfirmar = !etapa.imagen || etapa.imagenPorConfirmar;
     return (
         <figure className={porConfirmar ? "etapa__imagen etapa__imagen--por-confirmar" : "etapa__imagen"}>
-            {etapa.imagen && <img src={etapa.imagen} alt={`Imagen ilustrativa: ${etapa.titulo}`} />}
+            {etapa.imagen && <img loading="lazy" decoding="async" src={etapa.imagen} alt={`Imagen ilustrativa: ${etapa.titulo}`} />}
             {porConfirmar && (
                 <figcaption>
                     <img src={iconoPorConfirmar} alt="" />

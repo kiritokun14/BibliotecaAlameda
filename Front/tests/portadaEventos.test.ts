@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventosPortada, tipoPortada } from "../src/pages/publico/inicio/eventosPortada";
+import { IMAGEN_TIPO, eventosPortada, tipoPortada } from "../src/pages/publico/inicio/eventosPortada";
 import type { ActividadPublica } from "../src/servicios/actividades";
 
 const actividad = (folio: string, tipo: string, fecha: string, inicio: string, sesiones: ActividadPublica["sesiones"] = []): ActividadPublica => ({
@@ -17,7 +17,8 @@ describe("Tarjeta de eventos de la portada de Inicio", () => {
         ];
         const eventos = eventosPortada(lista, "2026-11-11");
         expect(eventos.map((e) => e.id)).toEqual(["A-1", "A-2"]);
-        expect(eventos[0]).toMatchObject({ tipo: "Agenda cultural", cuando: "Jue 12 nov · 11:00 h" });
+        expect(eventos[0]).toMatchObject({ tipo: "Agenda cultural", cuando: "Jue 12 nov · 11:00 h", imagen: IMAGEN_TIPO["Agenda cultural"] });
+        expect(eventos[1].imagen).toBe(IMAGEN_TIPO.Taller);
     });
 
     it("usa la próxima sesión cuando la actividad tiene varias", () => {
@@ -27,6 +28,15 @@ describe("Tarjeta de eventos de la portada de Inicio", () => {
         ];
         const [evento] = eventosPortada([actividad("A-3", "Lectura", "2026-11-05", "10:00", sesiones)], "2026-11-11");
         expect(evento).toMatchObject({ tipo: "Actividad", cuando: "Dom 15 nov · 17:30 h" });
+    });
+
+    it("la foto cambia aunque los eventos sean del mismo tipo", () => {
+        const dos = eventosPortada([actividad("C-1", "Club", "2026-11-20", "10:00"), actividad("C-2", "Club", "2026-11-21", "10:00")], "2026-11-11");
+        expect(dos[0].imagen).not.toBe(dos[1].imagen);
+
+        const cuatro = eventosPortada(["C-1", "C-2", "C-3", "C-4"].map((f, i) => actividad(f, "Club", `2026-11-2${i}`, "10:00")), "2026-11-11");
+        const fotos = cuatro.map((e) => e.imagen);
+        fotos.forEach((foto, i) => expect(foto).not.toBe(fotos[(i + 1) % fotos.length]));
     });
 
     it("clasifica igual que la sección Actividades", () => {

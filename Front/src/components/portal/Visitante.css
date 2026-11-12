@@ -68,6 +68,9 @@
   padding: 48px 24px;
 }
 
+/* La primera sección, pegada al encabezado verde: 40 px como en las demás páginas */
+.encabezado-publico + .seccion-visitante { padding-top: 40px; }
+
 .seccion-visitante--blanco { background: #fff; }
 .seccion-visitante--crema { background: #f7f5f0; }
 .seccion-visitante--verde { background: #e4efeb; }

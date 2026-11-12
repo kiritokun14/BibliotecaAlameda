@@ -11,7 +11,7 @@ import iconoUsuarios from "../../../assets/inicio/cifras-usuarios.svg";
 const cifras = [
     { valor: "2,000+", texto: "Volúmenes en el acervo", icono: iconoLibro },
     { valor: "8 a 19:30 h", texto: "Atención entre semana", icono: iconoReloj },
-    { valor: "Talleres", texto: "Actividades y lecturas para todas las edades", icono: iconoCalendario },
+    { valor: "Talleres", texto: "Actividades culturales", icono: iconoCalendario },
     { valor: "Abierto", texto: "Para todo el público", icono: iconoUsuarios },
 ];
 

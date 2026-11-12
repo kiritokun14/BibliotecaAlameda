@@ -79,7 +79,7 @@ export default function AgendaEspacios() {
 
     return (
         <PaginaPublica>
-            <EncabezadoPublico etiqueta="AGENDA DE ESPACIOS" titulo="Elige el área que quieres solicitar"
+            <EncabezadoPublico etiqueta="Espacios" titulo="Elige el área que quieres solicitar"
                 texto="Selecciona un área, indica fecha y horario y envía tu solicitud. La biblioteca la revisa y confirma." />
             <div className="espacios-cuerpo">
                 <ol className="cred-pasos espacios-pasos espacios-pasos--centro">

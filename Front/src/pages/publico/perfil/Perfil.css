@@ -822,3 +822,35 @@
   .perfil-cuerpo { grid-template-columns: 250px minmax(0, 1fr); gap: 24px; }
   .perfil-accesos .tarjeta-acceso h3 { font-size: 20px; line-height: 24px; }
 }
+
+/* ---------- Mis mensajes (MisMensajes.tsx) ---------- */
+.perfil-mensajes__buscar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.perfil-mensajes__buscar .perfil-campo { flex: 1; }
+.perfil-mensajes__buscar .perfil-boton { flex-shrink: 0; }
+
+.perfil-mensajes__estado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #4d4d4d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.perfil-mensajes__respuesta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #fff;
+  color: #161a1d;
+}
+
+.perfil-mensajes__respuesta strong { color: #164f44; font-size: 14px; }
+.perfil-mensajes__respuesta p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }

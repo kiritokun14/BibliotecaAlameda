@@ -39,7 +39,7 @@ function Servicios() {
             <EncabezadoPublico
                 etiqueta="Servicios y programas"
                 titulo={<>Todo lo que <span>ofrece</span> la biblioteca</>}
-                texto="Conoce lo que ofrece la Biblioteca Solón Argüello y cómo acceder a cada servicio."
+                texto="Conoce lo que ofrece la biblioteca y cómo acceder a cada servicio."
             />
 
             {carga.estado === "cargando" && <CargandoServicios />}

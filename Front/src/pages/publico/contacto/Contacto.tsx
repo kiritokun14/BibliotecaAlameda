@@ -13,8 +13,8 @@ import {
     type MensajeContacto,
     type TipoMensaje,
 } from "./datos";
-import { CampoContacto, Confirmacion, TarjetaDatos } from "./piezas";
-import SeguimientoContacto from "./SeguimientoContacto";
+import { CampoContacto, CanalesContacto, Confirmacion, PreguntasFrecuentes, TarjetaDatos } from "./piezas";
+import { useSesion } from "../perfil/usarSesion";
 import iconoCandado from "../../../assets/contacto/privacidad-candado.svg";
 import iconoEnviar from "../../../assets/contacto/boton-enviar.svg";
 import iconoAviso from "../../../assets/contacto/aviso-alerta.svg";
@@ -33,6 +33,7 @@ function tipoInicial(valor: string | null): TipoMensaje {
 // T-053: formulario de contacto y buzón de sugerencias, sin iniciar sesión
 function Contacto() {
     const [parametros] = useSearchParams();
+    const sesion = useSesion(); // con sesión, la confirmación lleva al seguimiento en Mi perfil
     const [tipo, setTipo] = useState<TipoMensaje>(() => tipoInicial(parametros.get("tipo")));
     const [valores, setValores] = useState(VACIO);
     const [errores, setErrores] = useState<ErroresMensaje>({});
@@ -115,11 +116,11 @@ function Contacto() {
                 texto="Cuéntanos tu duda, comentario o idea para mejorar la biblioteca."
             />
 
-            <SeguimientoContacto />
             {envio === "enviado" ? (
                 <Confirmacion
                     ref={tituloEnviado}
                     folio={folio}
+                    conSesion={Boolean(sesion)}
                     etiqueta={textos.enviado.etiqueta}
                     titulo={textos.enviado.titulo}
                     alEnviarOtro={enviarOtro}
@@ -242,6 +243,9 @@ function Contacto() {
                     </div>
                 </section>
             )}
+
+            <CanalesContacto />
+            <PreguntasFrecuentes />
         </PaginaPublica>
     );
 }

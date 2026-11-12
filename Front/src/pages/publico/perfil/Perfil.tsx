@@ -7,6 +7,7 @@ import { ErrorServicio, mensajeError, obtenerSupabase } from "../../../servicios
 import { simulacion } from "../../../servicios/simulacion";
 import { EncabezadoPerfil, MenuPerfil, ModalCerrarSesion } from "./piezas";
 import { CorreoPendiente, EditarDatos, MisDatos, Resumen } from "./secciones";
+import { MisMensajes } from "./MisMensajes";
 import { Avisos, MiCredencialPerfil, MisEspacios, MisEventos, MisPropuestas, Progreso, Seguridad } from "./seccionesCuenta";
 import { useTramite } from "../credencial/datos";
 import { chipCredencial, esMenorDeEdad, nombreCompleto, perfilSimulado, seccionDeRuta, tipoDeCuenta } from "./datos";
@@ -106,7 +107,7 @@ export default function Perfil({ vista }: { vista?: Vista }) {
         resumen: <Resumen menor={menor} />, datos: <MisDatos perfil={perfil} menor={menor} />,
         credencial: <MiCredencialPerfil perfil={perfil} menor={menor} />, eventos: <MisEventos menor={menor} />,
         propuestas: <MisPropuestas />, espacios: <MisEspacios />, progreso: <Progreso menor={menor} />,
-        avisos: <Avisos />, seguridad: <Seguridad perfil={perfil} menor={menor} alCerrarSesion={abrirCierre} />,
+        mensajes: <MisMensajes />, avisos: <Avisos />, seguridad: <Seguridad perfil={perfil} menor={menor} alCerrarSesion={abrirCierre} />,
     }[seccion];
 
     return (

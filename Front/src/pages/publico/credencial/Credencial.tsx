@@ -1,8 +1,7 @@
 import { Link } from "react-router";
-import PaginaPublica from "../../../components/portal/PaginaPublica";
+import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import {
     AvisoCuenta,
-    EncabezadoVisitante,
     LlamadoVisitante,
     PasosVisitante,
     SeccionVisitante,
@@ -24,11 +23,11 @@ function Credencial() {
     const sesion = useSesion(); // undefined mientras se sabe si hay sesión
     return (
         <PaginaPublica>
-            <EncabezadoVisitante
-                regreso={{ texto: "Servicios y programas", ruta: "/servicios" }}
-                etiqueta="CREDENCIAL"
+            {/* Encabezado centrado, igual que las demás páginas del menú */}
+            <EncabezadoPublico
+                etiqueta="Credencial"
                 titulo={<><span>Credencial</span> de la biblioteca</>}
-                texto="Conoce en qué consiste, qué necesitas y cómo funciona el trámite. Tú decides si lo inicias."
+                texto="Conoce qué es, qué necesitas y cómo funciona el trámite."
             />
 
             {sesion ? <>

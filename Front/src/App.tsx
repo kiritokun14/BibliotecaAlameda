@@ -1,20 +1,22 @@
 import { lazy, Suspense } from "react";
-import RetornoAuth from "./pages/acceso/RetornoAuth";
+// Solo Inicio y el regreso de inicio de sesión van en el paquete principal; lo demás se descarga al abrirlo.
+import { EsqueletoPagina } from "./components/portal/Esqueleto";
+const RetornoAuth = lazy(() => import("./pages/acceso/RetornoAuth"));
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import Inicio from "./pages/publico/inicio/Inicio.tsx";
-import Login from "./pages/acceso/Login.tsx";
-import CuentaDeshabilitada from "./pages/acceso/CuentaDeshabilitada.tsx";
-import SesionIniciada from "./pages/acceso/SesionIniciada.tsx";
-import CrearCuenta from "./pages/acceso/CrearCuenta.tsx";
-import CorreoRegistrado from "./pages/acceso/CorreoRegistrado.tsx";
-import ConfirmarCorreo from "./pages/acceso/ConfirmarCorreo.tsx";
-import ConfirmarEnlaceVencido from "./pages/acceso/ConfirmarEnlaceVencido.tsx";
-import SolicitarEnlace from "./pages/acceso/recuperar/SolicitarEnlace.tsx";
-import RevisaTuCorreo from "./pages/acceso/recuperar/RevisaTuCorreo.tsx";
-import NuevaContrasena from "./pages/acceso/recuperar/NuevaContrasena.tsx";
-import ContrasenaActualizada from "./pages/acceso/recuperar/ContrasenaActualizada.tsx";
-import EnlaceVencido from "./pages/acceso/recuperar/EnlaceVencido.tsx";
-import RecuperacionAsistida from "./pages/acceso/recuperar/RecuperacionAsistida.tsx";
+const Login = lazy(() => import("./pages/acceso/Login.tsx"));
+const CuentaDeshabilitada = lazy(() => import("./pages/acceso/CuentaDeshabilitada.tsx"));
+const SesionIniciada = lazy(() => import("./pages/acceso/SesionIniciada.tsx"));
+const CrearCuenta = lazy(() => import("./pages/acceso/CrearCuenta.tsx"));
+const CorreoRegistrado = lazy(() => import("./pages/acceso/CorreoRegistrado.tsx"));
+const ConfirmarCorreo = lazy(() => import("./pages/acceso/ConfirmarCorreo.tsx"));
+const ConfirmarEnlaceVencido = lazy(() => import("./pages/acceso/ConfirmarEnlaceVencido.tsx"));
+const SolicitarEnlace = lazy(() => import("./pages/acceso/recuperar/SolicitarEnlace.tsx"));
+const RevisaTuCorreo = lazy(() => import("./pages/acceso/recuperar/RevisaTuCorreo.tsx"));
+const NuevaContrasena = lazy(() => import("./pages/acceso/recuperar/NuevaContrasena.tsx"));
+const ContrasenaActualizada = lazy(() => import("./pages/acceso/recuperar/ContrasenaActualizada.tsx"));
+const EnlaceVencido = lazy(() => import("./pages/acceso/recuperar/EnlaceVencido.tsx"));
+const RecuperacionAsistida = lazy(() => import("./pages/acceso/recuperar/RecuperacionAsistida.tsx"));
 
 const AltaAsistida = lazy(() => import("./pages/personal/AltaAsistida"));
 
@@ -42,7 +44,7 @@ const FormularioAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.
 const VistaPreviaAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.VistaPreviaAviso })));
 const DetalleAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.DetalleAviso })));
 const ResultadoAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.ResultadoAviso })));
-import AccesoPanel from "./pages/admin/AccesoPanel";
+const AccesoPanel = lazy(() => import("./pages/admin/AccesoPanel"));
 const EditorContenidos = lazy(() => import("./pages/admin/contenidos/EditorContenidos.tsx"));
 const NuevoContenido = lazy(() => import("./pages/admin/contenidos/NuevoContenido.tsx"));
 const RedactarNoticia = lazy(() => import("./pages/admin/contenidos/RedactarNoticia.tsx"));
@@ -170,7 +172,7 @@ const PerfilPropio = lazy(() => import("./pages/publico/perfil/Perfil"));
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<main className="confirmacion" role="status">Cargando pantalla...</main>}>
+      <Suspense fallback={<EsqueletoPagina />}>
       <Routes>
         <Route path="/" element={<Inicio />} />
 
