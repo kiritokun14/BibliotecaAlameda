@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { tieneCapacidad } from "../../servicios/altaAsistida";
 import { cerrarSesion, consultarMiAcceso } from "../../servicios/auth";
 import { obtenerSupabase, mensajeError } from "../../servicios/api";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router";
 import MenuCuenta from "../../pages/publico/perfil/MenuCuenta";
 import { precargarRuta } from "./precarga";
 import "./Navegacion.css";
@@ -59,9 +59,11 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
         });
         return () => { activo = false; cancelar?.(); };
     }, [alCambiarSesion]);
+    const navegar = useNavigate();
+    // Al cerrar sesión se regresa al Inicio del portal (desde cualquier página)
     async function salir() {
         setCerrando(true); setError("");
-        try { await cerrarSesion(); setPanel(false); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); }
+        try { await cerrarSesion(); setPanel(false); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); navegar("/", { replace: true }); window.scrollTo(0, 0); }
         catch (error) { setError(mensajeError(error)); }
         finally { setCerrando(false); }
     }
