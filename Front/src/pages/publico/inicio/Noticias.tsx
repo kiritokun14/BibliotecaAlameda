@@ -1,6 +1,7 @@
 import { usePublicados } from "../../../servicios/usarPublicados.ts";
 import { noticiaPublicada, fechaLarga } from "../noticias/datos";
 import { useState } from "react";
+import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.jpg";
 import { Link } from "react-router";
 import { Bloque, EncabezadoSeccion, Etiqueta } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
@@ -50,14 +51,8 @@ function Noticias() {
                         <div className="noticia-destacada__imagen">
                             {/* Todas las fotos están encimadas; solo la activa se ve (cambio con desvanecido) */}
                             {noticias.map((noticia, i) => (
-                                <img
-                                    loading="lazy"
-                                    decoding="async"
-                                    key={noticia.id}
-                                    src={noticia.imagen || undefined}
-                                    alt=""
-                                    className={i === activa ? "noticia-destacada__foto noticia-destacada__foto--activa" : "noticia-destacada__foto"}
-                                />
+                                <FotoNoticia key={noticia.id} src={noticia.imagen}
+                                    className={i === activa ? "noticia-destacada__foto noticia-destacada__foto--activa" : "noticia-destacada__foto"} />
                             ))}
                             <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
                             {/* El % hace que al llegar al final vuelva a empezar */}
@@ -115,3 +110,10 @@ function Noticias() {
 }
 
 export default Noticias;
+
+// Foto de la noticia; si no tiene o no carga (por ejemplo, el servidor de imágenes falla),
+// una foto de la biblioteca en lugar de un recuadro en blanco
+function FotoNoticia({ src, className }: { src?: string; className: string }) {
+    const [fallo, setFallo] = useState(false);
+    return <img className={className} src={src && !fallo ? src : fotoRespaldo} alt="" decoding="async" onError={() => setFallo(true)} />;
+}

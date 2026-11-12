@@ -92,27 +92,26 @@ function Ilustracion({ estilo }: { estilo: Libro["estilo"] }) {
     }
 }
 
+// La portada ilustrada se ve siempre; si el libro tiene foto, aparece encima con un desvanecido
+// solo cuando terminó de cargar. Si la foto falla o tarda, se queda la ilustrada (nunca un recuadro vacío).
 function PortadaLibro({ libro }: { libro: Libro }) {
-    const [fallo, setFallo] = useState(false);
-    // Foto real (cuando el backend la mande); si no carga, la portada ilustrada
-    if (libro.portadaUrl && !fallo) {
-        return (
-            <div className="portada-libro portada-libro--foto">
-                <img src={libro.portadaUrl} alt={`Portada de ${libro.titulo}`} onError={() => setFallo(true)} />
-            </div>
-        );
-    }
-
-    // Portada ilustrada mientras no haya foto
+    const [foto, setFoto] = useState<"cargando" | "lista" | "fallo">("cargando");
+    const conFoto = Boolean(libro.portadaUrl) && foto !== "fallo";
     return (
-        <div className={`portada-libro portada-libro--${libro.estilo}`} aria-hidden="true">
+        <div className={`portada-libro portada-libro--${libro.estilo}`}>
             <Ilustracion estilo={libro.estilo} />
             {/* lomo y hojas para que parezca un libro de verdad */}
-            <span className="portada-libro__lomo" />
-            <span className="portada-libro__hojas" />
-            <p className="portada-libro__genero">{libro.genero}</p>
-            <p className="portada-libro__titulo">{libro.titulo}</p>
-            <p className="portada-libro__autoria">{libro.autoria}</p>
+            <span className="portada-libro__lomo" aria-hidden="true" />
+            <span className="portada-libro__hojas" aria-hidden="true" />
+            <p className="portada-libro__genero" aria-hidden="true">{libro.genero}</p>
+            {/* En la portada solo el nombre del libro (lo que va antes de «:»); el título completo va debajo */}
+            <p className="portada-libro__titulo" aria-hidden="true">{libro.titulo.split(":")[0]}</p>
+            <p className="portada-libro__autoria" aria-hidden="true">{libro.autoria}</p>
+            {conFoto && (
+                <img className={`portada-libro__foto${foto === "lista" ? " portada-libro__foto--lista" : ""}`}
+                    src={libro.portadaUrl} alt={foto === "lista" ? `Portada de ${libro.titulo}` : ""} decoding="async"
+                    onLoad={() => setFoto("lista")} onError={() => setFoto("fallo")} />
+            )}
         </div>
     );
 }

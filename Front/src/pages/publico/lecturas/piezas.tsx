@@ -32,16 +32,22 @@ export function PestanasLecturas() {
     );
 }
 
-// ---------- Portada ilustrada (sin foto de portada real) ----------
-// Si la imagen de la portada no carga, se usa la portada ilustrada
+// ---------- Portada ----------
+// La portada ilustrada se ve siempre; si la reseña tiene foto, aparece encima con un desvanecido
+// solo cuando terminó de cargar. Si falla o tarda, se queda la ilustrada (nunca un recuadro vacío).
 export function Portada({ resena, tamano = "normal" }: { resena: Resena; tamano?: "normal" | "ancha" | "detalle" }) {
-    const [fallo, setFallo] = useState(false);
-    if (resena.imagen && !fallo) return <div className={`portada-lectura portada-lectura--${tamano}`}><img loading="lazy" decoding="async" src={resena.imagen} alt={`Portada de ${resena.libro}`} style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFallo(true)} /></div>;
+    const [foto, setFoto] = useState<"cargando" | "lista" | "fallo">("cargando");
+    const conFoto = Boolean(resena.imagen) && foto !== "fallo";
     return (
-        <div className={`portada-lectura portada-lectura--${resena.color} portada-lectura--${tamano}`} aria-hidden="true">
-            <span className="portada-lectura__circulo" />
-            <strong>{resena.libro}</strong>
-            {tamano !== "ancha" && <small>{resena.autoria}</small>}
+        <div className={`portada-lectura portada-lectura--${resena.color} portada-lectura--${tamano}`}>
+            <span className="portada-lectura__circulo" aria-hidden="true" />
+            <strong aria-hidden="true">{resena.libro}</strong>
+            {tamano !== "ancha" && <small aria-hidden="true">{resena.autoria}</small>}
+            {conFoto && (
+                <img className={`portada-lectura__foto${foto === "lista" ? " portada-lectura__foto--lista" : ""}`}
+                    loading="lazy" decoding="async" src={resena.imagen} alt={foto === "lista" ? `Portada de ${resena.libro}` : ""}
+                    onLoad={() => setFoto("lista")} onError={() => setFoto("fallo")} />
+            )}
         </div>
     );
 }

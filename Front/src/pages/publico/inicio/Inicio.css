@@ -975,14 +975,19 @@
   position: absolute;
 }
 
-.portada-libro--foto { background: #e4efeb; }
-
-.portada-libro--foto img {
+/* Foto real encima de la portada ilustrada: aparece solo cuando cargó (Lecturas.tsx) */
+.portada-libro__foto {
+  position: absolute;
   inset: 0;
+  z-index: 3;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
+
+.portada-libro__foto--lista { opacity: 1; }
 
 .portada-libro__lomo {
   top: 0;
@@ -1025,11 +1030,20 @@
   line-height: 25px;
   letter-spacing: -0.22px;
   font-weight: 700;
+  /* Títulos largos: hasta 3 renglones, sin encimarse con el dibujo */
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .portada-libro__autoria {
   top: 270px;
   left: 32px;
+  overflow: hidden;
+  width: 150px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.88px;
@@ -1888,16 +1902,22 @@
   to { opacity: 1; transform: none; }
 }
 
-/* Secciones que aparecen al llegar con el scroll (la clase la pone Inicio.tsx) */
-.seccion-inicio--revelar > * {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+/* Secciones que aparecen al llegar con el scroll: solo CSS (animación ligada al scroll).
+   No toca el HTML de React. Donde el navegador no lo soporta, o con «reducir animaciones»,
+   las secciones se ven normal desde el principio: nunca quedan ocultas. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .seccion-inicio > * {
+      animation: inicio-revela linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 30%;
+    }
+  }
 }
 
-.seccion-inicio--revelada > * {
-  opacity: 1;
-  transform: none;
+@keyframes inicio-revela {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: none; }
 }
 
 /* Perfiles «Comunitaria · Académica · Cultural» */
@@ -1933,7 +1953,6 @@
 @media (prefers-reduced-motion: reduce) {
   .portada__texto > *,
   .portada__composicion { animation: none; }
-  .seccion-inicio--revelar > * { opacity: 1; transform: none; transition: none; }
   .portada__perfiles li,
   .portada__perfil-icono,
   .tarjeta-acceso,
