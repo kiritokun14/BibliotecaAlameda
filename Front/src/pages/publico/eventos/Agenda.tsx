@@ -127,18 +127,18 @@ export function Fila({ actividad: a }: { actividad: ActividadAgenda }) {
     );
 }
 
+// Franja delgada para proponer (con sesión): una sola línea, para no ocupar media pantalla
 export function TarjetaProponer() {
     return (
-        <section className="agenda-proponer">
+        <section className="agenda-proponer" aria-label="Proponer una actividad">
             <span className="agenda-proponer__icono"><img src={estrella} alt="" /></span>
-            <div className="agenda-proponer__textos">
-                <p className="agenda-sobretitulo">PROPÓN</p>
-                <h2>¿Tienes una idea para la biblioteca?</h2>
-                <p>Propón un evento o un club. El personal la revisa y te responde en tus notificaciones.</p>
-            </div>
+            <p className="agenda-proponer__texto">
+                <strong>¿Tienes una idea para la biblioteca?</strong>
+                <span>Propón un evento o club; el personal la revisa y te responde.</span>
+            </p>
             <div className="agenda-proponer__acciones">
-                <Link to="/proponer" className="agenda-boton agenda-boton--dorado">Proponer un evento o club <img src={flechaOscura} alt="" /></Link>
-                <Link to="/mi-perfil/propuestas" className="agenda-boton agenda-boton--negro">Mis propuestas</Link>
+                <Link to="/mi-perfil/propuestas" className="agenda-proponer__enlace">Mis propuestas</Link>
+                <Link to="/proponer" className="agenda-boton agenda-boton--dorado agenda-boton--chico">Proponer <img src={flechaOscura} alt="" /></Link>
             </div>
         </section>
     );

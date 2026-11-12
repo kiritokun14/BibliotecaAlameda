@@ -8,3 +8,54 @@
 .tramites-campos button { justify-self: start; }
 .tramites button { font: inherit; padding: 10px 16px; cursor: pointer; }
 .tramites button:disabled { opacity: .6; cursor: default; }
+
+/* ---------- Diseño del portal (12 de noviembre) ---------- */
+.tramites { max-width: 1000px; padding: 40px 24px 72px; box-sizing: content-box; color: #161a1d; }
+
+.tramites-pestanas { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.tramites-pestanas a {
+  padding: 8px 18px;
+  border-radius: 999px;
+  color: #164f44;
+  font-weight: 700;
+  text-decoration: none;
+}
+.tramites-pestanas a.active { background: #164f44; color: #fff; }
+.tramites-pestanas a:not(.active):hover { background: #e4efeb; }
+.tramites-pestanas__perfil { margin-left: auto; text-decoration: underline !important; text-underline-offset: 3px; }
+
+.tramites-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 28px;
+  border: 1px solid #e4ebe8;
+  border-radius: 24px;
+  box-shadow: 0 10px 24px rgba(22, 79, 68, 0.06);
+}
+.tramites-tarjeta h2 { margin: 0; font-size: 22px; line-height: 28px; }
+.tramites-tarjeta p { margin: 0; color: #4d4d4d; line-height: 22px; }
+
+.tramites-campos select, .tramites-campos textarea, .tramites-campos input:not([type="checkbox"]) {
+  border-color: #d9e2de !important; border-radius: 14px !important; padding: 12px 14px !important;
+}
+.tramites-campos label { color: #161a1d; font-size: 14px; font-weight: 700; }
+
+.tramites button, .tramites-boton {
+  align-self: flex-start;
+  padding: 11px 22px;
+  border: none;
+  border-radius: 999px;
+  background: #164f44;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.tramites button:hover:not(:disabled), .tramites-boton:hover { background: #0b3b33; }
+
+.tramites-total, .tramites-estado { margin: 20px 0 0; color: #4d4d4d; }
+.tramites-chip { align-self: flex-start; padding: 4px 12px !important; border-radius: 999px; background: #f6eeda; color: #8a6414 !important; font-size: 13px; font-weight: 700; }
+.tramites-enlace { align-self: flex-start; color: #164f44; font-weight: 700; text-decoration: none; }
+.tramites-enlace:hover { text-decoration: underline; }
+.tramites-paginas { display: flex; align-items: center; gap: 10px; }
+.tramites-acceso { align-items: flex-start; }

@@ -16,13 +16,10 @@ import iconoSala from "../../../assets/perfil/acceso-sala.svg";
 import flechaBlanca from "../../../assets/perfil/acceso-flecha.svg";
 import flechaOscura from "../../../assets/comun/iconos/flecha-oscura.svg";
 import circuloProgreso from "../../../assets/perfil/progreso-circulo.svg";
-import filaUsuario from "../../../assets/perfil/fila-usuario.svg";
 import filaCampana from "../../../assets/perfil/fila-campana.svg";
 import filaCalendario from "../../../assets/perfil/fila-calendario.svg";
 import filaArchivo from "../../../assets/perfil/fila-archivo.svg";
 import filaPin from "../../../assets/perfil/fila-pin.svg";
-import filaCandado from "../../../assets/perfil/fila-candado.svg";
-import chevron from "../../../assets/noticias/mes-siguiente.svg";
 import tarjetaUsuario from "../../../assets/perfil/tarjeta-usuario.svg";
 import tarjetaPin from "../../../assets/perfil/tarjeta-pin.svg";
 import tarjetaCorreo from "../../../assets/perfil/tarjeta-correo.svg";
@@ -33,7 +30,13 @@ import tarjetaUsuarios from "../../../assets/perfil/tarjeta-usuarios.svg";
 import puntoDorado from "../../../assets/comun/iconos/punto-dorado.svg";
 
 // ---------- Resumen ----------
-export function Resumen({ menor = false }: { menor?: boolean }) {
+// Resumen: lo primero que se ve al entrar al perfil. Bienvenida con lo pendiente, tres accesos principales,
+// el progreso y accesos rápidos. Las demás secciones están en el menú de la izquierda (no se repiten aquí).
+function saludo(hora = new Date().getHours()) {
+    return hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
+}
+
+export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombre?: string }) {
     const r = resumenEjemplo; // TODO backend: ver datos.ts
     const tramite = useTramite();
     const avisos = sinLeer(useNotificaciones());
@@ -42,23 +45,54 @@ export function Resumen({ menor = false }: { menor?: boolean }) {
         { ...r.actividades, icono: iconoBuscar, color: "verde", ruta: "/mi-perfil/eventos" },
         { ...r.asistencias, icono: iconoSala, color: "rosa", ruta: "/mi-perfil/progreso" },
     ];
-    const filas = [
-        { titulo: "Mis datos", texto: menor ? "Nombre, teléfono, correo y persona responsable." : "Nombre, teléfono, correo y domicilio.", icono: filaUsuario, ruta: "/mi-perfil/datos" },
-        { titulo: "Notificaciones y avisos", texto: avisos ? `Tienes ${avisos} notificaciones sin leer (ejemplo).` : "Estás al día con tus notificaciones.", icono: filaCampana, ruta: "/notificaciones" },
-        { titulo: "Mis eventos", texto: "Tus inscripciones y asistencia.", icono: filaCalendario, ruta: "/mi-perfil/eventos" },
+    // Lo que conviene atender primero, según el estado de la cuenta
+    // Tarjeta «Credencial» de la bienvenida: siempre aparece, con lo que conviene hacer según el estado
+    const credencial = {
+        "sin-solicitud": { titulo: "Aún no tienes credencial", texto: "Solicítala en línea en pocos minutos.", accion: "Solicitar credencial", ruta: "/credencial", atender: true },
+        correccion: { titulo: "Corrección solicitada", texto: "La biblioteca pidió corregir un dato de tu solicitud.", accion: "Revisar corrección", ruta: "/credencial/seguimiento", atender: true },
+        vencida: { titulo: "Tu credencial venció", texto: "Puedes renovarla en línea.", accion: "Renovar credencial", ruta: "/credencial/solicitud?tipo=renovacion", atender: true },
+        "en-revision": { titulo: "Credencial en revisión", texto: "El personal está revisando tu solicitud.", accion: "Ver seguimiento", ruta: "/credencial/seguimiento", atender: false },
+        vigente: { titulo: "Credencial vigente", texto: "Tu credencial está validada.", accion: "Ver mi credencial", ruta: "/mi-perfil/credencial", atender: false },
+    }[tramite.estado];
+    const rapidos = [
+        { texto: "Ver eventos", icono: filaCalendario, ruta: "/eventos" },
         ...(menor ? [] : [
-            { titulo: "Mis propuestas", texto: "Tus ideas de eventos y clubes, con su estado.", icono: filaArchivo, ruta: "/mi-perfil/propuestas" },
-            { titulo: "Mis espacios", texto: "Consulta el estado de tus solicitudes de espacio.", icono: filaPin, ruta: "/mi-perfil/espacios" },
+            { texto: "Solicitar un espacio", icono: filaPin, ruta: "/espacios" },
+            { texto: "Proponer una actividad", icono: filaArchivo, ruta: "/proponer" },
         ]),
-        { titulo: "Mis mensajes", texto: "Seguimiento de lo que escribiste en Contacto y sugerencias.", icono: filaArchivo, ruta: "/mi-perfil/mensajes" },
-        { titulo: "Seguridad", texto: "Contraseña y sesión actual.", icono: filaCandado, ruta: "/mi-perfil/seguridad" },
+        { texto: "Escribir a la biblioteca", icono: filaCampana, ruta: "/contacto" },
     ];
     const avance = porcentajeProgreso(r.progreso.actuales, r.progreso.meta);
+    const primerNombre = nombre.trim().split(/\s+/)[0];
     return (
         <>
-            <EncabezadoSeccion sobretitulo="RESUMEN" titulo="Resumen de mi cuenta"
-                texto={menor ? "Cuenta de persona menor de edad: algunos trámites los realiza la persona responsable."
-                    : "Todo lo de tu cuenta en un solo lugar: tus datos, tu credencial, tus eventos, tu progreso y tus avisos."} />
+            <section className="perfil-bienvenida" aria-labelledby="titulo-bienvenida">
+                <p className="perfil-sobretitulo">RESUMEN DE MI CUENTA</p>
+                <h2 id="titulo-bienvenida">{saludo()}{primerNombre ? `, ${primerNombre}` : ""}</h2>
+                <p className="perfil-bienvenida__texto">
+                    {menor ? "Cuenta de persona menor de edad: algunos trámites los realiza la persona responsable."
+                        : "Aquí ves de un vistazo tu credencial, tus actividades y tu progreso en la biblioteca."}
+                </p>
+                {/* Dos tarjetas con la misma estructura: ícono, título, texto y acción */}
+                <div className="perfil-bienvenida__estado">
+                    <Link to="/notificaciones" className="perfil-estado">
+                        <span className="perfil-estado__icono"><img src={filaCampana} alt="" /></span>
+                        <span className="perfil-estado__textos">
+                            <strong>{avisos ? `${avisos} ${avisos === 1 ? "aviso sin leer" : "avisos sin leer"}` : "Estás al día"}</strong>
+                            <span>{avisos ? "Revisa lo que te envió la biblioteca." : "No tienes avisos pendientes."}</span>
+                        </span>
+                        <span className="perfil-estado__accion">Ver avisos <img src={flechaOscura} alt="" /></span>
+                    </Link>
+                    <Link to={credencial.ruta} className={`perfil-estado${credencial.atender ? " perfil-estado--atender" : ""}`}>
+                        <span className="perfil-estado__icono"><img src={iconoArchivo} alt="" /></span>
+                        <span className="perfil-estado__textos">
+                            <strong>{credencial.titulo}</strong>
+                            <span>{credencial.texto}</span>
+                        </span>
+                        <span className="perfil-estado__accion">{credencial.accion} <img src={flechaOscura} alt="" /></span>
+                    </Link>
+                </div>
+            </section>
             {menor && (
                 <div className="perfil-nota perfil-nota--dorada">
                     <img src={notaInfoDorada} alt="" />
@@ -92,15 +126,14 @@ export function Resumen({ menor = false }: { menor?: boolean }) {
                 </div>
             </section>
             {menor && <TarjetaResponsable compacta />}
-            <section className="perfil-lista" aria-labelledby="titulo-tu-cuenta">
-                <p id="titulo-tu-cuenta" className="perfil-sobretitulo">TU CUENTA</p>
+            <section className="perfil-rapidos" aria-labelledby="titulo-rapidos">
+                <p id="titulo-rapidos" className="perfil-sobretitulo">ACCESOS RÁPIDOS</p>
                 <ul>
-                    {filas.map((f) => (
-                        <li key={f.titulo}>
-                            <Link to={f.ruta} className="perfil-lista__fila">
-                                <span className="perfil-lista__icono"><img src={f.icono} alt="" /></span>
-                                <span className="perfil-lista__textos"><strong>{f.titulo}</strong><span>{f.texto}</span></span>
-                                <img className="perfil-lista__chevron" src={chevron} alt="" />
+                    {rapidos.map((q) => (
+                        <li key={q.texto}>
+                            <Link to={q.ruta} className="perfil-rapido">
+                                <span className="perfil-rapido__icono"><img src={q.icono} alt="" /></span>
+                                {q.texto}
                             </Link>
                         </li>
                     ))}

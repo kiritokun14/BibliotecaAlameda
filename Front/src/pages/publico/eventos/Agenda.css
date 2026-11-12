@@ -764,3 +764,39 @@ a.agenda-boton:hover { filter: brightness(0.95); }
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* ---------- Franja «Proponer» (delgada, una sola línea) ---------- */
+.agenda-proponer {
+  gap: 16px;
+  padding: 12px 14px 12px 14px;
+  border-radius: 999px;
+}
+
+.agenda-proponer__icono { width: 40px; height: 40px; }
+.agenda-proponer__icono img { width: 20px; height: 20px; }
+
+.agenda-proponer__texto {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-width: 0;
+  margin: 0;
+  color: #4d4d4d;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.agenda-proponer__texto strong { color: #161a1d; font-size: 16px; }
+
+.agenda-proponer__acciones { flex-direction: row; align-items: center; gap: 14px; flex-shrink: 0; }
+.agenda-proponer__acciones .agenda-boton { width: auto; }
+
+.agenda-proponer__enlace {
+  color: #164f44;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -1,13 +1,13 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { consultarMisSolicitudes, type SolicitudCredencialBack } from "../perfil/solicitudes";
 import { sesionSimulada } from "../perfil/usarSesion";
+import { solicitarCredencial } from "../../../servicios/tramites";
 // Credencial · trámite de la persona con sesión iniciada (Figma A-02, 476:9983).
 // El estado se lee del backend real con GET /mis-solicitudes (solicitudes_credencial, la más reciente) cuando hay sesión.
-// TODO backend: todavía no hay servicio para crear la solicitud ni la corrección. Se espera:
-//   - GET  /credencial/mia          → estado del trámite (ver TramiteCredencial)
-//   - POST /credencial/solicitudes  → { tipo, horario, comentarios } y responde el trámite con su folio
-//   - POST /credencial/solicitudes/{folio}/correccion → { nombreIdentificacion, numeroIdentificacion }
-// Mientras, enviar o corregir solo cambia el estado en esta pestaña (se reinicia al recargar).
+// Enviar la solicitud usa el servicio real POST /credenciales/solicitudes (servicios/tramites.ts), así que al recargar
+// la página el estado sigue ahí (antes solo cambiaba en la pestaña y al recargar volvía a «Aún no tienes una solicitud»).
+// TODO backend: todavía no hay servicio para enviar la corrección:
+//   - POST /credenciales/solicitudes/{folio}/correccion → { nombreIdentificacion, numeroIdentificacion }
 
 export type EstadoCredencial = "sin-solicitud" | "en-revision" | "correccion" | "vigente" | "vencida";
 export type TipoTramite = "primera-vez" | "renovacion";
@@ -19,6 +19,7 @@ export type TramiteCredencial = {
     emision: string | null;    // AAAA-MM-DD; null = por confirmar
     vencimiento: string | null;
     motivoCorreccion: string | null;
+    solicitadaEl?: string | null; // fecha en que se envió (ISO)
 };
 
 export const textoTipo: Record<TipoTramite, string> = {
@@ -70,7 +71,7 @@ export function verEjemplo(estado: EstadoCredencial) { establecer({ ...ejemplos[
 export function mapearCredencial(s: SolicitudCredencialBack | undefined, hoy = new Date()): TramiteCredencial {
     if (!s || s.estadoSolicitud === "cancelada") return vacio;
     const tipo: TipoTramite = s.tipoSolicitud === "renovacion" ? "renovacion" : "primera-vez";
-    const base = { ...vacio, tipo, folio: null };
+    const base = { ...vacio, tipo, folio: s.id ?? null, solicitadaEl: s.creadaEn ?? null };
     if (s.estadoSolicitud === "rechazada") return { ...base, estado: "correccion", motivoCorreccion: s.observaciones ?? "Revisa los datos de tu solicitud." };
     if (s.estadoSolicitud !== "atendida") return { ...base, estado: "en-revision" };
     const emision = (s.fechaCita ?? s.creadaEn).slice(0, 10);
@@ -111,8 +112,13 @@ export function validarSolicitud(s: SolicitudCredencial): ErroresSolicitud {
     return errores;
 }
 
-export function enviarSolicitud(s: SolicitudCredencial): TramiteCredencial {
-    establecer({ ...vacio, estado: "en-revision", tipo: s.tipo });
+// Envía la solicitud al servidor. Con la sesión de ejemplo (?simular=sesion) solo cambia la vista.
+export async function enviarSolicitud(s: SolicitudCredencial): Promise<TramiteCredencial> {
+    if (sesionSimulada) { establecer({ ...vacio, estado: "en-revision", tipo: s.tipo }); return consultarTramite(); }
+    const observaciones = [s.horario && `Horario preferido para el cotejo: ${s.horario}`, s.comentarios].filter(Boolean).join("\n");
+    const creada = await solicitarCredencial(s.tipo === "renovacion" ? "renovacion" : "obtencion", observaciones);
+    establecer({ ...vacio, estado: "en-revision", tipo: s.tipo, folio: creada.id, solicitadaEl: creada.creadaEn ?? new Date().toISOString() });
+    sincronizado = false; // la próxima pantalla vuelve a leer el estado real
     return consultarTramite();
 }
 

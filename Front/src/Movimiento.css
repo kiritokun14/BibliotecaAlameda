@@ -1,0 +1,132 @@
+/* =========================================================
+   MOVIMIENTO EN TODO EL SISTEMA
+   Se carga en main.tsx: aplica al portal, a las pantallas de acceso y al panel del personal.
+   Solo transform y opacity (no traban la carga). Las animaciones de entrada terminan en
+   «transform: none», así no afectan a ventanas fijas ni a elementos pegajosos.
+   Todo se apaga con «reducir animaciones» (al final).
+   ========================================================= */
+
+@keyframes mov-sube { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes mov-izquierda { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+@keyframes mov-aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mov-ventana { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+/* ---------- Controles de formulario (todo el sistema) ---------- */
+input, select, textarea {
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(31, 107, 92, 0.14);
+}
+
+input[type="checkbox"], input[type="radio"] { transition: transform 0.15s ease; }
+input[type="checkbox"]:active, input[type="radio"]:active { transform: scale(0.9); }
+
+/* Botones con clase de botón: se levantan un poco y se hunden al presionar */
+:is(button, a):is([class^="boton"], [class*=" boton"], [class^="perfil-boton"], [class*="agenda-boton"], [class*="espacios-enviar"]) {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease, filter 0.18s ease;
+}
+
+:is(button, a):is([class^="boton"], [class*=" boton"], [class^="perfil-boton"], [class*="agenda-boton"], [class*="espacios-enviar"]):not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+:is(button, a):is([class^="boton"], [class*=" boton"], [class^="perfil-boton"], [class*="agenda-boton"], [class*="espacios-enviar"]):not(:disabled):active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Ventanas, avisos y mensajes de error: entran suavemente */
+[role="dialog"], [aria-modal="true"] { animation: mov-ventana 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+[role="alert"] { animation: mov-aparece 0.25s ease-out both; }
+
+/* ---------- Pantallas de acceso (iniciar sesión, crear cuenta, recuperar contraseña) ---------- */
+.pagina-acceso .presentacion { animation: mov-izquierda 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.pagina-acceso .formulario > * { animation: mov-sube 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.pagina-acceso .formulario > :nth-child(2) { animation-delay: 0.06s; }
+.pagina-acceso .formulario > :nth-child(3) { animation-delay: 0.12s; }
+.pagina-acceso .formulario > :nth-child(4) { animation-delay: 0.18s; }
+.pagina-acceso .formulario > :nth-child(n+5) { animation-delay: 0.24s; }
+.pagina-acceso .beneficios li { animation: mov-sube 0.5s ease-out both; }
+.pagina-acceso .beneficios li:nth-child(2) { animation-delay: 0.1s; }
+.pagina-acceso .beneficios li:nth-child(3) { animation-delay: 0.2s; }
+.pagina-acceso .beneficios li:nth-child(4) { animation-delay: 0.3s; }
+.confirmacion > * { animation: mov-sube 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.confirmacion > :nth-child(2) { animation-delay: 0.08s; }
+.confirmacion > :nth-child(n+3) { animation-delay: 0.16s; }
+
+/* ---------- Panel del personal ---------- */
+/* Cada pantalla entra escalonada */
+.panel-contenido > * { animation: mov-sube 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.panel-contenido > :nth-child(2) { animation-delay: 0.05s; }
+.panel-contenido > :nth-child(3) { animation-delay: 0.1s; }
+.panel-contenido > :nth-child(4) { animation-delay: 0.15s; }
+.panel-contenido > :nth-child(n+5) { animation-delay: 0.2s; }
+
+/* Menú lateral: los elementos se deslizan al pasar el mouse */
+.panel-menu__item, .panel-submenu__item { transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease; }
+.panel-menu__item:hover, .panel-submenu__item:hover { transform: translateX(3px); }
+
+/* Tarjetas del panel: se levantan */
+:is(.tarjeta-panel, .tarjeta-bandeja, .resumen-prioridad, .resumen-tarjeta, .resumen-indicador) {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+:is(.tarjeta-panel, .tarjeta-bandeja, .resumen-prioridad):hover {
+  box-shadow: 0 14px 28px rgba(22, 79, 68, 0.12);
+  transform: translateY(-3px);
+}
+
+/* Tablas: las filas aparecen una tras otra y se marcan al pasar el mouse */
+.panel-contenido tbody tr { animation: mov-aparece 0.35s ease-out both; transition: background-color 0.15s ease; }
+.panel-contenido tbody tr:nth-child(2) { animation-delay: 0.03s; }
+.panel-contenido tbody tr:nth-child(3) { animation-delay: 0.06s; }
+.panel-contenido tbody tr:nth-child(4) { animation-delay: 0.09s; }
+.panel-contenido tbody tr:nth-child(5) { animation-delay: 0.12s; }
+.panel-contenido tbody tr:nth-child(6) { animation-delay: 0.15s; }
+.panel-contenido tbody tr:nth-child(7) { animation-delay: 0.18s; }
+.panel-contenido tbody tr:nth-child(n+8) { animation-delay: 0.21s; }
+.panel-contenido tbody tr:hover { background-color: rgba(228, 239, 235, 0.55); }
+
+/* Insignia de la campana del panel: late una vez al cargar */
+.panel-campana__insignia { animation: mov-ventana 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both; }
+
+/* ---------- Portal: piezas que aún no tenían movimiento ---------- */
+/* Tarjetas de Credencial, Espacios, Contacto y detalles: entran al abrir la página */
+:is(.cred-tarjeta, .formulario-contacto, .tarjeta-datos, .detalle-actividad, .detalle-noticia__cuerpo, .detalle-resena__contenido, .estado-pagina, .estado-lecturas, .estado-noticias) {
+  animation: mov-sube 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.cred-lateral > :nth-child(2) { animation-delay: 0.08s; }
+.tarjeta-datos + .formulario-contacto { animation-delay: 0.08s; }
+
+/* Pasos (Credencial, Espacios): el paso actual resalta */
+.cred-paso { transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease; }
+.cred-paso--actual { animation: mov-ventana 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Áreas de Espacios y opciones de Credencial: responden al pasar el mouse y al elegir */
+:is(.espacios-area, .cred-opcion) { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease; }
+button.espacios-area:hover, .cred-opcion:hover { box-shadow: 0 10px 20px rgba(22, 79, 68, 0.1); transform: translateY(-2px); }
+.espacios-area--elegida, .cred-opcion--elegida { animation: mov-ventana 0.3s ease-out both; }
+
+/* Notificaciones: cada aviso entra en orden */
+.notificaciones-lista > li, .lista-notificaciones > li { animation: mov-sube 0.4s ease-out both; }
+.notificaciones-lista > li:nth-child(2), .lista-notificaciones > li:nth-child(2) { animation-delay: 0.05s; }
+.notificaciones-lista > li:nth-child(n+3), .lista-notificaciones > li:nth-child(n+3) { animation-delay: 0.1s; }
+
+/* Pie de página: los enlaces se deslizan */
+.pie-portal a { display: inline-block; transition: transform 0.18s ease, color 0.18s ease; }
+.pie-portal a:hover { transform: translateX(3px); }
+.redes img { transition: transform 0.2s ease; }
+.redes li:hover img { transform: translateY(-3px) scale(1.08); }
+
+/* ---------- Reducir animaciones ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

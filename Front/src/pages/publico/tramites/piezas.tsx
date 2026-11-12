@@ -57,4 +57,8 @@ export function FormularioPropuesta({ anterior, alGuardar }: { anterior?: Solici
         </fieldset>{error && <p role="alert">{error}</p>}
     </form>;
 }
-export function AccesoTramites() { return <p>Inicia sesión para consultar o enviar solicitudes. <Link to="/iniciar-sesion">Iniciar sesión</Link></p>; }
+export function AccesoTramites() {
+    return <div className="tramites-tarjeta tramites-acceso"><h2>Inicia sesión para ver tus trámites</h2>
+        <p>Con tu cuenta consultas y envías solicitudes, y sigues su avance.</p>
+        <Link to="/iniciar-sesion" className="tramites-boton">Iniciar sesión</Link></div>;
+}

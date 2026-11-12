@@ -33,7 +33,10 @@ function Credencial() {
             {sesion ? <>
                 <PasosTramite actual={1} />
                 <SeccionVisitante fondo="crema">
-                    <p><Link to="/mis-tramites/credencial">Solicitar atención o consultar mi trámite registrado</Link></p>
+                    <Link to="/mis-tramites/credencial" className="cred-enlace-tramites">
+                        <span><strong>Mis solicitudes registradas</strong>Consulta el estado de las solicitudes de credencial que ya enviaste.</span>
+                        <span aria-hidden="true" className="cred-enlace-tramites__flecha">→</span>
+                    </Link>
                     <TarjetaMiTramite />
                 </SeccionVisitante>
             </> : sesion === null && (

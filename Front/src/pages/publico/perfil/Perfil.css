@@ -854,3 +854,185 @@
 
 .perfil-mensajes__respuesta strong { color: #164f44; font-size: 14px; }
 .perfil-mensajes__respuesta p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* =========================================================
+   Resumen con más peso y movimiento (12 nov)
+   ========================================================= */
+.perfil-bienvenida {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 30px 32px;
+  overflow: hidden;
+  border-radius: 32px;
+  background: linear-gradient(150deg, #fffdf8 0%, #f6eeda 100%);
+  border: 1px solid #ecdcb0;
+}
+
+.perfil-bienvenida::after {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -60px;
+  width: 240px;
+  height: 240px;
+  border-radius: 999px;
+  background: rgba(201, 162, 74, 0.14);
+  pointer-events: none;
+}
+
+.perfil-bienvenida h2 { margin: 0; color: #161a1d; font-size: 34px; line-height: 40px; letter-spacing: -0.7px; }
+.perfil-bienvenida__texto { margin: 0; max-width: 560px; color: #4d4d4d; font-size: 16px; line-height: 24px; }
+
+.perfil-bienvenida__estado { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 8px; }
+
+.perfil-bienvenida__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  color: #164f44;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(22, 79, 68, 0.08);
+  transition: transform 0.2s ease;
+}
+.perfil-bienvenida__chip:hover { transform: translateY(-2px); }
+.perfil-bienvenida__chip img { width: 18px; height: 18px; }
+
+.perfil-bienvenida__pendiente {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  min-width: 280px;
+  padding: 10px 10px 10px 18px;
+  border-radius: 20px;
+  background: #fff;
+  color: #161a1d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Accesos rápidos */
+.perfil-rapidos { display: flex; flex-direction: column; gap: 12px; }
+.perfil-rapidos ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+
+.perfil-rapido {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  border: 1px solid #e2ded5;
+  border-radius: 18px;
+  background: #fff;
+  color: #161a1d;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.perfil-rapido:hover { border-color: #1f6b5c; box-shadow: 0 10px 22px rgba(22, 79, 68, 0.1); transform: translateY(-3px); }
+.perfil-rapido__icono { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 999px; background: #e4efeb; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.perfil-rapido:hover .perfil-rapido__icono { transform: scale(1.1) rotate(-6deg); }
+.perfil-rapido__icono img { width: 18px; height: 18px; }
+
+/* ---------- Movimiento ---------- */
+/* Cada sección entra escalonada al abrirla (Perfil.tsx cambia su key) */
+.perfil-seccion > * { animation: perfil-entra 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.perfil-seccion > :nth-child(2) { animation-delay: 0.06s; }
+.perfil-seccion > :nth-child(3) { animation-delay: 0.12s; }
+.perfil-seccion > :nth-child(4) { animation-delay: 0.18s; }
+.perfil-seccion > :nth-child(n+5) { animation-delay: 0.24s; }
+
+/* Las tarjetas de acceso aparecen una tras otra y se levantan al pasar el mouse */
+.perfil-accesos .tarjeta-acceso { animation: perfil-entra 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.perfil-accesos .tarjeta-acceso:nth-child(2) { animation-delay: 0.1s; }
+.perfil-accesos .tarjeta-acceso:nth-child(3) { animation-delay: 0.2s; }
+.perfil-accesos .tarjeta-acceso:hover { box-shadow: 0 18px 32px rgba(0, 0, 0, 0.12); }
+
+/* La barra de progreso se llena al entrar */
+.perfil-progreso__barra > span { transform-origin: left; animation: perfil-llena 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both; }
+
+/* Menú: la opción se desliza al pasar el mouse y el avatar del encabezado aparece */
+.perfil-menu__opcion { transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease; }
+.perfil-menu__opcion:not(.perfil-menu__opcion--activa):hover { transform: translateX(4px); }
+.perfil-menu { animation: perfil-entra 0.45s ease-out both; }
+
+/* Tarjetas del perfil: se levantan un poco */
+.perfil-tarjeta { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.perfil-tarjeta:hover { box-shadow: 0 14px 28px rgba(22, 79, 68, 0.1); transform: translateY(-2px); }
+
+@keyframes perfil-entra { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes perfil-llena { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-seccion > *, .perfil-accesos .tarjeta-acceso, .perfil-progreso__barra > span, .perfil-menu { animation: none; }
+  .perfil-menu__opcion, .perfil-tarjeta, .perfil-rapido, .perfil-rapido__icono, .perfil-bienvenida__chip { transition: none; }
+}
+
+/* Bienvenida: avisos y credencial como dos tarjetas iguales, lado a lado (12 nov) */
+.perfil-bienvenida__estado {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.perfil-estado {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  column-gap: 14px;
+  row-gap: 12px;
+  padding: 18px 20px;
+  border: 1px solid rgba(201, 162, 74, 0.25);
+  border-radius: 22px;
+  background: #fff;
+  color: #161a1d;
+  text-decoration: none;
+  box-shadow: 0 6px 16px rgba(138, 100, 20, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.perfil-estado:hover { border-color: #c9a24a; box-shadow: 0 14px 26px rgba(138, 100, 20, 0.14); transform: translateY(-3px); }
+.perfil-estado:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+
+.perfil-estado__icono {
+  grid-row: 1 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: #e4efeb;
+}
+.perfil-estado__icono img { width: 20px; height: 20px; }
+.perfil-estado--atender .perfil-estado__icono { background: #f6eeda; }
+
+.perfil-estado__textos { display: flex; flex-direction: column; gap: 2px; }
+.perfil-estado__textos strong { font-size: 16px; line-height: 22px; }
+.perfil-estado__textos > span { color: #4d4d4d; font-size: 14px; line-height: 20px; }
+
+.perfil-estado__accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #164f44;
+  font-size: 14px;
+  font-weight: 700;
+}
+.perfil-estado__accion img { width: 15px; height: 15px; transition: transform 0.2s ease; }
+.perfil-estado:hover .perfil-estado__accion img { transform: translateX(4px); }
+.perfil-estado--atender .perfil-estado__accion { color: #8a6414; }
+.perfil-bienvenida__estado { width: 100%; align-self: stretch; }
+.perfil-estado { width: 100%; box-sizing: border-box; justify-items: start; text-align: left; }
+.perfil-estado__icono { align-self: start; }
+.perfil-estado__textos, .perfil-estado__accion { justify-self: start; }

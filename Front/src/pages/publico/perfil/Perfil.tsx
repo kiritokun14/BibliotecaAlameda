@@ -104,7 +104,7 @@ export default function Perfil({ vista }: { vista?: Vista }) {
     if (vista === "editar") contenido = <EditarDatos perfil={perfil} menor={menor} alGuardar={(p) => setCarga({ perfil: p })} alRecargar={recargar} />;
     else if (vista === "correo-pendiente") contenido = <CorreoPendiente />;
     else contenido = {
-        resumen: <Resumen menor={menor} />, datos: <MisDatos perfil={perfil} menor={menor} />,
+        resumen: <Resumen menor={menor} nombre={perfil.nombres} />, datos: <MisDatos perfil={perfil} menor={menor} />,
         credencial: <MiCredencialPerfil perfil={perfil} menor={menor} />, eventos: <MisEventos menor={menor} />,
         propuestas: <MisPropuestas />, espacios: <MisEspacios />, progreso: <Progreso menor={menor} />,
         mensajes: <MisMensajes />, avisos: <Avisos />, seguridad: <Seguridad perfil={perfil} menor={menor} alCerrarSesion={abrirCierre} />,
@@ -117,7 +117,8 @@ export default function Perfil({ vista }: { vista?: Vista }) {
                 credencial={chipCredencial(tramite.estado)} />
             <div className="perfil-cuerpo">
                 <MenuPerfil activa={seccion} menor={menor} alCerrarSesion={abrirCierre} />
-                <div className="perfil-seccion"><p><Link to="/mis-tramites/credencial">Solicitudes de credencial</Link> · <Link to="/mis-tramites/propuestas">Mis propuestas registradas</Link></p>{contenido}</div>
+                {/* key: al cambiar de sección el contenido entra con su animación */}
+                <div className="perfil-seccion" key={vista ?? seccion}>{contenido}</div>
             </div>
             {modal && <ModalCerrarSesion cerrando={cerrando} error={errorCierre} alConfirmar={salir} alCancelar={cancelarModal} />}
         </PaginaPublica>

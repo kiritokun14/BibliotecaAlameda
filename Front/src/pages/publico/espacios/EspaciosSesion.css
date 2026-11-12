@@ -142,3 +142,76 @@ button.espacios-area--elegida:hover { border: 2px solid #e6d194; background: #16
 
 .espacios-cuerpo a:focus-visible,
 .espacios-cuerpo button:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+
+/* ---------- Flujo en tres pasos (12 nov) ---------- */
+/* Paso 1: el mapa de áreas a todo lo ancho, con tarjetas más grandes */
+.espacios-plano--completo { gap: 16px; }
+.espacios-plano--completo .espacios-areas { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.espacios-plano--completo .espacios-area { min-height: 112px; padding: 16px 18px; }
+.espacios-plano--completo .espacios-area strong { font-size: 16px; line-height: 21px; }
+
+.espacios-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #edf1ef;
+}
+.espacios-barra p { margin: 0; color: #4d4d4d; }
+.espacios-barra strong { color: #164f44; }
+
+/* Pasos 2 y 3: resumen fijo a la izquierda, formulario a la derecha */
+.espacios-columnas--pasos { grid-template-columns: 320px minmax(0, 1fr); align-items: start; }
+.espacios-resumen { position: sticky; top: 104px; display: flex; flex-direction: column; gap: 10px; }
+.espacios-resumen h2 { margin: 0; color: #161a1d; font-size: 22px; line-height: 28px; }
+.espacios-resumen__datos { display: flex; flex-direction: column; gap: 10px; margin: 6px 0; padding: 14px 0; border-block: 1px solid #edf1ef; }
+.espacios-resumen__datos dt { color: #4d4d4d; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; }
+.espacios-resumen__datos dd { margin: 2px 0 0; color: #161a1d; font-weight: 700; }
+.espacios-resumen__datos dd::first-letter { text-transform: uppercase; }
+
+.espacios-cambiar {
+  align-self: flex-start;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: #164f44;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.espacios-formulario { display: flex; flex-direction: column; gap: 14px; }
+.espacios-formulario h2 { margin: 0; }
+.espacios-formulario fieldset { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; border: none; }
+.espacios-formulario textarea { min-height: 96px; resize: vertical; font: inherit; }
+
+.espacios-botones { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 6px; }
+.espacios-boton-paso { width: auto !important; padding: 0 26px !important; }
+
+.espacios-atras {
+  padding: 10px 4px;
+  border: none;
+  background: none;
+  color: #4d4d4d;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.espacios-atras:hover { color: #164f44; }
+
+/* Pasos ya hechos: se puede volver a ellos */
+.espacios-paso-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}

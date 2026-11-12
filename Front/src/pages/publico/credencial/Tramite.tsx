@@ -3,7 +3,8 @@ import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import { EncabezadoVisitante, SeccionVisitante } from "../../../components/portal/Visitante";
 import type { PerfilPropio } from "../../../servicios/perfil";
-import { useSesion, usePerfil } from "../perfil/usarSesion";
+import { mensajeError } from "../../../servicios/api";
+import { sesionSimulada, useSesion, usePerfil } from "../perfil/usarSesion";
 import { consultarDomicilio, formatearFecha, nombreCompleto } from "../perfil/datos";
 import { Chip, DatoCred, EtapasTramite, Nota, PasosTramite, SelectorEstados, TarjetaCredencial } from "./piezas";
 import {
@@ -13,7 +14,6 @@ import {
 import "./Credencial.css";
 import "./CredencialSesion.css";
 import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import flechaVerde from "../../../assets/inicio/lecturas-flecha-verde.svg";
 import radioMarcado from "../../../assets/credencial/radio.svg";
 import infoVerde from "../../../assets/credencial/info-verde.svg";
 import infoSeguimiento from "../../../assets/credencial/seg-info.svg";
@@ -60,9 +60,9 @@ export default function Tramite({ vista }: { vista: Vista }) {
     }
     const perfil = carga.perfil;
 
-    // Sin solicitud no hay nada que seguir: se vuelve a la información.
-    if (vista !== "solicitud" && tramite.estado === "sin-solicitud") {
-        if (!import.meta.env.DEV) return <Navigate to="/credencial" replace />;
+    // Sin solicitud no hay nada que seguir: se vuelve a la información (solo la sesión de ejemplo muestra estados).
+    if (vista !== "solicitud" && tramite.estado === "sin-solicitud" && !sesionSimulada) {
+        return <Navigate to="/credencial" replace />;
     }
 
     const elegirEjemplo = (e: TramiteCredencial["estado"]) => verEjemplo(e);
@@ -81,7 +81,7 @@ export default function Tramite({ vista }: { vista: Vista }) {
             <EncabezadoVisitante regreso={{ texto: "Volver a información", ruta: "/credencial" }} etiqueta="CREDENCIAL"
                 titulo={encabezado.titulo} texto={encabezado.texto} />
             <PasosTramite actual={pasoDelEstado(vista === "solicitud" ? "solicitud" : "seguimiento", estado)} />
-            {vista === "seguimiento" && <SelectorEstados actual={estado} alElegir={elegirEjemplo} />}
+            {vista === "seguimiento" && sesionSimulada && <SelectorEstados actual={estado} alElegir={elegirEjemplo} />}
             <SeccionVisitante fondo="crema">{contenido}</SeccionVisitante>
         </PaginaPublica>
     );
@@ -119,6 +119,7 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
     const [aceptaAviso, setAceptaAviso] = useState(false);
     const [errores, setErrores] = useState<ErroresSolicitud>({});
     const [enviando, setEnviando] = useState(false);
+    const [errorEnvio, setErrorEnvio] = useState("");
     const bloqueo = useRef(false);
     const domicilio = consultarDomicilio(); // TODO backend: ver perfil/datos.ts
 
@@ -130,9 +131,11 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
         setErrores(encontrados);
         const primero = Object.keys(encontrados)[0];
         if (primero) { document.getElementById(`cred-${primero}`)?.focus(); return; }
-        bloqueo.current = true; setEnviando(true);
-        enviarSolicitud(datos); // el estado compartido avisa a las demás pantallas
-        navegar("/credencial/enviada");
+        bloqueo.current = true; setEnviando(true); setErrorEnvio("");
+        // Se registra en el servidor; si falla, lo escrito se conserva para reintentar
+        enviarSolicitud(datos)
+            .then(() => navegar("/credencial/enviada"))
+            .catch((error) => { setErrorEnvio(mensajeError(error)); bloqueo.current = false; setEnviando(false); });
     }
 
     const opciones: { valor: TipoTramite; titulo: string; texto: string }[] = [
@@ -208,6 +211,7 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
                     {errores.aceptaAviso && !aceptaAviso && <p className="cred-error-campo">{errores.aceptaAviso}</p>}
                 </fieldset>
 
+                {errorEnvio && <p className="cred-error-campo" role="alert">No pudimos enviar tu solicitud: {errorEnvio}</p>}
                 <div className="cred-acciones">
                     <button type="submit" className="boton-visitante" disabled={enviando}>
                         {enviando ? "Enviando…" : "Enviar solicitud"} <img src={flechaBlanca} alt="" />
@@ -216,7 +220,7 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
                 </div>
             </form>
 
-            <aside className="cred-lateral">
+            <aside className="cred-lateral cred-lateral--fijo">
                 <div className="cred-tarjeta cred-tarjeta--verde">
                     <p className="cred-sobretitulo cred-sobretitulo--verde">QUÉ PASA AL ENVIAR</p>
                     <ol className="cred-mini-pasos">
@@ -230,7 +234,7 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
                 </div>
                 <div className="cred-tarjeta cred-ayuda">
                     <h3>¿Necesitas ayuda?</h3>
-                    <p>Pide apoyo al personal de Servicios Digitales en la biblioteca. Teléfono y horario por confirmar.</p>
+                    <p>Pide apoyo al personal en la biblioteca o llama al <a href="tel:+523112128989">311 212 8989</a>, de lunes a viernes de 8:00 a 19:30 h.</p>
                 </div>
             </aside>
         </div>
@@ -252,7 +256,7 @@ function Enviada({ tramite }: { tramite: TramiteCredencial }) {
             <dl className="cred-datos cred-datos--fila">
                 <DatoCred etiqueta="FOLIO" valor={tramite.folio ?? "Por asignar"} />
                 <DatoCred etiqueta="TIPO DE TRÁMITE" valor={textoTipo[tramite.tipo]} />
-                <DatoCred etiqueta="ESTADO" valor="En revisión (ejemplo)" />
+                <DatoCred etiqueta="ESTADO" valor="En revisión" />
             </dl>
             <Nota color="dorada" icono={infoDorado}>Acude a Préstamos para el cotejo presencial. Enviar la solicitud no valida tu credencial.</Nota>
             <div className="cred-acciones">
@@ -264,40 +268,66 @@ function Enviada({ tramite }: { tramite: TramiteCredencial }) {
 }
 
 // ---------- Seguimiento · en revisión ----------
+// Arriba, el estado en grande con su avance; debajo, las etapas. El resumen queda fijo a la derecha al bajar.
+function folioCorto(folio: string | null) {
+    return folio ? folio.slice(0, 8).toUpperCase() : "Por asignar";
+}
+
 function Seguimiento({ tramite, titular }: { tramite: TramiteCredencial; titular: string }) {
+    const hechas = etapasEnRevision.filter((e) => e.estado === "hecho").length;
+    const avance = Math.round(((hechas + 0.5) / etapasEnRevision.length) * 100);
     return (
-        <div className="cred-columnas">
-            <div className="cred-tarjeta cred-seguimiento">
-                <p className="cred-sobretitulo">ESTADO DE TU SOLICITUD</p>
-                <div className="cred-seguimiento__estado">
-                    <Chip color="dorado">En revisión</Chip>
-                    <span>Ejemplo de estado · Folio: {tramite.folio ?? "por asignar"}</span>
-                </div>
-                <EtapasTramite etapas={etapasEnRevision} />
+        <div className="cred-columnas cred-columnas--seguimiento">
+            <div className="cred-seguimiento-principal">
+                <section className="cred-tarjeta cred-estado" aria-labelledby="titulo-estado">
+                    <div className="cred-estado__cabecera">
+                        <span className="cred-estado__icono" aria-hidden="true"><span className="cred-estado__pulso" /></span>
+                        <div className="cred-estado__textos">
+                            <Chip color="dorado">En revisión</Chip>
+                            <h2 id="titulo-estado">Tu solicitud está en revisión</h2>
+                            <p>El personal de Préstamos está revisando tus datos. Cuando termine, te pediremos acudir a la biblioteca para el cotejo.</p>
+                        </div>
+                    </div>
+                    <div className="cred-avance" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={avance}
+                        aria-label={`Avance del trámite: etapa ${hechas + 1} de ${etapasEnRevision.length}`}>
+                        <div className="cred-avance__barra"><span style={{ width: `${avance}%` }} /></div>
+                        <p>Etapa {hechas + 1} de {etapasEnRevision.length}</p>
+                    </div>
+                    <dl className="cred-estado__datos">
+                        <div><dt>Folio</dt><dd title={tramite.folio ?? undefined}>{folioCorto(tramite.folio)}</dd></div>
+                        <div><dt>Trámite</dt><dd>{textoTipo[tramite.tipo]}</dd></div>
+                        <div><dt>Enviada</dt><dd>{tramite.solicitadaEl ? fechaLarga(tramite.solicitadaEl) : "—"}</dd></div>
+                    </dl>
+                </section>
+
+                <section className="cred-tarjeta cred-seguimiento" aria-labelledby="titulo-etapas">
+                    <p className="cred-sobretitulo" id="titulo-etapas">ETAPAS DEL TRÁMITE</p>
+                    <EtapasTramite etapas={etapasEnRevision} />
+                </section>
+
                 <Nota color="verde" icono={infoSeguimiento}>
-                    ¿Qué sigue? La biblioteca está revisando tu solicitud. Cuando termine, te pediremos acudir a Préstamos para el cotejo presencial.
+                    ¿Qué sigue? Te avisaremos en tus notificaciones cuando debas acudir a Préstamos para el cotejo presencial.
                 </Nota>
                 <div className="cred-acciones">
+                    <Link to="/contacto" className="boton-visitante">Contactar a la biblioteca <img src={flechaBlanca} alt="" /></Link>
                     <Link to="/credencial" className="boton-visitante cred-boton-contorno">Ver requisitos</Link>
-                    <Link to="/contacto" className="boton-visitante cred-boton-contorno">Contactar a la biblioteca <img src={flechaVerde} alt="" /></Link>
                 </div>
             </div>
-            <aside className="cred-lateral">
+
+            <aside className="cred-lateral cred-lateral--fijo">
                 <div className="cred-tarjeta cred-tarjeta--verde">
                     <p className="cred-sobretitulo cred-sobretitulo--verde">RESUMEN DE LA SOLICITUD</p>
                     <dl className="cred-datos">
-                        <DatoCred etiqueta="TIPO DE TRÁMITE" valor={textoTipo[tramite.tipo]} />
                         <DatoCred etiqueta="SOLICITANTE" valor={titular} />
-                        <DatoCred etiqueta="FOLIO" valor={tramite.folio ?? "Por asignar"} />
-                        <DatoCred etiqueta="REVISA" valor="Personal de Préstamos · por asignar" />
-                        <DatoCred etiqueta="VIGENCIA" valor="Se registra al validar (2 años desde la emisión)" />
+                        <DatoCred etiqueta="REVISA" valor="Personal de Préstamos" />
+                        <DatoCred etiqueta="VIGENCIA" valor="2 años desde que se valide" />
                     </dl>
                 </div>
                 <div className="cred-tarjeta">
-                    <p className="cred-sobretitulo">REQUISITOS DEL TRÁMITE</p>
+                    <p className="cred-sobretitulo">PARA EL COTEJO LLEVA</p>
                     <ul className="cred-lista">
-                        <li><img src={checkLista} alt="" />Datos de contacto actualizados en tu perfil</li>
-                        <li><img src={checkLista} alt="" />Cotejo presencial en la biblioteca</li>
+                        <li><img src={checkLista} alt="" />Tus datos de contacto actualizados en tu perfil</li>
+                        <li><img src={checkLista} alt="" />Una identificación para el cotejo presencial</li>
                     </ul>
                 </div>
             </aside>
@@ -349,7 +379,7 @@ function Correccion({ tramite }: { tramite: TramiteCredencial }) {
                     <button type="button" className="boton-visitante cred-boton-contorno" onClick={() => navegar("/credencial")}>Cancelar</button>
                 </div>
             </form>
-            <aside className="cred-lateral">
+            <aside className="cred-lateral cred-lateral--fijo">
                 <div className="cred-tarjeta cred-tarjeta--verde">
                     <p className="cred-sobretitulo cred-sobretitulo--verde">QUÉ SIGUE</p>
                     <p className="cred-texto">Al enviar la corrección, el personal de Préstamos la revisará y hará el cotejo cuando acudas a la biblioteca.</p>

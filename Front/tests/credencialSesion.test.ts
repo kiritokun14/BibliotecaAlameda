@@ -1,4 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+const servidor = vi.hoisted(() => ({ solicitarCredencial: vi.fn() }));
+vi.mock('../src/servicios/tramites', () => ({ solicitarCredencial: servidor.solicitarCredencial }));
 import {
     consultarTramite, enviarCorreccion, enviarSolicitud, fechaLarga, pasoDelEstado, validarCorreccion,
     validarSolicitud, verEjemplo, type SolicitudCredencial,
@@ -18,10 +20,17 @@ describe('Credencial con sesión · trámite', () => {
             .toEqual(['aceptaAviso', 'aceptaCotejo']);
         expect(validarSolicitud({ ...solicitud, comentarios: 'a'.repeat(501) }).comentarios).toBeDefined();
     });
-    it('al enviar queda en revisión, con el tipo elegido y folio por asignar', () => {
-        const t = enviarSolicitud({ ...solicitud, tipo: 'renovacion' });
-        expect(t).toMatchObject({ estado: 'en-revision', tipo: 'renovacion', folio: null });
+    it('al enviar registra la solicitud en el servidor y queda en revisión con su folio', async () => {
+        servidor.solicitarCredencial.mockResolvedValue({ id: 'abcd1234-0000-4000-8000-000000000001', creadaEn: '2026-11-12T10:00:00Z' });
+        const t = await enviarSolicitud({ ...solicitud, tipo: 'renovacion', horario: 'Mañana', comentarios: 'Gracias' });
+        expect(servidor.solicitarCredencial).toHaveBeenCalledWith('renovacion', 'Horario preferido para el cotejo: Mañana\nGracias');
+        expect(t).toMatchObject({ estado: 'en-revision', tipo: 'renovacion', folio: 'abcd1234-0000-4000-8000-000000000001' });
         expect(consultarTramite().estado).toBe('en-revision');
+    });
+    it('si el servidor falla, el trámite no cambia', async () => {
+        servidor.solicitarCredencial.mockRejectedValue(new Error('sin conexión'));
+        await expect(enviarSolicitud(solicitud)).rejects.toThrow();
+        expect(consultarTramite().estado).toBe('sin-solicitud');
     });
     it('una corrección pide nombre e identificación y regresa el trámite a revisión', () => {
         verEjemplo('correccion');

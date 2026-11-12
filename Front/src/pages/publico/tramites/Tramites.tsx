@@ -1,7 +1,8 @@
 import { useCuentaTramites } from '../../../servicios/useCuentaTramites';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
-import PaginaPublica from '../../../components/portal/PaginaPublica';
+import PaginaPublica, { EncabezadoPublico } from '../../../components/portal/PaginaPublica';
+import { NavLink } from 'react-router';
 import { consultarTramite, listarTramites, solicitarCredencial, estadoTramite, ESTADOS_CREDENCIAL, ESTADOS_PROPUESTA,
     type ListaTramites, type SolicitudAtencion, type TipoTramite } from '../../../servicios/tramites';
 import { mensajeError } from '../../../servicios/api';
@@ -24,22 +25,28 @@ export default function Tramites() {
         return () => { vigente = false; };
     }, [usuario, nueva, clave, id, tipo, pagina]);
     const base = `/mis-tramites/${tipo === 'credencial' ? 'credencial' : 'propuestas'}`;
-    return <PaginaPublica><div className="tramites">
-        <h1>{tipo === 'credencial' ? 'Mis solicitudes de credencial' : 'Mis propuestas de eventos y clubes'}</h1>
-        <p><Link to="/mi-perfil">Mi perfil</Link> · <Link to="/mis-tramites/credencial">Credenciales</Link> · <Link to="/mis-tramites/propuestas">Propuestas</Link></p>
-        {usuario === undefined ? <p role="status">Comprobando sesión…</p> : usuario === null ? <AccesoTramites /> : <>
+    return <PaginaPublica>
+        <EncabezadoPublico etiqueta="Mis trámites" titulo={tipo === 'credencial' ? <>Mis solicitudes de <span>credencial</span></> : <>Mis <span>propuestas</span></>}
+            texto={tipo === 'credencial' ? 'Consulta el estado de las solicitudes de credencial que enviaste.' : 'Consulta el estado de tus propuestas de eventos y clubes.'} />
+        <div className="tramites">
+        <nav className="tramites-pestanas" aria-label="Mis trámites">
+            <NavLink to="/mis-tramites/credencial">Credencial</NavLink>
+            <NavLink to="/mis-tramites/propuestas">Propuestas</NavLink>
+            <Link to="/mi-perfil" className="tramites-pestanas__perfil">Ir a Mi perfil</Link>
+        </nav>
+        {usuario === undefined ? <p role="status" className="tramites-estado">Comprobando sesión…</p> : usuario === null ? <AccesoTramites /> : <>
             {nueva ? <section className="tramites-tarjeta"><FormularioPropuesta key={usuario} alGuardar={s => navigate(`/mis-tramites/propuestas/${s.id}`)} /></section> : <>
-                {!actual && <p role="status">Cargando tus solicitudes…</p>}
+                {!actual && <p role="status" className="tramites-estado">Cargando tus solicitudes…</p>}
                 {actual?.error && <p role="alert">{actual.error} <button onClick={() => recargar(x => x + 1)}>Reintentar</button></p>}
                 {actual?.lista && <>
                     {tipo === 'credencial' ? <SolicitudCredencial key={usuario} alGuardar={s => navigate(`${base}/${s.id}`)} /> : <p><Link to="/proponer-evento">Enviar una nueva propuesta</Link></p>}
-                    <p>{actual.lista.total} solicitudes registradas</p>
+                    <p className="tramites-total">{actual.lista.total} {actual.lista.total === 1 ? 'solicitud registrada' : 'solicitudes registradas'}</p>
                     {actual.lista.solicitudes.map(s => <article className="tramites-tarjeta" key={s.id}><h2>{s.tituloPropuesta || `Credencial: ${s.tipoSolicitud}`}</h2>
-                        <p>{(tipo === 'credencial' ? ESTADOS_CREDENCIAL : ESTADOS_PROPUESTA)[estadoTramite(s)]}</p><Link to={`${base}/${s.id}`}>Ver seguimiento · {s.id}</Link></article>)}
-                    <button disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button><span> Página {pagina + 1} </span>
-                    <button disabled={(pagina + 1) * 20 >= actual.lista.total} onClick={() => setPagina(x => x + 1)}>Siguiente</button>
+                        <p className="tramites-chip">{(tipo === 'credencial' ? ESTADOS_CREDENCIAL : ESTADOS_PROPUESTA)[estadoTramite(s)]}</p><Link className="tramites-enlace" to={`${base}/${s.id}`}>Ver seguimiento →</Link></article>)}
+                    {actual.lista.total > 20 && <div className="tramites-paginas"><button disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button><span> Página {pagina + 1} </span>
+                    <button disabled={(pagina + 1) * 20 >= actual.lista.total} onClick={() => setPagina(x => x + 1)}>Siguiente</button></div>}
                 </>}
-                {actual?.solicitud && <section className="tramites-tarjeta"><Link to={base}>Volver a mis solicitudes</Link><FichaTramite solicitud={actual.solicitud} />
+                {actual?.solicitud && <section className="tramites-tarjeta"><Link className="tramites-enlace" to={base}>← Volver a mis solicitudes</Link><FichaTramite solicitud={actual.solicitud} />
                     {tipo === 'propuesta' && ['borrador', 'requiere_correccion'].includes(estadoTramite(actual.solicitud)) && <FormularioPropuesta key={actual.solicitud.actualizadoEn} anterior={actual.solicitud} alGuardar={() => recargar(x => x + 1)} />}
                 </section>}
             </>}
