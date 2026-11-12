@@ -49,7 +49,7 @@
     box-sizing: border-box;
     background:
         linear-gradient(rgba(11, 59, 51, 0.62), rgba(11, 59, 51, 0.78) 55%, rgba(11, 59, 51, 0.92)),
-        url('../../assets/comun/fotos/foto-biblioteca.jpg') center / cover;
+        url('../../assets/comun/fotos/foto-biblioteca.webp') center / cover;
     color: #fff;
     }
 

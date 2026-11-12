@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { imagenFallo, marcarImagenFallida } from "../../../servicios/imagenesFallidas";
 import { useLecturasPublicadas } from "../lecturas/publicados";
 import { Bloque, EncabezadoSeccion } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
@@ -95,7 +96,7 @@ function Ilustracion({ estilo }: { estilo: Libro["estilo"] }) {
 // La portada ilustrada se ve siempre; si el libro tiene foto, aparece encima con un desvanecido
 // solo cuando terminó de cargar. Si la foto falla o tarda, se queda la ilustrada (nunca un recuadro vacío).
 function PortadaLibro({ libro }: { libro: Libro }) {
-    const [foto, setFoto] = useState<"cargando" | "lista" | "fallo">("cargando");
+    const [foto, setFoto] = useState<"cargando" | "lista" | "fallo">(() => (imagenFallo(libro.portadaUrl) ? "fallo" : "cargando"));
     const conFoto = Boolean(libro.portadaUrl) && foto !== "fallo";
     return (
         <div className={`portada-libro portada-libro--${libro.estilo}`}>
@@ -110,7 +111,7 @@ function PortadaLibro({ libro }: { libro: Libro }) {
             {conFoto && (
                 <img className={`portada-libro__foto${foto === "lista" ? " portada-libro__foto--lista" : ""}`}
                     src={libro.portadaUrl} alt={foto === "lista" ? `Portada de ${libro.titulo}` : ""} decoding="async"
-                    onLoad={() => setFoto("lista")} onError={() => setFoto("fallo")} />
+                    onLoad={() => setFoto("lista")} onError={() => { marcarImagenFallida(libro.portadaUrl); setFoto("fallo"); }} />
             )}
         </div>
     );

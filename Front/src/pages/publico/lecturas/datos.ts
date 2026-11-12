@@ -2,10 +2,10 @@
 // Todo es de solo lectura: el visitante consulta, filtra y abre el detalle.
 // TODO backend: GET /resenas y GET /memoria (solo contenido PUBLICADO y no privado);
 // los filtros de la URL usan los mismos nombres que la API: q, genero, orden, tema, anio.
-import fotoSala from "../../../assets/comun/fotos/foto-biblioteca.jpg";
-import fotoTaller from "../../../assets/comun/fotos/noticia-3.jpg";
-import fotoPasillo from "../../../assets/comun/fotos/noticia-2.jpg";
-import fotoJardin from "../../../assets/comun/fotos/noticia-1.jpg";
+import fotoSala from "../../../assets/comun/fotos/foto-biblioteca.webp";
+import fotoTaller from "../../../assets/comun/fotos/noticia-3.webp";
+import fotoPasillo from "../../../assets/comun/fotos/noticia-2.webp";
+import fotoJardin from "../../../assets/comun/fotos/noticia-1.webp";
 
 // ---------- Tipos ----------
 export type Genero = "novela" | "cuento" | "historia-regional" | "poesia" | "infantil" | "ciencia";

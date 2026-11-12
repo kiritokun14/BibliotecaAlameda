@@ -702,3 +702,17 @@ textarea.campo-contacto__entrada {
   .pregunta-contacto summary::after { transition: none; }
   .pregunta-contacto__respuesta { animation: none; }
 }
+
+/* Tarjeta verde y formulario pegados: un solo bloque, sin espacio entre ellos */
+.contacto-columnas {
+  gap: 0;
+  overflow: hidden;
+  border-radius: 32px;
+  box-shadow: 0 18px 44px rgba(22, 79, 68, 0.18);
+}
+
+.contacto-columnas > .tarjeta-datos,
+.contacto-columnas > .formulario-contacto {
+  border-radius: 0;
+  box-shadow: none;
+}

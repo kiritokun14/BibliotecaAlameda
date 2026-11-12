@@ -2,7 +2,7 @@
 // mientras llegan los datos. Para lectores de pantalla solo se anuncia «Cargando…».
 import "./Esqueleto.css";
 
-function Bloque({ clase = "", ancho }: { clase?: string; ancho?: string }) {
+export function Bloque({ clase = "", ancho }: { clase?: string; ancho?: string }) {
     return <span className={`esqueleto__bloque ${clase}`} style={ancho ? { width: ancho } : undefined} />;
 }
 

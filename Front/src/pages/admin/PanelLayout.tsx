@@ -6,7 +6,7 @@ import { PiePortal } from "../../components/portal/Portal";
 import "./Panel.css";
 import { RESUMEN, SECCIONES_MENU, type SeccionMenu, type SubitemMenu } from "./menu";
 import { useNotificaciones } from "./notificaciones/datos";
-import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.png";
+import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.webp";
 import logoNayarit from "../../assets/comun/logos/logo-nayarit-blanco.png";
 import iconoLibro from "../../assets/admin/menu-book.svg";
 import iconoExpandir from "../../assets/admin/menu-expandir.svg";

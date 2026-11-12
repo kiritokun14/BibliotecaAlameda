@@ -1,7 +1,7 @@
 import { EncabezadoSeccion } from "../inicio/Bloque";
 import { FotoConMarco, NotaAcerca, SeccionAcerca } from "./piezas";
 import { fotosEnAccion, valores } from "./datos";
-import fotoEstudio from "../../../assets/acerca/foto-sala-estudio.jpg";
+import fotoEstudio from "../../../assets/acerca/foto-sala-estudio.webp";
 import iconoEstrellaEtiqueta from "../../../assets/acerca/etiqueta-estrella.svg";
 import iconoPersonasEtiqueta from "../../../assets/acerca/etiqueta-personas.svg";
 import iconoLibro from "../../../assets/acerca/valor-libro.svg";

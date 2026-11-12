@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { imagenFallo, marcarImagenFallida } from "../../../servicios/imagenesFallidas";
 import { Link } from "react-router";
 import { MESES, fechaLarga, nombreCategoria, paginasVisibles, type Categoria, type Noticia } from "./datos";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
@@ -13,7 +14,7 @@ import paginaAnterior from "../../../assets/noticias/pagina-anterior.svg";
 import paginaSiguiente from "../../../assets/noticias/pagina-siguiente.svg";
 import mesAnterior from "../../../assets/noticias/mes-anterior.svg";
 import mesSiguiente from "../../../assets/noticias/mes-siguiente.svg";
-import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.jpg";
+import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.webp";
 import { EsqueletoDestacada, EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 
 // ---------- Encabezado verde (igual que EncabezadoPublico, con botón opcional para volver) ----------
@@ -85,12 +86,12 @@ export function ChipCategoria({ activa, alPresionar, children }: { activa: boole
 // Si la noticia no tiene imagen o no carga, se muestra una foto de la biblioteca marcada como ilustrativa
 // (antes quedaba en blanco o con el ícono de imagen rota).
 export function ImagenNoticia({ noticia, ilustrativa = false, perezosa = true }: { noticia: Noticia; ilustrativa?: boolean; perezosa?: boolean }) {
-    const [fallo, setFallo] = useState(false);
+    const [fallo, setFallo] = useState(() => imagenFallo(noticia.imagen));
     const propia = Boolean(noticia.imagen) && !fallo;
     return (
         <>
             <img loading={perezosa ? "lazy" : "eager"} decoding="async" src={propia ? noticia.imagen : fotoRespaldo} alt={propia ? noticia.textoAlternativo ?? "" : ""}
-                onError={() => setFallo(true)} />
+                onError={() => { marcarImagenFallida(noticia.imagen); setFallo(true); }} />
             {(ilustrativa || !propia) && <span className="tarjeta-noticia__ilustrativa">Imagen ilustrativa</span>}
         </>
     );

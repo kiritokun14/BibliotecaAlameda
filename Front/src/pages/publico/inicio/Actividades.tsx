@@ -5,9 +5,10 @@ import { Flecha, Puntos } from "./ControlesCarrusel";
 import { useCarrusel } from "./useCarrusel";
 import { ChipsFiltro } from "../../../components/portal/BarraFiltros";
 import { type Actividad, type TipoActividad } from "./datos";
-import { consultarAgenda } from "../../../servicios/actividades";
+import { consultarAgenda, type ActividadPublica } from "../../../servicios/actividades";
+import { Bloque as BloqueEsqueleto } from "../../../components/portal/Esqueleto";
 import { mensajeError } from "../../../servicios/api";
-import imagenActividad from "../../../assets/comun/fotos/noticia-3.jpg";
+import imagenActividad from "../../../assets/comun/fotos/noticia-3.webp";
 import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import textura from "../../../assets/inicio/actividades-textura.svg";
@@ -41,21 +42,33 @@ const filtros: { texto: string; tipo: TipoActividad | null; icono: string }[] = 
     { texto: "Agenda cultural", tipo: "Agenda cultural", icono: filtroAgenda },
 ];
 
+const hoyTepic = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mazatlan' });
+
+function aActividades(lista: ActividadPublica[], desde: string): Actividad[] {
+    return lista.map(a => {
+        const sesion = a.sesiones.find(s => s.fecha >= desde);
+        return { id: a.folio, titulo: a.nombre,
+            tipo: a.tipo === 'Taller' ? 'Taller' : ['Presentación', 'Exposición'].includes(a.tipo) ? 'Agenda cultural' : 'Actividad',
+            fecha: sesion?.fecha ?? a.fecha,
+            horario: `${sesion?.inicio ?? a.inicio} a ${sesion?.fin ?? a.fin} h`, publico: a.publico, imagen: imagenActividad };
+    });
+}
+
+// Lo último que se mostró en esta pestaña: al volver a Inicio las actividades aparecen al instante
+let ultimas: Actividad[] | undefined;
+
 function Actividades() {
-    const [resultado, setResultado] = useState<{ actividades: Actividad[]; error?: string }>();
+    const [resultado, setResultado] = useState<{ actividades: Actividad[]; error?: string } | undefined>(
+        () => (ultimas ? { actividades: ultimas } : undefined));
     useEffect(() => {
         let vigente = true;
         const cargar = () => {
-            const desde = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mazatlan' });
+            const desde = hoyTepic();
             consultarAgenda({ desde, limite: 6 }).then(lista => {
                 if (!vigente) return;
-                setResultado({ actividades: lista.actividades.map(a => {
-                    const sesion = a.sesiones.find(s => s.fecha >= desde);
-                    return { id: a.folio, titulo: a.nombre,
-                    tipo: a.tipo === 'Taller' ? 'Taller' : ['Presentación', 'Exposición'].includes(a.tipo) ? 'Agenda cultural' : 'Actividad',
-                    fecha: sesion?.fecha ?? a.fecha,
-                    horario: `${sesion?.inicio ?? a.inicio} a ${sesion?.fin ?? a.fin} h`, publico: a.publico, imagen: imagenActividad }; }) });
-            }).catch(error => { if (vigente) setResultado({ actividades: [], error: mensajeError(error) }); });
+                ultimas = aActividades(lista.actividades, desde);
+                setResultado({ actividades: ultimas });
+            }).catch(error => { if (vigente) setResultado(previo => previo && !previo.error ? previo : { actividades: [], error: mensajeError(error) }); });
         };
         cargar(); window.addEventListener('focus', cargar);
         return () => { vigente = false; window.removeEventListener('focus', cargar); };
@@ -89,10 +102,23 @@ function Actividades() {
                 <div className="carrusel">
                     <Flecha lado="anterior" icono={anterior} alPresionar={irAnterior} />
                     <div className="carrusel__pista carrusel__pista--tarjetas" ref={refPista} onScroll={alDesplazar}>
+                        {/* Mientras llegan: tarjetas-esqueleto del mismo tamaño, para que la sección no salte */}
+                        {!resultado && [0, 1, 2].map((i) => (
+                            <article key={`esqueleto-${i}`} className="tarjeta-actividad tarjeta-actividad--esqueleto" aria-hidden="true">
+                                <BloqueEsqueleto clase="tarjeta-actividad__esqueleto-imagen" />
+                                <div className="tarjeta-actividad__contenido">
+                                    <BloqueEsqueleto clase="esqueleto__chip" />
+                                    <BloqueEsqueleto clase="esqueleto__titulo" ancho="85%" />
+                                    <BloqueEsqueleto clase="esqueleto__titulo" ancho="55%" />
+                                    <BloqueEsqueleto clase="esqueleto__linea" ancho="60%" />
+                                    <BloqueEsqueleto clase="esqueleto__linea" ancho="45%" />
+                                </div>
+                            </article>
+                        ))}
                         {visibles.map((actividad) => (
                             <article key={actividad.id} className="tarjeta-actividad">
                                 <div className="tarjeta-actividad__imagen">
-                                    <img loading="lazy" decoding="async" src={actividad.imagen} alt="" />
+                                    <img decoding="async" src={actividad.imagen} alt="" />
                                     <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
                                 </div>
                                 <div className="tarjeta-actividad__contenido">
@@ -124,7 +150,7 @@ function Actividades() {
 
                 <Puntos total={totalPaginas} activo={pagina} alElegir={irAPagina} />
                 <p className="nota-ejemplo">
-                    {!resultado ? 'Cargando próximas actividades…' : resultado.error ? resultado.error : actividades.length === 0 ? 'No hay próximas actividades publicadas.' : 'Programación publicada por la biblioteca. Consulta los avisos en cada actividad.'}
+                    {!resultado ? <span role="status">Cargando próximas actividades…</span> : resultado.error ? resultado.error : actividades.length === 0 ? 'No hay próximas actividades publicadas.' : 'Programación publicada por la biblioteca. Consulta los avisos en cada actividad.'}
                 </p>
             </Bloque>
         </section>

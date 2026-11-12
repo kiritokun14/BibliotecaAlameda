@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { imagenFallo, marcarImagenFallida } from "../../../servicios/imagenesFallidas";
 import { Link, NavLink } from "react-router";
 import { mesAnio, type Memoria, type Resena } from "./datos";
 import { urlCatalogo } from "../../../servicios/catalogo";
@@ -10,7 +11,7 @@ import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import iconoCandado from "../../../assets/comun/iconos/candado.svg";
 import iconoLibro from "../../../assets/lecturas/libro-guinda.svg";
 import iconoExterno from "../../../assets/lecturas/externo-blanco.svg";
-import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.jpg";
+import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.webp";
 
 // ---------- Pestañas "Por autor · Por tema · Memoria pública" ----------
 export function PestanasLecturas() {
@@ -36,17 +37,18 @@ export function PestanasLecturas() {
 // La portada ilustrada se ve siempre; si la reseña tiene foto, aparece encima con un desvanecido
 // solo cuando terminó de cargar. Si falla o tarda, se queda la ilustrada (nunca un recuadro vacío).
 export function Portada({ resena, tamano = "normal" }: { resena: Resena; tamano?: "normal" | "ancha" | "detalle" }) {
-    const [foto, setFoto] = useState<"cargando" | "lista" | "fallo">("cargando");
+    const [foto, setFoto] = useState<"cargando" | "lista" | "fallo">(() => (imagenFallo(resena.imagen) ? "fallo" : "cargando"));
     const conFoto = Boolean(resena.imagen) && foto !== "fallo";
     return (
         <div className={`portada-lectura portada-lectura--${resena.color} portada-lectura--${tamano}`}>
             <span className="portada-lectura__circulo" aria-hidden="true" />
-            <strong aria-hidden="true">{resena.libro}</strong>
+            {/* En la portada solo el nombre del libro (lo que va antes de «:»); el título completo va debajo */}
+            <strong aria-hidden="true">{resena.libro.split(":")[0]}</strong>
             {tamano !== "ancha" && <small aria-hidden="true">{resena.autoria}</small>}
             {conFoto && (
                 <img className={`portada-lectura__foto${foto === "lista" ? " portada-lectura__foto--lista" : ""}`}
                     loading="lazy" decoding="async" src={resena.imagen} alt={foto === "lista" ? `Portada de ${resena.libro}` : ""}
-                    onLoad={() => setFoto("lista")} onError={() => setFoto("fallo")} />
+                    onLoad={() => setFoto("lista")} onError={() => { marcarImagenFallida(resena.imagen); setFoto("fallo"); }} />
             )}
         </div>
     );
@@ -54,8 +56,9 @@ export function Portada({ resena, tamano = "normal" }: { resena: Resena; tamano?
 
 // Foto de un registro de memoria; sin foto (o si no carga), una de la biblioteca como respaldo
 export function FotoMemoria({ src }: { src?: string }) {
-    const [fallo, setFallo] = useState(false);
-    return <img loading="lazy" decoding="async" src={src && !fallo ? src : fotoRespaldo} alt="" onError={() => setFallo(true)} />;
+    const [fallo, setFallo] = useState(() => imagenFallo(src));
+    return <img loading="lazy" decoding="async" src={src && !fallo ? src : fotoRespaldo} alt=""
+        onError={() => { marcarImagenFallida(src); setFallo(true); }} />;
 }
 
 // ---------- Tarjetas ----------

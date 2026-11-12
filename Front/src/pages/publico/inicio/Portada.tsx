@@ -4,7 +4,7 @@ import { consultarAgenda } from "../../../servicios/actividades";
 import { INTERVALO_PORTADA, eventosPortada, type EventoPortada } from "./eventosPortada";
 import type { TipoActividad } from "./datos";
 import { useTramite } from "../credencial/datos";
-import foto from "../../../assets/inicio/portada-foto.jpg";
+import foto from "../../../assets/inicio/portada-foto.webp";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import rama from "../../../assets/inicio/portada-rama.svg";

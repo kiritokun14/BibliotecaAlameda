@@ -1,19 +1,19 @@
 // Contenido de "Acerca de la biblioteca" (así viene en el diseño de Figma).
 // TODO backend (HU-01): cuando exista la gestión de contenidos, estos textos
 // vendrán del servidor y solo se mostrará la versión publicada (nunca un borrador).
-import etapa1 from "../../../assets/acerca/etapa-1.png";
-import etapa4 from "../../../assets/acerca/etapa-4.png";
-import etapa5 from "../../../assets/acerca/etapa-5.png";
+import etapa1 from "../../../assets/acerca/etapa-1.webp";
+import etapa4 from "../../../assets/acerca/etapa-4.webp";
+import etapa5 from "../../../assets/acerca/etapa-5.webp";
 import etapa8 from "../../../assets/acerca/etapa-8.jpg";
-import etapa11 from "../../../assets/acerca/etapa-11.png";
-import obraGrito from "../../../assets/acerca/obra-grito.jpg";
-import obraSimbolos from "../../../assets/acerca/obra-simbolos.jpg";
-import obraCosas from "../../../assets/acerca/obra-cosas.jpg";
-import obraTepic from "../../../assets/acerca/obra-tepic.jpg";
-import fotoSalaInfantil from "../../../assets/acerca/foto-sala-infantil.jpg";
-import fotoTaller from "../../../assets/acerca/foto-taller.jpg";
-import fotoSalaEstudio from "../../../assets/acerca/foto-sala-estudio.jpg";
-import fotoPresentaciones from "../../../assets/acerca/foto-presentaciones.jpg";
+import etapa11 from "../../../assets/acerca/etapa-11.webp";
+import obraGrito from "../../../assets/acerca/obra-grito.webp";
+import obraSimbolos from "../../../assets/acerca/obra-simbolos.webp";
+import obraCosas from "../../../assets/acerca/obra-cosas.webp";
+import obraTepic from "../../../assets/acerca/obra-tepic.webp";
+import fotoSalaInfantil from "../../../assets/acerca/foto-sala-infantil.webp";
+import fotoTaller from "../../../assets/acerca/foto-taller.webp";
+import fotoSalaEstudio from "../../../assets/acerca/foto-sala-estudio.webp";
+import fotoPresentaciones from "../../../assets/acerca/foto-presentaciones.webp";
 import iconoPersonas from "../../../assets/acerca/valor-personas.svg";
 import iconoLibro from "../../../assets/acerca/valor-libro.svg";
 import iconoEstrella from "../../../assets/acerca/valor-estrella.svg";

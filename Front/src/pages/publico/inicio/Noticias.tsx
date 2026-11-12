@@ -1,7 +1,8 @@
 import { usePublicados } from "../../../servicios/usarPublicados.ts";
+import { imagenFallo, marcarImagenFallida } from "../../../servicios/imagenesFallidas";
 import { noticiaPublicada, fechaLarga } from "../noticias/datos";
 import { useState } from "react";
-import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.jpg";
+import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.webp";
 import { Link } from "react-router";
 import { Bloque, EncabezadoSeccion, Etiqueta } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
@@ -114,6 +115,7 @@ export default Noticias;
 // Foto de la noticia; si no tiene o no carga (por ejemplo, el servidor de imágenes falla),
 // una foto de la biblioteca en lugar de un recuadro en blanco
 function FotoNoticia({ src, className }: { src?: string; className: string }) {
-    const [fallo, setFallo] = useState(false);
-    return <img className={className} src={src && !fallo ? src : fotoRespaldo} alt="" decoding="async" onError={() => setFallo(true)} />;
+    const [fallo, setFallo] = useState(() => imagenFallo(src));
+    return <img className={className} src={src && !fallo ? src : fotoRespaldo} alt="" decoding="async"
+        onError={() => { marcarImagenFallida(src); setFallo(true); }} />;
 }

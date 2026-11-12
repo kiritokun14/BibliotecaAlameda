@@ -1961,3 +1961,140 @@
   .datos-contacto li,
   .datos-contacto__icono { transition: none; }
 }
+
+/* =========================================================
+   Ajustes de Inicio (12 de noviembre)
+   ========================================================= */
+
+/* ---------- Noticias: tamaño fijo, sin importar cuánto texto tenga cada noticia ----------
+   La foto mide 260 px; el texto ocupa un alto fijo: título a 2 renglones, resumen a 3 y el enlace abajo. */
+.noticia-destacada__contenido {
+  height: 270px;
+  box-sizing: border-box;
+}
+
+.noticia-destacada h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-height: 2lh;
+}
+
+.noticia-destacada__contenido > p:not(.noticia-destacada__meta) {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.noticia-destacada__contenido > .enlace-flecha { margin-top: auto; }
+
+/* La lista de la derecha también mide siempre lo mismo */
+.otras-noticias { justify-content: flex-start; }
+.otras-noticias > li { flex: 1; display: flex; }
+.noticia-mini { min-height: 0; height: 100%; justify-content: flex-start; }
+
+.noticia-mini__titulo {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* ---------- Botones de la portada: «Explora el catálogo Koha» y «Acerca de la biblioteca» ---------- */
+.portada__acciones .boton-blanco,
+.portada__acciones .boton-contorno {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Blanco: un brillo dorado lo cruza al pasar el mouse */
+.portada__acciones .boton-blanco::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 20%, rgba(230, 209, 148, 0.55) 50%, rgba(255, 255, 255, 0) 80%);
+  transform: translateX(-110%);
+  transition: transform 0.6s ease;
+}
+
+.portada__acciones .boton-blanco:hover::after { transform: translateX(110%); }
+
+/* Contorno: se llena de blanco desde abajo y el texto pasa a verde */
+.portada__acciones .boton-contorno::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #fff;
+  transform: translateY(101%);
+  transition: transform 0.3s ease;
+}
+
+.portada__acciones .boton-contorno:hover::before { transform: none; }
+.portada__acciones .boton-contorno:hover { color: #164f44; }
+.portada__acciones .boton-contorno:hover img { filter: brightness(0) saturate(100%) invert(22%) sepia(28%) saturate(1100%) hue-rotate(124deg); }
+
+.portada__acciones .boton-blanco:hover,
+.portada__acciones .boton-contorno:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+  transform: translateY(-3px);
+}
+
+.portada__acciones :is(.boton-blanco, .boton-contorno) img { transition: transform 0.25s ease, filter 0.25s ease; }
+.portada__acciones :is(.boton-blanco, .boton-contorno):hover img { transform: translateX(4px); }
+
+/* ---------- Libros de «Para leer esta semana»: más aire entre textos ---------- */
+.libro {
+  gap: 8px;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.libro h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  min-height: 3lh; /* todos los títulos ocupan lo mismo: los libros quedan parejos */
+  margin-top: 4px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.libro > p {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 13px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+/* Actividades de Inicio: títulos parejos */
+.tarjeta-actividad h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-height: 2lh;
+}
+
+.tarjeta-actividad__contenido { flex: 1; }
+.tarjeta-actividad__contenido > .enlace-flecha { margin-top: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .portada__acciones :is(.boton-blanco, .boton-contorno),
+  .portada__acciones :is(.boton-blanco, .boton-contorno)::before,
+  .portada__acciones :is(.boton-blanco, .boton-contorno)::after,
+  .portada__acciones :is(.boton-blanco, .boton-contorno) img { transition: none; }
+}
+
+/* Tarjeta-esqueleto de Actividades (mientras llegan los datos): mismo tamaño que una tarjeta real */
+.tarjeta-actividad--esqueleto { pointer-events: none; }
+.tarjeta-actividad__esqueleto-imagen { height: 200px; border-radius: 0; }

@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 // T-052 · Agenda pública: listado y filtros de actividades (Figma A-02, 476:11136).
 // TODO backend: GET /actividades?categoria=&desde=&hasta= con id, categoría, título, fecha (AAAA-MM-DD),
 // horario, lugar, público, cupo completo y si la actividad fue cancelada. Mientras, se usan los ejemplos de Figma.
-import foto from "../../../assets/comun/fotos/noticia-3.jpg";
+import foto from "../../../assets/comun/fotos/noticia-3.webp";
 import type { Actividad } from "../inicio/datos";
 
 export type Categoria = "taller" | "club" | "visita" | "evento";

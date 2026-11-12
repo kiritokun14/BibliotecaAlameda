@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import "../../pages/publico/inicio/Inicio.css"; // fuentes, colores y botones del portal
 import "./PaginaPublica.css";
+import "./Uniforme.css"; // tarjetas simétricas y movimiento común de todo el portal
 import { EncabezadoPortal, PiePortal } from "./Portal";
 import Navegacion from "./Navegacion";
 import BotonAsistente from "./BotonAsistente";

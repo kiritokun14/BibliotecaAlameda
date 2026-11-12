@@ -1,4 +1,4 @@
-import logoGobierno from "../../assets/comun/logos/logo-gobierno-mexico.png";
+import logoGobierno from "../../assets/comun/logos/logo-gobierno-mexico.webp";
 
 // Franja guinda de arriba y pie guinda de abajo; van en todas las páginas
 export function FranjaInstitucional() {

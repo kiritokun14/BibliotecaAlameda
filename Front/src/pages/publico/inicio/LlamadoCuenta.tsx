@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { Link } from "react-router";
 import { Bloque } from "./Bloque";
-import foto from "../../../assets/comun/fotos/cuenta-foto.jpg";
+import foto from "../../../assets/comun/fotos/cuenta-foto.webp";
 import circulo1 from "../../../assets/inicio/cuenta-circulo-1.svg";
 import circulo2 from "../../../assets/inicio/cuenta-circulo-2.svg";
 import textura from "../../../assets/inicio/cuenta-textura.svg";

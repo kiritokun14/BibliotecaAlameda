@@ -665,3 +665,17 @@
 }
 
 .portada-lectura__foto--lista { opacity: 1; }
+
+/* Título de la portada ilustrada: hasta 3 renglones */
+.portada-lectura strong {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.portada-lectura small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

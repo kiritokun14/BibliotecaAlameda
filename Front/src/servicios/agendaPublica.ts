@@ -1,6 +1,6 @@
 import { consultarAgenda, type ActividadPublica } from './actividades';
 import type { ActividadAgenda, Categoria } from '../pages/publico/eventos/datosAgenda';
-import imagenIlustrativa from '../assets/comun/fotos/noticia-3.jpg';
+import imagenIlustrativa from '../assets/comun/fotos/noticia-3.webp';
 
 export function categoriaPublica(tipo: string): Categoria {
     const valor = tipo.toLocaleLowerCase('es-MX');

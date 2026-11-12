@@ -49,15 +49,16 @@
 }
 
 .navegacion__enlace {
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
+/* Sin fondo: al pasar el mouse solo cambia el color de las letras */
 .navegacion__enlace:hover {
-  background: #f7f5f0;
+  color: #164f44;
 }
 
+/* Sección activa: letras en verde y la línea dorada de abajo, sin fondo */
 .navegacion__enlace.active {
-  background: #e4efeb;
   color: #164f44;
   font-weight: 700;
 }

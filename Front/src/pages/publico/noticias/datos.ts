@@ -2,11 +2,11 @@ import { listarPublicados, obtenerPublicado, type ContenidoPublico } from "../..
 // Noticias de la biblioteca (vista de visitante, sin sesión).
 // La consulta pública usa exclusivamente publicaciones autorizadas del backend.
 // Las constantes de ejemplo se conservan para las pruebas de reglas puras.
-import foto1 from "../../../assets/comun/fotos/noticia-1.jpg";
-import foto2 from "../../../assets/comun/fotos/noticia-2.jpg";
-import foto3 from "../../../assets/comun/fotos/noticia-3.jpg";
-import foto4 from "../../../assets/comun/fotos/foto-biblioteca.jpg";
-import foto5 from "../../../assets/comun/fotos/cuenta-foto.jpg";
+import foto1 from "../../../assets/comun/fotos/noticia-1.webp";
+import foto2 from "../../../assets/comun/fotos/noticia-2.webp";
+import foto3 from "../../../assets/comun/fotos/noticia-3.webp";
+import foto4 from "../../../assets/comun/fotos/foto-biblioteca.webp";
+import foto5 from "../../../assets/comun/fotos/cuenta-foto.webp";
 
 // ---------- Tipos ----------
 

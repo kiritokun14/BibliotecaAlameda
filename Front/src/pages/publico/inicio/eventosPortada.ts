@@ -3,9 +3,9 @@
 import type { ActividadPublica } from "../../../servicios/actividades";
 import { fechaTexto } from "../eventos/datosAgenda";
 import type { TipoActividad } from "./datos";
-import fotoTaller from "../../../assets/comun/fotos/noticia-3.jpg";
-import fotoCultural from "../../../assets/comun/fotos/noticia-1.jpg";
-import fotoActividad from "../../../assets/comun/fotos/noticia-2.jpg";
+import fotoTaller from "../../../assets/comun/fotos/noticia-3.webp";
+import fotoCultural from "../../../assets/comun/fotos/noticia-1.webp";
+import fotoActividad from "../../../assets/comun/fotos/noticia-2.webp";
 
 export type EventoPortada = {
     id: string;

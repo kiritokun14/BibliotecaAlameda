@@ -25,7 +25,8 @@ export function consultarAgenda(filtros: FiltrosAgenda = {}) {
     const parametros = new URLSearchParams();
     for (const [clave, valor] of Object.entries(filtros)) if (valor !== undefined && valor !== '') parametros.set(clave, String(valor));
     const ruta = `/actividades/publicas?${parametros}`;
-    return consultasEditor.obtener(ruta, () => pedirApi<ListaAgenda>(ruta));
+    // Se recuerda 60 s: volver a Inicio o a Eventos no espera otra vez al servidor
+    return consultasEditor.obtener(ruta, () => pedirApi<ListaAgenda>(ruta), 60000);
 }
 export function consultarActividadPublica(folio: string) {
     return pedirApi<ActividadPublica>(`/actividades/publicas/${encodeURIComponent(folio)}`);

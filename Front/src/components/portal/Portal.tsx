@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import "./Portal.css";
-import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.png";
+import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.webp";
 import logoNayarit from "../../assets/comun/logos/logo-nayarit-blanco.png";
 import facebookGrande from "../../assets/portal/red-facebook-30.svg";
 import instagramGrande from "../../assets/portal/red-instagram-30.svg";
