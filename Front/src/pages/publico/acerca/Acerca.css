@@ -1,0 +1,854 @@
+/* =========================================================
+   ACERCA DE LA BIBLIOTECA
+   Reutiliza de Inicio: .seccion-inicio, .bloque, .etiqueta-inicio,
+   .titulo-seccion, .texto-seccion y los botones. Aquí solo va lo propio.
+   ========================================================= */
+
+.acerca {
+  padding-top: 32px;
+  background: #f7f5f0;
+}
+
+/* Las secciones de Acerca van más juntas que las de Inicio */
+.seccion-acerca {
+  padding-block: 24px;
+}
+
+/* ---------- Pestañas ---------- */
+.pestanas-acerca {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 24px 8px;
+}
+
+.pestana-acerca {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px 10px 18px;
+  border: 1.5px solid #bfd9d0;
+  border-radius: 999px;
+  background: #fff;
+  color: #164f44;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.pestana-acerca:hover { background: #e4efeb; }
+
+.pestana-acerca img {
+  width: 18px;
+  height: 18px;
+}
+
+.pestana-acerca.active {
+  border-color: #164f44;
+  background: #164f44;
+  color: #fff;
+}
+
+/* convierte el ícono verde en blanco */
+.pestana-acerca.active img { filter: brightness(0) invert(1); }
+
+/* ---------- Piezas comunes ---------- */
+.tarjeta-blanca {
+  box-sizing: border-box;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(5, 31, 26, 0.18);
+}
+
+.icono-dorado {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: #f6eeda;
+}
+
+.icono-dorado img {
+  width: 22px;
+  height: 22px;
+}
+
+.icono-dorado--grande {
+  width: 56px;
+  height: 56px;
+}
+
+.icono-dorado--grande img {
+  width: 27px;
+  height: 27px;
+}
+
+.pastilla-por-confirmar {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #f6eeda;
+  color: #8a6414;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fuente-dorada {
+  color: #e6d194;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.acerca .subtitulo-bloque {
+  align-self: flex-start;
+  margin: 0 0 -12px;
+  color: #fff;
+  font-size: 24px;
+}
+
+.acerca .nota-acerca {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 8px 24px 40px;
+  color: #4d4d4d;
+  font-size: 14px;
+  text-align: center;
+}
+
+.tres-columnas,
+.cuatro-columnas,
+.dos-columnas {
+  display: grid;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tres-columnas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cuatro-columnas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.dos-columnas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+
+/* Foto con marco dorado y pie de foto */
+.foto-marco {
+  position: relative;
+  margin: 0;
+  padding: 20px;
+  box-sizing: border-box;
+  border: 2px solid #e6d194;
+  border-radius: 36px;
+}
+
+.foto-marco img {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 24px;
+  box-shadow: 0 14px 30px rgba(5, 31, 26, 0.28);
+}
+
+.foto-marco figcaption {
+  position: absolute;
+  bottom: 34px;
+  left: 34px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #164f44;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.foto-marco--chica {
+  padding: 12px;
+  border-radius: 30px;
+}
+
+.foto-marco--chica img { border-radius: 20px; }
+.foto-marco--chica figcaption { bottom: 26px; left: 26px; }
+
+.foto-marco--ancha { width: 100%; }
+
+/* ---------- Historia ---------- */
+.historia-intro {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  width: 100%;
+}
+
+.historia-intro__datos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.lista-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dato-acerca {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 24px;
+}
+
+.dato-acerca strong {
+  color: #164f44;
+  font-size: 18px;
+}
+
+.acerca .dato-acerca p {
+  margin-top: 2px;
+  color: #4d4d4d;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.historia-intro__foto { flex: 0 0 460px; }
+
+.galeria-acerca {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+  gap: 28px;
+  width: 100%;
+}
+
+.galeria-acerca__columna {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ---------- Línea del tiempo (y trayectoria de Solón Argüello) ---------- */
+.lista-etapas {
+  width: 100%;
+  margin: 0;
+  padding: 8px 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+/* línea divisoria entre etapas */
+.etapa + .etapa::before {
+  content: '';
+  display: block;
+  height: 1px;
+  margin: 0 36px;
+  background: #e8efeb;
+}
+
+.etapa {
+  transition: background 0.25s ease;
+}
+
+.etapa--abierta {
+  background: rgba(246, 238, 218, 0.5);
+}
+
+.etapa__boton {
+  display: flex;
+  box-sizing: border-box; /* el padding no debe hacerlo más ancho que la tarjeta */
+  align-items: flex-start;
+  gap: 22px;
+  width: 100%;
+  padding: 20px 36px;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.etapa__boton:hover { background: rgba(246, 238, 218, 0.35); }
+
+.etapa__boton:focus-visible {
+  outline: 3px solid #c9a24a;
+  outline-offset: -3px;
+}
+
+.etapa__boton--fijo {
+  align-items: center;
+  cursor: default;
+}
+
+.etapa__numero {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: #f6eeda;
+  color: #8a6414;
+  font-size: 18px;
+  font-weight: 700;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.etapa--abierta .etapa__numero {
+  background: #164f44;
+  color: #fff;
+}
+
+.etapa__textos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.etapa__textos strong {
+  color: #164f44;
+  font-size: 20px;
+}
+
+.etapa__textos span {
+  color: #4d4d4d;
+  font-size: 15px;
+  line-height: 23px;
+}
+
+.etapa__fecha {
+  flex-shrink: 0;
+  margin-top: 4px;
+  color: #8a6414;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.etapa__boton--fijo .etapa__fecha { margin-top: 0; }
+
+.etapa__flecha {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.25s ease;
+}
+
+.etapa--abierta .etapa__flecha { transform: rotate(180deg); }
+
+/* Detalle de la etapa abierta (alineado con el título) */
+.etapa__detalle {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  padding: 0 82px 24px 102px;
+  animation: etapa-abre 0.3s ease;
+}
+
+.etapa__detalle p {
+  flex: 1;
+  color: #161a1d;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* "hidden" debe ganarle al display: flex de arriba */
+.etapa__detalle[hidden] { display: none; }
+
+@keyframes etapa-abre {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.etapa__imagen {
+  position: relative;
+  flex-shrink: 0;
+  width: 280px;
+  height: 190px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.etapa__imagen > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Foto que todavía no entrega la biblioteca */
+.etapa__imagen--por-confirmar {
+  background: #faf6ec;
+  box-sizing: border-box;
+  border: 1.5px dashed #c9a24a;
+  border-radius: 12px;
+}
+
+.etapa__imagen--por-confirmar figcaption {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #4d4d4d;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.etapa__imagen--por-confirmar figcaption img {
+  width: 40px;
+  height: 40px;
+}
+
+/* ---------- Misión y visión ---------- */
+.mision-vision {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  width: 100%;
+}
+
+.tarjeta-mision {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 36px;
+}
+
+.tarjeta-mision h3 {
+  color: #164f44;
+  font-size: 36px;
+  line-height: 42px;
+}
+
+.acento-dorado {
+  width: 64px;
+  height: 5px;
+  border-radius: 3px;
+  background: #c9a24a;
+}
+
+.tarjeta-mision p {
+  color: #161a1d;
+  font-size: 19px;
+  line-height: 31px;
+}
+
+.tarjeta-mision strong,
+.semblanza__texto strong {
+  color: #164f44;
+}
+
+.tarjeta-valor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 28px;
+}
+
+.tarjeta-valor h3 {
+  color: #164f44;
+  font-size: 21px;
+  line-height: 27px;
+}
+
+.tarjeta-valor p {
+  color: #161a1d;
+  font-size: 17px;
+  line-height: 26px;
+}
+
+/* ---------- Solón Argüello ---------- */
+.semblanza {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  width: 100%;
+  padding: 36px;
+}
+
+.semblanza__retrato {
+  position: relative;
+  flex-shrink: 0;
+  width: 150px;
+  height: 188px;
+  margin: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid #bfd9d0;
+  border-radius: 18px;
+  background: #e4efeb;
+}
+
+.semblanza__retrato img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.semblanza__retrato figcaption {
+  position: absolute;
+  bottom: 8px;
+  left: 7px;
+  padding: 3px 7px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #164f44;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.semblanza__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.semblanza__texto h3 {
+  color: #164f44;
+  font-size: 28px;
+}
+
+.semblanza__texto p {
+  color: #161a1d;
+  font-size: 17px;
+  line-height: 26px;
+}
+
+.ficha {
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #dde7e2;
+  border-radius: 20px;
+  background: #f7f5f0;
+}
+
+.ficha div {
+  display: flex;
+  gap: 16px;
+  padding: 9px 22px;
+}
+
+.ficha div + div { border-top: 1px solid #e3eae6; }
+
+.ficha dt {
+  flex: 0 0 210px;
+  color: #164f44;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ficha dd {
+  flex: 1;
+  margin: 0;
+  color: #4d4d4d;
+  font-size: 16px;
+}
+
+/* Biografía completa ("Ver más") */
+.semblanza__completa {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: etapa-abre 0.3s ease;
+}
+
+.semblanza__completa[hidden] { display: none; }
+
+/* Versión completa: el botón "Ver menos" queda antes de las fuentes y la ficha */
+.semblanza--completa .pastilla-por-confirmar,
+.semblanza--completa .ficha { order: 2; }
+.semblanza--completa .boton-ver-mas { order: 1; }
+
+.semblanza__completa section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.acerca .semblanza__completa h4 {
+  margin: 4px 0 0;
+  color: #164f44;
+  font-size: 19px;
+  line-height: 26px;
+}
+
+.boton-ver-mas {
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border: 1.5px solid #164f44;
+  border-radius: 999px;
+  background: #e4efeb;
+  color: #164f44;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.boton-ver-mas:hover { background: #fff; }
+
+.tarjeta-obra {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 18px 22px;
+}
+
+.tarjeta-obra img {
+  width: 100%;
+  height: 290px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 10px 22px rgba(5, 31, 26, 0.3);
+}
+
+.tarjeta-obra h3 {
+  margin-top: 4px;
+  color: #164f44;
+  font-size: 18px;
+}
+
+.tarjeta-obra p {
+  color: #8a6414;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ---------- Rol de la biblioteca ---------- */
+.tarjeta-perspectiva {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 18px 28px;
+}
+
+.tarjeta-perspectiva__foto {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+.tarjeta-perspectiva__contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 6px 12px 0;
+}
+
+.tarjeta-perspectiva h3 {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #164f44;
+  font-size: 26px;
+}
+
+.tarjeta-perspectiva p {
+  color: #4d4d4d;
+  font-size: 17px;
+  line-height: 26px;
+}
+
+.lista-check {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lista-check li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #161a1d;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.lista-check img {
+  width: 18px;
+  height: 18px;
+}
+
+.invitacion-acerca {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  max-width: 1360px;
+  padding: 40px 56px;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 40px;
+  background: linear-gradient(170deg, #0b3b33 0%, #164f44 71%);
+  box-shadow: 0 24px 56px rgba(107, 79, 18, 0.3);
+}
+
+.invitacion-acerca > * { position: relative; }
+
+.invitacion-acerca > .invitacion-acerca__circulo {
+  position: absolute;
+  top: -170px;
+  right: -100px;
+  width: 360px;
+  height: 360px;
+  pointer-events: none;
+}
+
+.invitacion-acerca__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invitacion-acerca__texto h2 {
+  color: #fff;
+  font-size: 28px;
+  line-height: 36px;
+}
+
+.invitacion-acerca__texto h2 span { color: #e6d194; }
+
+.invitacion-acerca__texto p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 17px;
+}
+
+.invitacion-acerca__botones {
+  display: flex;
+  gap: 14px;
+}
+
+/* ---------- Escritorio angosto (hasta 1280 px) ---------- */
+@media (max-width: 1280px) {
+  .historia-intro__foto { flex-basis: 400px; }
+  .tarjeta-obra img { height: 240px; }
+  .etapa__detalle { padding-right: 36px; }
+}
+
+/* ---------- Sección sin información publicada (mismo estado que Noticias) ---------- */
+.estado-acerca {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: calc(100% - 48px);
+  max-width: 1200px;
+  margin: 8px auto 0;
+  box-sizing: border-box;
+  padding: 56px 24px 64px;
+  border-radius: 40px;
+  background: #fff;
+  box-shadow: 0 14px 18px rgba(22, 79, 68, 0.1);
+  text-align: center;
+}
+
+.estado-acerca__anillo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  margin-bottom: 6px;
+  box-sizing: border-box;
+  border: 2px solid rgba(230, 209, 148, 0.7);
+  border-radius: 999px;
+}
+
+.estado-acerca__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 98px;
+  height: 98px;
+  border-radius: 999px;
+  background: #e4efeb;
+}
+
+.estado-acerca__icono img { width: 42px; height: 42px; }
+
+.estado-acerca__etiqueta {
+  margin: 0;
+  color: #9b2247;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.78px;
+}
+
+.estado-acerca h2 {
+  max-width: 620px;
+  margin: 0;
+  color: #161a1d;
+  font-size: 38px;
+  line-height: 44px;
+  letter-spacing: -0.76px;
+}
+
+.estado-acerca__texto {
+  max-width: 620px;
+  margin: 0;
+  color: #4d4d4d;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.estado-acerca__botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.boton-acerca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 50px;
+  padding: 0 26px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.boton-acerca img { width: 18px; height: 18px; }
+.boton-acerca--verde { background: #164f44; color: #fff; }
+.boton-acerca--verde:hover { background: #0b3b33; }
+.boton-acerca--contorno { border: 1.5px solid #161a1d; color: #161a1d; }
+.boton-acerca--contorno:hover { background: rgba(22, 79, 68, 0.06); }
+.boton-acerca:focus-visible { outline: 3px solid #e6d194; outline-offset: 3px; }
+
+/* Separa el estado del pie cuando la sección está vacía */
+.acerca:has(> .estado-acerca) { padding-bottom: 96px; }

@@ -1,0 +1,152 @@
+-- Verificación real con roles anon/authenticated. ROLLBACK: no deja cuentas ni solicitudes.
+BEGIN;
+DO $$
+#variable_conflict use_variable
+DECLARE usuario uuid:=gen_random_uuid(); otro uuid:=gen_random_uuid(); personal uuid:=gen_random_uuid(); moderador uuid:=gen_random_uuid();
+ sesion uuid:=gen_random_uuid(); sesion_otro uuid:=gen_random_uuid(); sesion_personal uuid:=gen_random_uuid(); sesion_moderador uuid:=gen_random_uuid();
+ id_actual uuid; r jsonb; anterior jsonb; lista jsonb; credencial uuid; propuesta uuid; rechazo boolean; cantidad_actividades bigint; propia jsonb; buscar_estado text;
+ acuerdo jsonb:='{"responsable":"Dirección temporal","fecha":"2026-01-01","referencia":"PRUEBA-REVERSIBLE"}';
+ registro jsonb:='{"nombres":"Prueba atencion","primerApellido":"Temporal","fechaNacimiento":"2000-01-01","telefono":"3110000000","aceptaAviso":true,"domicilio":{"calle":"Prueba","numeroExterior":"sin número","coloniaLocalidad":"Prueba","codigoPostal":"63000","municipio":"Tepic","estadoProvincia":"Nayarit"}}';
+ datos_propuesta jsonb:='{"tituloPropuesta":"Club reversible","descripcion":"Lecturas compartidas","tipoPropuesta":"Club","publicoDirigido":"Juventud","necesidadEspacio":"Sala","frecuenciaReunion":"Semanal","diasSolicitados":"Viernes","horarioSolicitado":"16:00 a 17:00","abiertaAlPublico":true,"sinFinesDeLucro":true}';
+BEGIN
+ SELECT count(*) INTO cantidad_actividades FROM public.actividad;
+ FOREACH id_actual IN ARRAY ARRAY[usuario,otro,personal,moderador] LOOP
+  INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data)
+   VALUES(id_actual,id_actual::text||'@example.invalid',now(),jsonb_build_object('registro',registro));
+ END LOOP;
+ INSERT INTO auth.sessions(id,user_id,created_at) VALUES(sesion,usuario,now()),(sesion_otro,otro,now()),(sesion_personal,personal,now()),(sesion_moderador,moderador,now());
+ INSERT INTO public."rolUsuario"("usuarioId","rolCodigo","asignadoPor","motivoAsignacion")
+ VALUES(personal,'responsable_actividades',personal,'Prueba reversible'),(moderador,'responsable_actividades',personal,'Prueba reversible');
+ INSERT INTO public."permisoCuenta"("usuarioId",capacidad,"asignadoPor",motivo)
+ VALUES(personal,'validar_credenciales',personal,'Prueba reversible'),(personal,'registrar_resoluciones_actividades',personal,'Prueba reversible'),
+ (moderador,'moderar_foro',personal,'Prueba reversible');
+ PERFORM set_config('request.jwt.claims','{}',true); SET LOCAL ROLE anon;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('credencial','mias'); EXCEPTION WHEN insufficient_privilege THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Acceso anónimo a trámites'; END IF;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',usuario,'role','authenticated','session_id',sesion)::text,true);
+ SET LOCAL ROLE authenticated;
+ r:=public.atencion_solicitudes('credencial','crear','{"tipoSolicitud":"obtencion"}'); credencial:=(r->>'id')::uuid;
+ IF r->>'estadoSolicitud'<>'recibida' OR r->>'usuarioId'<>usuario::text THEN RAISE EXCEPTION 'Titular o estado inicial incorrecto'; END IF;
+ anterior:=r;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('credencial','crear','{"tipoSolicitud":"renovacion"}'); EXCEPTION WHEN unique_violation THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Aceptó solicitudes activas duplicadas'; END IF;
+ lista:=public.atencion_solicitudes('credencial','mias');
+ IF lista->>'total'<>'1' OR lista->'solicitudes'->0 ? 'perfil' THEN RAISE EXCEPTION 'Listado propio incorrecto'; END IF;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('credencial','listar'); EXCEPTION WHEN insufficient_privilege THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Usuario accede a listado de personal'; END IF;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',otro,'role','authenticated','session_id',sesion_otro)::text,true);
+ SET LOCAL ROLE authenticated;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('credencial','obtener',jsonb_build_object('id',credencial)); EXCEPTION WHEN insufficient_privilege THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Otro usuario ve una solicitud ajena'; END IF;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',personal,'role','authenticated','session_id',sesion_personal)::text,true);
+ SET LOCAL ROLE authenticated;
+ lista:=public.atencion_solicitudes('credencial','listar',jsonb_build_object('busqueda',credencial::text));
+ IF lista->>'total'<>'1' OR NOT (lista->'solicitudes'->0 ? 'perfil') OR lista->'solicitudes'->0->'perfil' ? 'calle' THEN RAISE EXCEPTION 'Proyección de personal incorrecta'; END IF;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('credencial','resolver',jsonb_build_object('id',credencial,'actualizadaEn','2000-01-01T00:00:00Z','estadoSolicitud','en_atencion'));
+ EXCEPTION WHEN serialization_failure THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Aceptó versión obsoleta'; END IF;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('credencial','resolver',jsonb_build_object('id',credencial,'actualizadaEn',anterior->>'actualizadaEn','estadoSolicitud','cita_programada'));
+ EXCEPTION WHEN check_violation THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Programó cita sin fecha'; END IF;
+ r:=public.atencion_solicitudes('credencial','resolver',jsonb_build_object('id',credencial,'actualizadaEn',anterior->>'actualizadaEn','estadoSolicitud','en_atencion'));
+ r:=public.atencion_solicitudes('credencial','resolver',jsonb_build_object('id',credencial,'actualizadaEn',r->>'actualizadaEn','estadoSolicitud','cita_programada','fechaCita','2035-06-12T17:00:00Z','observaciones','Acudir a la biblioteca'));
+ IF r->>'atendidaPor'<>personal::text OR r->>'fechaCita' IS NULL THEN RAISE EXCEPTION 'No guardó cita y responsable'; END IF;
+ r:=public.atencion_solicitudes('credencial','resolver',jsonb_build_object('id',credencial,'actualizadaEn',r->>'actualizadaEn','estadoSolicitud','cita_programada','fechaCita','2035-06-13T17:00:00Z'));
+ r:=public.atencion_solicitudes('credencial','resolver',jsonb_build_object('id',credencial,'actualizadaEn',r->>'actualizadaEn','estadoSolicitud','atendida'));
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('credencial','resolver',jsonb_build_object('id',credencial,'actualizadaEn',r->>'actualizadaEn','estadoSolicitud','en_atencion'));
+ EXCEPTION WHEN object_not_in_prerequisite_state THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Reabrió trámite cerrado'; END IF;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',usuario,'role','authenticated','session_id',sesion)::text,true);
+ SET LOCAL ROLE authenticated;
+ r:=public.atencion_solicitudes('credencial','crear','{"tipoSolicitud":"renovacion"}');
+ IF r->>'estadoSolicitud'<>'recibida' THEN RAISE EXCEPTION 'No permite nueva solicitud tras cerrar'; END IF;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('propuesta','crear',datos_propuesta||'{"sinFinesDeLucro":false}');
+ EXCEPTION WHEN check_violation THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'No exige confirmaciones'; END IF;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('propuesta','crear',datos_propuesta||jsonb_build_object('propuestoPor',otro));
+ EXCEPTION WHEN invalid_parameter_value THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Aceptó identidad impuesta'; END IF;
+ r:=public.atencion_solicitudes('propuesta','crear',datos_propuesta); propuesta:=(r->>'id')::uuid; anterior:=r;
+ IF r->>'estadoRevision'<>'en_revision' OR r->>'actividadId' IS NOT NULL THEN RAISE EXCEPTION 'Publicación indebida al crear propuesta'; END IF;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',moderador,'role','authenticated','session_id',sesion_moderador)::text,true);
+ SET LOCAL ROLE authenticated;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','estadoRevision','aprobada'));
+ EXCEPTION WHEN insufficient_privilege THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Moderación de foro otorgó resolución institucional'; END IF;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',personal,'role','authenticated','session_id',sesion_personal)::text,true);
+ SET LOCAL ROLE authenticated;
+ r:=public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','estadoRevision','requiere_correccion','observacionesInstitucionales','Aclarar espacio'));
+ anterior:=r;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',otro,'role','authenticated','session_id',sesion_otro)::text,true);
+ SET LOCAL ROLE authenticated;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('propuesta','corregir',datos_propuesta||jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn'));
+ EXCEPTION WHEN insufficient_privilege THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Otro usuario corrigió propuesta ajena'; END IF;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',usuario,'role','authenticated','session_id',sesion)::text,true);
+ SET LOCAL ROLE authenticated;
+ r:=public.atencion_solicitudes('propuesta','corregir',datos_propuesta||jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','necesidadEspacio','Sala infantil'));
+ IF r->>'estadoRevision'<>'en_revision' OR r->>'necesidadEspacio'<>'Sala infantil' THEN RAISE EXCEPTION 'No guardó ni reenvió corrección'; END IF;
+ anterior:=r;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',personal,'role','authenticated','session_id',sesion_personal)::text,true);
+ SET LOCAL ROLE authenticated;
+ -- El coordinador con permiso tampoco puede resolver su propia propuesta.
+ propia:=public.atencion_solicitudes('propuesta','crear',datos_propuesta);
+ FOREACH buscar_estado IN ARRAY ARRAY['aprobada','rechazada','requiere_correccion'] LOOP
+  rechazo:=false;
+  BEGIN PERFORM public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propia->>'id','actualizadoEn',propia->>'actualizadoEn','estadoRevision',buscar_estado,'observacionesInstitucionales','Prueba','acuerdoDireccion',acuerdo));
+  EXCEPTION WHEN insufficient_privilege THEN rechazo:=true; END;
+  IF NOT rechazo THEN RAISE EXCEPTION 'El titular resolvió su propia propuesta: %',buscar_estado; END IF;
+ END LOOP;
+ -- El permiso de coordinación no reemplaza el acuerdo de dirección.
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','estadoRevision','aprobada','observacionesInstitucionales','Favorable'));
+ EXCEPTION WHEN check_violation THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Aprobó sin acuerdo de dirección'; END IF;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','estadoRevision','rechazada','observacionesInstitucionales','No procede','acuerdoDireccion',acuerdo||'{"fecha":"2999-01-01"}'));
+ EXCEPTION WHEN check_violation THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Aceptó acuerdo futuro'; END IF;
+ r:=public.atencion_solicitudes('propuesta','resolver',jsonb_build_object('id',propuesta,'actualizadoEn',anterior->>'actualizadoEn','estadoRevision','aprobada','observacionesInstitucionales','Acuerdo favorable de dirección','acuerdoDireccion',acuerdo));
+ IF r->'historial'->3->'acuerdoDireccion' IS DISTINCT FROM acuerdo OR r->'historial'->3->>'registradoPor'<>personal::text
+ THEN RAISE EXCEPTION 'No distinguió acuerdo externo y registrador'; END IF;
+
+ IF r->>'actividadId' IS NOT NULL OR r->>'revisadoPor'<>personal::text THEN RAISE EXCEPTION 'Aprobación con efectos incorrectos'; END IF;
+ RESET ROLE;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',usuario,'role','authenticated','session_id',sesion)::text,true);
+ SET LOCAL ROLE authenticated;
+ r:=public.atencion_solicitudes('propuesta','obtener',jsonb_build_object('id',propuesta));
+ IF r->'historial'->3 ? 'acuerdoDireccion' OR r->'historial'->3 ? 'registradoPor' THEN RAISE EXCEPTION 'Expuso referencia interna a solicitante'; END IF;
+ RESET ROLE;
+ IF (SELECT count(*) FROM public.actividad)<>cantidad_actividades THEN RAISE EXCEPTION 'Se creó una actividad automáticamente'; END IF;
+ IF (SELECT count(*) FROM privado."historialSolicitud" WHERE "propuestaEventoId"=propuesta)<>4 THEN RAISE EXCEPTION 'Historial incompleto'; END IF;
+ DELETE FROM auth.sessions WHERE id=sesion;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',usuario,'role','authenticated','session_id',sesion)::text,true);
+ SET LOCAL ROLE authenticated;
+ rechazo:=false;
+ BEGIN PERFORM public.atencion_solicitudes('credencial','mias'); EXCEPTION WHEN insufficient_privilege THEN rechazo:=true; END;
+ IF NOT rechazo THEN RAISE EXCEPTION 'Aceptó sesión revocada'; END IF;
+ IF EXISTS(SELECT 1 FROM public."solicitudCredencial" WHERE "usuarioId"=usuario) THEN RAISE EXCEPTION 'RLS permite lectura con sesión revocada'; END IF;
+ RESET ROLE;
+END; $$;
+ROLLBACK;
+SELECT 'Credenciales, propuestas, permisos, correcciones, citas e historial OK; todo revertido' resultado;

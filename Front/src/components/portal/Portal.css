@@ -1,0 +1,200 @@
+/* =========================================================
+   ENCABEZADO Y PIE INSTITUCIONALES DEL PORTAL
+   El ancho del contenido se alinea con la navegación:
+   máximo 1440 px centrados, con margen a los lados.
+   ========================================================= */
+
+.encabezado-portal,
+.pie-portal {
+  --margen-portal: max(24px, calc((100% - 1440px) / 2));
+  font-family: 'Noto Sans', sans-serif;
+}
+
+.encabezado-portal p,
+.pie-portal p,
+.pie-portal h2 {
+  margin: 0;
+}
+
+/* ---------- Encabezado ---------- */
+.encabezado-portal__franja {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px var(--margen-portal);
+  background: #4a0e26;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.redes {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.redes img {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.redes--grandes img {
+  width: 30px;
+  height: 30px;
+}
+
+.encabezado-portal__logos {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 10px var(--margen-portal);
+  border-bottom: 3px solid #c9a24a;
+  background: #611232;
+}
+
+.encabezado-portal__logos .logo-mexico { width: 106px; height: 38px; object-fit: contain; }
+.encabezado-portal__logos .logo-nayarit { width: 112px; height: 38px; object-fit: contain; }
+
+.encabezado-portal__separador {
+  width: 1px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Logo de la biblioteca: el PNG se usa como máscara para pintarlo del color que toque */
+.logo-solon {
+  display: block;
+  -webkit-mask: url("../../assets/comun/logos/logo-solon-arguello.png") no-repeat center / contain;
+  mask: url("../../assets/comun/logos/logo-solon-arguello.png") no-repeat center / contain;
+}
+
+.logo-solon--verde { width: 136px; height: 54px; background: #164f44; }
+
+.logo-solon--blanco {
+  width: 121px;
+  height: 48px;
+  background: #fff;
+  -webkit-mask-image: url("../../assets/comun/logos/logo-solon-arguello-pie.png");
+  mask-image: url("../../assets/comun/logos/logo-solon-arguello-pie.png");
+}
+
+/* ---------- Pie ----------
+   Logos apilados a la izquierda (con una línea divisoria) y
+   columnas de enlaces a la derecha. Tamaños compactos. */
+.pie-portal {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 44px var(--margen-portal) 24px;
+  border-top: 3px solid #c9a24a;
+  background: #611232;
+  color: #fff;
+}
+
+.pie-portal__contenido {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 56px;
+}
+
+.pie-portal__logos {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-right: 56px;
+  border-right: 1px solid rgba(230, 209, 148, 0.25);
+}
+
+.pie-portal__logos > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pie-portal small {
+  color: #e6d194;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.pie-portal__logo-mexico { width: 108px; height: 38px; object-fit: contain; object-position: left; }
+.pie-portal__logo-nayarit { width: 116px; height: 38px; object-fit: contain; object-position: left; }
+
+.pie-portal .logo-solon--blanco { width: 96px; height: 38px; }
+
+.pie-portal__columnas {
+  display: grid;
+  /* tres columnas de enlaces iguales y "Síguenos" solo del ancho que necesita */
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 40px;
+}
+
+.pie-portal__columnas h2 {
+  margin-bottom: 14px;
+  color: #e6d194;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pie-portal__columnas ul:not(.redes) {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.pie-portal__columnas a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.pie-portal__columnas a:hover {
+  color: #e6d194;
+  text-decoration: underline;
+}
+
+.pie-portal a:focus-visible {
+  outline: 3px solid #e6d194;
+  outline-offset: 3px;
+}
+
+.pie-portal .redes--grandes img {
+  width: 24px;
+  height: 24px;
+}
+
+.pie-portal__nota {
+  margin-top: 12px !important;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+}
+
+.pie-portal__legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(230, 209, 148, 0.3);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+}
+
+/* Escritorio angosto: menos espacio entre logos y columnas */
+@media (max-width: 1400px) {
+  .pie-portal__contenido { gap: 40px; }
+  .pie-portal__logos { padding-right: 40px; }
+  .pie-portal__columnas { gap: 28px; }
+}
