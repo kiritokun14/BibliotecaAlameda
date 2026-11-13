@@ -1,117 +1,112 @@
-# Biblioteca Alameda
+﻿# HU-19 / T-097 — Sprint 5 Stephanie
+## Consulta de inscripciones y control de cupos
 
-Trabajo de Stephanie sobre inscripciones y cupos: [README_HU19_T097.md](README_HU19_T097.md).
+### 1. Descripción general
 
-Backend inicial en FastAPI conectado a Supabase (proyecto CECANbd).
+En esta actividad desarrollé la parte del backend que permite a los responsables de cursos y talleres consultar las personas que solicitaron una inscripción, revisar los lugares disponibles y decidir si una solicitud se confirma, rechaza o cancela.
 
-Trabajo realizado y pendientes de Roberto: [AVANCES_ROBERTO.md](AVANCES_ROBERTO.md).
+El objetivo principal es llevar un mejor control de los participantes, evitar que se inscriban más personas de las permitidas y proteger su información personal.
 
-## Preparación en Windows
+Para realizarlo, utilicé el backend existente en **FastAPI**, la autenticación de **Supabase** y la base de datos **PostgreSQL**.
 
-Desde la raíz del repositorio:
+### 2. Endpoints implementados
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r Back/requirements.txt
-Copy-Item Back/.env.example Back/.env
-```
+Los endpoints son las rutas que permiten consultar información o realizar acciones desde el backend.
 
-Completar `Back/.env` con la clave **publicable** de CECANbd. El archivo local está excluido de Git; cada integrante configura el suyo. No colocar claves secretas en el frontend ni en archivos versionados.
+Para utilizarlos, es necesario que el usuario haya iniciado sesión y envíe su token de autenticación.
 
-## Ejecutar
+GET `/responsable/actividades` : Muestra los cursos y talleres que el responsable tiene permiso de administrar. 
+GET `/sesiones/{sesionId}/inscripciones`:Muestra las solicitudes de las personas que quieren participar en una sesión. 
+GET  `/sesiones/{sesionId}/cupos` Permite saber cuántos lugares tiene una sesión, cuántos están ocupados y cuántos quedan disponibles. 
+---------------------------------------------------------------------
+PATCH `/inscripciones/{inscripcionId}/confirmar` Confirma la inscripción de una persona cuando cumple los requisitos y hay espacio. 
+PATCH `/inscripciones/{inscripcionId}/rechazar` Rechaza una solicitud y guarda el motivo de la decisión.
+PATCH `/inscripciones/{inscripcionId}/cancelar` Cancela una inscripción pendiente o confirmada.
+-----------------------------------------------------------------------
+GET  `/sesiones/{sesionId}/inscripciones/conteos` Muestra cuántas solicitudes hay en cada estado, sin mostrar información personal. 
 
-```powershell
-.\.venv\Scripts\python.exe -m uvicorn Back.main:app --reload --reload-dir Back
-```
+Las rutas de consulta permiten limitar la cantidad de resultados y consultar los siguientes mediante los parámetros `limite` y `desplazamiento`.
 
-- Documentación de la API: http://127.0.0.1:8000/docs
-- Estado del backend: http://127.0.0.1:8000/salud
-- Verificación real de lectura en Supabase: http://127.0.0.1:8000/salud/bd
+Para confirmar, rechazar o cancelar una inscripción es necesario enviar un motivo. Por ejemplo:
 
-La verificación consulta `actividad` sin devolver registros. Que responda correctamente demuestra conexión y acceso de lectura; no demuestra permisos de escritura ni que estén implementados el registro, el inicio de sesión o la administración de cuentas.
-
-La conexión usa la clave publicable y respeta las políticas de acceso de la base. El autorregistro usa Supabase Auth y el disparador privado descrito abajo; no requiere una clave secreta en el backend ni abre escrituras públicas sobre los perfiles.
-
-## T-027: autorregistro (habilitado localmente)
-
-`POST /cuentas/registro` recibe datos personales, domicilio, correo, contraseña, aceptación del aviso y contacto del tutor cuando la persona es menor de 18 años. El segundo apellido y número interior son opcionales; se omiten o se envían como `null`. Teléfonos de 10 dígitos y código postal de 5. La contraseña tiene entre 8 y 128 caracteres y no se guarda en el perfil. FastAPI no devuelve los valores rechazados en los errores de validación.
-
-Los nombres de campos y el ejemplo se consultan en `/docs`. El domicilio del usuario es obligatorio conforme a CU-05/HU-05 y la BD, aunque aún no aparece en las pantallas revisadas de Figma. El tutor tiene su propio domicilio; no obtiene una cuenta ni acceso automático a la cuenta del menor. La confirmación de contraseña se valida en el formulario, no se persiste ni se manda a Auth como metadata.
-
-### Guardado en la base compartida
-
-La parte de registro atómico de `Supabase/registro_usuarios.sql` **ya se aplicó en CECANbd con autorización**. Añade `perfil.avisoAceptadoEn` y un disparador privado de inserción en `auth.users` que valida y crea perfil y tutor en la misma transacción. Si fallan los datos, se cancela el alta completa. El registro no concede roles del personal, credenciales ni escrituras públicas; la corrección vigente asigna automáticamente el rol básico Usuario. La metadata nunca se usa para autorizar acciones.
-
-El bloque `limpiar_metadata_registro` ya está aplicado y se verificó que elimina únicamente el payload `registro` en actualizaciones de Auth. La cuenta de prueba conserva su perfil y su correo confirmado, sin esa copia de datos personales en metadata.
-
-El disparador es `SECURITY DEFINER`, privado y sin ejecución pública: el servicio Auth no dispone de permiso directo para escribir perfiles. **Toda nueva alta de Auth necesita los datos de registro completos**, incluidas las altas desde herramientas administrativas o futuros proveedores de acceso. No modifica usuarios existentes ni sincroniza cambios posteriores de metadata hacia perfiles. Coordinar este contrato con Luis antes de activar otros métodos de alta.
-
-En este equipo `REGISTRO_HABILITADO=true` ya habilita el endpoint. Para otros entornos permanece desactivado por defecto hasta configurar y verificar la misma estructura. Se comprobó un alta real mediante Auth: perfil creado, correo enviado y confirmado, sin roles del personal. La redirección posterior apunta actualmente a localhost; en un celular no es accesible. Falta acordar con Alda la URL de retorno del frontend y validar el texto definitivo del aviso; las pantallas existentes ya están conectadas para la prueba local; no se ha publicado un servidor de producción.
-
-Una solicitud aceptada devuelve 202 con respuesta genérica tanto para correo nuevo como para correo ya registrado; no revela existencia de cuentas ni devuelve sesiones, UUID o contraseñas. Los límites de Auth se devuelven como 429 y las indisponibilidades como 503. Un fallo de entrega de correo puede dejar una cuenta pendiente de verificación en Auth; no se afirma que el mensaje haya llegado ni se crea otra cuenta para reintentar. El reenvío y el inicio de sesión se coordinan con las tareas de autenticación.
-
-### Pruebas locales
-
-```powershell
-.\.venv\Scripts\python.exe -m unittest Back.tests.test_registro -v
-```
-
-Las pruebas de autorregistro simulan Auth, no envían correos ni crean usuarios reales. Comprueban adultos, menores, límite de 18 años, campos obligatorios, rechazo de privilegios enviados por el cliente, duplicados, fallos y ausencia de contraseñas en respuestas.
-
-`Supabase/pruebas_registro.sql` se ejecutó contra CECANbd con `ROLLBACK`: verificó adulto, menor con tutor, ocho casos inválidos sin filas residuales, aceptación del aviso, aislamiento de metadata y ausencia de roles del personal o escrituras públicas. La revisión de seguridad de Supabase no reportó alertas. Las pruebas reversibles no dejan registros ficticios. Posteriormente se confirmó el correo de la cuenta real autorizada; la redirección del correo sigue pendiente del frontend.
-
-La comprobación manual opcional `python -m Back.tests.verificar_auth_real --correo CORREO_AUTORIZADO` llama a Auth con datos ficticios y una contraseña aleatoria que no se imprime. Solo se ejecuta con autorización sobre ese correo y coordinando después la limpieza de la cuenta de prueba. No ejecutar repetidamente: aplica el límite de envíos de Auth.
+{
+  "motivo": "Se revisaron los requisitos de inscripción."
+}
 
 
-La última revisión de seguridad no reportó problemas en las funciones/tablas de registro; Auth sí advierte que la protección contra contraseñas filtradas está deshabilitada. No se modificó esa configuración. Referencia: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+### 3. ¿Qué implementé?
 
-## Modelo de acceso vigente
+**Consulta de actividades e inscripciones**
 
-CECANbd distingue Usuario / Cliente, Editor, Responsable de actividades y Administrador del portal, conforme a 3.1b. Visitante conserva acceso público. Servicios Digitales y Préstamos se representan mediante concesiones específicas sin requerir Editor, como las casillas de Figma. El usuario puede proponer eventos y solicitar inscripción; enviar no equivale a aprobar o publicar.
+Implementé las funciones necesarias para que los responsables puedan consultar las actividades que tienen asignadas y revisar las solicitudes de inscripción de cada sesión.
 
-Supabase/alinear_actores_documentados.sql ya se aplicó después de las migraciones anteriores. El autorregistro concede únicamente Usuario / Cliente. La administración requiere una asignación expresa en Supabase y sigue pendiente la comprobación HTTP con una cuenta administradora real. Los endpoints de los demás módulos no quedan implementados por declarar sus permisos. Verificación vigente: 43 pruebas del backend, 12 de integración del frontend y pruebas SQL reversibles de registro y administración.
+También se muestran los requisitos de las actividades para que el encargado pueda verificarlos antes de confirmar a una persona.
 
-## Agenda pública (T-050)
+**Control de cupos**
 
-Estado revisado el 6 de noviembre de 2026. API implementada y pruebas aisladas correctas. El carrusel de Inicio y el detalle de Eventos todavía consumen datos locales. La conexión de esas pantallas, la verificación con Supabase real y la revisión de Aldahir están pendientes. El [informe de T-050 y T-061](INFORME_T050_T061.md) registra el alcance y los resultados.
+Agregué una función que permite conocer los lugares disponibles en cada curso o taller.
 
-- `GET /public/actividades` lista actividades publicadas. Acepta `tipo` (categoría exacta), `desde` y `hasta` (fecha ISO de inicio de sesión, inclusiva, en UTC), `page` (desde 1) y `limit` (1 a 100, por defecto 20). El listado se ordena por título e ID y devuelve `items`, `page` y `limit`.
-- `GET /public/actividades/{actividad_id}` recibe un UUID y devuelve la actividad con sus requisitos, estado de publicación y sesiones visibles. Cada sesión incluye fechas, estado y el nombre del espacio si es visible bajo las políticas de Supabase.
-- Las fechas del filtro se aplican a las sesiones y al conjunto de actividades antes de paginar. Sin filtro de fecha, una actividad publicada puede aparecer sin sesiones visibles.
-- Parámetros inválidos devuelven 422. Un UUID sin actividad correspondiente o de una actividad sin publicar devuelve 404. Si falla la consulta a Supabase, la API devuelve 503.
+El cálculo se realiza restando los participantes confirmados a la capacidad máxima de la sesión.
 
-## Ejecutar el frontend integrado
+Por ejemplo, si un taller tiene capacidad para 30 personas y ya hay 24 confirmadas, quedan 6 lugares disponibles.
 
-En otra terminal, dentro de Front, ejecutar npm ci y luego npm run dev. Abrir http://localhost:5173, manteniendo FastAPI en el puerto 8000. El servidor de desarrollo de Vite reenvía /api al backend; los dos procesos deben estar encendidos. La compilación estática requiere configurar ese mismo reenvío en el servidor que la publique.
+Además, se agregó un control para evitar que dos solicitudes se confirmen al mismo tiempo cuando solamente queda un lugar.
 
-El frontend obtiene únicamente URL y clave publicable desde /cuentas/configuracion. No requiere copiar claves a Front ni usar claves secretas. El registro llama a FastAPI; el acceso, reenvío y recuperación usan Supabase Auth y la sesión se comprueba contra el backend.
+**Confirmación, rechazo y cancelación**
 
-FRONTEND_URL en Back/.env permite configurar el origen de retorno del registro; por defecto es http://localhost:5173. En Supabase Auth → URL Configuration se deben permitir las rutas /auth/retorno?flujo=confirmacion y /auth/retorno?flujo=recuperacion de ese origen. La lista permitida todavía requiere verificación en el panel. localhost funciona en la computadora de desarrollo; abrirlo desde el teléfono apunta al propio teléfono.
+Implementé las funciones para que el personal autorizado pueda confirmar, rechazar o cancelar inscripciones.
 
-Pruebas: npm test, npm run build y npm run lint dentro de Front; python -m unittest discover -s Back/tests -v desde la raíz usando el entorno virtual. El avance individual y los pendientes se mantienen únicamente en AVANCES_ROBERTO.md.
+Cada vez que se toma una decisión, el sistema guarda:
 
-## Scripts de base de datos y T-034
+- El nuevo estado de la inscripción.
+- El responsable que realizó el cambio.
+- El motivo de la decisión.
+- La fecha y hora en que se realizó.
 
-Los scripts de Supabase incluidos son el historial de cambios ya aplicados en CECANbd, no una exportación completa de la base ni un instalador para ejecutar sin revisión. Requieren el esquema inicial de la base compartida. El orden histórico fue registro_usuarios.sql, administracion_cuentas.sql, endurecimiento_administracion.sql, corregir_roles_y_capacidades.sql y alinear_actores_documentados.sql. El último define el catálogo vigente; los anteriores contienen modelos provisionales ya sustituidos. No volver a ejecutar los scripts antiguos sobre CECANbd. Las suites pruebas_registro.sql y pruebas_administracion.sql usan ROLLBACK y no dejan sus registros ficticios.
+También se registra el cambio en el historial de inscripciones.
 
-T-034, adaptada del trabajo de Stephanie: GET /mis-solicitudes requiere un Bearer token válido y devuelve solicitudes de espacios, credenciales y propuestas de eventos del titular. limite y desplazamiento se aplican por categoría; los totales incluyen todos los registros propios. No exige rol Administrador. Devuelve estados actuales, no una bitácora de transiciones. La pantalla de seguimiento todavía no está implementada.
+Cuando se cancela una inscripción que estaba confirmada, el lugar vuelve a estar disponible. Esta acción no modifica los registros de asistencia.
 
-### Recuperación de contraseña adaptada de BOBA
+**Seguridad y permisos**
 
-El frontend utiliza POST /auth/recuperar y POST /auth/restablecer del backend (a través del proxy /api). No hace falta una variable RESET_REDIRECT_URL: FRONTEND_URL define el origen del frontend, por defecto http://localhost:5173. Autorizar en Supabase Auth el retorno http://localhost:5173/auth/retorno?flujo=recuperacion, o su equivalente del entorno. El envío sigue sujeto al límite de correos del proyecto.
+Agregué validaciones para que solamente los usuarios con el permiso `confirmar_inscripciones` puedan consultar las listas completas y gestionar las solicitudes.
 
-La contraseña debe tener entre 8 y 128 caracteres. El cambio requiere una sesión validada por Supabase y solo modifica al titular de esa sesión. Después intenta cerrar todas las sesiones; sesionesCerradas indica el resultado del cierre, independientemente del cambio ya realizado. Los JWT existentes pueden seguir vigentes hasta su vencimiento. La pantalla limpia además la sesión local.
+El permiso puede ser para una actividad específica o para todas las actividades, dependiendo de cómo esté asignado.
 
-Verificación de esta integración: 53 pruebas de backend, 14 de frontend, lint y compilación. La entrega y uso del enlace de correo todavía requieren comprobación real; estas pruebas usan servicios simulados.
+Estar registrado como personal de una sesión no es suficiente para obtener acceso si el usuario no tiene el permiso necesario.
 
-### Alta asistida de Valeria (T-033 / HU-09)
+**Protección de datos personales**
 
-Se incorporaron el backend y la pantalla /personal/alta-asistida de la rama Valeria (b73bdb9). El personal con capacidad alta_asistida verá un acceso en la navegación; se mantiene el retorno habitual al inicio después de iniciar sesión. La BD vuelve a comprobar la capacidad en cada operación. El operador no captura contraseñas: el titular las elige desde una invitación de Auth, que utiliza el retorno de recuperación ya integrado.
+Para proteger la privacidad de los participantes, las consultas solamente proporcionan la información necesaria, como el nombre, identificador, estado de inscripción y fecha de solicitud.
 
-Para habilitar el módulo localmente: configurar SUPABASE_SECRET_KEY con una clave secreta del mismo proyecto en Back/.env y establecer ALTA_ASISTIDA_HABILITADA=true, después de comprobar la migración. Nunca poner esta clave en el frontend, archivos de ejemplo, mensajes o Git. Sin esa configuración el módulo responde 503 y permanece desactivado. La clave SMTP de Brevo es distinta y se conserva únicamente en la configuración de Supabase.
+No se muestran teléfonos, correos electrónicos ni documentos privados a los usuarios sin autorización.
 
-En CECANbd se comprobó que altaAsistida, la RPC y el trigger correspondiente ya existen: no se ejecutaron scripts de reconstrucción, semillas ni limpieza. La receta para una base nueva está en Supabase/README.md; los scripts históricos de esta carpeta no se deben repetir sobre CECANbd.
+Los creadores o proponentes aprobados que no tengan permiso de inscripción pueden consultar únicamente la cantidad de solicitudes por estado, sin ver los datos de las personas.
 
-### Configuración al actualizar el equipo
+### 4. Archivos 
 
-Copiar Back/.env.example a Back/.env solo si todavía no existe y completar las claves del mismo proyecto CECANbd. Para alta asistida configurar SUPABASE_SECRET_KEY y ALTA_ASISTIDA_HABILITADA=true; mantener la clave secreta exclusivamente en el backend. El SMTP de Brevo ya está configurado en Supabase y no requiere copiar su contraseña a las computadoras. No ejecutar reconstrucción, semillas ni limpieza sobre CECANbd: su estructura de alta asistida ya está aplicada. Instalar dependencias de Back/requirements.txt y ejecutar npm ci en Front con Vite detenido.
+`Back/inscripciones.py` Contiene las funciones del backend para consultar inscripciones, revisar cupos y gestionar solicitudes. 
+
+`Back/main.py` Se modificó para integrar las nuevas rutas al servidor FastAPI. 
+
+ `Supabase/inscripciones_responsable.sql` Contiene el código SQL necesario para realizar las operaciones de forma segura y registrar los cambios. 
+
+El archivo SQL utiliza una función RPC de PostgreSQL, que permite realizar varias operaciones relacionadas dentro de una sola transacción. Esto evita que una inscripción se actualice parcialmente si ocurre un error.
+
+**Importante:** el script SQL ya está preparado, pero todavía no se ha aplicado a la base de datos `CECANbd`.
+
+
+### 7. Pendientes
+
+Antes de considerar terminada la implementación, todavía se necesita:
+
+1. Aplicar el archivo `Supabase/inscripciones_responsable.sql` en el entorno correspondiente, después de revisarlo.
+
+---------------------------------------------------------------------------
+
+Durante este Sprint 5 desarrollé el backend para consultar y administrar las inscripciones de cursos y talleres.
+
+Se implementaron siete endpoints que permiten consultar actividades, revisar participantes, verificar los cupos disponibles y gestionar solicitudes mediante confirmaciones, rechazos y cancelaciones.
+
+También se agregaron validaciones de permisos, protección de datos personales y registros de las decisiones realizadas por los responsables.
+
