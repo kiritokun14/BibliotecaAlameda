@@ -8,7 +8,8 @@ import { simulacion } from "../../../servicios/simulacion";
 import { EncabezadoPerfil, MenuPerfil, ModalCerrarSesion } from "./piezas";
 import { CorreoPendiente, EditarDatos, MisDatos, Resumen } from "./secciones";
 import { MisMensajes } from "./MisMensajes";
-import { Avisos, MiCredencialPerfil, MisEspacios, MisEventos, MisPropuestas, Progreso, Seguridad } from "./seccionesCuenta";
+import MisEventos from "./MisEventos";
+import { Avisos, MiCredencialPerfil, MisEspacios, MisPropuestas, Progreso, Seguridad } from "./seccionesCuenta";
 import { useTramite } from "../credencial/datos";
 import { chipCredencial, esMenorDeEdad, nombreCompleto, perfilSimulado, seccionDeRuta, tipoDeCuenta } from "./datos";
 import "./Perfil.css";
@@ -105,9 +106,9 @@ export default function Perfil({ vista }: { vista?: Vista }) {
     else if (vista === "correo-pendiente") contenido = <CorreoPendiente />;
     else contenido = {
         resumen: <Resumen menor={menor} nombre={perfil.nombres} />, datos: <MisDatos perfil={perfil} menor={menor} />,
-        credencial: <MiCredencialPerfil perfil={perfil} menor={menor} />, eventos: <MisEventos menor={menor} />,
+        credencial: <MiCredencialPerfil perfil={perfil} menor={menor} />, eventos: <MisEventos key={perfil.id} />,
         propuestas: <MisPropuestas />, espacios: <MisEspacios />, progreso: <Progreso menor={menor} />,
-        mensajes: <MisMensajes />, avisos: <Avisos />, seguridad: <Seguridad perfil={perfil} menor={menor} alCerrarSesion={abrirCierre} />,
+        mensajes: <MisMensajes />, avisos: <Avisos key={perfil.id} />, seguridad: <Seguridad perfil={perfil} menor={menor} alCerrarSesion={abrirCierre} />,
     }[seccion];
 
     return (

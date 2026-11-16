@@ -1,8 +1,8 @@
 """T-031, adaptada de BOBA: perfil propio en la tabla canónica, sin rol titular."""
 from datetime import datetime
-from typing import Annotated
+from typing import Literal
 from fastapi import APIRouter, HTTPException, Response
-from pydantic import Field, model_validator
+from pydantic import AwareDatetime, Field, StrictBool, model_validator
 from postgrest.exceptions import APIError
 from Back.contenidos import Cliente
 from Back.registro import DatosBase, Texto, Telefono
@@ -48,3 +48,40 @@ def consultar_perfil(respuesta:Response,cliente:Cliente):
 def editar_perfil(datos:CambiosPerfil,respuesta:Response,cliente:Cliente):
     respuesta.headers['Cache-Control']='no-store'
     return ejecutar_perfil(cliente,'guardar',datos.model_dump(mode='json',exclude_unset=True))
+
+
+class PreferenciasAvisos(DatosBase):
+    canalPreferido: Literal['portal', 'correo', 'telefono', 'whatsapp_manual']
+    recibirAvisosComunidad: StrictBool
+    recibirAvisosActividades: StrictBool
+    actualizadoEn: AwareDatetime | None
+
+
+def preferencias(cliente, operacion, datos):
+    try:
+        return cliente.rpc('mis_preferencias_avisos', {
+            'operacion': operacion, 'datos': datos,
+        }).execute().data
+    except APIError as error:
+        estado, mensaje = {
+            '42501': (403, 'Tu cuenta no está activa o tu sesión ya no está vigente.'),
+            '40001': (409, 'Tus preferencias cambiaron. Vuelve a cargarlas.'),
+            '22023': (422, 'Revisa el canal y los tipos de aviso.'),
+            '22P02': (422, 'Revisa el canal y los tipos de aviso.'),
+        }.get(error.code, (503, 'No fue posible consultar o guardar tus preferencias.'))
+        raise HTTPException(estado, mensaje, headers={'Cache-Control': 'private, no-store'}) from None
+    except Exception:
+        raise HTTPException(503, 'No fue posible consultar o guardar tus preferencias.',
+                            headers={'Cache-Control': 'private, no-store'}) from None
+
+
+@router.get('/preferencias-avisos', response_model=PreferenciasAvisos)
+def consultar_preferencias(respuesta: Response, cliente: Cliente):
+    respuesta.headers['Cache-Control'] = 'private, no-store'
+    return preferencias(cliente, 'consultar', {})
+
+
+@router.patch('/preferencias-avisos', response_model=PreferenciasAvisos)
+def guardar_preferencias(datos: PreferenciasAvisos, respuesta: Response, cliente: Cliente):
+    respuesta.headers['Cache-Control'] = 'private, no-store'
+    return preferencias(cliente, 'guardar', datos.model_dump(mode='json'))

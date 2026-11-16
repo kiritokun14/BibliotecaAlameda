@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import PanelLayout from '../PanelLayout';
+import { CambioSesion } from './CambioSesion';
 import { CampoTexto, Datos, EncabezadoTarjeta, Pagina } from '../contenidoDemo/piezas';
 import '../contenidoDemo/Contenidos.css';
 import { ContextoPanel, permisoGlobal } from '../../../servicios/accesoPanel';
@@ -20,6 +21,7 @@ export default function GestionActividades() {
     const { pathname } = useLocation();
     const identidad = useContext(ContextoPanel);
     const [recarga, recargar] = useState(0);
+    const [confirmado, setConfirmado] = useState<{ folio?: string; texto: string }>();
     const [resultado, setResultado] = useState<{ clave: string; lista?: ActividadGestion[]; actividad?: ActividadGestion; error?: string }>({ clave: '' });
     const [busqueda, setBusqueda] = useState('');
     const nueva = pathname.endsWith('/nueva');
@@ -38,6 +40,7 @@ export default function GestionActividades() {
         <EncabezadoTarjeta volver={{ texto: 'Volver a actividades', ruta: BASE }} etiqueta="Actividades y agenda"
             titulo={nueva ? 'Nueva actividad' : editar ? 'Editar borrador' : folio ? 'Detalle de la actividad' : 'Propuestas de actividades'}
             texto="Los cambios se guardan en la base de datos. La autorización precede a la publicación." />
+        {confirmado?.folio === folio && confirmado && <p role="status">{confirmado.texto}</p>}
         {!actual && <p role="status">Cargando actividades…</p>}
         {actual?.error && <p role="alert">{actual.error} <button onClick={() => recargar(x => x + 1)}>Reintentar</button></p>}
         {actual && !actual.error && (nueva || editar) && <Formulario key={clave} actividad={actual.actividad} />}
@@ -51,7 +54,7 @@ export default function GestionActividades() {
             </tbody></table></div>
             {actual.lista.length === 0 && <p>Aún no hay actividades que puedas consultar.</p>}
         </>}
-        {actual?.actividad && !editar && <Detalle key={`${clave}:${actual.actividad.actualizado}`} actividad={actual.actividad} alRecargar={() => recargar(x => x + 1)} />}
+        {actual?.actividad && !editar && <Detalle key={`${clave}:${actual.actividad.actualizado}`} actividad={actual.actividad} alRecargar={() => recargar(x => x + 1)} alCambiarSesion={texto => { setConfirmado({ folio, texto }); recargar(x => x + 1); }} />}
     </Pagina></PanelLayout>;
 }
 
@@ -99,7 +102,7 @@ function Formulario({ actividad }: { actividad?: ActividadGestion }) {
     </fieldset></section>;
 }
 
-function Detalle({ actividad: a, alRecargar }: { actividad: ActividadGestion; alRecargar: () => void }) {
+function Detalle({ actividad: a, alRecargar, alCambiarSesion }: { actividad: ActividadGestion; alRecargar: () => void; alCambiarSesion: (texto: string) => void }) {
     const identidad = useContext(ContextoPanel);
     const permiso = (capacidad: string) => !!identidad && permisoGlobal(identidad.acceso, capacidad);
     const [accion, setAccion] = useState<AccionActividad>();
@@ -125,7 +128,10 @@ function Detalle({ actividad: a, alRecargar }: { actividad: ActividadGestion; al
     return <>
         <Datos filas={[["Folio", a.folio], ["Estado", estados[a.estado] ?? a.estado], ["Actividad", a.nombre], ["Tipo", a.tipo], ["Responsable público", a.responsable || 'Por definir']]} />
         <section className="cn-tarjeta"><h2>{a.nombre}</h2><p style={{ whiteSpace: 'pre-wrap' }}>{a.descripcion}</p><p>Público: {a.publico}</p><p>Requisitos: {a.materiales || 'Sin requisitos adicionales'}</p>
-            {a.sesiones.length ? a.sesiones.map(s => <p key={s.id}>{s.fecha} · {s.inicio} a {s.fin} · {s.espacio} · cupo {s.cupo} · {s.estado}</p>) : <p>{a.fecha} · {a.inicio} a {a.fin} · {a.espacio || 'Sin programar'}</p>}
+            {a.sesiones.length ? a.sesiones.map(s => <div key={s.id}><p>{s.fecha} · {s.inicio} a {s.fin} · {s.espacio} · cupo {s.cupo} · {s.estado}</p>
+                {a.estado === 'publicada' && s.estado === 'programada' && permiso('registrar_resoluciones_actividades')
+                    && <CambioSesion actividad={a} sesion={s} alGuardar={alCambiarSesion} />}
+            </div>) : <p>{a.fecha} · {a.inicio} a {a.fin} · {a.espacio || 'Sin programar'}</p>}
             {a.estado === 'borrador' && <Link to={`${BASE}/${a.folio}/editar`}>Editar borrador</Link>}
             {a.estado === 'publicada' && <p><Link to={`/eventos/${a.folio}`}>Ver publicación en la agenda</Link></p>}
         </section>

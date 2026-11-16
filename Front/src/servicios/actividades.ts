@@ -54,3 +54,17 @@ export function decidirActividad(actividad: ActividadGestion, accion: AccionActi
         method: 'POST', body: JSON.stringify({ actualizado: actividad.actualizado, referencia, motivo }),
     });
 }
+
+type CambioSesion = { motivo: string } & (
+    { accion: 'cancelar' } |
+    { accion: 'reprogramar'; fecha: string; inicio: string; fin: string; espacio: string }
+);
+
+export async function resolverSesion(actividad: ActividadGestion, sesion: string, cambio: CambioSesion) {
+    const resultado = await gestion<{ folioCambio: string; avisos: number }>(
+        `/${encodeURIComponent(actividad.folio)}/sesiones/${encodeURIComponent(sesion)}/resolver`,
+        { method: 'POST', body: JSON.stringify({ ...cambio, actualizado: actividad.actualizado, confirmacion: true }) },
+    );
+    consultasEditor.limpiar();
+    return resultado;
+}

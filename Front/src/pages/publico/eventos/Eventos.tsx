@@ -6,6 +6,8 @@ import { consultarActividadPublica, type ActividadPublica } from '../../../servi
 import { mensajeError } from '../../../servicios/api';
 import { sesionesDeAgenda } from '../../../servicios/agendaPublica';
 import { fechaCompleta } from './datosAgenda';
+import { useSesion, sesionSimulada } from '../perfil/usarSesion';
+import InscripcionSesion from './InscripcionSesion';
 import './Agenda.css';
 import calendario from '../../../assets/eventos/detalle-calendario.svg';
 import reloj from '../../../assets/eventos/detalle-reloj.svg';
@@ -37,6 +39,8 @@ export default function Eventos() {
 }
 
 function Detalle({ actividad: a }: { actividad: ActividadPublica }) {
+    const usuario = useSesion();
+    const [seleccion, setSeleccion] = useState<string>();
     const sesiones = sesionesDeAgenda(a);
     const primera = sesiones[0];
     return <>
@@ -58,13 +62,18 @@ function Detalle({ actividad: a }: { actividad: ActividadPublica }) {
                     <Dato icono={pin} etiqueta="LUGAR" valor={primera.lugar} />
                     <Dato icono={cupo} etiqueta="CAPACIDAD" valor={`${a.sesiones[0].cupo} personas; disponibilidad por confirmar`} />
                 </>}</dl>
-                <p className="detalle-actividad__nota">{a.inscripcion ? 'Requiere inscripción. El registro en línea de participación todavía no está habilitado; consulta al personal.' : 'Entrada libre, sujeta a la disponibilidad del espacio.'}</p>
+                <p className="detalle-actividad__nota">{a.inscripcion ? 'Elige una sesión para solicitar inscripción o consultar tu estado.' : 'Entrada libre, sujeta a la disponibilidad del espacio.'}</p>
             </aside>
         </div>
         <section className="agenda-mas"><h2>Sesiones y avisos</h2><p>Horarios de Tepic, Nayarit.</p>
             {a.sesiones.map(s => <article className="agenda-vacio" key={s.id}>
                 <h3>{fechaCompleta(s.fecha)} · {s.inicio} a {s.fin}</h3><p>{s.espacio} · Capacidad: {s.cupo}</p>
                 <p>{s.estado === 'cancelada' ? 'Esta sesión está cancelada.' : s.estado === 'finalizada' ? 'Sesión finalizada.' : s.estado === 'en_curso' ? 'Sesión en curso.' : 'Sesión programada.'}</p>
+                {a.inscripcion && usuario && !sesionSimulada && (seleccion === s.id
+                    ? <InscripcionSesion key={`${usuario}:${s.id}`} sesion={s.id} />
+                    : <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => setSeleccion(s.id)}>Ver registro de esta sesión</button>)}
+                {a.inscripcion && usuario === null && s.estado === 'programada' && s.registroAbierto &&
+                    <Link className="agenda-boton agenda-boton--verde" to="/iniciar-sesion">Inicia sesión para inscribirte</Link>}
             </article>)}
             <Link className="agenda-boton agenda-boton--verde" to="/eventos/todas">Ver todas las actividades</Link>
         </section>

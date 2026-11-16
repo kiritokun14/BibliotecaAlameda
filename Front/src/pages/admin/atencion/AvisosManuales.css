@@ -1,0 +1,47 @@
+.avisos-manuales-resultados:not(:empty) {
+    margin: 1rem 0;
+}
+
+.avisos-manuales-opciones {
+    display: grid;
+    gap: .5rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    border: 0;
+}
+
+.avisos-manuales-opciones legend {
+    margin-bottom: .5rem;
+    font-weight: 700;
+}
+
+.avisos-manuales-cuenta {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    border: 1px solid #cbdad4;
+    border-radius: .75rem;
+    cursor: pointer;
+}
+
+.avisos-manuales-cuenta:has(input:checked) {
+    border-color: #164f44;
+    background: #e4efeb;
+}
+
+.avisos-manuales-cuenta small {
+    display: block;
+}
+
+.avisos-manuales-seleccion {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: .75rem;
+    background: #e4efeb;
+    color: #164f44;
+}
+
+.avisos-manuales-seleccion p {
+    margin: .25rem 0 0;
+}

@@ -70,7 +70,6 @@ const CalendarioPublico = lazy(() => import("./pages/publico/eventos/CalendarioA
 const Eventos = lazy(() => import("./pages/publico/eventos/Eventos.tsx"));
 const CuentaSuspendida = lazy(() => import("./pages/publico/sesion/EstadosSesion.tsx").then(m => ({ default: m.CuentaSuspendida })));
 const SesionCaducada = lazy(() => import("./pages/publico/sesion/EstadosSesion.tsx").then(m => ({ default: m.SesionCaducada })));
-const MiInscripcion = lazy(() => import("./pages/publico/eventos/MiInscripcion.tsx"));
 const Credencial = lazy(() => import("./pages/publico/credencial/Credencial.tsx"));
 const TramiteCredencial = lazy(() => import("./pages/publico/credencial/Tramite.tsx"));
 const NotificacionesUsuario = lazy(() => import("./pages/publico/notificaciones/Notificaciones.tsx"));
@@ -122,7 +121,6 @@ const CancelarActividad = lazy(() => import("./pages/admin/actividades/DetalleCa
 const DetalleCambio = lazy(() => import("./pages/admin/actividades/DetalleCambio.tsx").then(m => ({ default: m.DetalleCambio })));
 const Reprogramar = lazy(() => import("./pages/admin/actividades/DetalleCambio.tsx").then(m => ({ default: m.Reprogramar })));
 const ResultadoCambio = lazy(() => import("./pages/admin/actividades/DetalleCambio.tsx").then(m => ({ default: m.ResultadoCambio })));
-const FichaInscripcion = lazy(() => import("./pages/admin/actividades/GestionInscripcion.tsx").then(m => ({ default: m.FichaInscripcion })));
 const InscribirPersona = lazy(() => import("./pages/admin/actividades/GestionInscripcion.tsx").then(m => ({ default: m.InscribirPersona })));
 const ResultadoInscripcion = lazy(() => import("./pages/admin/actividades/GestionInscripcion.tsx").then(m => ({ default: m.ResultadoInscripcion })));
 
@@ -282,7 +280,7 @@ function App() {
         <Route path="/eventos/todas" element={<TodasActividadesPublicas />} />
         <Route path="/eventos/calendario" element={<CalendarioPublico />} />
         <Route path="/eventos/:id" element={<Eventos />} />
-        <Route path="/eventos/:id/mi-inscripcion" element={<MiInscripcion />} />
+        <Route path="/eventos/:id/mi-inscripcion" element={<Navigate to="/mi-perfil/eventos" replace />} />
         <Route path="/credencial" element={<Credencial />} />
         <Route path="/credencial/solicitud" element={<TramiteCredencial vista="solicitud" />} />
         <Route path="/credencial/enviada" element={<TramiteCredencial vista="enviada" />} />
@@ -354,7 +352,7 @@ function App() {
         <Route path="/admin/actividades/inscripciones/inscribir" element={<AccesoPanel><InscribirPersona /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio" element={<AccesoPanel><InscritosActividad /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio/cupo-ajustado" element={<AccesoPanel><ResultadoInscripcion tipo="cupo" /></AccesoPanel>} />
-        <Route path="/admin/actividades/inscripciones/:folio/:id" element={<AccesoPanel><FichaInscripcion /></AccesoPanel>} />
+        <Route path="/admin/actividades/inscripciones/:folio/:id" element={<AccesoPanel><InscritosActividad /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio/:id/inscrita" element={<AccesoPanel><ResultadoInscripcion tipo="inscrita" /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio/:id/ofrecido" element={<AccesoPanel><ResultadoInscripcion tipo="ofrecido" /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio/:id/cancelada" element={<AccesoPanel><ResultadoInscripcion tipo="cancelada" /></AccesoPanel>} />

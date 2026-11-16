@@ -5,9 +5,8 @@ import { mensajeError } from "../../../servicios/api";
 import { EncabezadoSeccion, TarjetaPerfil } from "./piezas";
 import { sesionSimulada } from "./usarSesion";
 import {
-    alternar, consultarPreferencias, estadoNivel, filtrarInscripciones, guardarPreferencias, inscripcionesEjemplo,
+    estadoNivel,
     nivelesEjemplo, nombreCompleto, porcentajeProgreso, siguienteMeta, validarCambioContrasena,
-    type FiltroEventos, type Inscripcion, type Preferencia,
 } from "./datos";
 import {
     consultarMisSolicitudes, contarPorGrupo, estadoEspacio, estadoPropuesta, fechaCorta, historialEjemplo,
@@ -17,26 +16,17 @@ import { cambiarContrasena } from "./seguridad";
 import { listarMisSolicitudes, type SolicitudEspacioApi } from "../../../servicios/espacios";
 import { etapasCompletas, etapasEnRevision, fechaLarga, useTramite } from "../credencial/datos";
 import { Chip, EtapasTramite, TarjetaCredencial } from "../credencial/piezas";
-import { sinLeer, useNotificaciones } from "../notificaciones/datos";
 import "../credencial/CredencialSesion.css";
 import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import notaInfo from "../../../assets/perfil/nota-info.svg";
 import notaInfoDorada from "../../../assets/perfil/nota-info-dorada.svg";
-import alertaGuinda from "../../../assets/perfil/alerta-guinda.svg";
 import tarjetaCheck from "../../../assets/perfil/tarjeta-check.svg";
 import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
 import tarjetaEstrella from "../../../assets/perfil/tarjeta-estrella.svg";
 import tarjetaCandado from "../../../assets/perfil/tarjeta-candado.svg";
 import tarjetaGlobo from "../../../assets/perfil/tarjeta-globo.svg";
-import tarjetaEnviar from "../../../assets/perfil/tarjeta-enviar.svg";
-import tarjetaCampana from "../../../assets/perfil/tarjeta-campana.svg";
 import chipCheckVerde from "../../../assets/perfil/chip-check-verde.svg";
 import chipCandado from "../../../assets/perfil/chip-candado.svg";
-import interruptorEncendido from "../../../assets/perfil/interruptor-encendido.svg";
-import interruptorApagado from "../../../assets/perfil/interruptor-apagado.svg";
-import calendarioVerde from "../../../assets/perfil/evento-calendario-verde.svg";
-import calendarioDorado from "../../../assets/perfil/evento-calendario-dorado.svg";
-import calendarioGuinda from "../../../assets/perfil/evento-calendario-guinda.svg";
 import filaCalendario from "../../../assets/perfil/fila-calendario-verde.svg";
 import progresoCirculo from "../../../assets/perfil/progreso-circulo.svg";
 
@@ -106,55 +96,6 @@ export function MiCredencialPerfil({ perfil, menor = false }: { perfil: PerfilPr
                     <p><strong>Consentimiento de la persona responsable</strong>La credencial de menores requiere el consentimiento de una persona responsable.</p>
                 </div>
             )}
-        </>
-    );
-}
-
-// ---------- Mis eventos ----------
-const textoInscripcion: Record<Inscripcion["estado"], { texto: string; color: "verde" | "dorado" | "gris" }> = {
-    confirmada: { texto: "Inscripción confirmada", color: "verde" },
-    pendiente: { texto: "Pendiente de confirmación", color: "dorado" },
-    asistida: { texto: "Asistencia registrada", color: "verde" },
-    cancelada: { texto: "Cancelada", color: "gris" },
-};
-const calendarioColor = { verde: calendarioVerde, dorado: calendarioDorado, guinda: calendarioGuinda };
-
-export function MisEventos({ menor = false }: { menor?: boolean }) {
-    const lista = inscripcionesEjemplo; // TODO backend: ver datos.ts
-    const [filtro, setFiltro] = useState<FiltroEventos>("todos");
-    const cuenta = (f: FiltroEventos) => filtrarInscripciones(lista, f).length;
-    const visibles = filtrarInscripciones(lista, filtro);
-    return (
-        <>
-            <EncabezadoSeccion sobretitulo="MIS EVENTOS" titulo="Mis eventos"
-                texto={menor ? "Las inscripciones y las actividades en las que se ha participado." : "Tus inscripciones y las actividades en las que has participado."} />
-            <Filtros actual={filtro} alElegir={setFiltro} opciones={[
-                { valor: "todos", texto: `Todos (${cuenta("todos")})` }, { valor: "proximos", texto: `Próximos (${cuenta("proximos")})` },
-                { valor: "asistidos", texto: `Asistidos (${cuenta("asistidos")})` }, { valor: "cancelados", texto: `Cancelados (${cuenta("cancelados")})` },
-            ]} />
-            {visibles.length ? (
-                <ul className="perfil-eventos">
-                    {visibles.map((i) => (
-                        <li key={i.id} className="perfil-evento">
-                            <span className={`perfil-evento__fecha perfil-evento__fecha--${i.color}`}>
-                                {i.fecha ? <><small>{i.fecha.dia}</small><strong>{i.fecha.numero}</strong><small>{i.fecha.mes}</small></>
-                                    : <img src={calendarioColor[i.color]} alt="" />}
-                            </span>
-                            <div className="perfil-evento__textos">
-                                <h3>{i.titulo}</h3>
-                                <p>{i.detalle}</p>
-                                <Chip color={textoInscripcion[i.estado].color}>{textoInscripcion[i.estado].texto}</Chip>
-                            </div>
-                            {i.estado === "confirmada" && <Link to="/eventos" className="perfil-boton perfil-boton--contorno">Ver mi inscripción</Link>}
-                        </li>
-                    ))}
-                </ul>
-            ) : <p className="perfil-vacio">No tienes eventos en este filtro.</p>}
-            <div className="perfil-acciones">
-                <Link to="/eventos" className="perfil-boton">Explorar más actividades <img src={flechaBlanca} alt="" /></Link>
-                {!menor && <Link to="/mi-perfil/propuestas" className="perfil-boton perfil-boton--negro">Ver mis propuestas</Link>}
-            </div>
-            <NotaInfo>Datos de ejemplo.{menor && " Las actividades de menores requieren el consentimiento de la persona responsable."} Confirmar una inscripción no acredita la asistencia; esta la registra el personal.</NotaInfo>
         </>
     );
 }
@@ -358,57 +299,7 @@ export function Progreso({ menor = false }: { menor?: boolean }) {
     );
 }
 
-// ---------- Avisos (preferencias) ----------
-function FilaPreferencia({ p, alAlternar }: { p: Preferencia; alAlternar: () => void }) {
-    const estado = p.fijo ? "Siempre activo" : p.activo ? "Activado" : "Desactivado";
-    return (
-        <li className="perfil-preferencia">
-            <div className="perfil-preferencia__textos"><strong>{p.titulo}</strong>{p.texto && <span>{p.texto}</span>}</div>
-            {p.proximamente && <span className="perfil-etiqueta-pronto">En desarrollo · Próximamente</span>}
-            <button type="button" role="switch" aria-checked={p.activo} aria-label={p.titulo} className="perfil-interruptor"
-                disabled={p.fijo || p.proximamente} onClick={alAlternar}>
-                <img src={p.activo ? interruptorEncendido : interruptorApagado} alt="" />
-            </button>
-            <span className={`perfil-preferencia__estado${p.activo ? "" : " perfil-preferencia__estado--apagado"}`}>{estado}</span>
-        </li>
-    );
-}
-
-export function Avisos() {
-    const [prefs, setPrefs] = useState(consultarPreferencias);
-    const [guardado, setGuardado] = useState(false);
-    const pendientes = sinLeer(useNotificaciones());
-    return (
-        <>
-            <EncabezadoSeccion sobretitulo="AVISOS" titulo="Preferencias de avisos" texto="Elige cómo quieres enterarte de lo que ocurre en la biblioteca." />
-            <TarjetaPerfil color="verde" icono={tarjetaEnviar} titulo="Canales" texto="Elige cómo quieres enterarte de lo que ocurre en la biblioteca.">
-                <ul className="perfil-preferencias">
-                    {prefs.canales.map((p) => <FilaPreferencia key={p.clave} p={p}
-                        alAlternar={() => { setGuardado(false); setPrefs((x) => ({ ...x, canales: alternar(x.canales, p.clave) })); }} />)}
-                </ul>
-            </TarjetaPerfil>
-            <TarjetaPerfil color="dorada" icono={tarjetaCampana} titulo="Tipos de aviso">
-                <ul className="perfil-preferencias">
-                    {prefs.tipos.map((p) => <FilaPreferencia key={p.clave} p={p}
-                        alAlternar={() => { setGuardado(false); setPrefs((x) => ({ ...x, tipos: alternar(x.tipos, p.clave) })); }} />)}
-                </ul>
-            </TarjetaPerfil>
-            <div className="perfil-nota perfil-nota--guinda">
-                <img src={alertaGuinda} alt="" />
-                <p><strong>Importante</strong>Los cambios o cancelaciones de actividades en las que estás inscrito se envían siempre.</p>
-            </div>
-            {guardado && <p className="perfil-exito" role="status">Tus preferencias se guardaron.</p>}
-            <div className="perfil-acciones">
-                <button type="button" className="perfil-boton" onClick={() => { guardarPreferencias(prefs); setGuardado(true); }}>Guardar preferencias</button>
-                <button type="button" className="perfil-boton perfil-boton--contorno" onClick={() => { setPrefs(consultarPreferencias()); setGuardado(false); }}>Cancelar</button>
-            </div>
-            <TarjetaPerfil color="blanca" icono={tarjetaCampana} titulo="Mis notificaciones"
-                texto={pendientes ? `Tienes ${pendientes} notificaciones sin leer (ejemplo).` : "Estás al día con tus notificaciones."}>
-                <div className="perfil-acciones"><Link to="/notificaciones" className="perfil-boton perfil-boton--contorno perfil-boton--chico">Ver mis notificaciones</Link></div>
-            </TarjetaPerfil>
-        </>
-    );
-}
+export { default as Avisos } from "./Avisos";
 
 // ---------- Seguridad ----------
 export function Seguridad({ perfil, menor = false, alCerrarSesion }: { perfil: PerfilPropio; menor?: boolean; alCerrarSesion: () => void }) {

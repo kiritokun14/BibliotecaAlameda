@@ -3,13 +3,23 @@ export interface PerfilPropio {
  id:string;correo:string;nombres:string;primerApellido:string;segundoApellido:string|null;
  fechaNacimiento:string;telefono:string;actualizadoA:string;
 }
-async function pedir<T>(metodo:string,cambios?:unknown):Promise<T> {
+async function pedir<T>(metodo:string,cambios?:unknown,ruta='/perfil'):Promise<T> {
  const {data,error}=await (await obtenerSupabase()).auth.getSession();
  if(error||!data.session)throw new ErrorServicio('Inicia sesión para consultar tu perfil.',401);
- return pedirApi<T>('/perfil',{method:metodo,headers:{Authorization:'Bearer '+data.session.access_token},
+ return pedirApi<T>(ruta,{method:metodo,headers:{Authorization:'Bearer '+data.session.access_token},
   ...(cambios===undefined?{}:{body:JSON.stringify(cambios)})});
 }
 export function consultarPerfil(){return pedir<PerfilPropio>('GET');}
 export function guardarPerfil(perfil:PerfilPropio,cambios:{nombres:string;telefono:string}) {
  return pedir<PerfilPropio>('PATCH',{...cambios,actualizadoA:perfil.actualizadoA});
 }
+
+export interface PreferenciasAvisos {
+ canalPreferido: 'portal' | 'correo' | 'telefono' | 'whatsapp_manual';
+ recibirAvisosComunidad: boolean;
+ recibirAvisosActividades: boolean;
+ actualizadoEn: string | null;
+}
+const rutaPreferencias = '/perfil/preferencias-avisos';
+export const consultarPreferenciasAvisos = () => pedir<PreferenciasAvisos>('GET', undefined, rutaPreferencias);
+export const guardarPreferenciasAvisos = (datos: PreferenciasAvisos) => pedir<PreferenciasAvisos>('PATCH', datos, rutaPreferencias);

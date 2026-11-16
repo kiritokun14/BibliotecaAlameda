@@ -45,6 +45,10 @@ function Cambios() {
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones"], ["Bandeja"]]} />
                 <Encabezado etiqueta="Actividades · Cambios" titulo="Cambios y cancelaciones" texto="Solicita, revisa y aplica cambios a actividades ya programadas, avisando a quienes se inscribieron." />
+                <section className="cn-tarjeta">
+                    <p>Abre una actividad publicada y elige la sesión que quieres reprogramar o cancelar.</p>
+                    <Link to="/admin/actividades/propuestas" className={clasesBoton("verde")}>Abrir actividades</Link>
+                </section>
                 <BloqueResumen
                     insignia="Cambios y cancelaciones"
                     titulo="Cambios por"
@@ -58,8 +62,8 @@ function Cambios() {
                     ]}
                 />
                 <div className="cn-acciones">
-                    <Link to={`${BASE_CAMBIOS}/cancelar`} className={clasesBoton("contorno-guinda")}>Cancelar una actividad</Link>
-                    <Link to={`${BASE_CAMBIOS}/reprogramar`} className={clasesBoton("contorno")}>Reprogramar una actividad</Link>
+                    <Link to={`${BASE_CAMBIOS}/cancelar`} className={clasesBoton("contorno-guinda")}>Simular cancelación</Link>
+                    <Link to={`${BASE_CAMBIOS}/reprogramar`} className={clasesBoton("contorno")}>Simular reprogramación</Link>
                 </div>
                 <Tarjeta icono={iconoTarjeta} titulo="Cambios solicitados" subtitulo="Más recientes primero.">
                     <div className="cn-barra">

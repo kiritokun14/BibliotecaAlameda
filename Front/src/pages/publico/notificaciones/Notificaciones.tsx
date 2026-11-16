@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import { SeccionVisitante } from "../../../components/portal/Visitante";
+import { AvisosActividad } from "./AvisosActividad";
 import { useSesion } from "../perfil/usarSesion";
 import { filtrar, nombreArea, notificaciones, sinLeer, useNotificaciones, type Area, type Filtro } from "./datos";
 import "../../../components/portal/Visitante.css";
@@ -56,7 +57,6 @@ export default function Notificaciones() {
 
     return (
         <PaginaPublica>
-            <p className="cred-estado" role="status">El centro de notificaciones aún no tiene un servicio de consulta conectado. Los ejemplos del diseño no representan avisos de tu cuenta; consulta el seguimiento de tus solicitudes desde Mi perfil.</p>
             <section className="encabezado-visitante">
                 <img className="encabezado-visitante__circulo encabezado-visitante__circulo--1" src={circulo1} alt="" />
                 <img className="encabezado-visitante__circulo encabezado-visitante__circulo--2" src={circulo2} alt="" />
@@ -70,6 +70,7 @@ export default function Notificaciones() {
             <SeccionVisitante fondo="crema">
                 <div className="notif-columnas">
                     <div className="notif-lista">
+                        {sesion && sesion !== "simulado" ? <AvisosActividad key={sesion} /> : sesion === "simulado" ? <>
                         <div className="notif-filtros" role="group" aria-label="Filtrar notificaciones">
                             {filtros.map((f) => (
                                 <button key={f.valor} type="button" className={`notif-filtro${filtro === f.valor ? " notif-filtro--activo" : ""}`}
@@ -123,18 +124,19 @@ export default function Notificaciones() {
                                 <p>Cuando haya cambios en tus solicitudes o avisos de la biblioteca, aparecerán aquí.</p>
                             </div>
                         )}
+                    </> : <p role="status">Verificando tu sesión…</p>}
                     </div>
 
                     <aside className="notif-lateral">
                         <div className="notif-como">
                             <p className="notif-como__titulo">CÓMO TE AVISAMOS</p>
-                            <p>Los cambios en tus solicitudes siempre aparecen aquí. Puedes elegir qué otros avisos recibir.</p>
+                            <p>Aquí aparecen los cambios y cancelaciones de las sesiones en las que tienes una inscripción.</p>
                             <Link to="/mi-perfil/avisos" className="boton-visitante notif-boton-contorno">
                                 Configurar mis avisos <img src={flechaVerde} alt="" />
                             </Link>
                             {lista.length > 0 && <p className="notif-como__nota">Eliminar una notificación solo la quita de esta lista. No cancela tu solicitud ni tu inscripción.</p>}
                         </div>
-                        <p className="notif-ejemplo">Ejemplos de contenido. Las fechas y textos reales los define la biblioteca. No se envían SMS ni mensajes de WhatsApp.</p>
+                        {sesion === "simulado" && <p className="notif-ejemplo">Ejemplos de contenido para revisar el diseño.</p>}
                     </aside>
                 </div>
             </SeccionVisitante>
