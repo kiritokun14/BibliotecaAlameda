@@ -97,3 +97,7 @@
 @media (max-width: 1400px) {
   .proponer-cuerpo { grid-template-columns: minmax(0, 1fr) 270px; }
 }
+
+@media (max-width: 900px) {
+  .proponer-cuerpo, .proponer-seccion .cred-fila { grid-template-columns: minmax(0, 1fr); }
+}

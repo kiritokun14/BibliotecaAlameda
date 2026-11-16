@@ -124,3 +124,7 @@
 @media (prefers-reduced-motion: reduce) {
   .esqueleto__bloque::after { animation: none; }
 }
+
+@media (max-width: 700px) {
+  .esqueleto-cuadricula, .esqueleto-cuadricula--libros, .esqueleto-pagina__cuerpo { grid-template-columns: minmax(0, 1fr); }
+}

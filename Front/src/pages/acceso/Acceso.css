@@ -1,3 +1,17 @@
+@media (max-width: 900px) {
+  .pagina-acceso .acceso { flex-direction: column; }
+  .pagina-acceso .presentacion { position: relative; width: 100%; height: auto; min-height: 0; padding: 24px; }
+  .pagina-acceso .presentacion__contenido { margin: 28px 0 0; gap: 14px; }
+  .pagina-acceso .presentacion__titulo { font-size: 32px; line-height: 1.15; }
+  .pagina-acceso .formulario { width: 100%; box-sizing: border-box; padding: 24px 16px; }
+  .pagina-acceso .tarjeta { padding: 26px 20px; border-radius: 24px; }
+  .pagina-acceso .franja { padding: 10px 16px; flex-wrap: wrap; }
+  .pagina-acceso .pie { padding: 24px 16px; flex-wrap: wrap; }
+}
+@media (max-width: 600px) {
+  .pagina-acceso .fila { grid-template-columns: minmax(0, 1fr); }
+  .pagina-acceso .opciones { flex-wrap: wrap; gap: 12px; }
+}
     .pagina-acceso {
     display: flex;
     flex-direction: column;

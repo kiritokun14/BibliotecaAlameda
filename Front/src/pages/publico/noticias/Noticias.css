@@ -1206,3 +1206,7 @@
 .noticias-titulo > .boton-noticias { margin-top: 32px; }
 /* En Eventos los filtros comparten fila con «Lista | Calendario»: misma altura de fila aquí */
 .noticias-contenedor > .chips-filtro { align-items: center; min-height: 45px; }
+
+@media (max-width: 700px) {
+  .noticias-fila, .noticias-archivo--cuadricula { grid-template-columns: minmax(0, 1fr); }
+}

@@ -27,6 +27,7 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
     const [panel, setPanel] = useState(false);
     const [error, setError] = useState("");
     const [cerrando, setCerrando] = useState(false);
+    const [menuAbierto, setMenuAbierto] = useState(false);
     useEffect(() => {
         let activo = true;
         let cancelar: (() => void) | undefined;
@@ -73,7 +74,10 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
                 <span className="logo-solon logo-solon--verde" />
             </Link>
 
-            <div className="navegacion__desplegable">
+            <button className="navegacion__menu" type="button" aria-expanded={menuAbierto} aria-controls="navegacion-movil" onClick={() => setMenuAbierto(!menuAbierto)}>
+                {menuAbierto ? "Cerrar menú" : "Menú"}
+            </button>
+            <div id="navegacion-movil" className={`navegacion__desplegable${menuAbierto ? " navegacion__desplegable--abierto" : ""}`} onClick={(evento) => { if ((evento.target as HTMLElement).closest("a")) setMenuAbierto(false); }}>
                 <ul className="navegacion__enlaces">
                     {enlaces.map((enlace) => (
                         <li key={enlace.ruta}>

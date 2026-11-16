@@ -608,3 +608,7 @@ button.boton-visitante:disabled { opacity: 0.6; cursor: default; }
 .cred-ayuda h3 { margin: 0; font-size: 17px; }
 .cred-ayuda p { margin: 0; font-size: 14px; line-height: 21px; }
 .cred-ayuda a { color: #164f44; font-weight: 700; }
+
+@media (max-width: 900px) {
+  .cred-columnas, .cred-columnas--mitad, .cred-datos--fila, .cred-opciones, .cred-fila, .cred-fila--corta, .cred-estado__datos { grid-template-columns: minmax(0, 1fr); }
+}

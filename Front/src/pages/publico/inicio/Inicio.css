@@ -2098,3 +2098,12 @@
 /* Tarjeta-esqueleto de Actividades (mientras llegan los datos): mismo tamaño que una tarjeta real */
 .tarjeta-actividad--esqueleto { pointer-events: none; }
 .tarjeta-actividad__esqueleto-imagen { height: 200px; border-radius: 0; }
+
+@media (max-width: 700px) {
+  .seccion-inicio { padding: 36px 16px; }
+  .bloque { padding: 28px 20px; border-radius: 24px; }
+  .portada { flex-direction: column; }
+  .portada__titulo { font-size: 36px; line-height: 1.15; }
+  .portada__perfiles, .tarjetas-acceso { grid-template-columns: minmax(0, 1fr); }
+  .portada__acciones, .encabezado-seccion { flex-wrap: wrap; }
+}

@@ -716,3 +716,7 @@ textarea.campo-contacto__entrada {
   border-radius: 0;
   box-shadow: none;
 }
+
+@media (max-width: 900px) {
+  .contacto-columnas, .formulario-contacto__fila, .canales-contacto { grid-template-columns: minmax(0, 1fr); }
+}

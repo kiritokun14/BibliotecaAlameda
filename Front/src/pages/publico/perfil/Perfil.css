@@ -11,6 +11,15 @@
 
 .perfil-sobretitulo--claro { color: #f2e3b8; }
 
+@media (max-width: 800px) {
+  .perfil-cuerpo { display: flex !important; flex-direction: column; padding: 24px 16px 48px !important; }
+  .perfil-menu { position: static !important; width: 100%; box-sizing: border-box; }
+  .perfil-seccion { width: 100%; }
+  .perfil-encabezado h1 { font-size: 28px !important; line-height: 1.2 !important; }
+  .perfil-encabezado__correo { overflow-wrap: anywhere; }
+  .perfil-fila, .perfil-fila--tres, .perfil-fila--boton, .perfil-niveles { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
 /* ---------- Encabezado verde ---------- */
 .perfil-encabezado {
   position: relative;
@@ -1036,3 +1045,10 @@
 .perfil-estado { width: 100%; box-sizing: border-box; justify-items: start; text-align: left; }
 .perfil-estado__icono { align-self: start; }
 .perfil-estado__textos, .perfil-estado__accion { justify-self: start; }
+
+@media (max-width: 700px) {
+  .perfil-accesos, .perfil-datos { grid-template-columns: minmax(0, 1fr); }
+  .perfil-encabezado__contenido { align-items: flex-start; }
+  .perfil-encabezado__avatar { width: 64px; height: 64px; }
+  .perfil-encabezado__avatar img { width: 32px; height: 32px; }
+}

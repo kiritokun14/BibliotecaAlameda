@@ -97,3 +97,7 @@
   font-size: 14px;
   line-height: 20px;
 }
+
+@media (max-width: 700px) {
+  .credencial-que-es, .credencial-antes { grid-template-columns: minmax(0, 1fr); }
+}

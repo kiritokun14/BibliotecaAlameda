@@ -250,3 +250,7 @@ button.boton-visitante { font-family: inherit; cursor: pointer; }
 
 .notif-estado h1 { margin: 0; color: #161a1d; font-size: 32px; line-height: 38px; }
 .notif-estado p { margin: 0; color: #4d4d4d; font-size: 17px; }
+
+@media (max-width: 900px) {
+  .notif-columnas { grid-template-columns: minmax(0, 1fr); }
+}

@@ -800,3 +800,7 @@ a.agenda-boton:hover { filter: brightness(0.95); }
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+@media (max-width: 900px) {
+  .agenda-tarjetas, .calendario-agenda__columnas, .detalle-actividad, .mi-inscripcion, .mi-inscripcion__datos { grid-template-columns: minmax(0, 1fr); }
+}

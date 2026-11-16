@@ -215,3 +215,7 @@ button.espacios-area--elegida:hover { border: 2px solid #e6d194; background: #16
   font: inherit;
   cursor: pointer;
 }
+
+@media (max-width: 900px) {
+  .espacios-pasos, .espacios-pasos--centro, .espacios-columnas, .espacios-columnas--gestion, .espacios-columnas--pasos, .espacios-areas, .espacios-plano--completo .espacios-areas { grid-template-columns: minmax(0, 1fr); }
+}

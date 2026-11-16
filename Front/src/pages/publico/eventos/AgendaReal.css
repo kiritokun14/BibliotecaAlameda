@@ -9,3 +9,7 @@
 .agenda-tarjeta h2 { margin-top: 8px; }
 .agenda-tarjeta dt { font-weight: 700; margin-top: 16px; }
 .agenda-tarjeta dd { margin-left: 0; }
+
+@media (max-width: 700px) {
+  .agenda-lista { grid-template-columns: minmax(0, 1fr); }
+}
