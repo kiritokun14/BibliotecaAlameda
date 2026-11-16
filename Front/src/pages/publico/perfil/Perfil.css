@@ -1047,7 +1047,17 @@
 .perfil-estado__textos, .perfil-estado__accion { justify-self: start; }
 
 @media (max-width: 700px) {
-  .perfil-accesos, .perfil-datos { grid-template-columns: minmax(0, 1fr); }
+  .perfil-accesos, .perfil-datos, .perfil-bienvenida__estado { grid-template-columns: minmax(0, 1fr); }
+  .perfil-bienvenida { padding: 24px 20px; }
+  .perfil-bienvenida h2 { font-size: 28px; line-height: 1.2; overflow-wrap: anywhere; }
+  .perfil-bienvenida__pendiente { min-width: 0; }
+  .perfil-estado__textos, .perfil-estado__accion { min-width: 0; overflow-wrap: anywhere; }
+  .perfil-rapidos ul { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+  .perfil-evento { flex-wrap: wrap; gap: 14px; padding: 18px; }
+  .perfil-evento__fecha { width: 64px; height: 64px; border-radius: 16px; }
+  .perfil-evento__fecha strong { font-size: 26px; line-height: 1.1; }
+  .perfil-solicitud { flex-wrap: wrap; padding: 16px 12px; }
+  .perfil-preferencia { flex-wrap: wrap; }
   .perfil-encabezado__contenido { align-items: flex-start; }
   .perfil-encabezado__avatar { width: 64px; height: 64px; }
   .perfil-encabezado__avatar img { width: 32px; height: 32px; }

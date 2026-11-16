@@ -54,6 +54,12 @@
   position: relative;
 }
 
+@media (max-width: 700px) {
+  .encabezado-publico { padding: 40px 16px 44px; }
+  .encabezado-publico h1 { font-size: clamp(32px, 9vw, 46px); line-height: 1.1; }
+  .encabezado-publico p { font-size: 16px; line-height: 1.5; }
+}
+
 .encabezado-publico h1 {
   max-width: 1000px;
   color: #fff;

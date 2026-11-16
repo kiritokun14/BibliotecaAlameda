@@ -89,7 +89,7 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
                         </li>
                     ))}
                 </ul>
-
+            </div>
                 <div className="navegacion__cuenta">
                     {correo ? <>
                         {panel && <Link to="/admin" className="navegacion__boton">Panel del personal</Link>}
@@ -102,7 +102,6 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
                     </>}
                     {error && <span role="alert">{error}</span>}
                 </div>
-            </div>
         </nav>
     );
 }

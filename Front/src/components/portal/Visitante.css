@@ -295,6 +295,15 @@
 .seccion-visitante--blanco .pasos-visitante li { background: #f7f5f0; box-shadow: none; }
 .seccion-visitante--blanco .pasos-visitante__quien { background: #fff; }
 
+@media (max-width: 700px) {
+  .pasos-visitante { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pasos-visitante li { min-width: 0; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 380px) {
+  .pasos-visitante { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- Llamado final ---------- */
 .llamado-visitante {
   position: relative;

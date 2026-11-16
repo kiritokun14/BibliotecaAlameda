@@ -612,3 +612,11 @@ button.boton-visitante:disabled { opacity: 0.6; cursor: default; }
 @media (max-width: 900px) {
   .cred-columnas, .cred-columnas--mitad, .cred-datos--fila, .cred-opciones, .cred-fila, .cred-fila--corta, .cred-estado__datos { grid-template-columns: minmax(0, 1fr); }
 }
+
+@media (max-width: 700px) {
+  .cred-pasos-franja { padding: 20px 16px 0; }
+  .cred-pasos { flex-wrap: wrap; gap: 8px; }
+  .cred-paso + .cred-paso { margin-left: 0; }
+  .cred-paso + .cred-paso::before { display: none; }
+  .cred-cuerpo { padding: 24px 16px 48px; }
+}

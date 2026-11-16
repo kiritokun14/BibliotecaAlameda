@@ -804,3 +804,22 @@ a.agenda-boton:hover { filter: brightness(0.95); }
 @media (max-width: 900px) {
   .agenda-tarjetas, .calendario-agenda__columnas, .detalle-actividad, .mi-inscripcion, .mi-inscripcion__datos { grid-template-columns: minmax(0, 1fr); }
 }
+
+@media (max-width: 700px) {
+  .agenda-destacada { flex-direction: column; align-items: stretch; gap: 20px; }
+  .agenda-destacada__imagen { width: 100%; height: auto; aspect-ratio: 4 / 3; }
+  .agenda-destacada__textos { padding: 0 4px 8px; }
+  .agenda-destacada h3 { font-size: 26px; line-height: 1.2; }
+  .agenda-cuerpo { padding: 24px 16px 48px; gap: 32px; }
+  .agenda-proponer { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 12px; padding: 20px; border-radius: 24px; }
+  .agenda-proponer__texto { display: block; min-width: 0; }
+  .agenda-proponer__texto strong { display: block; margin-bottom: 4px; }
+  .agenda-proponer__acciones { grid-column: 1 / -1; flex-wrap: wrap; justify-content: flex-start; }
+  .agenda-listado__fila { flex-direction: column; gap: 16px; }
+  .agenda-listado__fila .agenda-boton { margin-top: 0; max-width: 100%; }
+  .agenda-listado h2 { font-size: 30px; line-height: 1.15; }
+  .calendario-agenda__mes h2 { font-size: 22px; line-height: 1.2; }
+  .calendario-agenda__controles { flex-wrap: wrap; }
+  .calendario-agenda__tabla { padding: 12px 4px; table-layout: fixed; }
+  .calendario-agenda__dia { width: 100%; min-width: 0; }
+}
