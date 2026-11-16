@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Bloque, EncabezadoSeccion, Etiqueta } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
 import { useCarrusel } from "./useCarrusel";
-import { actividades, type TipoActividad } from "./datos";
+import { type Actividad, type TipoActividad } from "./datos";
+import { consultarAgenda } from "../../../servicios/actividades";
+import { mensajeError } from "../../../servicios/api";
+import imagenActividad from "../../../assets/comun/fotos/noticia-3.jpg";
 import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import textura from "../../../assets/inicio/actividades-textura.svg";
@@ -38,9 +41,28 @@ const filtros: { texto: string; tipo: TipoActividad | null; icono: string }[] = 
 ];
 
 function Actividades() {
+    const [resultado, setResultado] = useState<{ actividades: Actividad[]; error?: string }>();
+    useEffect(() => {
+        let vigente = true;
+        const cargar = () => {
+            const desde = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mazatlan' });
+            consultarAgenda({ desde, limite: 6 }).then(lista => {
+                if (!vigente) return;
+                setResultado({ actividades: lista.actividades.map(a => {
+                    const sesion = a.sesiones.find(s => s.fecha >= desde);
+                    return { id: a.folio, titulo: a.nombre,
+                    tipo: a.tipo === 'Taller' ? 'Taller' : ['Presentación', 'Exposición'].includes(a.tipo) ? 'Agenda cultural' : 'Actividad',
+                    fecha: sesion?.fecha ?? a.fecha,
+                    horario: `${sesion?.inicio ?? a.inicio} a ${sesion?.fin ?? a.fin} h`, publico: a.publico, imagen: imagenActividad }; }) });
+            }).catch(error => { if (vigente) setResultado({ actividades: [], error: mensajeError(error) }); });
+        };
+        cargar(); window.addEventListener('focus', cargar);
+        return () => { vigente = false; window.removeEventListener('focus', cargar); };
+    }, []);
+    const actividades = resultado?.actividades ?? [];
     const [tipoElegido, setTipoElegido] = useState<TipoActividad | null>(null);
     const visibles = tipoElegido ? actividades.filter((actividad) => actividad.tipo === tipoElegido) : actividades;
-    const { refPista, pagina, totalPaginas, alDesplazar, irAnterior, irSiguiente, irAPagina } = useCarrusel(tipoElegido);
+    const { refPista, pagina, totalPaginas, alDesplazar, irAnterior, irSiguiente, irAPagina } = useCarrusel(`${tipoElegido}:${actividades.map(a => a.id).join()}`);
 
     return (
         <section className="seccion-inicio seccion-inicio--crema">
@@ -109,7 +131,7 @@ function Actividades() {
 
                 <Puntos total={totalPaginas} activo={pagina} alElegir={irAPagina} />
                 <p className="nota-ejemplo">
-                    Actividades y fechas de ejemplo; la biblioteca confirmará la programación real.
+                    {!resultado ? 'Cargando próximas actividades…' : resultado.error ? resultado.error : actividades.length === 0 ? 'No hay próximas actividades publicadas.' : 'Programación publicada por la biblioteca. Consulta los avisos en cada actividad.'}
                 </p>
             </Bloque>
         </section>

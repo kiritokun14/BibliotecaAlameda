@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import "./Actividades.css";
 import { BloqueResumen, Buscador, CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
@@ -54,7 +56,7 @@ function Inscripciones() {
     const elegir = (f: FiltroCupo) => setFiltro(f);
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Inscripciones y cupos"], ["Lista de actividades"]]} />
                 <Encabezado etiqueta="Actividades · Inscripciones" titulo="Inscripciones y cupos" texto="Quién se inscribió, cuántos lugares quedan y quién espera." />
@@ -157,7 +159,7 @@ export function InscritosActividad() {
     }
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Inscripciones y cupos", BASE_INSCRIPCIONES], [ventana === "cupo" ? "Ajustar cupo" : ventana ? "Ofrecer lugar" : pestana === "espera" ? "Lista de espera" : "Inscritos"]]} />
                 <EncabezadoTarjeta

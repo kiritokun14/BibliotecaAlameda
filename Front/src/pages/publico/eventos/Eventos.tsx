@@ -1,137 +1,75 @@
-import { Link, useParams } from "react-router";
-import PaginaPublica from "../../../components/portal/PaginaPublica";
-import EstadoPagina from "../../../components/portal/EstadoPagina";
-import { simulacion } from "../../../servicios/simulacion";
-import {
-    AvisoCuenta,
-    EncabezadoVisitante,
-    LlamadoVisitante,
-    PasosVisitante,
-    SeccionVisitante,
-} from "../../../components/portal/Visitante";
-import "./Eventos.css";
-import { actividadElegida, partirFecha } from "./datos";
-import type { Actividad } from "../inicio/datos";
-import iconoReloj from "../../../assets/comun/iconos/dato-reloj.svg";
-import iconoUsuarios from "../../../assets/comun/iconos/dato-usuarios.svg";
-import iconoInfo from "../../../assets/comun/iconos/nota-info.svg";
-import circuloDorado from "../../../assets/comun/iconos/circulo-grande.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router';
+import PaginaPublica from '../../../components/portal/PaginaPublica';
+import { EncabezadoNoticias } from '../noticias/piezas';
+import { consultarActividadPublica, type ActividadPublica } from '../../../servicios/actividades';
+import { mensajeError } from '../../../servicios/api';
+import { sesionesDeAgenda } from '../../../servicios/agendaPublica';
+import { fechaCompleta } from './datosAgenda';
+import './Agenda.css';
+import calendario from '../../../assets/eventos/detalle-calendario.svg';
+import reloj from '../../../assets/eventos/detalle-reloj.svg';
+import pin from '../../../assets/eventos/destacada-pin.svg';
+import cupo from '../../../assets/eventos/detalle-cupo.svg';
+import circuloGrande from '../../../assets/comun/iconos/circulo-grande.svg';
+import circuloChico from '../../../assets/comun/iconos/circulo-chico.svg';
 
-// T-052 · Eventos para visitante SIN cuenta.
-// /eventos/:id llega desde el carrusel de Inicio y muestra esa actividad.
-// /eventos (sin elegir) no muestra ninguna: invita a elegir una en Inicio.
-function Eventos() {
-    const { id } = useParams();
-    const actividad = actividadElegida(id);
-    // TODO backend: si la consulta de eventos falla se muestra «No pudimos cargar los eventos».
-    // Mientras tanto se puede ver con ?simular=error (solo en desarrollo).
-    const fallo = simulacion() === "error";
-
-    return (
-        <PaginaPublica>
-            <EncabezadoVisitante
-                regreso={{ texto: "Volver a Inicio", ruta: "/" }}
-                etiqueta="EVENTOS Y ACTIVIDADES"
-                titulo={<><span>Inscríbete</span> a la actividad</>}
-                texto={
-                    actividad
-                        ? "Estás a un paso de apuntarte. Para confirmar tu lugar necesitamos saber quién eres."
-                        : "Elige una actividad en Inicio y aquí verás cómo apartar tu lugar."
-                }
-            />
-
-            {fallo ? (
-                <EstadoPagina
-                    nivel="h2"
-                    etiqueta="ERROR AL CARGAR"
-                    titulo="No pudimos cargar los eventos"
-                    texto="Revisa tu conexión e inténtalo de nuevo. Si el problema continúa, escríbenos desde el Buzón de sugerencias."
-                    principal={{ texto: "Intentar de nuevo", ruta: id ? `/eventos/${id}` : "/eventos" }}
-                    secundario={{ texto: "Ir al Buzón de sugerencias", ruta: "/contacto?tipo=sugerencia" }}
-                />
-            ) : (<>
-                <SeccionVisitante
-                    fondo="blanco"
-                    sobretitulo="TU ACTIVIDAD"
-                    titulo={actividad ? "Esta es la actividad que elegiste" : "Aún no eliges una actividad"}
-                >
-                    {actividad ? <TarjetaElegida actividad={actividad} /> : <SinActividad idDesconocido={Boolean(id)} />}
-                    <p className="nota-actividad">
-                        <img src={iconoInfo} alt="" />
-                        Para inscribirte solo necesitas una cuenta: participar en actividades no exige la credencial.
-                    </p>
-                </SeccionVisitante>
-
-                <SeccionVisitante fondo="crema">
-                    <AvisoCuenta
-                        titulo={actividad ? "Inicia sesión o crea una cuenta para inscribirte a esta actividad" : "Inicia sesión o crea una cuenta para inscribirte a una actividad"}
-                        texto="Sin cuenta puedes consultar todo. La inscripción se hace con tu cuenta de la biblioteca."
-                        sinCuenta={["Consultar noticias, listados y calendario", "Ver el detalle de cada actividad"]}
-                        conCuenta={["Inscribirte a una actividad"]}
-                    />
-                </SeccionVisitante>
-
-                <SeccionVisitante
-                    fondo="verde"
-                    sobretitulo="EL PROCESO"
-                    titulo="Cómo te inscribes a una actividad"
-                >
-                    <PasosVisitante
-                        pasos={[
-                            { titulo: "Elige una actividad", texto: "Búscala en el carrusel de actividades de Inicio." },
-                            { titulo: "Entra con tu cuenta", texto: "Inicia sesión o crea tu cuenta; no necesitas credencial." },
-                            { titulo: "Confirma tu lugar", texto: "Revisa fecha y horario y confirma tu inscripción." },
-                            { titulo: "Asiste", texto: "Llega unos minutos antes. Si hay cambios, te avisamos." },
-                        ]}
-                    />
-                </SeccionVisitante>
-
-                <LlamadoVisitante
-                    titulo="Aparta tu lugar en la actividad"
-                    texto="Solo necesitas una cuenta. Participar en actividades no exige tener credencial."
-                />
-            </>)}
-        </PaginaPublica>
-    );
-}
-
-function TarjetaElegida({ actividad }: { actividad: Actividad }) {
-    const { dia, mes } = partirFecha(actividad.fecha);
-    return (
-        <article className="actividad-elegida">
-            <img className="actividad-elegida__circulo" src={circuloDorado} alt="" />
-            <span className="actividad-elegida__fecha" aria-hidden="true">
-                <strong>{dia}</strong>
-                <small>{mes}</small>
-            </span>
-            <div className="actividad-elegida__textos">
-                <p className="actividad-elegida__tipo">{actividad.tipo.toUpperCase()}</p>
-                <h3>{actividad.titulo}</h3>
-                <ul>
-                    <li className="solo-lectores">Fecha: {actividad.fecha}</li>
-                    <li><img src={iconoReloj} alt="" />{actividad.horario}</li>
-                    <li><img src={iconoUsuarios} alt="" />{actividad.publico}</li>
-                </ul>
-                <p className="actividad-elegida__nota">Datos de ejemplo</p>
-            </div>
-        </article>
-    );
-}
-
-// Sin actividad elegida (o con un enlace que ya no existe) no se muestra ningún evento
-function SinActividad({ idDesconocido }: { idDesconocido: boolean }) {
-    return (
-        <div className="actividad-vacia">
-            <div>
-                <h3>{idDesconocido ? "No encontramos esa actividad" : "Todavía no hay una actividad seleccionada"}</h3>
-                <p>Elige una en el carrusel de actividades de Inicio para ver aquí sus datos.</p>
-            </div>
-            <Link to="/" className="boton-visitante">
-                Ver actividades <img src={flechaBlanca} alt="" />
-            </Link>
+export default function Eventos() {
+    const { id = '' } = useParams();
+    const [intento, recargar] = useState(0);
+    const clave = JSON.stringify([id, intento]);
+    const [resultado, setResultado] = useState<{ clave: string; actividad?: ActividadPublica; error?: string }>();
+    const actual = resultado?.clave === clave ? resultado : undefined;
+    useEffect(() => {
+        let vigente = true;
+        consultarActividadPublica(id).then(actividad => { if (vigente) setResultado({ clave, actividad }); })
+            .catch(error => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
+        return () => { vigente = false; };
+    }, [id, clave]);
+    return <PaginaPublica>
+        <EncabezadoNoticias regreso={{ texto: 'Volver a Eventos y actividades', ruta: '/eventos' }} etiqueta={actual?.actividad?.tipo ?? 'Eventos y actividades'} titulo={actual?.actividad?.nombre ?? 'Detalle de actividad'} texto={actual?.actividad?.publico ?? 'Consulta la información publicada por la biblioteca.'} />
+        <div className="agenda-cuerpo">
+            {!actual && <p role="status">Consultando actividad…</p>}
+            {actual?.error && <p role="alert">{actual.error} <button className="agenda-boton agenda-boton--verde" onClick={() => recargar(v => v + 1)}>Reintentar</button></p>}
+            {actual?.actividad && <Detalle actividad={actual.actividad} />}
         </div>
-    );
+    </PaginaPublica>;
 }
 
-export default Eventos;
+function Detalle({ actividad: a }: { actividad: ActividadPublica }) {
+    const sesiones = sesionesDeAgenda(a);
+    const primera = sesiones[0];
+    return <>
+        <div className="detalle-actividad">
+            <div className="detalle-actividad__contenido">
+                {primera && <><img className="detalle-actividad__foto" src={primera.imagen} alt="Imagen ilustrativa de una actividad de lectura" /><p className="detalle-actividad__nota">Imagen ilustrativa</p></>}
+                <p className="agenda-sobretitulo agenda-sobretitulo--verde">SOBRE LA ACTIVIDAD</p>
+                <p className="detalle-actividad__texto" style={{ whiteSpace: 'pre-wrap' }}>{a.descripcion}</p>
+                <h2>Materiales y requisitos</h2><p>{a.materiales || 'Sin requisitos adicionales publicados.'}</p>
+                <h2>Área o responsable</h2><p>{a.responsable || 'Consulta con el personal de la biblioteca.'}</p>
+            </div>
+            <aside className="detalle-actividad__info">
+                <img className="detalle-actividad__circulo detalle-actividad__circulo--1" src={circuloGrande} alt="" />
+                <img className="detalle-actividad__circulo detalle-actividad__circulo--2" src={circuloChico} alt="" />
+                <span className="detalle-actividad__chip">Información publicada</span>
+                <dl>{primera && <>
+                    <Dato icono={calendario} etiqueta="FECHA" valor={fechaCompleta(primera.fecha)} />
+                    <Dato icono={reloj} etiqueta="HORARIO" valor={primera.horario} />
+                    <Dato icono={pin} etiqueta="LUGAR" valor={primera.lugar} />
+                    <Dato icono={cupo} etiqueta="CAPACIDAD" valor={`${a.sesiones[0].cupo} personas; disponibilidad por confirmar`} />
+                </>}</dl>
+                <p className="detalle-actividad__nota">{a.inscripcion ? 'Requiere inscripción. El registro en línea de participación todavía no está habilitado; consulta al personal.' : 'Entrada libre, sujeta a la disponibilidad del espacio.'}</p>
+            </aside>
+        </div>
+        <section className="agenda-mas"><h2>Sesiones y avisos</h2><p>Horarios de Tepic, Nayarit.</p>
+            {a.sesiones.map(s => <article className="agenda-vacio" key={s.id}>
+                <h3>{fechaCompleta(s.fecha)} · {s.inicio} a {s.fin}</h3><p>{s.espacio} · Capacidad: {s.cupo}</p>
+                <p>{s.estado === 'cancelada' ? 'Esta sesión está cancelada.' : s.estado === 'finalizada' ? 'Sesión finalizada.' : s.estado === 'en_curso' ? 'Sesión en curso.' : 'Sesión programada.'}</p>
+            </article>)}
+            <Link className="agenda-boton agenda-boton--verde" to="/eventos/todas">Ver todas las actividades</Link>
+        </section>
+    </>;
+}
+function Dato({ icono, etiqueta, valor }: { icono: string; etiqueta: string; valor: string }) {
+    return <div><img src={icono} alt="" /><dt>{etiqueta}</dt><dd>{valor}</dd></div>;
+}

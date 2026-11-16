@@ -39,7 +39,7 @@ function Correccion({ contenido }: { contenido: Contenido }) {
     };
 
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <nav className="contenidos-migas" aria-label="Ruta">
                 <span>Contenidos</span>
                 <span aria-hidden="true">›</span>

@@ -8,6 +8,7 @@ import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import volverBlanca from "../../../assets/comun/iconos/volver-blanca.svg";
 import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
+import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import SolicitudBibliocomunidad from "./SolicitudBibliocomunidad";
 import iconoCheck from "../../../assets/comun/iconos/check-verde.svg";
 
@@ -115,10 +116,21 @@ function DetalleServicio() {
                 <span className="tarjeta-servicio__proximamente">{id === "bibliocomunidad" ? "REGISTRO DE INTERÉS DISPONIBLE" : "PRÓXIMAMENTE"}</span>
                 <h2>{id === "bibliocomunidad" ? "La incorporación requiere confirmación" : detalle.aviso.titulo}</h2>
                 <p>{id === "bibliocomunidad" ? "Puedes dejar tu interés mediante el formulario. El personal revisará tu solicitud y te contactará; el envío no equivale a una inscripción al club." : detalle.aviso.texto}</p>
-                <Link to="/servicios" className="boton-servicios boton-servicios--contorno">
-                    Volver a Servicios y programas
-                    <img src={volverOscura} alt="" />
-                </Link>
+                {id === "bibliocomunidad" && (
+                    <p>Mientras tanto, ya puedes leer y conversar en el foro del Club Alameda.</p>
+                )}
+                <div className="programa-aviso__botones">
+                    {id === "bibliocomunidad" && (
+                        <Link to="/club-alameda" className="boton-servicios boton-servicios--verde">
+                            Entrar al foro Club Alameda
+                            <img src={flechaBlanca} alt="" />
+                        </Link>
+                    )}
+                    <Link to="/servicios" className="boton-servicios boton-servicios--contorno">
+                        Volver a Servicios y programas
+                        <img src={volverOscura} alt="" />
+                    </Link>
+                </div>
             </section>
         </PaginaPublica>
     );

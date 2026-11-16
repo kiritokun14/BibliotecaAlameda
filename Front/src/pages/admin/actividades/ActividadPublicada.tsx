@@ -1,5 +1,7 @@
 import { Link, Navigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { Chip, Encabezado, Migas, Pagina, Pasos, PieDatos, Resultado, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -17,7 +19,7 @@ function ActividadPublicada() {
     if (!a || a.estado !== "publicada") return <Navigate to={a ? `${BASE_PROPUESTAS}/${a.folio}` : BASE_PROPUESTAS} replace />;
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades", BASE_PROPUESTAS], ["Publicada"]]} />
                 <Encabezado grande etiqueta={`Actividad ${a.folio} · Publicada`} titulo="Actividad publicada" texto={a.inscripcion ? "Ya aparece en Eventos y acepta inscripciones." : "Ya aparece en Eventos del portal."} />
@@ -39,7 +41,7 @@ function ActividadPublicada() {
                 </Tarjeta>
                 <div className="cn-acciones">
                     <a href="/eventos" target="_blank" rel="noopener noreferrer" className={clasesBoton("verde")}>Ver en el portal ↗<span className="cn-solo-lectores"> (se abre en otra pestaña)</span></a>
-                    <Link to={BASE_PROPUESTAS} className={clasesBoton("contorno")}>Volver a Propuestas de actividades</Link>
+                    <Link to={BASE_PROPUESTAS} className={`${clasesBoton("contorno")} panel-regresar`}>Volver a Propuestas de actividades</Link>
                 </div>
                 <PieDatos />
             </Pagina>

@@ -11,6 +11,7 @@ from Back.solicitudes import router as solicitudes_router
 from Back.recuperacion import router as recuperacion_router
 from Back.alta_asistida import router as alta_asistida_router
 from Back.contenidos import router as contenidos_router
+from Back.espacios import router as espacios_router
 from Back.publicacion import router as publicacion_router
 from Back.imagenes import router as imagenes_router
 
@@ -23,6 +24,12 @@ from Back.asistente_fuentes import router as asistente_fuentes_router
 from Back.lectura import router as lectura_router
 
 from Back.perfil import router as perfil_router
+from Back.actividades import router as actividades_router
+from Back.credenciales import router as credenciales_router
+from Back.propuestas import router as propuestas_router
+from Back.avisos import router as avisos_router
+from Back.foro_moderacion import router as foro_router
+from Back.foro import router as participacion_foro_router
 
 app = FastAPI(title='Biblioteca Alameda', version='0.1.0')
 app.include_router(agenda_router)
@@ -32,6 +39,7 @@ app.include_router(solicitudes_router)
 app.include_router(recuperacion_router)
 app.include_router(alta_asistida_router)
 app.include_router(contenidos_router)
+app.include_router(espacios_router)
 app.include_router(publicacion_router)
 app.include_router(imagenes_router)
 app.include_router(lectura_router)
@@ -39,6 +47,12 @@ app.include_router(asistente_fuentes_router)
 app.include_router(bibliocomunidad_router)
 app.include_router(contacto_router)
 app.include_router(perfil_router)
+app.include_router(actividades_router)
+app.include_router(credenciales_router)
+app.include_router(propuestas_router)
+app.include_router(avisos_router)
+app.include_router(foro_router)
+app.include_router(participacion_foro_router)
 
 
 @app.exception_handler(RequestValidationError)

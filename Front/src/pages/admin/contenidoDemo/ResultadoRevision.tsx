@@ -87,7 +87,7 @@ function Publicado({ contenido }: { contenido: Contenido }) {
                 <a href={EN_PORTAL[contenido.tipo]} target="_blank" rel="noopener noreferrer" className={clasesBoton("verde")}>
                     Ver en el portal ↗<span className="cn-solo-lectores"> (se abre en otra pestaña)</span>
                 </a>
-                <Link to={BASE} className={clasesBoton("contorno")}>Volver a Revisión y publicación</Link>
+                <Link to={BASE} className={`${clasesBoton("contorno")} panel-regresar`}>Volver a Revisión y publicación</Link>
                 <Link to={`${BASE}/historial`} className={clasesBoton("suave")}>Ver historial de publicaciones</Link>
             </div>
         </>
@@ -116,7 +116,7 @@ function ObservacionesEnviadas({ contenido }: { contenido: Contenido }) {
                 />
             </Tarjeta>
             <div className="cn-acciones">
-                <Link to={BASE} className={clasesBoton("verde")}>Volver a Revisión y publicación</Link>
+                <Link to={BASE} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Revisión y publicación</Link>
             </div>
         </>
     );
@@ -140,7 +140,7 @@ function Rechazado({ contenido }: { contenido: Contenido }) {
                 </Tarjeta>
             )}
             <div className="cn-acciones">
-                <Link to={BASE} className={clasesBoton("verde")}>Volver a Revisión y publicación</Link>
+                <Link to={BASE} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Revisión y publicación</Link>
                 <Link to={`${BASE}/historial`} className={clasesBoton("suave")}>Ver historial de publicaciones</Link>
             </div>
         </>

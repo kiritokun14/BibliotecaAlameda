@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import "./contenidos/Contenidos.css";
+import "./atencion/Atencion.css";
 import { MENSAJE_OBLIGATORIO } from "../../servicios/validaciones";
 
 // ---------- Ventana modal base ----------
@@ -16,6 +18,8 @@ type VentanaProps = {
     alConfirmar: () => void;
     alCerrar: () => void;
     children?: ReactNode;
+    error?: string; // error del servidor al confirmar (se muestra arriba de los botones)
+    ocupada?: boolean; // mientras se guarda: desactiva confirmar
 };
 
 export function Ventana({
@@ -29,6 +33,8 @@ export function Ventana({
     alConfirmar,
     alCerrar,
     children,
+    error,
+    ocupada,
 }: VentanaProps) {
     const formulario = useRef<HTMLFormElement>(null);
 
@@ -47,10 +53,10 @@ export function Ventana({
     }, [alCerrar]);
 
     return (
-        <div className="fondo-atenuado" onClick={alCerrar}>
+        <div className="at-fondo" onClick={alCerrar}>
             <form
                 ref={formulario}
-                className={`ventana ${angosta ? "ventana--angosta" : ""}`}
+                className={`at-ventana at-ventana--${tono}${angosta ? " at-ventana--angosta" : ""}`}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="ventana-titulo"
@@ -61,27 +67,23 @@ export function Ventana({
                 }}
                 noValidate
             >
-                <div className={`ventana__cabecera ventana__cabecera--${tono}`}>
-                    <span className="ventana__icono">
-                        <img src={icono} alt="" />
-                    </span>
-                    <div className="ventana__textos">
+                <div className="at-ventana__cabecera">
+                    <span className="at-ventana__icono"><img src={icono} alt="" /></span>
+                    <div>
                         <h2 id="ventana-titulo">{titulo}</h2>
-                        <p>{texto}</p>
+                        <p className="contenidos-dialogo__texto">{texto}</p>
                     </div>
                 </div>
 
-                {children && <div className="ventana__cuerpo">{children}</div>}
+                {children && <div className="at-ventana__cuerpo">{children}</div>}
+                {error && <p className="contenidos-campo__error" role="alert">{error}</p>}
 
-                <div className="ventana__pie">
-                    <button
-                        type="submit"
-                        className={`boton-panel boton-panel--grande ${tono === "guinda" ? "boton-panel--guinda" : "boton-panel--verde"}`}
-                    >
-                        {textoConfirmar}
-                    </button>
-                    <button type="button" className="boton-panel boton-panel--contorno boton-panel--grande" onClick={alCerrar}>
+                <div className="contenidos-dialogo__acciones">
+                    <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={alCerrar}>
                         {textoCancelar}
+                    </button>
+                    <button type="submit" disabled={ocupada} className={`contenidos-boton ${tono === "guinda" ? "at-boton--guinda-lleno" : "contenidos-boton--principal"}`}>
+                        {textoConfirmar}
                     </button>
                 </div>
             </form>
@@ -95,7 +97,7 @@ export function Ventana({
 export type CampoVentana = {
     nombre: string;
     etiqueta: string;
-    tipo?: "texto" | "select" | "fecha";
+    tipo?: "texto" | "select" | "fecha" | "hora";
     obligatorio?: boolean;
     placeholder?: string;
     opciones?: string[];
@@ -147,7 +149,7 @@ export function VentanaFormulario({
     return (
         <Ventana {...resto} alConfirmar={confirmar}>
             {filas.map((fila) => (
-                <div key={fila[0].nombre} className="ventana__fila">
+                <div key={fila[0].nombre} className="at-ventana__fila">
                     {fila.map((campo) => (
                         <CampoFormulario
                             key={campo.nombre}
@@ -162,13 +164,14 @@ export function VentanaFormulario({
 
             {preparados && (
                 <>
-                    <p className="ventana__subtitulo">MENSAJES PREPARADOS</p>
-                    <div className="filtros">
+                    <p className="at-subtitulo">Mensajes preparados</p>
+                    <div className="contenidos-filtros">
                         {preparados.map((texto) => (
                             <button
                                 key={texto}
                                 type="button"
-                                className={`filtro ${valores[campoPreparados] === texto ? "filtro--activo" : ""}`}
+                                className={`contenidos-filtro${valores[campoPreparados] === texto ? " contenidos-filtro--activo" : ""}`}
+                                aria-pressed={valores[campoPreparados] === texto}
                                 onClick={() => cambiar(campoPreparados, texto)}
                             >
                                 {texto}
@@ -190,22 +193,17 @@ type CampoFormularioProps = {
 
 function CampoFormulario({ campo, valor, error, alCambiar }: CampoFormularioProps) {
     const id = `campo-${campo.nombre}`;
-    const clase = `entrada-panel ${error ? "entrada-panel--error" : ""}`;
+    const descripcion = error || campo.ayuda ? `${id}-nota` : undefined;
 
     return (
-        <div className="campo-panel">
-            <label htmlFor={id} className="campo-panel__etiqueta">
+        <div className="contenidos-campo">
+            <label htmlFor={id}>
                 {campo.etiqueta}
-                {campo.obligatorio && <span>(obligatorio)</span>}
+                {campo.obligatorio && <span className="contenidos-campo__obligatorio" aria-label="obligatorio"> *</span>}
             </label>
 
             {campo.tipo === "select" ? (
-                <select
-                    id={id}
-                    className={`${clase} ${valor ? "" : "entrada-panel--vacia"}`}
-                    value={valor}
-                    onChange={(e) => alCambiar(e.target.value)}
-                >
+                <select id={id} value={valor} aria-invalid={!!error} aria-describedby={descripcion} onChange={(e) => alCambiar(e.target.value)}>
                     <option value="">{campo.placeholder}</option>
                     {campo.opciones?.map((opcion) => (
                         <option key={opcion}>{opcion}</option>
@@ -214,16 +212,18 @@ function CampoFormulario({ campo, valor, error, alCambiar }: CampoFormularioProp
             ) : (
                 <input
                     id={id}
-                    type={campo.tipo === "fecha" ? "date" : "text"}
-                    className={clase}
+                    type={campo.tipo === "fecha" ? "date" : campo.tipo === "hora" ? "time" : "text"}
+                    className={error ? "contenidos-campo--error" : undefined}
                     placeholder={campo.placeholder}
                     value={valor}
+                    aria-invalid={!!error}
+                    aria-describedby={descripcion}
                     onChange={(e) => alCambiar(e.target.value)}
                 />
             )}
 
-            {error && <p className="campo-panel__error">{error}</p>}
-            {!error && campo.ayuda && <p className="campo-panel__ayuda">{campo.ayuda}</p>}
+            {error && <p id={descripcion} className="contenidos-campo__error">{error}</p>}
+            {!error && campo.ayuda && <p id={descripcion} className="contenidos-campo__ayuda">{campo.ayuda}</p>}
         </div>
     );
 }

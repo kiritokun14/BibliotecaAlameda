@@ -1,10 +1,10 @@
 # Avances de Aldahir: frontend del portal público
 
-Última actualización: 1 de noviembre de 2026 · Rama: `Aldahir`
+Última actualización: 9 de noviembre de 2026 · Rama: `Aldahir`
 
 Este archivo explica a cualquier persona o agente qué se está haciendo en el frontend de Aldahir, qué ya está hecho y qué falta en cada tarjeta del sprint. Léelo completo antes de cambiar algo.
 
-> **Importante:** el trabajo descrito aquí **todavía no tiene commit**. Está en la rama `Aldahir` como cambios locales. Antes de hacer otra cosa, revisa `git status` y pregunta a Aldahir si ya quiere hacer el commit.
+> **Importante:** lo que va hasta el commit `bb00043` ya está en la rama. La entrega del 9 de noviembre (sección 4, al final) **todavía no tiene commit**. Antes de hacer otra cosa, revisa `git status` y pregunta a Aldahir si ya quiere hacer el commit.
 
 ---
 
@@ -23,7 +23,7 @@ Este archivo explica a cualquier persona o agente qué se está haciendo en el f
 cd Front
 npm run dev     # http://localhost:5173 (sin backend también funciona: se ve como visitante)
 npm run lint
-npm test        # vitest, 30 pruebas
+npm test        # vitest: 275 pruebas aprobadas y 1 omitida (9 nov 2026)
 npm run build
 ```
 
@@ -74,7 +74,7 @@ npm run build
 
 ### Servicios y programas (`/servicios`, `/servicios/:id`) — terminado (HU-01)
 - Lista con grupos «Servicios» y «Programas»; tarjetas clicables (Credencial → `/credencial`, Agenda → `/espacios`, Actividades → `/eventos`, Visitas grupales → `/contacto` por ahora, Bibliocomunidad → `/servicios/bibliocomunidad`).
-- Detalle del Club Alameda (Bibliocomunidad · Próximamente).
+- Detalle de Bibliocomunidad: ya no dice «Próximamente» ni pide credencial; su botón «Entrar a Bibliocomunidad» lleva al foro (9 nov 2026).
 - Estados: cargando, **error al cargar** (con «Intentar de nuevo») y **contenido no disponible**.
 - **CA-01.2 resuelto en el frontend:** `soloPublicados` / `buscarPublicado` en `src/pages/servicios/datos.ts` filtran todo lo que no esté `publicado`. Hay un borrador de ejemplo (`/servicios/prestamo-a-domicilio`) que no aparece en la lista y por URL muestra «Contenido no disponible». Pruebas en `tests/servicios.test.ts`.
 - Para revisar estados sin backend (solo en desarrollo): `/servicios?simular=error` o `?simular=cargando`.
@@ -103,7 +103,31 @@ npm run build
 - Datos simulados en memoria (`datos.ts`, `TODO backend`); se reinician al recargar. Las imágenes no se suben: solo se valida JPG/PNG ≤ 5 MB y se guarda el nombre.
 - Permisos: `/admin/contenidos/editor` exige `preparar_contenidos`; `/admin/contenidos/revision` exigirá `publicar_contenidos` (agregado en `src/servicios/accesoPanel.ts`). El menú lateral muestra Contenidos solo con esos permisos.
 - Pruebas: `tests/contenidos.test.ts`.
-- **Falta (parte 2):** Revisión y publicación (`560:17409`): bandeja por autorizar, revisar, pedir cambios, rechazar, confirmar y publicar, historial y retirar.
+- **Parte 2 (Revisión y publicación, `560:17409`):** ya está conectada al backend y tiene el diseño del Editor (`pages/admin/revision/`, pruebas en `tests/revision.test.ts`).
+
+### Entrega del 9 de noviembre de 2026 (sin commit)
+Informe completo: `docs/entrega-2026-11-09/INFORME.md`. Las capturas de esta entrega están en `docs/entrega-2026-11-09/capturas/`, con las referencias de Figma en `capturas/figma/`.
+- **Bibliocomunidad unificada:**
+  - El nombre «Bibliocomunidad» aparece en el portal y en el panel. El libro «Cuentos de la Alameda» no se tocó.
+  - En el panel hay una sola entrada: Participantes → Bibliocomunidad (`/admin/participantes/foro`), con las pestañas Respuestas, Normas y Personas silenciadas.
+  - La ruta anterior `/admin/atencion/bibliocomunidad` redirige a la nueva (`src/pages/admin/rutasAnteriores.ts`).
+  - Página pública `/club-alameda`: un visitante ve la vista de Figma A-01 (`280:1065`) y el acceso lo lleva al inicio de sesión. Con sesión se abre el foro.
+  - Se quitaron «Próximamente» y la exigencia de credencial.
+- **Resumen del panel:**
+  - Las tarjetas tienen columnas iguales.
+  - **Las prioridades y los botones «Abrir» y «Pasar lista» se ocultan si la cuenta no tiene permiso** para esa sección (`vistaEnlace` en `resumen/datos.ts`). Si no queda ninguna prioridad, no sale la franja.
+- **Fuentes del asistente (HU-31):**
+  - Tiene ventanas de confirmación, filtro por tipo, búsqueda en la página y detalle. Las reglas por estado están en `comunidad/reglasFuentes.ts`.
+  - Subir archivos, sincronizar y probar el asistente no tienen endpoint en el backend.
+- **Notificaciones:** se aclaró el texto de «Eliminar leídas». Para guardarlas por persona faltan los endpoints de `avisoNotificacion`.
+- **T-093:** la guía de validación está en `docs/entrega-2026-11-09/GUIA-VALIDACION-T093.md`.
+  - **Está pendiente de validación con la biblioteca. No se cierra.**
+  - No se crearon marcos nuevos en Figma.
+- **Pruebas nuevas:** `tests/unificacion.test.ts`.
+- **Pendiente:**
+  - Capturas de Bibliocomunidad del panel, Avisos, Configuración y Fuentes. La cuenta de editor no tiene esos permisos: hace falta una cuenta de prueba autorizada.
+  - Revisar el Resumen con una cuenta de acceso total.
+  - Decidir si la moderación de Participantes se conecta a `/v1/admin/bibliocomunidad` (hoy usa datos de ejemplo).
 
 ## 5. Pendientes por tarjeta del sprint
 
@@ -116,16 +140,17 @@ Todas las tarjetas vencieron el 30 de octubre.
 | **BDLAG-11 · HU-01** Info institucional y servicios | ✅ Hecha | `/servicios` terminada con sus estados. Falta que backend sirva el contenido real respetando «solo publicado». |
 | **BDLAG-97 · T-053** Formulario de contacto (8 h) | ⬜ Sin empezar | **Página `/contacto`**: formulario, foco, validación, enviando, error, sugerencia, enviando sugerencia y enviado (Figma `283:925`, `283:1103`, `283:1292`, `283:1492`, `283:1669`, `283:1853`, `283:2031`, `283:2208`). Deja una función de servicio con tipos para que backend conecte el envío. |
 | **BDLAG-56 · T-052** Agenda pública (20 h, la más grande) | 🟡 Parte de visitante hecha | `/eventos` y `/eventos/:id` en versión visitante (ver arriba). Lo que requiere sesión (inscribirse, cupos reales, listados con filtros, calendario; Figma `547:29679` a `547:33519`) queda para cuando Aldahir lo pida. |
-| **BDLAG-22 · HU-12** Autorizar, publicar y retirar contenido | ⬜ Sin empezar | Panel › Contenidos › Revisión y publicación (Figma `560:17410` a `610:48631`): bandeja, por autorizar, pedir cambios, rechazar, confirmar, publicado, historial (`561:19695`) y retirar (`561:20179`). CA-12.1: mostrar al responsable. CA-12.2: sin autorización no se publica. Depende del backend. |
+| **BDLAG-22 · HU-12** Autorizar, publicar y retirar contenido | ✅ En código | Revisión y publicación conectada al backend con el diseño del Editor. Falta la prueba manual de Aldahir. |
 | **BDLAG-140 · T-048** Prototipos | No es código | Validar el Figma con la biblioteca y adjuntar evidencia. |
+| **T-093** Prototipos de inscripciones, asistencia y avisos (sprint 5) | 🟡 Pendiente de validación con la biblioteca | La guía está lista, con la revisión de las pantallas A-02 y el contraste medido. Decisiones de Aldahir (9 nov), ya aplicadas en Figma: no hay lista de espera (sus marcos quedaron como DESCARTADO), el cupo lleno pide regresar después y la asistencia se ve en el perfil. En el código, las etiquetas doradas pasaron a `#f2e3b8` para cumplir el contraste. Falta que la biblioteca valide esto y quitar la lista de espera del código. No se cierra sin esa validación. |
 
-**Orden recomendado:** panel HU-12. (`/contacto` (T-053) y luego `/noticias` los hace otra terminal en paralelo.)
+Las fechas, estimaciones y estados oficiales se ven en Jira. Este archivo no los cambia.
 
 ### Pendientes chicos que ya existen en el código
 - **Rutas que todavía no existen** (hoy te regresan a Inicio): `/noticias` (en curso en otra terminal) y `/asistente`.
 - **Redes sociales:** no tienen enlace porque la biblioteca no ha confirmado sus cuentas.
 - **Información del pie:** «Declaración de accesibilidad», «Términos» y «Alerta» son solo texto, sin página.
-- **Admin › Resumen:** quedó en pausa, sin terminar.
+- **Admin › Resumen:** usa datos de ejemplo (`TODO backend` en `resumen/datos.ts`). Ya oculta los accesos para los que la cuenta no tiene permiso.
 
 ## 6. Convenciones
 
@@ -143,4 +168,4 @@ Todas las tarjetas vencieron el 30 de octubre.
 - **Seguridad:**
   - Nada de claves secretas en el frontend; solo `VITE_*` públicas.
   - Los enlaces externos llevan `target="_blank" rel="noopener noreferrer"`.
-- **Verificación visual:** para comprobar la interfaz se usaron Edge en modo sin ventana y el protocolo de herramientas de desarrollo (puerto 9333) con scripts de Node. Las capturas no se guardan en el repositorio.
+- **Verificación visual:** para comprobar la interfaz se usaron Edge en modo sin ventana y el protocolo de herramientas de desarrollo (puerto 9333) con scripts de Node. Las capturas de trabajo no se guardan en el repositorio; solo las de una entrega, en `docs/entrega-<fecha>/capturas/`.

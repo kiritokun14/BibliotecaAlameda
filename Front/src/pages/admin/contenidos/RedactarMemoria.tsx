@@ -47,7 +47,7 @@ function RedactarMemoria({ inicial }: { inicial?: Contenido }) {
     };
 
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <Migas actual="Memoria pública" />
 
             <div className="contenidos-encabezado contenidos-encabezado--tarjeta">

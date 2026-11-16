@@ -2,6 +2,8 @@
 // TODO backend: un endpoint de resumen debe devolver los pendientes de todas las áreas a las que la
 // cuenta tiene acceso (folio, asunto, área, responsable, vencimiento y estado), las actividades del día
 // y los indicadores. El frontend solo filtra y busca sobre lo que llegue.
+import type { AccesoCuenta } from "../../../servicios/auth";
+import { capacidadPanel, permisoGlobal } from "../../../servicios/accesoPanel";
 
 export type AreaPendiente = "propuestas" | "visitas" | "inscripciones" | "contactos" | "resenas" | "credenciales";
 export type TonoEstado = "dorado" | "verde" | "guinda" | "gris";
@@ -96,6 +98,15 @@ export function filtrarPendientes(lista: Pendiente[], area: AreaPendiente | null
 
 export function contarPorArea(lista: Pendiente[]) {
     return Object.fromEntries(AREAS.map((a) => [a.id, lista.filter((p) => p.area === a.id).length])) as Record<AreaPendiente, number>;
+}
+
+// Cómo se muestra un acceso a otra pantalla: enlace si la cuenta tiene el permiso; oculto si no lo tiene;
+// «pronto» (mismo aspecto, sin enlace) si esa pantalla todavía no existe.
+export type VistaEnlace = "enlace" | "oculto" | "pronto";
+export function vistaEnlace(ruta: string, acceso: AccesoCuenta | null | undefined): VistaEnlace {
+    const capacidad = capacidadPanel(ruta);
+    if (!capacidad) return "pronto";
+    return acceso && permisoGlobal(acceso, capacidad) ? "enlace" : "oculto";
 }
 
 // «Buenos días / tardes / noches» según la hora local

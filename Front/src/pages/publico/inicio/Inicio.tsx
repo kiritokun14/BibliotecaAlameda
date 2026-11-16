@@ -19,7 +19,7 @@ function Inicio() {
         <PaginaPublica alCambiarSesion={setSesionActiva}>
             <AvisoPortal />
             <Portada />
-            <Accesos />
+            <Accesos sesion={sesionActiva === true} />
             <Lecturas />
             <Cifras />
             <Actividades />

@@ -10,6 +10,7 @@ import Historia from "./Historia";
 import MisionVision from "./MisionVision";
 import SolonArguello from "./SolonArguello";
 import RolBiblioteca from "./RolBiblioteca";
+import { SinInformacion } from "./piezas";
 import iconoReloj from "../../../assets/acerca/pestana-reloj.svg";
 import iconoEstrella from "../../../assets/acerca/pestana-estrella.svg";
 import iconoPersona from "../../../assets/comun/iconos/persona-verde.svg";
@@ -59,6 +60,14 @@ const secciones: Record<SeccionAcerca, {
     },
 };
 
+const claveDe = (s: SeccionAcerca) => (s === "mision-vision" ? "mision" : s === "solon-arguello" ? "solon" : s);
+
+// Para el estado vacío: la primera sección que sí tenga información (si no hay ninguna, el inicio)
+function otraSeccion(actual: SeccionAcerca, datos: { datos: Record<string, unknown> }[]) {
+    const con = (Object.keys(secciones) as SeccionAcerca[]).find((s) => s !== actual && datos.some((c) => c.datos.seccion === claveDe(s)));
+    return con ? { texto: `Ver ${secciones[con].pestana}`, ruta: `/acerca/${con}` } : { texto: "Ir al inicio", ruta: "/" };
+}
+
 function esSeccion(valor: string | undefined): valor is SeccionAcerca {
     return valor !== undefined && valor in secciones;
 }
@@ -71,7 +80,7 @@ function Acerca() {
     if (!esSeccion(seccion)) return <Navigate to="/acerca/historia" replace />;
 
     const actual = secciones[seccion];
-    const claveBD = seccion === "mision-vision" ? "mision" : seccion === "solon-arguello" ? "solon" : seccion;
+    const claveBD = claveDe(seccion);
     const publicado = datos?.find(c => c.datos.seccion === claveBD);
     // TODO backend: cuando el contenido venga del servidor, este estado se muestra si la carga falla.
     // Mientras tanto se puede ver con ?simular=error (solo en desarrollo).
@@ -101,7 +110,7 @@ function Acerca() {
                         ))}
                     </nav>
 
-                    {!datos ? <p role="status">Cargando información institucional…</p> : !publicado ? <p>Esta sección todavía no tiene información publicada.</p> : <article className="acerca-contenedor"><h2>{publicado.titulo}</h2><div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{publicado.cuerpo}</div>{typeof publicado.datos.lineaTiempo === 'string' && <p style={{ whiteSpace: 'pre-wrap' }}>{publicado.datos.lineaTiempo}</p>}</article>}
+                    {!datos ? <p role="status">Cargando información institucional…</p> : !publicado ? <SinInformacion seccion={`«${actual.pestana}»`} otra={otraSeccion(seccion, datos)} /> : <article className="acerca-contenedor"><h2>{publicado.titulo}</h2><div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{publicado.cuerpo}</div>{typeof publicado.datos.lineaTiempo === 'string' && <p style={{ whiteSpace: 'pre-wrap' }}>{publicado.datos.lineaTiempo}</p>}</article>}
                 </div>
             )}
         </PaginaPublica>

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import "./Actividades.css";
 import { BloqueResumen, Buscador, CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Resultado, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
@@ -49,7 +51,7 @@ function Asistencia() {
     const promedio = porcentaje(cerradas.reduce((s, a) => s + conteo(a.folio, listas).presentes, 0), cerradas.reduce((s, a) => s + conteo(a.folio, listas).inscritos + conteo(a.folio, listas).sinInscripcion, 0));
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Asistencia"], [periodo === "hoy" ? (deHoy.length ? "Hoy" : "Sin actividades hoy") : periodo === "semana" ? "Esta semana" : "Anteriores"]]} />
                 <Encabezado etiqueta="Actividades · Asistencia" titulo="Asistencia" texto="Pasa lista a las personas inscritas el día de la actividad." />
@@ -174,7 +176,7 @@ export function PasarLista() {
     }
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Asistencia", BASE_ASISTENCIA], [cerrada ? (ventana ? "Corregir asistencia" : "Lista cerrada") : error ? "Error al guardar" : ventana === "cerrar" ? "Confirmar cierre" : ventana === "agregar" ? "Agregar persona sin inscripción" : "Pasar lista"]]} />
                 <EncabezadoTarjeta
@@ -253,7 +255,7 @@ export function PasarLista() {
 
                 <div className="cn-acciones">
                     {cerrada ? (
-                        <Link to={BASE_ASISTENCIA} className={clasesBoton("suave")}>Volver</Link>
+                        <Link to={BASE_ASISTENCIA} className={`${clasesBoton("suave")} panel-regresar`}>Volver</Link>
                     ) : (
                         <>
                             <button type="button" className={clasesBoton("contorno")} onClick={() => { setNombre(""); setContacto(""); setErrorCampo(""); setVentana("agregar"); }}>Agregar persona sin inscripción</button>
@@ -320,13 +322,13 @@ export function ListaCerrada() {
     if (!a || !listaDe(a.folio, listas).cerrada) return <Navigate to={a ? `${BASE_ASISTENCIA}/${a.folio}` : BASE_ASISTENCIA} replace />;
     const c = conteo(a.folio, listas);
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Asistencia", BASE_ASISTENCIA], ["Lista cerrada"]]} />
                 <Encabezado grande etiqueta={`Actividad ${a.folio} · Asistencia`} titulo="Lista cerrada" texto="La asistencia quedó registrada." />
                 <Resultado tono="verde" icono={iconoResultado} titulo={a.nombre} linea={`${c.presentes} presentes · ${c.ausentes} ausentes · ${porcentaje(c.presentes, c.inscritos + c.sinInscripcion)}% de asistencia`} chip={<Chip tono="verde">Lista cerrada</Chip>} />
                 <div className="cn-acciones">
-                    <Link to={BASE_ASISTENCIA} className={clasesBoton("verde")}>Volver a Asistencia</Link>
+                    <Link to={BASE_ASISTENCIA} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Asistencia</Link>
                     <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className={clasesBoton("contorno")}>Ver la lista</Link>
                 </div>
                 <PieDatos />
@@ -351,7 +353,7 @@ export function ResumenAsistencia() {
     const nombreMes = new Date(anio, m - 1, 1).toLocaleDateString("es-MX", { month: "long" });
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Asistencia", BASE_ASISTENCIA], ["Resumen"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Asistencia", ruta: BASE_ASISTENCIA }} etiqueta="Asistencia" titulo="Resumen de asistencia" texto="Cómo ha ido la asistencia en las actividades ya realizadas (ejemplo)." />

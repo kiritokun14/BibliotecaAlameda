@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta, type Columna } from "../contenidoDemo/piezas";
 import { clasesBoton, paginar } from "../contenidoDemo/utiles";
@@ -45,7 +47,7 @@ function Propuestas() {
     ];
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades"], ["Lista"]]} />
 

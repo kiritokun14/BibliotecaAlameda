@@ -115,7 +115,7 @@ export default function Notificaciones() {
                     icono={iconoAlerta}
                     angosta
                     titulo="¿Eliminar las notificaciones leídas?"
-                    texto="Se quitarán de la lista las notificaciones que ya leíste. Las pendientes se conservan."
+                    texto="Se quitarán de la lista las notificaciones que ya leíste. Las pendientes se conservan y ninguna solicitud ni inscripción cambia."
                     textoConfirmar="Sí, eliminar"
                     alConfirmar={() => { eliminarLeidas(); setConfirmando(false); }}
                     alCerrar={() => setConfirmando(false)}

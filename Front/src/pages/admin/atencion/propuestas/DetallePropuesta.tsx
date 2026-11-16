@@ -185,7 +185,7 @@ function DetallePropuesta() {
                         </Chip>
                     )}
                     {/* TODO: pantalla de agenda completa de espacios */}
-                    <button type="button" className="boton-panel boton-panel--oscuro boton-panel--mediano-alto">
+                    <button type="button" className="contenidos-boton contenidos-boton--oscuro">
                         Ver agenda completa de espacios
                     </button>
                 </div>
@@ -200,7 +200,7 @@ function DetallePropuesta() {
             rutaBandeja={RUTA}
             extra={
                 estado === "aprobada" && (
-                    <Link to="/eventos" className="boton-panel boton-panel--guinda boton-panel--ancho boton-panel--alto">
+                    <Link to="/eventos" className="contenidos-boton contenidos-boton--ancho at-boton--guinda-lleno">
                         Ver en Eventos
                     </Link>
                 )
@@ -232,7 +232,7 @@ function DetallePropuesta() {
     const cerrar = () => setVentana(null);
 
     return (
-        <PanelLayout titulo="Atención">
+        <PanelLayout titulo="Atención" tema="contenidos">
             <DetalleSolicitud
                 area="propuestas"
                 solicitud={propuesta}

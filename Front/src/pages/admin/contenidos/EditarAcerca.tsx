@@ -56,7 +56,7 @@ function EditarAcerca({ inicial }: { inicial?: Contenido }) {
     const coincidencias = termino ? valores.texto.toLowerCase().split(termino).length - 1 : 0;
 
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <Migas actual="Borrador" />
 
             <div className="contenidos-encabezado contenidos-encabezado--tarjeta">

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Datos, EncabezadoTarjeta, EstadoVacio, Migas, Pagina, PieDatos, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -25,7 +27,7 @@ export function FichaSala() {
     const proximos = bloqueos.filter((b) => b.sala === sala.nombre && b.fecha >= hoyISO()).sort((a, b) => a.fecha.localeCompare(b.fecha));
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", `${BASE_CALENDARIO}?vista=salas`], [quitando ? "Quitar bloqueo" : "Ficha de sala"]]} />
                 <EncabezadoTarjeta
@@ -126,7 +128,7 @@ function FormularioSala({ sala }: { sala: Sala }) {
 
     const clase = (c: string) => `cn-control ${errores[c] ? "cn-control--error" : ""}`;
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", `${BASE_CALENDARIO}?vista=salas`], ["Editar sala"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a la ficha de sala", ruta: ficha }} etiqueta="Calendario y salas · Editar sala" titulo={`Editar sala: ${sala.nombre}`} texto="Actualiza capacidad, horario de uso y equipo. Los cambios se reflejan en el calendario." />

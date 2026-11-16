@@ -49,7 +49,7 @@ function RedactarNoticia({ inicial }: { inicial?: Contenido }) {
 
     if (vistaPrevia) {
         return (
-            <PanelLayout titulo="Contenidos" tema="solon">
+            <PanelLayout titulo="Contenidos" tema="contenidos">
                 <VistaPreviaNoticia
                     noticia={{ titulo, texto, imagen: imagen ?? null, textoAlternativo, categoria, fecha }} folio={borrador.folio} tieneImagen={imagen === undefined && borrador.tieneImagen} version={borrador.guardadoEn}
                     alVolver={() => cambiarVista(false)}
@@ -70,7 +70,7 @@ function RedactarNoticia({ inicial }: { inicial?: Contenido }) {
     }
 
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <Migas actual="Borrador" />
 
             <div className="contenidos-encabezado contenidos-encabezado--tarjeta">

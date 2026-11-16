@@ -1,0 +1,189 @@
+/* Club Alameda (Figma A-02: 759:93132 inicio, 759:93772 hilo). Medidas normalizadas como el resto del portal. */
+.club-cuerpo { display: flex; flex-direction: column; gap: 18px; max-width: 1040px; margin: 0 auto; padding: 40px 24px 72px; box-sizing: content-box; }
+
+.club-titulo { margin: 0; color: #164f44; font-size: 28px; line-height: 1.3; }
+.club-titulo--respuestas { font-size: 22px; }
+.club-subtitulo { margin: -10px 0 6px; color: #4d4d4d; font-size: 15px; line-height: 1.45; }
+
+/* ---------- Tarjetas de tema ---------- */
+.club-temas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+
+.club-tema {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 26px;
+  border: 1px solid #e2ded5;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 8px 12px rgba(15, 51, 43, 0.07);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.club-tema:hover { border-color: #bfd9d0; transform: translateY(-2px); }
+.club-tema:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+
+.club-tema__motivo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 96px;
+  padding: 0 22px;
+  border-radius: 20px;
+  background: #e4efea;
+  color: #164f44;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.club-tema__motivo img { flex-shrink: 0; }
+.club-tema h3 { margin: 0; color: #164f44; font-size: 22px; line-height: 1.35; }
+.club-tema__descripcion { margin: 0; color: #4d4d4d; font-size: 15px; line-height: 1.45; }
+.club-tema__meta { margin: 0; color: #4d4d4d; font-size: 13px; line-height: 1.45; }
+.club-tema__entrar { margin-top: 2px; color: #164f44; font-size: 15px; font-weight: 700; }
+
+.club-tema--dorado .club-tema__motivo { background: #f6eeda; color: #8a6414; }
+.club-tema--dorado .club-tema__entrar { color: #8a6414; }
+.club-tema--rosa .club-tema__motivo { background: #f6eaf0; color: #9b2247; }
+.club-tema--rosa .club-tema__entrar { color: #9b2247; }
+.club-tema--gris .club-tema__motivo { background: #eae6dd; color: #611232; }
+.club-tema--gris .club-tema__entrar { color: #611232; }
+
+.club-respeto { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; padding: 26px; border: 1px solid #e2ded5; border-radius: 22px; background: #fff; }
+.club-respeto h2 { margin: 0 0 2px; color: #164f44; font-size: 21px; line-height: 1.35; }
+.club-respeto p { margin: 0; color: #4d4d4d; font-size: 15px; line-height: 1.45; }
+
+/* ---------- Detalle de un hilo ---------- */
+.club-hilo { display: grid; grid-template-columns: minmax(0, 1fr) 340px; align-items: start; gap: 40px; }
+.club-hilo__principal { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+.club-inicial { display: flex; flex-direction: column; gap: 10px; padding: 28px 26px; border: 1px solid #e6d194; border-radius: 28px; background: #f6eeda; }
+.club-inicial p { margin: 0; }
+.club-inicial__sobretitulo { color: #8a6414; font-size: 13px; font-weight: 700; letter-spacing: 0.02em; }
+.club-inicial__fecha { color: #4d4d4d; font-size: 13px; }
+.club-inicial__texto { color: #161a1d; font-size: 17px; line-height: 1.45; }
+
+.club-vacio { margin: 0; padding: 22px 26px; border: 1px dashed #d8d2c5; border-radius: 22px; color: #4d4d4d; font-size: 15px; }
+
+.club-respuesta {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 26px;
+  border: 1px solid #e2ded5;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(15, 51, 43, 0.04);
+}
+.club-respuesta--revision { border-style: dashed; border-color: #bfd9d0; }
+.club-respuesta p { margin: 0; }
+.club-respuesta__participante { display: flex; align-items: center; gap: 14px; }
+.club-respuesta__nombre { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: #164f44; font-size: 16px; font-weight: 700; line-height: 1.45; }
+.club-respuesta__fecha { color: #4d4d4d; font-size: 13px; line-height: 1.45; }
+.club-respuesta__texto { color: #161a1d; font-size: 17px; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-line; }
+.club-respuesta__acciones { display: flex; justify-content: flex-end; }
+
+.club-avatar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: #e4efea;
+  color: #164f44;
+  font-size: 18px;
+  font-weight: 700;
+}
+.club-avatar--rosa { background: #f6eaf0; }
+.club-avatar--dorado { background: #f6eeda; }
+.club-avatar--gris { background: #eae6dd; }
+
+.club-chip { padding: 3px 10px; border-radius: 999px; background: #f6eeda; color: #8a6414; font-size: 12px; font-weight: 700; }
+.club-reportada { color: #4d4d4d; font-size: 13px; font-weight: 700; }
+
+.club-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #bfd9d0;
+  border-radius: 16px;
+  background: #e4efeb;
+  color: #164f44;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 19px;
+}
+.club-nota img { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Caja para responder */
+.club-responder { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 26px; border: 2px solid #164f44; border-radius: 28px; background: #fff; }
+.club-responder h2 { margin: 0; color: #164f44; font-size: 22px; line-height: 1.35; }
+.club-responder > p { margin: 0; color: #4d4d4d; font-size: 15px; line-height: 1.45; }
+.club-responder--silenciada { border-color: #9b2247; background: #fbf4f6; }
+.club-responder--silenciada h2 { color: #9b2247; }
+
+.club-campo { display: flex; flex-direction: column; gap: 7px; width: 100%; }
+.club-campo label { color: #161a1d; font-size: 14px; font-weight: 700; }
+.club-campo label span { color: #6b675e; font-size: 13px; font-weight: 400; }
+.club-campo textarea,
+.club-campo select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #e2ded5;
+  border-radius: 14px;
+  background: #f7f5f0;
+  color: #161a1d;
+  font-family: inherit;
+  font-size: 16px;
+}
+.club-campo textarea { min-height: 130px; padding: 14px 16px; line-height: 1.45; resize: vertical; }
+.club-campo textarea.club-campo__corto { min-height: 90px; }
+.club-campo select { height: 48px; padding: 0 14px; background: #fff; border: 1.5px solid #b9b3a5; }
+.club-campo textarea::placeholder { color: #6b675e; }
+.club-campo [aria-invalid="true"] { border-color: #9b2247; }
+.club-campo textarea:focus-visible,
+.club-campo select:focus-visible { outline: 3px solid #c9a24a; outline-offset: 1px; border-color: #164f44; }
+
+.club-ayuda { margin: 0; color: #4d4d4d; font-size: 13px; line-height: 1.45; }
+.club-error { margin: 0; color: #9b2247; font-size: 13px; font-weight: 700; }
+
+.club-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 26px;
+  box-sizing: border-box;
+  border: 1.5px solid #164f44;
+  border-radius: 999px;
+  background: #164f44;
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.club-boton:hover { background: #0f3b33; }
+.club-boton:disabled { opacity: 0.6; cursor: default; }
+.club-boton--contorno { height: 44px; background: transparent; color: #164f44; }
+.club-boton--contorno:hover { background: #e4efeb; }
+.club-boton:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+
+.club-normas { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 14px; padding: 22px 26px 26px; border-radius: 28px; background: #e4efea; }
+.club-normas h2 { margin: 0; color: #164f44; font-size: 21px; line-height: 1.35; }
+.club-normas ol { margin: 0; padding-left: 20px; color: #4d4d4d; font-size: 15px; line-height: 1.6; }
+
+/* Solo en desarrollo */
+.club-ejemplo { margin: 0; color: #6b675e; font-size: 12px; }
+.club-ejemplo button { padding: 0; border: 0; background: none; color: #164f44; font-family: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; }
+
+@media (max-width: 1400px) {
+  .club-hilo { grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; }
+}

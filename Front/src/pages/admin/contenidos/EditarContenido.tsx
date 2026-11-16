@@ -21,7 +21,7 @@ function Formulario({ contenido }: { contenido: Contenido }) {
         if (contenido.tipo === "memoria") return <RedactarMemoria inicial={contenido} />;
     }
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <Migas actual={contenido.folio} />
             <div className="contenidos-panel">
                 <p className="contenidos-error" role="alert">
@@ -29,7 +29,7 @@ function Formulario({ contenido }: { contenido: Contenido }) {
                         ? "Este tipo de contenido todavía no tiene formulario."
                         : "Este contenido ya se envió a autorización y no se puede editar."}
                 </p>
-                <Link to="/admin/contenidos/editor" className="contenidos-boton contenidos-boton--principal">Volver a Mis contenidos</Link>
+                <Link to="/admin/contenidos/editor" className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a Mis contenidos</Link>
             </div>
         </PanelLayout>
     );

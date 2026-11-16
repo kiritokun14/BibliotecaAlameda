@@ -45,7 +45,7 @@ function EnviadoAutorizacion() {
     const nombre = envio?.titulo || "Sin título";
 
     return (
-        <PanelLayout titulo="Contenidos" tema="solon">
+        <PanelLayout titulo="Contenidos" tema="contenidos">
             <nav className="contenidos-migas" aria-label="Ruta">
                 <span>Contenidos</span>
                 <span aria-hidden="true">›</span>
@@ -94,7 +94,7 @@ function EnviadoAutorizacion() {
             </section>
 
             <div className="contenidos-previa__acciones">
-                <Link to="/admin/contenidos/editor" className="contenidos-boton contenidos-boton--principal">Volver a Mis contenidos</Link>
+                <Link to="/admin/contenidos/editor" className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a Mis contenidos</Link>
                 {/* TODO: pantalla de solo lectura para un contenido enviado */}
                 <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled title="Disponible pronto">
                     Ver el contenido enviado

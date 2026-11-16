@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { EncabezadoTarjeta, Migas, Pagina, PieDatos, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
@@ -83,7 +85,7 @@ function Formulario({ actividad }: { actividad?: Actividad }) {
     });
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades", BASE_PROPUESTAS], [editando ? "Editar actividad" : faltan ? "Faltan datos" : "Nueva actividad"]]} />
 

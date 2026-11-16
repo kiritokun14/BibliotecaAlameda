@@ -18,7 +18,13 @@ const accesos = [
     { titulo: "Ver eventos y talleres", texto: "Actividades del mes en curso.", icono: iconoCalendario, color: "blanco", ruta: "/eventos" },
 ];
 
-function Accesos() {
+// Con sesión iniciada (Figma A-02, 476:20843) dos tarjetas cambian de texto.
+const textosConSesion: Record<string, string> = {
+    "Reservar un espacio": "Solicitar uso de espacio",
+    "Ver eventos y talleres": "Programa de actividades",
+};
+
+function Accesos({ sesion = false }: { sesion?: boolean }) {
     return (
         <section className="seccion-inicio seccion-inicio--crema">
             <Bloque tema="guinda" circulos={[circulo1, circulo2]} textura={{ src: textura, ancho: 380, alto: 260 }}>
@@ -35,7 +41,7 @@ function Accesos() {
                             <span className="tarjeta-acceso__icono">
                                 <img src={acceso.icono} alt="" />
                             </span>
-                            <h3>{acceso.titulo}</h3>
+                            <h3>{(sesion && textosConSesion[acceso.titulo]) || acceso.titulo}</h3>
                             <p>{acceso.texto}</p>
                             <span className="tarjeta-acceso__flecha">
                                 <img src={flecha} alt="" />

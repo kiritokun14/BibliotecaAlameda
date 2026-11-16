@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
+import "../contenidos/Contenidos.css";
+import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { BloqueResumen, Buscador, Chip, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton, paginar } from "../contenidoDemo/utiles";
@@ -39,7 +41,7 @@ function Cambios() {
     const elegir = (f: FiltroCambio) => { setFiltro(f); setPagina(0); };
 
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones"], ["Bandeja"]]} />
                 <Encabezado etiqueta="Actividades · Cambios" titulo="Cambios y cancelaciones" texto="Solicita, revisa y aplica cambios a actividades ya programadas, avisando a quienes se inscribieron." />
@@ -111,7 +113,7 @@ function Cambios() {
 function Historial({ cambios }: { cambios: Cambio[] }) {
     const aplicados = cambios.filter((c) => c.estado === "aplicado").sort((a, b) => b.aplico!.fecha.localeCompare(a.aplico!.fecha));
     return (
-        <PanelLayout titulo="Actividades">
+        <PanelLayout titulo="Actividades" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], ["Historial"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Cambios y cancelaciones", ruta: BASE_CAMBIOS }} etiqueta="Cambios y cancelaciones" titulo="Historial de cambios" texto="Registro de todo lo aplicado, con fecha y responsable." />

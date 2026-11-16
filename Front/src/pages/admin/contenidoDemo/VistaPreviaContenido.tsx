@@ -52,7 +52,7 @@ function VistaPreviaContenido({ desde = "demostracion" }: { desde?: "demostracio
                 <div className="cn-acciones">
                     {editable ? (
                         <>
-                            <Link to={volver.ruta} className={clasesBoton("verde")}>Volver a editar</Link>
+                            <Link to={volver.ruta} className={`${clasesBoton("verde")} panel-regresar`}>Volver a editar</Link>
                             <p className="cn-nota">Para enviarlo, vuelve a editar y usa «Enviar a autorización».</p>
                         </>
                     ) : (

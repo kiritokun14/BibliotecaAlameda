@@ -22,7 +22,18 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 7 | `alta_asistida_cuentas.sql` | Alta de cuentas asistida por el personal | T-033 |
 | 8 | `contenidos_editor.sql` | Editor de contenidos: folio, borradores, envío a autorización y observaciones | T-054 |
 | 9 | `contenidos_memoria.sql` | Memoria pública en el editor de contenidos | T-054 |
-| 10 | `datos_prueba.sql` | **Opcional.** Datos ficticios de prueba | T-026 |
+| 10 | `publicacion_contenidos.sql` | Revisión y publicación de contenidos por el Administrador | T-055 |
+| 11 | `imagenes_contenidos.sql` | Imágenes privadas de los contenidos (Storage) | HU-11 |
+| 12 | `contacto_publico.sql` | Mensajes de contacto con folio y acuse | T-053 |
+| 13 | `bibliocomunidad.sql` | Solicitudes de Bibliocomunidad e intentos de contacto | T-057 |
+| 14 | `fuentes_rag.sql` | Fuentes aprobadas del asistente | T-049 |
+| 15 | `perfil_propio.sql` | Edición del perfil propio | T-031 |
+| 16 | `solicitudes_espacio.sql` | Solicitudes de visita o uso de espacio: folio, envío, consulta y cancelación | T-076 |
+| 17 | `espacios_personal.sql` | Atención de solicitudes de espacio: aprobar, proponer otro espacio o fecha, rechazar y cancelar | T-076 |
+| 18 | `resolucion_institucional_propuestas.sql` | Acuerdo institucional y trazabilidad de las resoluciones de propuestas | T-075 |
+| 19 | `correcciones_integracion_espacios.sql` | Permisos, versiones y horario de Tepic para solicitudes de espacios | T-076 |
+| 20 | `publicacion_propuestas.sql` | Vincular una propuesta aprobada con su actividad y publicarla sin duplicados | T-075 / T-055 |
+| 21 | `datos_prueba.sql` | **Opcional.** Datos ficticios de prueba | T-026 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
@@ -46,6 +57,12 @@ fijos `00000000-0000-4000-…` para poder encontrarlos y borrarlos.
 `pruebas_registro.sql` y `pruebas_administracion.sql` usan `ROLLBACK`: comprueban el registro y la
 administración de cuentas sin dejar registros. Se pueden ejecutar después del paso 7.
 `pruebas_contenidos_editor.sql` (también con `ROLLBACK`) comprueba el editor de contenidos después del paso 9.
+`pruebas_solicitudes_espacio.sql` (también con `ROLLBACK`) comprueba las solicitudes de espacio después del paso 16.
+`pruebas_espacios_personal.sql` (también con `ROLLBACK`) comprueba la atención del personal después del paso 17.
+
+`pruebas_publicacion_propuestas.sql` comprueba publicación, permisos, cupo, vínculos, reintentos y conflictos de horario con `ROLLBACK`, después del paso 20.
+
+En CECANbd ya se aplicaron los pasos 18 a 20; no hace falta repetirlos para ejecutar el proyecto contra esa base compartida.
 
 ## Cambios nuevos a la base
 

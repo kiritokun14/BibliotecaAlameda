@@ -1,9 +1,11 @@
 import { pedirComunidad } from './atencionComunidad';
-export interface Fuente {id:string;tituloFuente:string;tipoFuente:string;contenidoReferencia:string;estadoFuente:string;version:number;activa:boolean}
+export interface Fuente {id:string;tituloFuente:string;tipoFuente:string;contenidoReferencia:string;estadoFuente:string;version:number;activa:boolean;
+ subidaPor?:string;aprobadaPor?:string|null;creadaEn?:string;actualizadaEn?:string}
 export interface EntradaFuente {tituloFuente:string;tipoFuente:string;contenidoReferencia:string}
 const base='admin/rag/fuentes';
-export function listarFuentes(pagina:number,estado:string) {
- const p=new URLSearchParams({page:String(pagina),limit:'10'});if(estado)p.set('estadoFuente',estado);
+// El backend filtra por estado y por tipo exacto; no ofrece búsqueda de texto.
+export function listarFuentes(pagina:number,estado:string,tipo=''):Promise<{items:Fuente[];total:number}> {
+ const p=new URLSearchParams({page:String(pagina),limit:'10'});if(estado)p.set('estadoFuente',estado);if(tipo.trim())p.set('tipoFuente',tipo.trim());
  return pedirComunidad<{items:Fuente[];total:number}>(base+'?'+p,'GET',undefined,true);
 }
 export function crearFuente(datos:EntradaFuente) {return pedirComunidad<Fuente>(base,'POST',datos,true);}
