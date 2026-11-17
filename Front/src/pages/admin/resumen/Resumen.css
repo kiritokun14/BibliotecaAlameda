@@ -561,3 +561,29 @@ a.boton-resumen--contorno:hover { background: #e4efeb; }
 @media (max-width: 700px) {
   .resumen-prioridades__lista, .resumen-lateral { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- Coherencia con las demás bandejas (Contenidos, Atención…): filas en tarjeta y «Abrir →» como enlace ---------- */
+.resumen-tabla { border-collapse: separate; border-spacing: 0 8px; }
+.resumen-tabla thead th { padding: 10px 8px 10px 12px; background: #f1efea; }
+.resumen-tabla thead th:first-child { border-radius: 12px 0 0 12px; }
+.resumen-tabla thead th:last-child { border-radius: 0 12px 12px 0; }
+.resumen-tabla td { padding: 14px 8px 14px 12px; border-top: 1px solid #e2ded5; border-bottom: 1px solid #e2ded5; background: #fff; vertical-align: middle; }
+.resumen-tabla td:first-child { border-left: 1px solid #e2ded5; border-radius: 14px 0 0 14px; }
+.resumen-tabla td:last-child { border-right: 1px solid #e2ded5; border-radius: 0 14px 14px 0; }
+.resumen-tabla tbody tr { transition: transform 0.2s ease; }
+.resumen-tabla tbody tr:hover td { border-color: #164f44; }
+.resumen-tabla .resumen-tabla__vacia { border: 1px dashed #e2ded5 !important; border-radius: 14px !important; }
+.resumen-tabla .boton-resumen--fila { height: auto; padding: 0; border: 0; background: none; color: #164f44; font-size: 13px; font-weight: 700; }
+.resumen-tabla .boton-resumen--fila:hover { background: none; text-decoration: underline; }
+
+/* Buscador como en las demás bandejas: a la derecha y con lupa */
+.resumen .resumen-filtros { flex-wrap: wrap; justify-content: space-between; row-gap: 12px; }
+.resumen .resumen-pestanas { flex: 1 1 auto; }
+.resumen .resumen-buscar input {
+  width: 300px;
+  height: 40px;
+  padding-left: 40px;
+  border-color: #e2ded5;
+  border-radius: 12px;
+  background: #f7f5f0 url("../../../assets/comun/iconos/buscar-gris.svg") 14px center / 16px no-repeat;
+}

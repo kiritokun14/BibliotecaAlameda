@@ -1,4 +1,4 @@
-import { consultasAcceso, invalidarConsultas } from './consultas';
+import { consultasAcceso, invalidarConsultas, olvidarSesion } from './consultas';
 import { ErrorServicio, obtenerSupabase, pedirApi, recordarSesion } from './api';
 
 export interface Domicilio {
@@ -65,7 +65,7 @@ export async function iniciarSesion(correo: string, contrasena: string, recordar
     return 'ok';
 }
 export async function cerrarSesion() {
-    invalidarConsultas();
+    invalidarConsultas(); olvidarSesion();
     const { error } = await (await obtenerSupabase()).auth.signOut({ scope: 'local' });
     falloAuth(error);
     sessionStorage.removeItem('biblioteca-recuperacion');

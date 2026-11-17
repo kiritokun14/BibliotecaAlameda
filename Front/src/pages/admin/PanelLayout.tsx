@@ -1,3 +1,4 @@
+import { precargarPanel } from "./precargaPanel";
 import "./PanelSolon.css";
 import { useContext, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router";
@@ -90,7 +91,7 @@ function BarraLateral() {
 
             <span className="panel-lateral__espacio" />
 
-            <NavLink to={RESUMEN.ruta} className="panel-menu__item panel-menu__item--enlace">
+            <NavLink to={RESUMEN.ruta} className="panel-menu__item panel-menu__item--enlace" onMouseEnter={() => precargarPanel(RESUMEN.ruta)} onFocus={() => precargarPanel(RESUMEN.ruta)}>
                 <img src={enResumen ? RESUMEN.iconoActivo : RESUMEN.icono} alt="" />
                 <span>{RESUMEN.texto}</span>
             </NavLink>
@@ -150,7 +151,7 @@ function SeccionLateral({
                     {visibles.map(({ subitem, estado }) => (
                         <li key={subitem.ruta}>
                             {estado === "enlace" ? (
-                                <Link to={subitem.ruta}
+                                <Link to={subitem.ruta} onMouseEnter={() => precargarPanel(subitem.ruta)} onFocus={() => precargarPanel(subitem.ruta)}
                                     className={`panel-submenu__item${rutaActiva === subitem.ruta ? " active" : ""}`}
                                     aria-current={rutaActiva === subitem.ruta ? "page" : undefined}>{subitem.texto}</Link>
                             ) : (
@@ -211,7 +212,7 @@ function PanelLayout({ titulo, children, tema }: PanelLayoutProps) {
                     <Cabecera titulo={titulo} />
                     <div className="panel-desplazamiento" key={pathname}>
                         <main className="panel-contenido">
-                            {(pathname.includes("/demostracion") || ( !(["/admin/actividades/calendario", "/admin/actividades/visitas"].includes(pathname)) && !/^\/admin\/actividades\/inscripciones(?:\/[\da-f-]{36}(?:\/[\da-f-]{36})?)?$/i.test(pathname) && !pathname.startsWith("/admin/participantes/foro") && !pathname.startsWith("/admin/atencion/avisos") && !pathname.startsWith("/admin/actividades/propuestas") && !pathname.startsWith("/admin/atencion/credenciales") && !pathname.startsWith("/admin/atencion/espacios") && !pathname.startsWith("/admin/atencion/propuestas") && !pathname.startsWith("/admin/atencion/bibliocomunidad") && !pathname.startsWith("/admin/contenidos/editor") && !pathname.startsWith("/admin/contenidos/revision") && !pathname.startsWith("/admin/atencion/contactos") && !pathname.startsWith("/admin/administracion/fuentes") && !pathname.startsWith("/personal/alta-asistida") && !pathname.startsWith("/admin/atencion/cuentas") && !pathname.startsWith("/admin/administracion/cuentas") )) && <p role="status" className="panel-nota">Demostración: estas acciones usan datos de ejemplo y no se guardan en la base de datos.</p>}
+                            {(pathname.includes("/demostracion") || ( !(["/admin/actividades/calendario", "/admin/actividades/visitas"].includes(pathname)) && !/^\/admin\/actividades\/inscripciones(?:\/[\da-f-]{36}(?:\/[\da-f-]{36})?)?$/i.test(pathname) && !pathname.startsWith("/admin/participantes/foro") && !pathname.startsWith("/admin/atencion/avisos") && !pathname.startsWith("/admin/actividades/propuestas") && !pathname.startsWith("/admin/atencion/credenciales") && !pathname.startsWith("/admin/atencion/espacios") && !pathname.startsWith("/admin/atencion/propuestas") && !pathname.startsWith("/admin/atencion/bibliocomunidad") && !pathname.startsWith("/admin/contenidos/editor") && !pathname.startsWith("/admin/contenidos/revision") && !pathname.startsWith("/admin/atencion/contactos") && !pathname.startsWith("/admin/administracion/fuentes") && !pathname.startsWith("/personal/alta-asistida") && !pathname.startsWith("/admin/atencion/cuentas") && !pathname.startsWith("/admin/administracion/cuentas") )) && <p role="status" className="panel-nota panel-nota--demo"><strong>Datos de ejemplo</strong> Estas acciones son una demostración y no se guardan en la base de datos.</p>}
                             {children}
                             <p className="panel-nota">Biblioteca Solón Argüello · Panel del personal</p>
                         </main>

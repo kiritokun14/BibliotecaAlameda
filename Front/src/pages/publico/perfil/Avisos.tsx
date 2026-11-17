@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { ErrorServicio, mensajeError } from '../../../servicios/api';
 import { consultarPreferenciasAvisos, guardarPreferenciasAvisos, type PreferenciasAvisos } from '../../../servicios/perfil';
 import { EncabezadoSeccion, TarjetaPerfil } from './piezas';
+import { Bloque } from '../../../components/portal/Esqueleto';
 import tarjetaEnviar from '../../../assets/perfil/tarjeta-enviar.svg';
 import tarjetaCampana from '../../../assets/perfil/tarjeta-campana.svg';
 
@@ -28,8 +29,13 @@ export default function Avisos() {
     const recargar = () => setConsulta(c => ({ intento: c.intento + 1 }));
     return <>
         <EncabezadoSeccion sobretitulo="AVISOS" titulo="Preferencias de avisos" texto="Elige qué avisos de difusión quieres recibir y tu canal preferido." />
-        {!actual && <p role="status">Cargando preferencias…</p>}
-        {actual?.error && <p role="alert">{actual.error} <button onClick={recargar}>Reintentar</button></p>}
+        {!actual && <div className="perfil-esqueleto__avisos" role="status" aria-label="Cargando preferencias">
+            <Bloque clase="perfil-esqueleto__tarjeta perfil-esqueleto__tarjeta--baja" /><Bloque clase="perfil-esqueleto__tarjeta" />
+        </div>}
+        {actual?.error && <div className="perfil-aviso-error" role="alert">
+            <strong>No pudimos cargar tus preferencias</strong><p>{actual.error}</p>
+            <button type="button" className="perfil-boton perfil-boton--contorno perfil-boton--chico" onClick={recargar}>Reintentar</button>
+        </div>}
         {actual?.preferencias && <Formulario key={intento} inicial={actual.preferencias} recargar={recargar} />}
         <TarjetaPerfil color="blanca" icono={tarjetaCampana} titulo="Mis notificaciones">
             <Link to="/notificaciones" className="perfil-boton perfil-boton--contorno perfil-boton--chico">Ver mis notificaciones</Link>

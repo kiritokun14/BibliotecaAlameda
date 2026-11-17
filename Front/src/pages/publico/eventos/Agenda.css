@@ -823,3 +823,7 @@ a.agenda-boton:hover { filter: brightness(0.95); }
   .calendario-agenda__tabla { padding: 12px 4px; table-layout: fixed; }
   .calendario-agenda__dia { width: 100%; min-width: 0; }
 }
+
+/* La ventana puede abrirse fuera de .pagina-publica (por ejemplo «Tu sesión caducó»): lleva su propia fuente */
+.modal-agenda__velo { font-family: 'Noto Sans', sans-serif; }
+.modal-agenda__velo h2 { font-family: inherit; }

@@ -1,37 +1,77 @@
-import { invalidarConsultas } from '../../servicios/consultas';
-import { useEffect, useState, type ReactNode } from 'react';
+import { invalidarConsultas, memoriaDeCuenta, registrarAlSalir } from '../../servicios/consultas';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, Navigate } from 'react-router';
 import { consultarMiAcceso } from '../../servicios/auth';
 import { obtenerSupabase, ErrorServicio, mensajeError } from '../../servicios/api';
-import { capacidadPanel, permisoGlobal, rutaInicialPanel, ContextoPanel, type IdentidadPanel } from '../../servicios/accesoPanel';
+import { EsqueletoPanel } from '../../components/portal/Esqueleto';
+import PantallaEstado, { IconoCandado } from '../../components/portal/PantallaEstado';
+import { capacidadPanel, permisoGlobal, rutaInicialPanel, tienePanel, ContextoPanel, type IdentidadPanel } from '../../servicios/accesoPanel';
+
+// Solo se descarga si hace falta: el aviso «Sin permiso» dentro del panel (Figma 583:45548)
+const SinPermiso = lazy(() => import('./SinPermiso'));
+
+type Comprobacion = { identidad?: IdentidadPanel; error?: string; iniciar?: boolean };
+
+// Última comprobación, compartida entre pantallas: cada ruta monta su propio AccesoPanel y,
+// sin esto, el panel entero desaparecía mientras se volvía a preguntar por los permisos.
+// Los permisos se siguen revalidando en segundo plano en cada cambio de ruta (y el backend
+// comprueba cada petición), así que solo se ahorra la espera, no la comprobación.
+let ultima: Comprobacion | null = null;
+let ultimaFoco = 0;
+registrarAlSalir(() => { ultima = null; });
+
+async function comprobar(): Promise<Comprobacion> {
+    try {
+        const acceso = await consultarMiAcceso();
+        const { data, error } = await (await obtenerSupabase()).auth.getSession();
+        if (error || !data.session || data.session.user.id !== acceso.usuarioId) throw new ErrorServicio('Inicia sesión para continuar.', 401);
+        memoriaDeCuenta(acceso.usuarioId);
+        return { identidad: { acceso, correo: data.session.user.email ?? 'Cuenta del personal' } };
+    } catch (error) {
+        return { error: mensajeError(error), iniciar: error instanceof ErrorServicio && error.estado === 401 };
+    }
+}
 
 export default function AccesoPanel({ children }: { children: ReactNode }) {
     const { pathname } = useLocation();
-    const [resultado, setResultado] = useState<{ ruta: string; identidad?: IdentidadPanel; error?: string; iniciar?: boolean }>({ ruta: '' });
+    const [resultado, setResultado] = useState<Comprobacion | null>(ultima);
     useEffect(() => {
         let activo = true;
-        let generacion = 0;
-        async function comprobar() {
-            const actual = ++generacion;
-            try {
-                const acceso = await consultarMiAcceso();
-                const capacidad = capacidadPanel(pathname === '/admin' ? (rutaInicialPanel(acceso) ?? '') : pathname);
-                if (!capacidad || !permisoGlobal(acceso, capacidad)) throw new ErrorServicio('Tu cuenta no tiene el permiso necesario para esta sección.', 403);
-                const { data, error } = await (await obtenerSupabase()).auth.getSession();
-                if (error || !data.session || data.session.user.id !== acceso.usuarioId) throw new ErrorServicio('Inicia sesión para continuar.', 401);
-                if (activo && actual === generacion) setResultado({ ruta: pathname, identidad: { acceso, correo: data.session.user.email ?? 'Cuenta del personal' } });
-            } catch (error) {
-                if (activo && actual === generacion) setResultado({ ruta: pathname, error: mensajeError(error), iniciar: error instanceof ErrorServicio && error.estado === 401 });
-            }
-        }
-        const revalidar = () => { invalidarConsultas(); void comprobar(); };
-        window.addEventListener('focus', revalidar);
-        void comprobar();
-        return () => { activo = false; window.removeEventListener('focus', revalidar); };
+        const revisar = () => comprobar().then((nueva) => {
+            ultima = nueva.iniciar ? null : nueva;
+            // Si no cambió la cuenta ni sus permisos, se conserva el mismo objeto para no volver a pintar todo
+            if (activo) setResultado((previa) => previa?.identidad && nueva.identidad
+                && JSON.stringify(previa.identidad) === JSON.stringify(nueva.identidad) ? previa : nueva);
+        });
+        // Al volver a la pestaña se revalida, como mucho una vez por minuto
+        const alEnfocar = () => {
+            if (Date.now() - ultimaFoco < 60_000) return;
+            ultimaFoco = Date.now(); invalidarConsultas(); void revisar();
+        };
+        window.addEventListener('focus', alEnfocar);
+        void revisar();
+        return () => { activo = false; window.removeEventListener('focus', alEnfocar); };
     }, [pathname]);
-    if (resultado.ruta !== pathname) return <main className="confirmacion" role="status">Comprobando acceso al panel…</main>;
+
+    if (!resultado) return <EsqueletoPanel />;
     if (resultado.iniciar) return <Navigate to="/iniciar-sesion" replace />;
-    if (!resultado.identidad) return <main className="confirmacion"><p role="alert">{resultado.error}</p><Link to="/">Volver al inicio</Link></main>;
-    if (pathname === "/admin") return <Navigate to={rutaInicialPanel(resultado.identidad.acceso)!} replace />;
-    return <ContextoPanel.Provider value={resultado.identidad}>{children}</ContextoPanel.Provider>;
+    const identidad = resultado.identidad;
+    // Sin ningún permiso del panel no hay a dónde llevarla: pantalla completa
+    if (!identidad || !tienePanel(identidad.acceso)) return (
+        <PantallaEstado tono="guinda" icono={<IconoCandado />} etiqueta="SIN ACCESO" titulo="Tu cuenta no entra al panel"
+            texto={resultado.error ?? 'Tu cuenta no tiene permisos del panel del personal.'}>
+            <Link to="/">Volver al portal</Link>
+            <Link to="/contacto" className="pantalla-estado__secundario">Pedir ayuda</Link>
+        </PantallaEstado>
+    );
+    const inicial = rutaInicialPanel(identidad.acceso);
+    if (pathname === "/admin" && inicial) return <Navigate to={inicial} replace />;
+    // La capacidad de la ruta se calcula con los permisos ya conocidos: no hay que esperar al servidor
+    const capacidad = capacidadPanel(pathname);
+    if (!capacidad || !permisoGlobal(identidad.acceso, capacidad)) return (
+        <ContextoPanel.Provider value={identidad}>
+            <Suspense fallback={<EsqueletoPanel />}><SinPermiso /></Suspense>
+        </ContextoPanel.Provider>
+    );
+    return <ContextoPanel.Provider value={identidad}>{children}</ContextoPanel.Provider>;
 }

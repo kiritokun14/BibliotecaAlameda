@@ -1062,3 +1062,24 @@
   .perfil-encabezado__avatar { width: 64px; height: 64px; }
   .perfil-encabezado__avatar img { width: 32px; height: 32px; }
 }
+
+/* ---------- Esqueleto mientras carga el perfil ---------- */
+.perfil-esqueleto__encabezado {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 44px max(24px, calc((100% - 1120px) / 2));
+  background: linear-gradient(154deg, #0b3b33 0%, #1f6b5c 71%);
+}
+.perfil-esqueleto__avatar { width: 96px; height: 96px; flex: none; border-radius: 50%; }
+.perfil-esqueleto__textos { display: flex; flex-direction: column; gap: 14px; }
+.perfil-esqueleto__cuerpo { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 32px; max-width: 1120px; margin: 0 auto; padding: 40px 24px 80px; }
+.perfil-esqueleto__menu { display: flex; flex-direction: column; gap: 22px; padding: 24px; border-radius: 24px; background: #fff; }
+.perfil-esqueleto__item { height: 20px; }
+.perfil-esqueleto__contenido, .perfil-esqueleto__avisos { display: flex; flex-direction: column; gap: 16px; }
+.perfil-esqueleto__tarjeta { height: 180px; border-radius: 24px; }
+.perfil-esqueleto__tarjeta--baja { height: 120px; }
+.perfil-aviso-error { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px 24px; border: 1px solid #e8c9d3; border-radius: 20px; background: #f6eaee; color: #161a1d; }
+.perfil-aviso-error strong { color: #9b2247; }
+.perfil-aviso-error p { margin: 0; color: #4d4d4d; }
+@media (max-width: 800px) { .perfil-esqueleto__cuerpo { grid-template-columns: minmax(0, 1fr); } .perfil-esqueleto__menu { display: none; } }

@@ -6,68 +6,142 @@
 .estado-pagina-seccion {
   display: flex;
   justify-content: center;
-  padding: 64px 24px 96px;
+  padding: 56px 24px 88px;
   background: #f7f5f0;
 }
 
 .estado-pagina {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
+  width: 100%;
+  max-width: 1080px;
+  overflow: hidden;
+  border-radius: 36px;
+  background: #fff;
+  box-shadow: 0 24px 50px rgba(22, 79, 68, 0.12);
+  animation: estado-entrar 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Panel de color con el número del error */
+.estado-pagina__arte {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  width: 100%;
-  max-width: 1200px;
-  padding: 56px 24px 64px;
-  box-sizing: border-box;
-  border-radius: 40px;
-  background: #fff;
-  box-shadow: 0 14px 18px rgba(22, 79, 68, 0.1);
-  text-align: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 380px;
+  overflow: hidden;
+  background: linear-gradient(154deg, #0b3b33 0%, #164f44 55%, #1f6b5c 100%);
 }
 
+.estado-pagina__circulo { position: absolute; border-radius: 50%; }
+.estado-pagina__circulo--uno { top: -90px; right: -90px; width: 260px; height: 260px; background: rgba(230, 209, 148, 0.14); }
+.estado-pagina__circulo--dos { bottom: -120px; left: -80px; width: 280px; height: 280px; border: 1px solid rgba(230, 209, 148, 0.35); }
+
+.estado-pagina__codigo {
+  position: relative;
+  color: transparent;
+  font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;
+  font-size: 128px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -4px;
+  -webkit-text-stroke: 2px #e6d194;
+}
+.estado-pagina__codigo--palabra { font-size: 72px; letter-spacing: -2px; }
+
 .estado-pagina__anillo {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 140px;
-  height: 140px;
-  margin-bottom: 6px;
+  width: 108px;
+  height: 108px;
+  margin-top: -26px;
   box-sizing: border-box;
-  border: 2px solid rgba(230, 209, 148, 0.7);
+  border: 2px dashed rgba(230, 209, 148, 0.75);
   border-radius: 999px;
+  animation: estado-flotar 3.2s ease-in-out infinite alternate;
 }
 
 .estado-pagina__icono {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 98px;
-  height: 98px;
+  width: 78px;
+  height: 78px;
   border-radius: 999px;
   background: #f6eaee;
+  box-shadow: 0 10px 24px rgba(3, 20, 17, 0.3);
 }
 
-.estado-pagina__icono img { width: 42px; height: 42px; }
+.estado-pagina__icono img { width: 36px; height: 36px; }
 
-.pagina-inicio .estado-pagina__etiqueta {
+/* Textos */
+.estado-pagina__contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  padding: 48px 52px;
+  text-align: left;
+}
+
+.estado-pagina__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #f6eaee;
   color: #9b2247;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.8px;
 }
+.estado-pagina__etiqueta span { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 
-.pagina-inicio .estado-pagina__titulo {
-  max-width: 620px;
+.estado-pagina .estado-pagina__titulo {
+  margin: 0;
   color: #161a1d;
-  font-size: 38px;
-  line-height: 44px;
-  letter-spacing: -0.76px;
+  font-size: 36px;
+  line-height: 1.15;
+  letter-spacing: -0.7px;
 }
 
-.pagina-inicio .estado-pagina__texto {
-  max-width: 620px;
+.estado-pagina .estado-pagina__texto {
+  margin: 0;
   color: #4d4d4d;
-  font-size: 18px;
-  line-height: 28px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.estado-pagina__ayuda {
+  margin: 10px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid #ece7dc;
+  color: #4d4d4d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.estado-pagina__ayuda a { color: #164f44; font-weight: 700; }
+
+@keyframes estado-entrar { from { opacity: 0; transform: translateY(18px); } }
+@keyframes estado-flotar { to { transform: translateY(-8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .estado-pagina, .estado-pagina__anillo { animation: none; }
+}
+
+@media (max-width: 800px) {
+  .estado-pagina { grid-template-columns: minmax(0, 1fr); }
+  .estado-pagina__arte { min-height: 240px; }
+  .estado-pagina__codigo { font-size: 96px; }
+  .estado-pagina__contenido { padding: 32px 24px; }
+  .estado-pagina__botones { flex-wrap: wrap; }
 }
 
 .estado-pagina__botones {

@@ -128,3 +128,16 @@
 @media (max-width: 700px) {
   .esqueleto-cuadricula, .esqueleto-cuadricula--libros, .esqueleto-pagina__cuerpo { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- Armazón del panel (EsqueletoPanel) ---------- */
+.esqueleto-panel { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #f7f5f0; }
+.esqueleto-panel .esqueleto-pagina__franja { flex: none; height: 60px; }
+.esqueleto-panel__cuerpo { display: flex; flex: 1; min-height: 0; }
+.esqueleto-panel__menu { display: flex; flex-direction: column; gap: 22px; width: 264px; flex: none; box-sizing: border-box; padding: 28px 22px; background: #0b3b33; }
+.esqueleto-panel__item { height: 18px; }
+.esqueleto-panel__contenido { flex: 1; min-width: 0; }
+.esqueleto-panel__cabecera { display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 0 32px; border-bottom: 1px solid #ece7dc; background: #fff; }
+.esqueleto-panel__pagina { display: flex; flex-direction: column; gap: 16px; padding: 32px; }
+.esqueleto-panel__tarjetas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 12px; }
+.esqueleto-panel__tarjeta { height: 150px; border-radius: 20px; background: #ece7dc; }
+.esqueleto-panel__tabla { height: 280px; border-radius: 20px; background: #ece7dc; }

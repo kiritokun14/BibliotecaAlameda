@@ -11,7 +11,7 @@ import { consultarPendientesForo, revisarContenidoForo, type ContenidoPendiente 
 const etiquetas: Record<MedidaForo, string> = { revisar: 'Tomar en revisión', ocultar: 'Ocultar contenido', retirar: 'Retirar contenido', descartar: 'Descartar reporte sin cambiar el contenido' };
 export default function ModeracionForo() {
     const identidad = useContext(ContextoPanel);
-    return <PanelLayout titulo="Moderación del foro"><div key={identidad?.acceso.usuarioId ?? 'sin-cuenta'}><RevisionPrevia /><Bandeja /></div></PanelLayout>;
+    return <PanelLayout titulo="Participantes"><div key={identidad?.acceso.usuarioId ?? 'sin-cuenta'}><RevisionPrevia /><Bandeja /></div></PanelLayout>;
 }
 function RevisionPrevia() {
     const [pagina, setPagina] = useState(0); const [intento, recargar] = useState(0); const clave = `${pagina}:${intento}`;
