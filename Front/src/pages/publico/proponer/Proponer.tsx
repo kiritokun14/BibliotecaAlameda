@@ -12,7 +12,7 @@ import { fechaHoyTepic, registrarPropuestaUsuario } from "../../../servicios/pro
 import { consultarTramite, type SolicitudAtencion } from "../../../servicios/tramites";
 import { useCuentaTramites } from "../../../servicios/useCuentaTramites";
 import { mensajeError } from "../../../servicios/api";
-import { FichaTramite, FormularioPropuesta } from "../tramites/piezas";
+import { AccionesPropuesta, FichaTramite } from "../tramites/piezas";
 
 import {
     propuestaVacia, publicos, validarPropuesta,
@@ -275,8 +275,7 @@ export function DetallePropuesta() {
             {!solicitud ? <p role={error ? 'alert' : 'status'}>{error || (cargando ? 'Cargando propuesta…' : 'Inicia sesión para consultar tu propuesta.')}</p> :
                 <section className="cred-tarjeta proponer-seccion">
                     <FichaTramite solicitud={solicitud} />
-                    {['borrador', 'requiere_correccion'].includes(solicitud.estadoRevision ?? '') &&
-                        <FormularioPropuesta key={solicitud.actualizadoEn} anterior={solicitud} alGuardar={() => setVersion(v => v + 1)} />}
+                    <AccionesPropuesta key={solicitud.actualizadoEn} solicitud={solicitud} alGuardar={() => setVersion(v => v + 1)} />
                 </section>}
             <Link to="/mi-perfil/propuestas">Volver a mis propuestas</Link>
         </div>

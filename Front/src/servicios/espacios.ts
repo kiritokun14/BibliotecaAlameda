@@ -11,6 +11,7 @@ export interface EspacioCorto { slug: string; nombre: string }
 export interface Tramo { espacio: EspacioCorto | null; inicio: string; fin: string }
 
 export interface SolicitudEspacioApi {
+    versiones?: { numero: number; accion: string; motivo: string; fecha: string }[];
     folio: string;
     tipo: TipoSolicitudEspacio;
     estado: EstadoSolicitudEspacio;
@@ -56,10 +57,12 @@ export const listarAreas = () => pedir<AreaEspacio[]>('/areas');
 export const enviarSolicitud = (datos: NuevaSolicitudEspacio) => pedir<SolicitudEspacioApi>('/solicitudes', enviarJson(datos));
 export const listarMisSolicitudes = () => pedir<{ total: number; solicitudes: SolicitudEspacioApi[] }>('/solicitudes?limite=50');
 export const obtenerMiSolicitud = (folio: string) => pedir<SolicitudEspacioApi>('/solicitudes/' + folioUrl(folio));
-export const cancelarMiSolicitud = (folio: string, motivo: string, comentarios: string) =>
-    pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/cancelacion`, enviarJson({ motivo: motivo || null, comentarios: comentarios.trim() || null }));
-export const responderPropuesta = (folio: string, acepta: boolean, comentarios: string) =>
-    pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/respuesta`, enviarJson({ acepta, comentarios: comentarios.trim() || null }));
+export const cancelarMiSolicitud = (folio: string, motivo: string, comentarios: string, actualizadoEn: string) =>
+    pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/cancelacion`, enviarJson({ actualizadoEn, motivo: motivo.trim(), comentarios: comentarios.trim() || null }));
+export const responderPropuesta = (folio: string, acepta: boolean, comentarios: string, actualizadoEn: string) =>
+    pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/respuesta`, enviarJson({ actualizadoEn, acepta, comentarios: comentarios.trim() || null }));
+export const corregirMiSolicitud = (folio: string, datos: NuevaSolicitudEspacio & { actualizadoEn: string; motivoCambio: string }) =>
+    pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/correccion`, { method: 'PUT', body: JSON.stringify(datos) });
 
 // ---------- Personal ----------
 export const bandejaEspacios = (pagina = 0) =>

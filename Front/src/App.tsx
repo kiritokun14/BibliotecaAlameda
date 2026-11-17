@@ -100,6 +100,7 @@ const ActividadPublicada = lazy(() => import("./pages/admin/actividades/GestionA
 const Calendario = lazy(() => import("./pages/admin/actividades/Calendario.tsx"));
 const Visitas = lazy(() => import("./pages/admin/actividades/Visitas.tsx"));
 const Cambios = lazy(() => import("./pages/admin/actividades/Cambios.tsx"));
+const MisCambiosActividad = lazy(() => import("./pages/publico/eventos/MisCambiosActividad.tsx"));
 const ErrorServidor = lazy(() => import("./pages/publico/estados/Estados.tsx").then(m => ({ default: m.ErrorServidor })));
 const Mantenimiento = lazy(() => import("./pages/publico/estados/Estados.tsx").then(m => ({ default: m.Mantenimiento })));
 const SinConexion = lazy(() => import("./pages/publico/estados/Estados.tsx").then(m => ({ default: m.SinConexion })));
@@ -341,6 +342,10 @@ function App() {
         <Route path="/admin/actividades/visitas/:folio/propuesta-enviada" element={<AccesoPanel><ResultadoVisita tipo="propuesta" /></AccesoPanel>} />
         <Route path="/admin/actividades/visitas/:folio/rechazada" element={<AccesoPanel><ResultadoVisita tipo="rechazada" /></AccesoPanel>} />
         <Route path="/admin/actividades/cambios" element={<AccesoPanel><Cambios /></AccesoPanel>} />
+        <Route path="/mis-actividades/cambios" element={<MisCambiosActividad />} />
+        <Route path="/mis-actividades/cambios/reprogramar" element={<MisCambiosActividad />} />
+        <Route path="/mis-actividades/cambios/cancelar" element={<MisCambiosActividad />} />
+        <Route path="/mis-actividades/cambios/:folio" element={<MisCambiosActividad />} />
         <Route path="/admin/actividades/cambios/cancelar" element={<AccesoPanel><CancelarActividad /></AccesoPanel>} />
         <Route path="/admin/actividades/cambios/reprogramar" element={<AccesoPanel><Reprogramar /></AccesoPanel>} />
         <Route path="/admin/actividades/cambios/:folio" element={<AccesoPanel><DetalleCambio /></AccesoPanel>} />

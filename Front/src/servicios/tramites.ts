@@ -12,6 +12,7 @@ export interface DatosPropuesta {
     abiertaAlPublico: boolean; sinFinesDeLucro: boolean;
 }
 export interface SolicitudAtencion {
+    versiones?: { numero: number; accion: string; motivo: string; fecha: string }[];
     id: string; creadaEn: string; actualizadaEn?: string; actualizadoEn?: string;
     tipoSolicitud?: string; estadoSolicitud?: string; fechaCita?: string | null; observaciones?: string | null;
     tituloPropuesta?: string; descripcion?: string; tipoPropuesta?: string; publicoDirigido?: string;
@@ -42,9 +43,16 @@ export function consultarTramite(tipo: TipoTramite, id: string) { return pedir<S
 export function solicitarCredencial(tipoSolicitud: string, observaciones: string) {
     return pedir<SolicitudAtencion>('credencial', '', { method: 'POST', body: JSON.stringify({ tipoSolicitud, observaciones: observaciones.trim() || null }) });
 }
-export function enviarPropuesta(datos: DatosPropuesta, anterior?: SolicitudAtencion) {
+export const puedeCorregirPropuesta = (s: SolicitudAtencion) => !s.actividadId && ['borrador', 'en_revision', 'requiere_correccion', 'aprobada'].includes(s.estadoRevision ?? '');
+export const puedeCancelarPropuesta = (s: SolicitudAtencion) => !s.actividadId && ['borrador', 'en_revision', 'requiere_correccion'].includes(s.estadoRevision ?? '');
+export function enviarPropuesta(datos: DatosPropuesta, anterior?: SolicitudAtencion, motivoCambio?: string) {
     return pedir<SolicitudAtencion>('propuesta', anterior ? `/${encodeURIComponent(anterior.id)}/corregir` : '', {
-        method: anterior ? 'PUT' : 'POST', body: JSON.stringify({ ...datos, ...(anterior ? { actualizadoEn: anterior.actualizadoEn } : {}) }),
+        method: anterior ? 'PUT' : 'POST', body: JSON.stringify({ ...datos, ...(anterior ? { actualizadoEn: anterior.actualizadoEn, motivoCambio: motivoCambio?.trim() } : {}) }),
+    });
+}
+export function cancelarPropuesta(anterior: SolicitudAtencion, motivoCambio: string) {
+    return pedir<SolicitudAtencion>('propuesta', `/${encodeURIComponent(anterior.id)}/cancelacion`, {
+        method: 'POST', body: JSON.stringify({ actualizadoEn: anterior.actualizadoEn, motivoCambio: motivoCambio.trim() }),
     });
 }
 export function resolverTramite(tipo: TipoTramite, anterior: SolicitudAtencion, estado: string, nota: string, fechaCita?: string, acuerdoDireccion?: AcuerdoDireccion) {

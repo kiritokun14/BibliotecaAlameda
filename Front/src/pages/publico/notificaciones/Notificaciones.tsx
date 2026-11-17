@@ -4,6 +4,7 @@ import PaginaPublica from "../../../components/portal/PaginaPublica";
 import { SeccionVisitante } from "../../../components/portal/Visitante";
 import { AvisosActividad } from "./AvisosActividad";
 import { useSesion } from "../perfil/usarSesion";
+import AvisosCambiosActividad from "./AvisosCambiosActividad";
 import { filtrar, nombreArea, notificaciones, sinLeer, useNotificaciones, type Area, type Filtro } from "./datos";
 import "../../../components/portal/Visitante.css";
 import "./Notificaciones.css";
@@ -57,6 +58,7 @@ export default function Notificaciones() {
 
     return (
         <PaginaPublica>
+
             <section className="encabezado-visitante">
                 <img className="encabezado-visitante__circulo encabezado-visitante__circulo--1" src={circulo1} alt="" />
                 <img className="encabezado-visitante__circulo encabezado-visitante__circulo--2" src={circulo2} alt="" />
@@ -70,7 +72,7 @@ export default function Notificaciones() {
             <SeccionVisitante fondo="crema">
                 <div className="notif-columnas">
                     <div className="notif-lista">
-                        {sesion && sesion !== "simulado" ? <AvisosActividad key={sesion} /> : sesion === "simulado" ? <>
+                        {sesion && sesion !== "simulado" ? <><AvisosActividad key={sesion} /><AvisosCambiosActividad usuario={sesion} /></> : sesion === "simulado" ? <>
                         <div className="notif-filtros" role="group" aria-label="Filtrar notificaciones">
                             {filtros.map((f) => (
                                 <button key={f.valor} type="button" className={`notif-filtro${filtro === f.valor ? " notif-filtro--activo" : ""}`}

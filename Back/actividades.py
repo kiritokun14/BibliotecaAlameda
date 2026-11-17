@@ -16,9 +16,9 @@ FolioActividad = Annotated[str, Path(pattern=r'^[a-zA-Z0-9_-]{1,150}$')]
 Texto = Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)]
 
 
-def ejecutar(cliente, operacion, datos):
+def ejecutar(cliente, operacion, datos, rpc='gestionar_agenda'):
     try:
-        return cliente.rpc('gestionar_agenda', {'operacion': operacion, 'datos': datos}).execute().data
+        return cliente.rpc(rpc, {'operacion': operacion, 'datos': datos}).execute().data
     except APIError as error:
         codigo, mensaje = {
             '42501': (403, 'No tienes permiso para esta actividad o tu sesión ya no está vigente.'),

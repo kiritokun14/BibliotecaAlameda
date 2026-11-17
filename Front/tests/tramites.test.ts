@@ -2,7 +2,7 @@ import { datosPublicosPropuesta } from '../src/servicios/publicacionPropuestas';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 const cliente = vi.hoisted(() => ({ auth: { getSession: vi.fn() } }));
 vi.mock('@supabase/supabase-js', () => ({ createClient: () => cliente }));
-import { publicarPropuesta, enviarPropuesta, listarTramites, resolverTramite, solicitarCredencial, type SolicitudAtencion } from '../src/servicios/tramites';
+import { cancelarPropuesta, puedeCancelarPropuesta, puedeCorregirPropuesta, publicarPropuesta, enviarPropuesta, listarTramites, resolverTramite, solicitarCredencial, type SolicitudAtencion } from '../src/servicios/tramites';
 import { capacidadPanel } from '../src/servicios/accesoPanel';
 import { invalidarConsultas } from '../src/servicios/consultas';
 import { registrarPropuestaUsuario } from '../src/servicios/propuestasUsuario';
@@ -18,6 +18,21 @@ beforeEach(() => {
     vi.stubGlobal('fetch', peticiones);
 });
 afterEach(() => vi.unstubAllGlobals());
+it('cancelar una propuesta conserva versión y motivo sin enviar identidad ni borrar el expediente', async () => {
+    await cancelarPropuesta(solicitud, ' Cambio de planes ');
+    const [ruta, opciones] = peticiones.mock.calls.find(([url]) => url.endsWith('/cancelacion'))!;
+    expect(ruta).toBe('/api/propuestas/solicitud/cancelacion');
+    expect(opciones.method).toBe('POST');
+    expect(JSON.parse(opciones.body)).toEqual({ actualizadoEn: solicitud.actualizadoEn, motivoCambio: 'Cambio de planes' });
+});
+it('las propuestas vinculadas usan HU-17 y las correcciones aprobadas sin actividad vuelven a revisión', () => {
+    const aprobada = { ...solicitud, estadoRevision: 'aprobada', actividadId: null };
+    expect(puedeCorregirPropuesta(aprobada)).toBe(true);
+    expect(puedeCancelarPropuesta(aprobada)).toBe(false);
+    expect(puedeCorregirPropuesta({ ...aprobada, actividadId: 'actividad' })).toBe(false);
+    expect(puedeCancelarPropuesta({ ...solicitud, estadoRevision: 'en_revision' })).toBe(true);
+    expect(puedeCancelarPropuesta({ ...solicitud, estadoRevision: 'cancelada' })).toBe(false);
+});
 it('las rutas usan un solo prefijo api y el titular se decide en el servidor', async () => {
     await solicitarCredencial('obtencion', ' Consulta ');
     const [ruta, opciones] = peticiones.mock.calls.find(([url]) => url.includes('/credenciales/solicitudes'))!;
@@ -37,11 +52,11 @@ it('el formulario diseñado recibe el folio del servidor y propaga fallos de env
     await expect(registrarPropuestaUsuario(datos)).rejects.toMatchObject({ estado: 503 });
 });
 it('la corrección del usuario no usa el endpoint de resolución del personal', async () => {
-    await enviarPropuesta(propuesta, solicitud);
+    await enviarPropuesta(propuesta, solicitud, 'Ajustar el horario');
     const [ruta, opciones] = peticiones.mock.calls.find(([url]) => url.endsWith('/corregir'))!;
     expect(ruta).toBe('/api/propuestas/solicitud/corregir');
     expect(opciones.method).toBe('PUT');
-    expect(JSON.parse(opciones.body)).toMatchObject({ actualizadoEn: solicitud.actualizadoEn, abiertaAlPublico: true, sinFinesDeLucro: true });
+    expect(JSON.parse(opciones.body)).toMatchObject({ actualizadoEn: solicitud.actualizadoEn, motivoCambio: 'Ajustar el horario', abiertaAlPublico: true, sinFinesDeLucro: true });
 });
 it('las decisiones conservan la versión de su tipo de solicitud', async () => {
     await resolverTramite('credencial', solicitud, 'cita_programada', 'Cita', '2035-06-12T17:00:00Z');
