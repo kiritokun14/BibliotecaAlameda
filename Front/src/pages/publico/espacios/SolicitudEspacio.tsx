@@ -23,6 +23,7 @@ import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import relojBlanco from "../../../assets/comun/iconos/reloj-blanco.svg";
 import archivoBlanco from "../../../assets/perfil/chip-archivo.svg";
 
+import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 const regreso = { texto: "Volver a Agenda de espacios", ruta: "/espacios" };
 const regresoPerfil = { texto: "Volver a Mis espacios", ruta: "/mi-perfil/espacios" };
 
@@ -104,7 +105,7 @@ export function GestionarSolicitud() {
                 <EncabezadoNoticias regreso={regresoPerfil} etiqueta="AGENDA DE ESPACIOS › MIS SOLICITUDES" titulo="Mi solicitud de espacio" texto={`Folio ${folio}`} />
                 <div className="espacios-cuerpo">
                     <section className="cred-tarjeta">
-                        {!carga ? <p className="cred-texto" role="status">Cargando tu solicitud…</p> : (
+                        {!carga ? <EsqueletoDetalle texto="Cargando tu solicitud…" /> : (
                             <>
                                 <p className="cred-texto" role="alert">{carga.error}</p>
                                 <div className="cred-acciones">

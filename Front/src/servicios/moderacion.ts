@@ -1,4 +1,5 @@
 import { ErrorServicio, obtenerSupabase, pedirApi } from './api';
+import { consultarConMemoria, enMemoria } from './consultas';
 export type EstadoReporte = 'pendiente' | 'en_revision' | 'resuelto' | 'descartado';
 export type MedidaForo = 'revisar' | 'ocultar' | 'retirar' | 'descartar';
 export interface ReporteForo {
@@ -16,7 +17,9 @@ async function pedir<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
 export const reportarContenidoForo = (tipoContenido: 'tema' | 'comentario', contenidoId: string, motivo: string) =>
     pedir<{ reporteId: string; estadoReporte: EstadoReporte }>('/reportes', { method: 'POST', body: JSON.stringify({ tipoContenido, contenidoId, motivo: motivo.trim() }) });
 export const consultarMisReportes = (pagina = 0) => pedir<{ total: number; reportes: Pick<ReporteForo, 'reporteId' | 'motivo' | 'estadoReporte' | 'creadoEn'>[] }>('/reportes/me?desplazamiento=' + pagina * 20);
-export const listarReportesForo = (pagina = 0, estado = '') => pedir<{ total: number; reportes: ReporteForo[] }>('/moderacion/reportes?' + new URLSearchParams({ desplazamiento: String(pagina * 20), ...(estado ? { estado } : {}) }));
+type ReportesForo = { total: number; reportes: ReporteForo[] };
+export const listarReportesForo = (pagina = 0, estado = '') => consultarConMemoria(`foro:reportes:${pagina}:${estado}`, () => pedir<{ total: number; reportes: ReporteForo[] }>('/moderacion/reportes?' + new URLSearchParams({ desplazamiento: String(pagina * 20), ...(estado ? { estado } : {}) })));
+export const reportesForoEnMemoria = (pagina = 0, estado = '') => enMemoria<ReportesForo>(`foro:reportes:${pagina}:${estado}`);
 export const resolverReporteForo = (reporte: ReporteForo, medida: MedidaForo, motivo: string) => pedir<ReporteForo>('/moderacion/reportes/' + encodeURIComponent(reporte.reporteId), {
     method: 'PATCH', body: JSON.stringify({ actualizadoEn: reporte.actualizadoEn, versionContenido: reporte.contenido.version, medida, motivo: motivo.trim() }),
 });

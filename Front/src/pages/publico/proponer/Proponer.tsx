@@ -29,6 +29,7 @@ import usuario from "../../../assets/perfil/tarjeta-usuario.svg";
 import enviar from "../../../assets/perfil/tarjeta-enviar.svg";
 import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 
+import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 // Proponer una actividad con sesión (Figma A-02, 476:29029 formulario, 476:29255 enviado,
 // 476:29488 con observaciones, 543:15773 no aprobada).
 const regresoEventos = { texto: "Volver a Eventos y actividades", ruta: "/eventos" };
@@ -74,7 +75,7 @@ export default function Proponer() {
     const [intento, reintentar] = useState(0);
     const carga = usePerfil(sesion, intento);
     if (sesion === null) return <SinSesion />;
-    if (!carga) return <PaginaPublica><p className="cred-estado" role="status">Cargando…</p></PaginaPublica>;
+    if (!carga) return <PaginaPublica><div className="proponer-esqueleto"><EsqueletoDetalle texto="Cargando tu propuesta…" /></div></PaginaPublica>;
     if ("error" in carga) return <PaginaPublica><div className="cred-estado"><p role="alert">{carga.error}</p><button type="button" onClick={() => reintentar(v => v + 1)}>Reintentar</button></div></PaginaPublica>;
     return <Formulario key={carga.perfil.id} responsable={nombreCompleto(carga.perfil)} telefono={carga.perfil.telefono} />;
 }
@@ -272,7 +273,7 @@ export function DetallePropuesta() {
     return <PaginaPublica>
         <EncabezadoNoticias regreso={regresoPropuestas} etiqueta="MIS PROPUESTAS" titulo={solicitud?.tituloPropuesta || 'Seguimiento de propuesta'} texto="Consulta la revisión y las observaciones registradas por la biblioteca." />
         <div className="proponer-cuerpo proponer-cuerpo--una">
-            {!solicitud ? <p role={error ? 'alert' : 'status'}>{error || (cargando ? 'Cargando propuesta…' : 'Inicia sesión para consultar tu propuesta.')}</p> :
+            {!solicitud ? (cargando && !error ? <EsqueletoDetalle texto="Cargando propuesta…" /> : <p role={error ? 'alert' : 'status'}>{error || 'Inicia sesión para consultar tu propuesta.'}</p>) :
                 <section className="cred-tarjeta proponer-seccion">
                     <FichaTramite solicitud={solicitud} />
                     {['borrador', 'requiere_correccion'].includes(solicitud.estadoRevision ?? '') &&

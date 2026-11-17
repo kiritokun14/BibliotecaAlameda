@@ -1,5 +1,5 @@
 import { ErrorServicio, obtenerSupabase, pedirApi } from './api';
-import { consultasEditor } from './consultas';
+import { consultarConMemoria, consultasEditor, enMemoria } from './consultas';
 
 export interface DatosActividadReal {
     nombre: string; tipo: string; descripcion: string; fecha: string; inicio: string; fin: string;
@@ -37,8 +37,10 @@ async function gestion<T>(ruta = '', opciones: RequestInit = {}): Promise<T> {
     return pedirApi<T>(`/actividades/gestion${ruta}`, { ...opciones,
         headers: { Authorization: `Bearer ${data.session.access_token}` } });
 }
-export const listarActividades = () => gestion<ActividadGestion[]>();
-export const consultarActividad = (folio: string) => gestion<ActividadGestion>(`/${encodeURIComponent(folio)}`);
+export const listarActividades = () => consultarConMemoria('actividades:gestion', () => gestion<ActividadGestion[]>());
+export const actividadesEnMemoria = () => enMemoria<ActividadGestion[]>('actividades:gestion');
+export const consultarActividad = (folio: string) => consultarConMemoria('actividades:' + folio, () => gestion<ActividadGestion>(`/${encodeURIComponent(folio)}`));
+export const actividadEnMemoria = (folio: string) => enMemoria<ActividadGestion>('actividades:' + folio);
 export const consultarEspaciosAgenda = () => gestion<{ nombre: string; capacidad: number }[]>('/espacios');
 export function guardarActividad(datos: DatosActividadReal, estado: 'borrador' | 'en-revision', anterior?: ActividadGestion) {
     // Los campos de fecha y hora vacíos son válidos solo en un borrador.

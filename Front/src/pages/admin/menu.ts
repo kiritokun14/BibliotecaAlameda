@@ -50,8 +50,7 @@ export const SECCIONES_MENU: SeccionMenu[] = [
             { texto: "Visitas y uso de espacios", ruta: "/admin/actividades/visitas" },
             { texto: "Cambios y cancelaciones", ruta: "/admin/actividades/cambios" },
             { texto: "Inscripciones y cupos", ruta: "/admin/actividades/inscripciones" },
-            { texto: "Asistencia", ruta: "/admin/actividades/asistencia" },
-            { texto: "Resumen de asistencia", ruta: "/admin/actividades/asistencia/resumen" },
+            { texto: "Asistencia", ruta: "/admin/actividades/asistencia" }, // el resumen del mes se abre desde Asistencia
             { texto: "Evidencias privadas", ruta: "/admin/actividades/evidencias" },
         ],
     },
@@ -97,3 +96,8 @@ export const SECCIONES_MENU: SeccionMenu[] = [
         ],
     },
 ];
+
+// Nombre de la sección según la ruta (para la barra superior del panel), como en las demás pantallas
+export function seccionDeRuta(pathname: string) {
+    return SECCIONES_MENU.find((s) => pathname.startsWith(s.prefijo))?.texto ?? "Panel";
+}

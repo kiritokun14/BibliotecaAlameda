@@ -6,6 +6,7 @@ import { obtenerContenido, type Contenido } from "../../../servicios/contenidos"
 import { Migas } from "./piezas";
 import "./Contenidos.css";
 
+import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 // Trae de la base el contenido del folio de la ruta y, cuando llega, muestra la pantalla.
 
 type Carga = { folio: string; contenido?: Contenido; error?: string };
@@ -35,7 +36,7 @@ function CargarContenido({ children }: { children: (contenido: Contenido) => Rea
                     <Link to="/admin/contenidos/editor" className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a Mis contenidos</Link>
                 </div>
             ) : (
-                <p className="contenidos-cargando" role="status">Cargando {folio}…</p>
+                <EsqueletoDetalle texto={`Cargando ${folio}…`} />
             )}
         </PanelLayout>
     );

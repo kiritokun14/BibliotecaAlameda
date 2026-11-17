@@ -115,3 +115,43 @@ export function EsqueletoPanel() {
         </div>
     );
 }
+
+// Atajo para listas (bandejas del panel, tus solicitudes, avisos…): renglones con la forma de una fila en tarjeta.
+export function EsqueletoLista({ filas = 4, texto = "Cargando…" }: { filas?: number; texto?: string }) {
+    return (
+        <div className="esqueleto-lista" role="status">
+            <Anuncio texto={texto} />
+            {Array.from({ length: filas }, (_, i) => (
+                <div key={i} className="esqueleto-lista__fila" aria-hidden="true">
+                    <Bloque clase="esqueleto__chip" ancho="72px" />
+                    <span className="esqueleto-lista__textos">
+                        <Bloque clase="esqueleto__linea" ancho={i % 2 ? "58%" : "72%"} />
+                        <Bloque clase="esqueleto__linea esqueleto-lista__sub" ancho="34%" />
+                    </span>
+                    <Bloque clase="esqueleto__chip" />
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// Atajo para detalles y fichas: una tarjeta ancha con datos y una columna lateral.
+export function EsqueletoDetalle({ texto = "Cargando…" }: { texto?: string }) {
+    return (
+        <div className="esqueleto-detalle" role="status">
+            <Anuncio texto={texto} />
+            <div className="esqueleto-detalle__principal" aria-hidden="true">
+                <Bloque clase="esqueleto__titulo" ancho="40%" />
+                <div className="esqueleto-detalle__datos">{[0, 1, 2].map((i) => <Bloque key={i} clase="esqueleto-detalle__dato" />)}</div>
+                <Bloque clase="esqueleto__linea" ancho="90%" />
+                <Bloque clase="esqueleto__linea" ancho="76%" />
+                <Bloque clase="esqueleto__linea" ancho="62%" />
+            </div>
+            <div className="esqueleto-detalle__lateral" aria-hidden="true">
+                <Bloque clase="esqueleto__titulo" ancho="60%" />
+                <Bloque clase="esqueleto__boton" ancho="100%" />
+                <Bloque clase="esqueleto__linea" ancho="80%" />
+            </div>
+        </div>
+    );
+}

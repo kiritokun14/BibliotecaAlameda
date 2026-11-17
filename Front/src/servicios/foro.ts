@@ -1,4 +1,5 @@
 import { ErrorServicio, obtenerSupabase, pedirApi } from './api';
+import { consultarConMemoria, enMemoria } from './consultas';
 import type { Respuesta, Tema } from '../pages/publico/club/datos';
 export interface TemaReal extends Tema { respuestas: number; ultimaActividad: string }
 export interface RespuestaReal extends Respuesta { version: string | null; reportada: boolean }
@@ -31,5 +32,7 @@ export async function consultarRespuestasForo(id: string, pagina = 0) {
 export const publicarRespuestaForo = (tema: string, id: string, texto: string) => pedir<ContenidoPendiente>('/temas/' + encodeURIComponent(tema) + '/respuestas', { method: 'POST', body: JSON.stringify({ id, texto: texto.trim() }) }, true);
 export const editarRespuestaForo = (respuesta: RespuestaReal, texto: string) => pedir<ContenidoPendiente>('/respuestas/' + encodeURIComponent(respuesta.id), { method: 'PATCH', body: JSON.stringify({ version: respuesta.version, texto: texto.trim() }) }, true);
 export const retirarRespuestaForo = (respuesta: RespuestaReal) => pedir<ContenidoPendiente>('/respuestas/' + encodeURIComponent(respuesta.id), { method: 'DELETE', body: JSON.stringify({ version: respuesta.version }) }, true);
-export const consultarPendientesForo = (pagina = 0) => pedir<{ total: number; contenidos: ContenidoPendiente[] }>('/moderacion/pendientes?desplazamiento=' + pagina * 20, {}, true);
+type PendientesForo = { total: number; contenidos: ContenidoPendiente[] };
+export const consultarPendientesForo = (pagina = 0) => consultarConMemoria('foro:pendientes:' + pagina, () => pedir<{ total: number; contenidos: ContenidoPendiente[] }>('/moderacion/pendientes?desplazamiento=' + pagina * 20, {}, true));
+export const pendientesForoEnMemoria = (pagina = 0) => enMemoria<PendientesForo>('foro:pendientes:' + pagina);
 export const revisarContenidoForo = (contenido: ContenidoPendiente, medida: 'publicar' | 'rechazar', motivo: string) => pedir<ContenidoPendiente>(`/moderacion/pendientes/${contenido.tipo}/${encodeURIComponent(contenido.id)}`, { method: 'PATCH', body: JSON.stringify({ version: contenido.version, medida, motivo: motivo.trim() }) }, true);

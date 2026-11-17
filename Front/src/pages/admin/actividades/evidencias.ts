@@ -72,3 +72,10 @@ export function revisarArchivo(a: { name: string; size: number; type: string }) 
     if (a.size === 0) return "El archivo está vacío.";
     return null;
 }
+
+// ---------- Consultas con memoria ----------
+// Al volver a Evidencias se muestra al instante lo último recibido y se actualiza en segundo plano.
+// La memoria se borra sola al subir, cambiar el acceso o retirar (servicios/api.ts) y al cerrar sesión.
+export const CLAVE_LISTA = "evidencias:lista";
+export const CLAVE_SESIONES = "evidencias:sesiones";
+export const claveEvidencia = (folio: string) => `evidencias:${folio}`;

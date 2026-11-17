@@ -30,6 +30,7 @@ import chipCandado from "../../../assets/perfil/chip-candado.svg";
 import filaCalendario from "../../../assets/perfil/fila-calendario-verde.svg";
 import progresoCirculo from "../../../assets/perfil/progreso-circulo.svg";
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 function NotaInfo({ children }: { children: ReactNode }) {
     return <div className="perfil-nota"><img src={notaInfo} alt="" /><p>{children}</p></div>;
 }
@@ -117,7 +118,7 @@ function useHistorial(): [CargaHistorial, () => void] {
 }
 
 function EstadoCarga({ carga, alReintentar }: { carga: CargaHistorial; alReintentar: () => void }) {
-    if (!carga) return <p className="perfil-vacio" role="status">Cargando…</p>;
+    if (!carga) return <EsqueletoLista filas={3} />;
     if ("error" in carga) return (
         <div className="perfil-vacio">
             <p role="alert">{carga.error}</p>

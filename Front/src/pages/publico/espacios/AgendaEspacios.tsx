@@ -14,6 +14,7 @@ import checkPaso from "../../../assets/credencial/paso-check.svg";
 import infoDorado from "../../../assets/credencial/info-dorado.svg";
 import enviar from "../../../assets/perfil/tarjeta-enviar.svg";
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 // Agenda de espacios con sesión (Figma A-02, 476:28196).
 // HU-16 (CA-16.1): cualquier cuenta con sesión puede solicitar; no se pide credencial.
 // Las áreas que se pueden solicitar vienen de GET /espacios/areas; enviar no reserva el espacio (CA-16.2).
@@ -127,7 +128,7 @@ export default function AgendaEspacios() {
                             </div>
                         </div>
                         <p className="cred-sobretitulo">SE PUEDEN SOLICITAR</p>
-                        {!carga && <p className="cred-texto" role="status">Cargando áreas…</p>}
+                        {!carga && <EsqueletoLista filas={3} texto="Cargando áreas…" />}
                         {carga && "error" in carga && (
                             <div>
                                 <p className="cred-texto" role="alert">{carga.error}</p>

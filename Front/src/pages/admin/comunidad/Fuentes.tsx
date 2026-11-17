@@ -16,6 +16,7 @@ import { CONFIRMACION, ESTADO_FUENTE, accionesDisponibles, buscarFuentes, type A
 import modalCheck from "../../../assets/admin/modal-check.svg";
 import modalAlerta from "../../../assets/admin/modal-alert.svg";
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 const POR_PAGINA = 10;
 const fecha = (iso?: string) => (iso ? new Date(iso).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" }) : "—");
 
@@ -154,7 +155,7 @@ export default function Fuentes() {
                 </div>
 
                 <div className="contenidos-tabla ad-tabla-fuentes" tabIndex={0} role="table" aria-label="Fuentes" aria-busy={!actual}>
-                    {!actual && <p role="status" className="contenidos-cargando">Cargando fuentes…</p>}
+                    {!actual && <EsqueletoLista texto="Cargando fuentes…" />}
                     <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
                         {["Fuente", "Tipo (origen)", "Versión", "Estado", "Activa", "Acción"].map((t) => <span key={t} role="columnheader">{t}</span>)}
                     </div>

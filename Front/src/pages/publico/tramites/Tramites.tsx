@@ -9,6 +9,7 @@ import { mensajeError } from '../../../servicios/api';
 import { AccesoTramites, FichaTramite, FormularioPropuesta } from './piezas';
 import './Tramites.css';
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 export default function Tramites() {
     const { pathname } = useLocation(); const { id } = useParams(); const navigate = useNavigate();
     const usuario = useCuentaTramites(); const [intento, recargar] = useState(0); const [pagina, setPagina] = useState(0);
@@ -36,7 +37,7 @@ export default function Tramites() {
         </nav>
         {usuario === undefined ? <p role="status" className="tramites-estado">Comprobando sesión…</p> : usuario === null ? <AccesoTramites /> : <>
             {nueva ? <section className="tramites-tarjeta"><FormularioPropuesta key={usuario} alGuardar={s => navigate(`/mis-tramites/propuestas/${s.id}`)} /></section> : <>
-                {!actual && <p role="status" className="tramites-estado">Cargando tus solicitudes…</p>}
+                {!actual && <EsqueletoLista texto="Cargando tus solicitudes…" />}
                 {actual?.error && <p role="alert">{actual.error} <button onClick={() => recargar(x => x + 1)}>Reintentar</button></p>}
                 {actual?.lista && <>
                     {tipo === 'credencial' ? <SolicitudCredencial key={usuario} alGuardar={s => navigate(`${base}/${s.id}`)} /> : <p><Link to="/proponer-evento">Enviar una nueva propuesta</Link></p>}

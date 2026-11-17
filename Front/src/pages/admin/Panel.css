@@ -1766,9 +1766,9 @@ a.panel-submenu__item.active {
    Coherencia: pantallas conectadas que usan las piezas «cn-*» del demo
    (Gestión de actividades, Inscripciones, Moderación del foro, Publicar propuesta).
    Usan <table class="cn-tabla"> y formularios sueltos; aquí toman la misma escala que el resto del panel:
-   título 30 px, tarjetas de 20 px de radio, filas en tarjeta, campos de 44 px.
+   título 25 px, tarjetas de 20 px de radio, filas en tarjeta, campos de 44 px.
    ============================================================ */
-.panel .cn-pagina > h1 { margin: 0; color: #161a1d; font-size: 30px; line-height: 1.2; }
+.panel .cn-pagina > h1 { margin: 0; color: #161a1d; font-size: 25px; line-height: 32px; }
 .panel .cn-pagina > a:first-child { color: #164f44; font-size: 14px; font-weight: 700; text-decoration: none; }
 .panel .cn-pagina > a:first-child::before { content: "← "; }
 .panel .cn-tarjeta { gap: 14px; padding: 24px; border-radius: 20px; }
@@ -1802,3 +1802,14 @@ a.panel-submenu__item.active {
 .panel .tramites-campos input[type="checkbox"] { width: 18px; height: 18px; accent-color: #164f44; }
 .panel .cn-control { min-height: 44px; border-color: #e2ded5; border-radius: 12px; font-size: 14px; }
 .panel .cn-control--area { min-height: 100px; }
+
+/* Las tablas con scroll propio son el bloque contenedor de sus textos ocultos (solo-lectores, tr-oculto).
+   Sin esto, esos <span position:absolute> escapaban del recorte y estiraban el scroll del panel:
+   aparecía una franja vacía debajo del pie (Propuestas de actividades). */
+.contenidos-tabla,
+.cn-tabla-contenedor,
+.resumen-tabla-desplazable { position: relative; }
+
+/* Un panel desplegable abierto (Filtros) queda encima del resto del contenido: las animaciones de entrada
+   convierten cada bloque en una capa propia y, sin esto, lo que viene después (notas, pie) se pintaba encima. */
+.panel-contenido > :has(.barra-filtros__panel) { position: relative; z-index: 6; }

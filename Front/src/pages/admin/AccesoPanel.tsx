@@ -5,12 +5,13 @@ import { consultarMiAcceso } from '../../servicios/auth';
 import { obtenerSupabase, ErrorServicio, mensajeError } from '../../servicios/api';
 import { EsqueletoPanel } from '../../components/portal/Esqueleto';
 import PantallaEstado, { IconoCandado } from '../../components/portal/PantallaEstado';
+import { VentanaSesionCaducada } from './EstadosPanel';
 import { capacidadPanel, permisoGlobal, rutaInicialPanel, tienePanel, ContextoPanel, type IdentidadPanel } from '../../servicios/accesoPanel';
 
 // Solo se descarga si hace falta: el aviso «Sin permiso» dentro del panel (Figma 583:45548)
 const SinPermiso = lazy(() => import('./SinPermiso'));
 
-type Comprobacion = { identidad?: IdentidadPanel; error?: string; iniciar?: boolean };
+type Comprobacion = { identidad?: IdentidadPanel; error?: string; iniciar?: boolean; caducada?: boolean };
 
 // Última comprobación, compartida entre pantallas: cada ruta monta su propio AccesoPanel y,
 // sin esto, el panel entero desaparecía mientras se volvía a preguntar por los permisos.
@@ -32,16 +33,22 @@ async function comprobar(): Promise<Comprobacion> {
     }
 }
 
-export default function AccesoPanel({ children }: { children: ReactNode }) {
-    const { pathname } = useLocation();
+// libre: solo pide que la cuenta tenga panel (páginas sin capacidad propia, como «Página no encontrada»)
+export default function AccesoPanel({ children, libre = false }: { children: ReactNode; libre?: boolean }) {
+    const { pathname, search } = useLocation();
     const [resultado, setResultado] = useState<Comprobacion | null>(ultima);
     useEffect(() => {
         let activo = true;
         const revisar = () => comprobar().then((nueva) => {
             ultima = nueva.iniciar ? null : nueva;
-            // Si no cambió la cuenta ni sus permisos, se conserva el mismo objeto para no volver a pintar todo
-            if (activo) setResultado((previa) => previa?.identidad && nueva.identidad
-                && JSON.stringify(previa.identidad) === JSON.stringify(nueva.identidad) ? previa : nueva);
+            if (!activo) return;
+            setResultado((previa) => {
+                // La sesión caducó mientras se trabajaba: se queda el panel detrás y se avisa con una ventana
+                if (nueva.iniciar && previa?.identidad) return { ...previa, caducada: true };
+                // Si no cambió la cuenta ni sus permisos, se conserva el mismo objeto para no volver a pintar todo
+                return previa?.identidad && nueva.identidad && !previa.caducada
+                    && JSON.stringify(previa.identidad) === JSON.stringify(nueva.identidad) ? previa : nueva;
+            });
         });
         // Al volver a la pestaña se revalida, como mucho una vez por minuto
         const alEnfocar = () => {
@@ -68,10 +75,12 @@ export default function AccesoPanel({ children }: { children: ReactNode }) {
     if (pathname === "/admin" && inicial) return <Navigate to={inicial} replace />;
     // La capacidad de la ruta se calcula con los permisos ya conocidos: no hay que esperar al servidor
     const capacidad = capacidadPanel(pathname);
-    if (!capacidad || !permisoGlobal(identidad.acceso, capacidad)) return (
+    // Solo en desarrollo: ?simular=sesion-caducada muestra la ventana para revisarla
+    const caducada = resultado.caducada || (import.meta.env.DEV && new URLSearchParams(search).get('simular') === 'sesion-caducada');
+    if (!libre && (!capacidad || !permisoGlobal(identidad.acceso, capacidad))) return (
         <ContextoPanel.Provider value={identidad}>
             <Suspense fallback={<EsqueletoPanel />}><SinPermiso /></Suspense>
         </ContextoPanel.Provider>
     );
-    return <ContextoPanel.Provider value={identidad}>{children}</ContextoPanel.Provider>;
+    return <ContextoPanel.Provider value={identidad}>{children}{caducada && <VentanaSesionCaducada />}</ContextoPanel.Provider>;
 }

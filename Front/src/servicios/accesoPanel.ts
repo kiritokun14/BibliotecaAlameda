@@ -12,7 +12,7 @@ export function capacidadPanel(ruta: string): string | null {
     if (ruta.startsWith('/admin/administracion/fuentes')) return 'gestionar_fuentes_asistente';
     if (ruta.startsWith('/admin/administracion/estadisticas')) return 'consultar_estadisticas';
     if (ruta.startsWith('/admin/administracion/cuentas') || ruta.startsWith('/admin/administracion/bitacora')
-        || ruta.startsWith('/admin/administracion/configuracion')) return 'administrar_cuentas';
+        || ruta.startsWith('/admin/administracion/configuracion') || ruta.startsWith('/admin/administracion/estados')) return 'administrar_cuentas';
     if (ruta.startsWith('/admin/contenidos/revision')) return 'publicar_contenidos';
     if (ruta.startsWith('/admin/actividades/visitas')) return 'registrar_resoluciones_actividades';
     if (ruta.startsWith('/admin/actividades/asistencia')) return 'registrar_asistencia';

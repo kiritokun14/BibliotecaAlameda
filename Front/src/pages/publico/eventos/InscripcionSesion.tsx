@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { mensajeError } from '../../../servicios/api';
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 import { cancelarInscripcionPropia, consultarInscripcionPropia, estadoInscripcionPropia,
     solicitarInscripcionPropia, type InscripcionPropia } from '../../../servicios/inscripciones';
 
@@ -33,7 +34,7 @@ export default function InscripcionSesion({ sesion, desdePerfil = false }: { ses
     const puedeSolicitar = !desdePerfil && datos?.registroAbierto && datos.hayCupo
         && (!datos.estado || datos.estado === 'cancelada');
     return <div>
-        {!datos && !error && <p role="status">Consultando tu inscripción…</p>}
+        {!datos && !error && <EsqueletoLista filas={1} texto="Consultando tu inscripción…" />}
         {datos?.estado && <p role="status"><strong>Tu inscripción:</strong> {estadoInscripcionPropia[datos.estado]}.</p>}
         {datos?.estado === 'pendiente' && <p>El personal revisará tu solicitud. Tu lugar queda reservado cuando se confirme.</p>}
         {datos && !datos.estado && !puedeSolicitar && <p>{datos.registroAbierto ? 'Cupo completo. Consulta más adelante.' : 'Registro cerrado.'}</p>}

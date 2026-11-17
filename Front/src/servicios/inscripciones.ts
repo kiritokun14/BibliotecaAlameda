@@ -1,4 +1,5 @@
 import { ErrorServicio, obtenerSupabase, pedirApi } from './api';
+import { consultarConMemoria, enMemoria } from './consultas';
 
 export interface SesionInscripciones { id: string; inicio: string; estado: string; registroAbierto: boolean }
 export interface ActividadInscripciones {
@@ -13,7 +14,8 @@ async function consultar<T>(ruta: string, opciones: RequestInit = {}): Promise<T
     if (error || !data.session) throw new ErrorServicio('Inicia sesión para continuar.', 401);
     return pedirApi<T>(ruta, { ...opciones, headers: { Authorization: `Bearer ${data.session.access_token}` } });
 }
-export const listarActividadesInscripciones = (pagina: number) => consultar<ActividadInscripciones[]>(`/responsable/actividades?limite=20&desplazamiento=${pagina * 20}`);
+export const listarActividadesInscripciones = (pagina: number) => consultarConMemoria('inscripciones:' + pagina, () => consultar<ActividadInscripciones[]>(`/responsable/actividades?limite=20&desplazamiento=${pagina * 20}`));
+export const inscripcionesEnMemoria = (pagina: number) => enMemoria<ActividadInscripciones[]>('inscripciones:' + pagina);
 export const listarSolicitudesInscripcion = (sesion: string, pagina: number) => consultar<SolicitudInscripcion[]>(`/sesiones/${encodeURIComponent(sesion)}/inscripciones?limite=20&desplazamiento=${pagina * 20}`);
 export const consultarCuposInscripciones = (sesion: string) => consultar<CuposInscripciones>(`/sesiones/${encodeURIComponent(sesion)}/cupos`);
 export type DecisionInscripcion = 'confirmar' | 'rechazar' | 'cancelar';
