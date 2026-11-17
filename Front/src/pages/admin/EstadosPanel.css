@@ -1,0 +1,81 @@
+/* Estados del sistema dentro del panel (EstadosPanel.tsx), según Figma 583:45547 con la escala del panel */
+.estado-panel { display: flex; flex-direction: column; gap: 16px; }
+.estado-panel :where(h1, h2, p) { margin: 0; }
+
+.estado-panel__etiqueta { display: inline-flex; align-items: center; gap: 8px; color: #164f44; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; }
+.estado-panel__etiqueta span { width: 7px; height: 7px; border-radius: 50%; background: #c9a24a; }
+
+/* Franja guinda del título (misma que «Prioridades de hoy» y «Accesos rápidos») */
+.estado-panel__franja { padding: 10px 18px; border-radius: 12px; background: #611232; color: #fff; font-size: 20px; line-height: 1.3; }
+.estado-panel__titulo { font-size: 25px; line-height: 32px; }
+.estado-panel__texto { margin-top: -6px !important; color: #4d4d4d; font-size: 14px; }
+
+/* Aviso: ícono en círculo, textos y chip a la derecha */
+.estado-panel__aviso { display: flex; align-items: center; gap: 18px; padding: 24px 26px; border: 1px solid #e2ded5; border-radius: 22px; background: #fff; animation: estado-panel-entrar 0.4s ease both; }
+.estado-panel__aviso > div { flex: 1; min-width: 0; }
+.estado-panel__aviso h2 { font-size: 20px; line-height: 1.3; }
+.estado-panel__aviso p { margin-top: 4px; color: #4d4d4d; font-size: 14px; line-height: 1.5; }
+.estado-panel__icono { display: grid; place-items: center; width: 52px; height: 52px; flex: none; border-radius: 50%; background: #164f44; color: #fff; }
+.estado-panel__chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #f1efea; color: #4d4d4d; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.estado-panel__chip span { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.estado-panel__aviso--guinda { border-color: #c9879c; background: #f6eaee; }
+.estado-panel__aviso--guinda .estado-panel__icono { background: #9b2247; }
+.estado-panel__aviso--guinda .estado-panel__chip { background: transparent; color: #9b2247; }
+.estado-panel__aviso--dorado { border-color: #ecd9a6; background: #f6eeda; }
+.estado-panel__aviso--dorado .estado-panel__icono { background: #8a6414; }
+
+.estado-panel__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+/* Resumen cargando: tarjetas con esqueleto */
+.estado-panel__esqueleto { display: flex; flex-direction: column; gap: 12px; padding: 22px 24px; border: 1px solid #e2ded5; border-radius: 20px; background: #fff; }
+
+/* Resumen sin pendientes */
+.estado-panel__tarjeta { display: flex; flex-direction: column; gap: 14px; padding: 18px; border: 1px solid #e2ded5; border-radius: 22px; background: #fff; }
+.estado-panel__barra { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; background: #611232; color: #fff; font-size: 18px; }
+.estado-panel__barra > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: #164f44; }
+.estado-panel__barra svg { width: 18px; height: 18px; }
+.estado-panel__vacio { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 36px 24px; border-radius: 16px; background: #f7f5f0; text-align: center; }
+.estado-panel__vacio > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: #e4efeb; color: #164f44; }
+.estado-panel__vacio strong { font-size: 18px; }
+.estado-panel__vacio p { color: #4d4d4d; font-size: 14px; }
+
+/* ---------- Avisos de sistema arriba del contenido ---------- */
+.aviso-sistema { display: flex; align-items: center; gap: 14px; padding: 12px 14px 12px 18px; border: 1px solid #c9879c; border-radius: 16px; background: #f6eaee; color: #161a1d; font-size: 14px; animation: estado-panel-entrar 0.35s ease both; }
+.aviso-sistema p { flex: 1; margin: 0; }
+.aviso-sistema__icono { display: grid; place-items: center; width: 26px; height: 26px; flex: none; border-radius: 50%; color: #9b2247; font-weight: 800; }
+.aviso-sistema--dorado { border-color: #ecd9a6; background: #f6eeda; }
+.aviso-sistema--dorado .aviso-sistema__icono { color: #8a6414; }
+.aviso-sistema--doble > div { flex: 1; }
+.aviso-sistema--doble strong { display: block; font-size: 15px; }
+.aviso-sistema--doble p { margin-top: 2px; color: #4d4d4d; font-size: 13px; }
+.aviso-sistema .contenidos-boton { flex: none; background: #fff; }
+
+/* ---------- Sesión caducada: ventana sobre el panel ---------- */
+.sesion-caducada {
+  /* La ventana queda fuera de .panel--contenidos: lleva sus propias variables para los botones */
+  --solon-primario: #164f44; --solon-oscuro: #0b3b33; --solon-texto: #161a1d; --solon-gris: #4d4d4d;
+  --solon-borde: #e2ded5; --solon-acento: #e6d194; --solon-azul-suave: #e8f0ec; --solon-guinda: #9b2247;
+}
+.sesion-caducada .contenidos-boton--oscuro { background: #0b3b33; color: #fff; }
+.sesion-caducada { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 24px; background: rgba(11, 59, 51, 0.55); font-family: 'Noto Sans', sans-serif; animation: estado-panel-velo 0.25s ease both; }
+.sesion-caducada__ventana { display: flex; flex-direction: column; gap: 12px; width: min(520px, 100%); box-sizing: border-box; padding: 28px 30px; border-radius: 22px; background: #fff; box-shadow: 0 24px 60px rgba(3, 3, 5, 0.25); animation: estado-panel-entrar 0.35s ease both; }
+.sesion-caducada__ventana h2 { margin: 0; font-size: 24px; }
+.sesion-caducada__ventana p { margin: 0; color: #4d4d4d; font-size: 14px; line-height: 1.55; }
+.sesion-caducada__acciones { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+@keyframes estado-panel-entrar { from { opacity: 0; transform: translateY(10px); } }
+@keyframes estado-panel-velo { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .estado-panel__aviso, .aviso-sistema, .sesion-caducada, .sesion-caducada__ventana { animation: none; }
+}
+
+/* ---------- Catálogo «Estados del sistema» ---------- */
+.estados-catalogo { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.estados-catalogo__tarjeta { display: flex; flex-direction: column; gap: 8px; padding: 18px 20px; border: 1px solid #e2ded5; border-left: 5px solid #164f44; border-radius: 16px; background: #fff; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.estados-catalogo__tarjeta:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(22, 79, 68, 0.08); }
+.estados-catalogo__tarjeta--guinda { border-left-color: #9b2247; }
+.estados-catalogo__tarjeta--dorado { border-left-color: #c9a24a; }
+.estados-catalogo__tarjeta strong { font-size: 15px; }
+.estados-catalogo__tarjeta p { flex: 1; margin: 0; color: #4d4d4d; font-size: 13px; line-height: 1.5; }
+.estados-previa { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border: 1px dashed #c9a24a; border-radius: 14px; background: #fffaf0; font-size: 13px; }
+.estados-previa strong { margin-right: 6px; padding: 2px 8px; border-radius: 999px; background: #8a6414; color: #fff; font-size: 11px; text-transform: uppercase; }

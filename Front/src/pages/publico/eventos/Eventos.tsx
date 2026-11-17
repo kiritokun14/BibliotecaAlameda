@@ -16,6 +16,7 @@ import cupo from '../../../assets/eventos/detalle-cupo.svg';
 import circuloGrande from '../../../assets/comun/iconos/circulo-grande.svg';
 import circuloChico from '../../../assets/comun/iconos/circulo-chico.svg';
 
+import { EsqueletoArticulo } from "../../../components/portal/Esqueleto";
 export default function Eventos() {
     const { id = '' } = useParams();
     const [intento, recargar] = useState(0);
@@ -31,7 +32,7 @@ export default function Eventos() {
     return <PaginaPublica>
         <EncabezadoNoticias regreso={{ texto: 'Volver a Eventos y actividades', ruta: '/eventos' }} etiqueta={actual?.actividad?.tipo ?? 'Eventos y actividades'} titulo={actual?.actividad?.nombre ?? 'Detalle de actividad'} texto={actual?.actividad?.publico ?? 'Consulta la información publicada por la biblioteca.'} />
         <div className="agenda-cuerpo">
-            {!actual && <p role="status">Consultando actividad…</p>}
+            {!actual && <EsqueletoArticulo texto="Consultando actividad…" />}
             {actual?.error && <p role="alert">{actual.error} <button className="agenda-boton agenda-boton--verde" onClick={() => recargar(v => v + 1)}>Reintentar</button></p>}
             {actual?.actividad && <Detalle actividad={actual.actividad} />}
         </div>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { consultarEspaciosAgenda, resolverSesion, type ActividadGestion } from '../../../servicios/actividades';
 import { mensajeError } from '../../../servicios/api';
-import '../../publico/tramites/Tramites.css';
+import '../atencion/AtencionTramites.css';
 
 type Sesion = ActividadGestion['sesiones'][number];
 
@@ -40,31 +40,38 @@ export function CambioSesion({ actividad, sesion, alGuardar }: {
         finally { setGuardando(false); bloqueo.current = false; }
     }
 
-    return <div>
-        {!accion && <div className="cn-acciones">
-            <button className="boton-panel" onClick={() => elegir('reprogramar')}>Reprogramar sesión</button>
-            <button className="boton-panel" onClick={() => elegir('cancelar')}>Cancelar sesión</button>
+    const id = (campo: string) => `sesion-${sesion.id}-${campo}`;
+    return <div className="tr-cambio-sesion">
+        {!accion && <div className="tr-acciones">
+            <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={() => elegir('reprogramar')}>Reprogramar sesión</button>
+            <button type="button" className="contenidos-boton at-boton--guinda contenidos-boton--chico" onClick={() => elegir('cancelar')}>Cancelar sesión</button>
         </div>}
         {accion && <form key={accion} onSubmit={guardar}>
-            <fieldset className="tramites-campos" disabled={guardando}>
-                <legend>{accion === 'reprogramar' ? 'Reprogramar sesión' : 'Cancelar sesión'}</legend>
+            <fieldset className="tr-campos" disabled={guardando}>
+                <legend className="at-subtitulo">{accion === 'reprogramar' ? 'Reprogramar sesión' : 'Cancelar sesión'}</legend>
                 {accion === 'reprogramar' && <>
-                    <label>Nueva fecha<input name="fecha" type="date" defaultValue={sesion.fecha} required /></label>
-                    <label>Inicio en Tepic<input name="inicio" type="time" defaultValue={sesion.inicio} required /></label>
-                    <label>Fin en Tepic<input name="fin" type="time" defaultValue={sesion.fin} required /></label>
-                    <label>Espacio<select name="espacio" required defaultValue="">
-                        <option value="">Selecciona un espacio</option>
-                        {espacios.filter(e => e.capacidad >= sesion.cupo).map(e => <option key={e.nombre}>{e.nombre}</option>)}
-                    </select></label>
+                    <div className="at-fila">
+                        <div className="contenidos-campo"><label htmlFor={id('fecha')}>Nueva fecha</label><input id={id('fecha')} className="tr-entrada" name="fecha" type="date" defaultValue={sesion.fecha} required /></div>
+                        <div className="contenidos-campo"><label htmlFor={id('inicio')}>Inicio (Tepic)</label><input id={id('inicio')} className="tr-entrada" name="inicio" type="time" defaultValue={sesion.inicio} required /></div>
+                        <div className="contenidos-campo"><label htmlFor={id('fin')}>Fin (Tepic)</label><input id={id('fin')} className="tr-entrada" name="fin" type="time" defaultValue={sesion.fin} required /></div>
+                    </div>
+                    <div className="contenidos-campo"><label htmlFor={id('espacio')}>Espacio</label>
+                        <select id={id('espacio')} name="espacio" required defaultValue="">
+                            <option value="">{espacios.length ? 'Selecciona un espacio' : 'Cargando espacios…'}</option>
+                            {espacios.filter(e => e.capacidad >= sesion.cupo).map(e => <option key={e.nombre}>{e.nombre}</option>)}
+                        </select></div>
                 </>}
-                <label>Motivo<textarea name="motivo" required maxLength={1000} /></label>
-                <label><input type="checkbox" required /> Confirmo el cambio y el aviso en el portal a las personas inscritas.</label>
-                <button className="boton-panel" disabled={accion === 'reprogramar' && espacios.length === 0}>
-                    {guardando ? 'Guardando…' : accion === 'cancelar' ? 'Confirmar cancelación' : 'Guardar nueva programación'}
-                </button>
-                <button type="button" onClick={() => { elegir(undefined); setError(''); }}>Volver</button>
+                <div className="contenidos-campo"><label htmlFor={id('motivo')}>Motivo <span className="contenidos-campo__obligatorio">*</span></label>
+                    <textarea id={id('motivo')} name="motivo" rows={2} required maxLength={1000} /></div>
+                <label className="at-casilla"><input type="checkbox" required /> Confirmo el cambio y el aviso en el portal a las personas inscritas.</label>
+                <div className="tr-acciones">
+                    <button className={`contenidos-boton contenidos-boton--chico ${accion === 'cancelar' ? 'at-boton--guinda-lleno' : 'contenidos-boton--oscuro'}`} disabled={accion === 'reprogramar' && espacios.length === 0}>
+                        {guardando ? 'Guardando…' : accion === 'cancelar' ? 'Confirmar cancelación' : 'Guardar nueva programación'}
+                    </button>
+                    <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={() => { elegir(undefined); setError(''); }}>Volver</button>
+                </div>
             </fieldset>
         </form>}
-        {error && <p role="alert">{error}</p>}
+        {error && <div className="at-bloque at-bloque--error" role="alert"><strong>No se guardó el cambio</strong><p>{error}</p></div>}
     </div>;
 }

@@ -166,6 +166,9 @@ const EstadisticasAdmin = lazy(() => import("./pages/admin/administracion/Estadi
 const BitacoraAdmin = lazy(() => import("./pages/admin/administracion/Bitacora.tsx"));
 const DetalleMovimiento = lazy(() => import("./pages/admin/administracion/Bitacora.tsx").then(m => ({ default: m.DetalleMovimiento })));
 const ConfiguracionAdmin = lazy(() => import("./pages/admin/administracion/Configuracion.tsx"));
+const EstadosSistema = lazy(() => import("./pages/admin/EstadosSistema.tsx"));
+const VistaPreviaEstado = lazy(() => import("./pages/admin/EstadosSistema.tsx").then(m => ({ default: m.VistaPreviaEstado })));
+const NoEncontradaPanel = lazy(() => import("./pages/admin/NoEncontradaPanel.tsx"));
 const PerfilPropio = lazy(() => import("./pages/publico/perfil/Perfil"));
 
 function App() {
@@ -245,6 +248,10 @@ function App() {
         <Route path="/admin/administracion/bitacora" element={<AccesoPanel><BitacoraAdmin /></AccesoPanel>} />
         <Route path="/admin/administracion/bitacora/:folio" element={<AccesoPanel><DetalleMovimiento /></AccesoPanel>} />
         <Route path="/admin/administracion/configuracion" element={<AccesoPanel><ConfiguracionAdmin /></AccesoPanel>} />
+        <Route path="/admin/administracion/estados" element={<AccesoPanel><EstadosSistema /></AccesoPanel>} />
+        <Route path="/admin/administracion/estados/:estado" element={<AccesoPanel><VistaPreviaEstado /></AccesoPanel>} />
+        {/* Cualquier otra dirección del panel: «Página no encontrada» dentro del panel (Figma 583:45979) */}
+        <Route path="/admin/*" element={<AccesoPanel libre><NoEncontradaPanel /></AccesoPanel>} />
         {/* Editor conectado a los borradores de T-054. */}
         <Route path="/admin/contenidos" element={<Navigate to="/admin/contenidos/editor" replace />} />
         <Route path="/admin/contenidos/editor" element={<AccesoPanel><EditorContenidos /></AccesoPanel>} />

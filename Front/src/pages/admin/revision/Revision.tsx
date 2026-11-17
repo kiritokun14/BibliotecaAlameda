@@ -9,6 +9,7 @@ import "../contenidos/Contenidos.css";
 import "./Revision.css";
 import { Campo, IconoAviso, IconoBuscar, IconoDocumento, IconoLapiz, IconoLista, IconoReloj } from "../contenidos/piezas";
 import { mensajeError } from "../../../servicios/api";
+import { EsqueletoDetalle, EsqueletoLista } from "../../../components/portal/Esqueleto";
 import {
     decidirContenido, listarRevision, obtenerRevision, rutaPublica,
     type ContenidoRevision, type DecisionPublicacion, type ListaRevision,
@@ -218,7 +219,7 @@ function ConContenido({ miga, propio = false, children }: { miga: string | ((c: 
     const textoMiga = typeof miga === "string" ? miga : datos ? miga(datos) : folio;
     const cuerpo = (
         <>
-            {cargando && <p className="contenidos-cargando" role="status">Cargando contenido…</p>}
+            {cargando && <EsqueletoDetalle texto="Cargando contenido…" />}
             {error && <ErrorCarga texto={error} alReintentar={recargar} />}
             {datos && children(datos, recargar)}
         </>
@@ -372,7 +373,7 @@ export function BandejaRevision() {
                 </div>
 
                 <div className="contenidos-tabla" tabIndex={0} role="table" aria-label="Bandeja de contenidos" aria-busy={lista.cargando}>
-                    {lista.cargando && <p role="status" className="contenidos-cargando">Cargando contenidos…</p>}
+                    {lista.cargando && <EsqueletoLista texto="Cargando contenidos…" />}
                     <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
                         {["Folio", "Título", "Tipo", "Redactó", "Estado", "Enviado", "Acción"].map((t) => <span key={t} role="columnheader">{t}</span>)}
                     </div>
@@ -1068,7 +1069,7 @@ export function HistorialPublicaciones({ retirar }: { retirar?: string }) {
                 </div>
 
                 <div className="contenidos-tabla rv-tabla-historial" tabIndex={0} role="table" aria-label="Contenidos publicados" aria-busy={cargando}>
-                    {cargando && <p role="status" className="contenidos-cargando">Cargando historial…</p>}
+                    {cargando && <EsqueletoLista texto="Cargando historial…" />}
                     <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
                         {["Folio", "Contenido", "Tipo", "Autorizó", "Publicado", "Versión", "Estado", "Acción"].map((t) => <span key={t} role="columnheader">{t}</span>)}
                     </div>

@@ -15,6 +15,7 @@ import listaVerde from "../../../assets/noticias/vista-lista-verde.svg";
 import pinClaro from "../../../assets/eventos/destacada-pin.svg";
 import flechaDorada from "../../../assets/servicios/flecha-dorada.svg";
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 // T-052 · Calendario de actividades (Figma A-02, 476:11442): mes, días con actividades y panel del día elegido.
 // TODO backend: ver datosAgenda.ts (las actividades del mes deberían pedirse al cambiar de mes).
 const diasSemana = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
@@ -44,7 +45,7 @@ export default function CalendarioActividades() {
             <div className="agenda-cuerpo">
                 {sesion && <TarjetaProponer />}
 
-                {cargando && <p role="status">Cargando calendario…</p>}
+                {cargando && <EsqueletoLista texto="Cargando calendario…" />}
                 {error && <p role="alert">{error} <button onClick={reintentar}>Reintentar</button></p>}
                 <section className="calendario-agenda" aria-labelledby="titulo-mes">
                     <div className="calendario-agenda__barra">

@@ -7,6 +7,7 @@ import '../eventos/Agenda.css';
 import { EncabezadoSeccion } from './piezas';
 import { sesionSimulada } from './usarSesion';
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 export default function MisEventos() {
     const [pagina, setPagina] = useState(0);
     const [intento, recargar] = useState(0);
@@ -25,7 +26,7 @@ export default function MisEventos() {
     return <>
         <EncabezadoSeccion sobretitulo="MIS EVENTOS" titulo="Mis eventos" texto="Consulta el estado de tus inscripciones por sesión." />
         {sesionSimulada ? <p>Inicia sesión con tu cuenta para consultar inscripciones.</p> : <>
-            {!actual && <p role="status">Cargando inscripciones…</p>}
+            {!actual && <EsqueletoLista filas={3} texto="Cargando inscripciones…" />}
             {actual?.error && <p role="alert">{actual.error} <button type="button" onClick={() => recargar(i => i + 1)}>Reintentar</button></p>}
             {actual?.eventos?.length === 0 && <p className="perfil-vacio">{pagina === 0 ? 'Todavía no tienes inscripciones.' : 'No hay inscripciones en esta página.'}</p>}
             <ul className="perfil-eventos">{actual?.eventos?.slice(0, 20).map(evento => <li key={evento.id} className="perfil-evento">

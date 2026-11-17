@@ -141,3 +141,20 @@
 .esqueleto-panel__tarjetas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 12px; }
 .esqueleto-panel__tarjeta { height: 150px; border-radius: 20px; background: #ece7dc; }
 .esqueleto-panel__tabla { height: 280px; border-radius: 20px; background: #ece7dc; }
+
+/* ---------- Atajos: lista y detalle (EsqueletoLista, EsqueletoDetalle) ---------- */
+.esqueleto-lista { display: flex; flex-direction: column; gap: 10px; }
+.esqueleto-lista__fila { display: flex; align-items: center; gap: 18px; padding: 16px 18px; border: 1px solid #ece7dc; border-radius: 14px; background: #fff; }
+.esqueleto-lista__textos { display: flex; flex: 1; flex-direction: column; gap: 8px; }
+.esqueleto-lista__sub { height: 11px; }
+.esqueleto-detalle { display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: start; gap: 20px; }
+.esqueleto-detalle__principal, .esqueleto-detalle__lateral { display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid #ece7dc; border-radius: 20px; background: #fff; }
+.esqueleto-detalle__datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.esqueleto-detalle__dato { height: 64px; border-radius: 14px; }
+@media (max-width: 900px) { .esqueleto-detalle { grid-template-columns: minmax(0, 1fr); } }
+
+/* Imagen de un contenido mientras se descarga (ImagenContenido) */
+.imagen-contenido-cargando { display: block; }
+.imagen-contenido-cargando__bloque { display: block; width: 100%; height: 260px; border-radius: 18px; }
+/* Propuesta de la persona mientras carga (Proponer) */
+.proponer-esqueleto { max-width: 1000px; margin: 0 auto; padding: 40px 24px 72px; }

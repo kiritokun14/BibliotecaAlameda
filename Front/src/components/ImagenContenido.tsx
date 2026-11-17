@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { cargarImagenPrivada } from '../servicios/imagenes';
 import { mensajeError } from '../servicios/api';
 
+import { Bloque } from "./portal/Esqueleto";
 export default function ImagenContenido({ folio, version, revision = false, texto = 'Imagen del contenido' }:
     { folio: string; version?: string; revision?: boolean; texto?: string }) {
     const clave = `${folio}:${version}:${revision}`;
@@ -14,7 +15,7 @@ export default function ImagenContenido({ folio, version, revision = false, text
         }).catch(error => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
         return () => { vigente = false; if (url) URL.revokeObjectURL(url); };
     }, [folio, clave, revision]);
-    if (resultado.clave !== clave) return <p role="status">Cargando imagen…</p>;
+    if (resultado.clave !== clave) return <span role="status" className="imagen-contenido-cargando"><span className="solo-lectores">Cargando imagen…</span><Bloque clase="imagen-contenido-cargando__bloque" /></span>;
     if (resultado.error) return <p role="alert">{resultado.error}</p>;
     return <img src={resultado.url} alt={texto} style={{ maxWidth: '100%', maxHeight: 420, objectFit: 'contain', display: 'block' }} />;
 }

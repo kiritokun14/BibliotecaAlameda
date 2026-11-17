@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { mensajeError, ErrorServicio, obtenerSupabase, pedirApi } from '../../../servicios/api';
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 type Aviso = { id: string; titulo: string; cuerpoAviso: string; creadoEn: string };
 
 export function AvisosActividad() {
@@ -25,7 +26,7 @@ export function AvisosActividad() {
 
     return <section aria-labelledby="avisos-actividad-titulo">
         <h2 id="avisos-actividad-titulo">Cambios y cancelaciones de actividades</h2>
-        {!actual && <p role="status">Cargando avisos…</p>}
+        {!actual && <EsqueletoLista texto="Cargando avisos…" />}
         {actual?.error && <p role="alert">{actual.error} <button type="button" onClick={() => reintentar(i => i + 1)}>Reintentar</button></p>}
         {actual?.avisos?.length === 0 && <p>No tienes avisos de cambios ni cancelaciones.</p>}
         {actual?.avisos?.slice(0, 20).map(aviso => <article className="notif-tarjeta" key={aviso.id}>

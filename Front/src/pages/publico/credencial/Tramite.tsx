@@ -24,6 +24,7 @@ import checkLista from "../../../assets/credencial/lista-check.svg";
 import alertaGuinda from "../../../assets/credencial/alerta-guinda.svg";
 import alertaDorada from "../../../assets/credencial/alerta-dorada.svg";
 
+import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 // Credencial con sesión iniciada (Figma A-02, 476:9983): solicitud, solicitud enviada y seguimiento.
 type Vista = "solicitud" | "enviada" | "seguimiento";
 
@@ -53,7 +54,7 @@ export default function Tramite({ vista }: { vista: Vista }) {
                         <Link className="boton-visitante" to={carga.ingresar ? "/iniciar-sesion" : "/credencial"}>
                             {carga.ingresar ? "Iniciar sesión" : "Volver a información"}
                         </Link>
-                    </> : <p role="status">Cargando…</p>}
+                    </> : <EsqueletoDetalle texto="Cargando tu solicitud…" />}
                 </div>
             </PaginaPublica>
         );

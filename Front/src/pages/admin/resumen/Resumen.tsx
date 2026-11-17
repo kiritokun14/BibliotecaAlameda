@@ -1,6 +1,7 @@
 import { useContext, useState, type ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import PanelLayout from "../PanelLayout";
+import { AvisoResumenParcial, ResumenCargando, ResumenConError, ResumenSinPendientes } from "../EstadosPanel";
 import "./Resumen.css";
 import { ContextoPanel, nombresRoles } from "../../../servicios/accesoPanel";
 import {
@@ -43,10 +44,21 @@ const FILAS_INICIALES = 5;
 export default function Resumen() {
     const identidad = useContext(ContextoPanel);
     const visibles = prioridades.filter((p) => vistaEnlace(p.ruta, identidad?.acceso) !== "oculto");
+    // Estados del sistema del Resumen (Figma 583:47942, 583:48297, 583:48650, 595:49373).
+    // TODO backend: el Resumen todavía usa datos de ejemplo; cuando venga del servidor, estos estados saldrán
+    // de la consulta. Mientras, en desarrollo se revisan con ?simular=cargando | error | sin-pendientes | parcial.
+    const { search } = useLocation();
+    const [simulado, setSimulado] = useState(() => (import.meta.env.DEV ? new URLSearchParams(search).get("simular") : null));
+    const reintentar = () => setSimulado(null);
+
+    if (simulado === "cargando") return <PanelLayout titulo="Resumen" tema="contenidos"><ResumenCargando /></PanelLayout>;
+    if (simulado === "error") return <PanelLayout titulo="Resumen" tema="contenidos"><ResumenConError alReintentar={reintentar} /></PanelLayout>;
+    if (simulado === "sin-pendientes") return <PanelLayout titulo="Resumen" tema="contenidos"><ResumenSinPendientes /></PanelLayout>;
 
     return (
         <PanelLayout titulo="Resumen">
             <div className="resumen">
+                {simulado === "parcial" && <AvisoResumenParcial alReintentar={reintentar} />}
                 <header className="resumen-encabezado">
                     <p className="resumen-encabezado__etiqueta">DATOS DE EJEMPLO</p>
                     <h2>Resumen de hoy</h2>

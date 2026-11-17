@@ -22,6 +22,11 @@ El orquestador (T1) mantiene este archivo; las demás terminales no lo editan: s
 - Procesos: usa solo tus puertos, apaga solo tus procesos confirmando el PID. Nunca `taskkill /T` con filtros amplios.
 - Backend local: `.\.venv\Scripts\python.exe -m uvicorn Back.main:app --reload` desde la raíz (puerto 8000). Para entrar al panel con cualquier cuenta en desarrollo: `VITE_PANEL_COMPLETO=true` en `Front/.env.development.local`.
 
+## Guía de diseño (obligatoria)
+
+- Antes de diseñar o cambiar cualquier pantalla, lee y sigue **`docs/guia-diseno.md`**: colores, escala, piezas que se reutilizan,
+  carga/vacío/error y lo prohibido. Su prompt sirve para cualquier terminal. Si una pantalla se ve distinta, se ajusta a la guía.
+
 ## Diseño del panel de administración
 
 - El panel se rehace **según Figma** (archivo `g2RddLfdNhbEoKIY2l45PA`, sección «Panel de administración · cuenta con acceso total (A-05)», `357:3835`).

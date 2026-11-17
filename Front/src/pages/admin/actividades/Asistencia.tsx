@@ -1,12 +1,13 @@
+// Actividades › Asistencia: actividades por periodo (Figma 570:24906, sin actividades hoy 570:28074, sin resultados 570:28284),
+// pasar lista (570:25383), lista cerrada (570:26467) y resumen del mes (570:27596).
+// Diseño común del panel (docs/guia-diseno.md); los datos siguen siendo de ejemplo (asistencia.ts).
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import "./EditorActividades.css";
-import "../contenidoDemo/Contenidos.css";
-import "./Actividades.css";
-import { BloqueResumen, Buscador, CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Resultado, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
-import { clasesBoton, paginar } from "../contenidoDemo/utiles";
+import { AvisoResultado, Chip, EncabezadoPagina, EstadoVacio, Migas } from "../componentes";
+import { Ventana } from "../Ventana";
+import { IconoAviso, IconoBandera, IconoInfo, IconoLista, IconoMas, IconoReloj } from "../contenidos/piezas";
+import { paginar } from "../contenidoDemo/utiles";
 import { fechaCorta, obtenerActividad, useActividades, type Actividad } from "./datos";
 import { useInscripciones } from "./inscripciones";
 import { hoyISO } from "./salas";
@@ -15,23 +16,18 @@ import {
     agregarSinInscripcion, anotar, cerrarLista, conteo, corregir, estadoLista, guardarAsistencia, listaDe, lugaresParaExtras, marcar, NOMBRE_MARCA, personasDe, useAsistencia, type Marca,
 } from "./asistencia";
 import { BASE_ASISTENCIA } from "./utiles";
-import iconoArchivo from "../../../assets/admin/actividades/resumen-archivo.svg";
-import iconoReloj from "../../../assets/admin/contenidos/resumen-reloj-dorado.svg";
-import iconoCheck from "../../../assets/admin/contenidos/resumen-check.svg";
-import iconoX from "../../../assets/admin/actividades/resumen-x-guinda.svg";
-import iconoCasilla from "../../../assets/admin/actividades/tarjeta-casilla.svg";
-import iconoLista from "../../../assets/admin/contenidos/tarjeta-lista.svg";
-import iconoTarjeta from "../../../assets/admin/actividades/tarjeta-archivo.svg";
-import iconoAlerta from "../../../assets/admin/actividades/resultado-alerta.svg";
-import iconoResultado from "../../../assets/admin/contenidos/resultado-check.svg";
-import vacioReloj from "../../../assets/admin/actividades/vacio-reloj.svg";
-import vacioBuscar from "../../../assets/admin/contenidos/vacio-buscar.svg";
+import { AccesosRapidos, CeldaDoble, ControlesLista, CuerpoLista, FILAS_POR_PAGINA, PieLista, SeccionLista, TablaLista } from "./PiezasLista";
+import vacioCheck from "../../../assets/admin/vacio-check.svg";
+import vacioBuscar from "../../../assets/admin/vacio-search.svg";
+import modalCheck from "../../../assets/admin/modal-check.svg";
+import modalInfo from "../../../assets/admin/modal-info.svg";
+import modalLista from "../../../assets/admin/modal-list.svg";
 
 const TONO_MARCA = { presente: "verde", ausente: "guinda", sin: "gris" } as const;
 type Periodo = "hoy" | "semana" | "anteriores";
 const porcentaje = (p: number, t: number) => (t ? Math.round((p / t) * 100) : 0);
+const RESUMEN = `${BASE_ASISTENCIA}/resumen`;
 
-// Asistencia: actividades del día (Figma 570:24906, sin actividades hoy 570:28074, sin resultados 570:28284)
 function Asistencia() {
     const actividades = useActividades();
     const listas = useAsistencia();
@@ -39,96 +35,93 @@ function Asistencia() {
     const navigate = useNavigate();
     const [params, setParams] = useSearchParams();
     const [busqueda, setBusqueda] = useState("");
+    const [estadoFiltro, setEstadoFiltro] = useState("");
+    const [pagina, setPagina] = useState(0);
     const periodo = (["hoy", "semana", "anteriores"].includes(params.get("ver") ?? "") ? params.get("ver") : "hoy") as Periodo;
     const hoy = hoyISO();
     const semana = semanaDe(hoy);
     const conLista = actividades.filter((a) => a.inscripcion && (a.estado === "publicada" || a.estado === "cancelada"));
     const enPeriodo = (a: Actividad, p: Periodo) => (p === "hoy" ? a.fecha === hoy : p === "semana" ? a.fecha >= semana[0] && a.fecha <= `${semana[4]}~` : a.fecha < hoy);
     const texto = busqueda.trim().toLowerCase();
-    const filas = conLista.filter((a) => enPeriodo(a, periodo) && (!texto || a.nombre.toLowerCase().includes(texto))).sort((a, b) => (periodo === "anteriores" ? b.fecha.localeCompare(a.fecha) : (a.fecha + a.inicio).localeCompare(b.fecha + b.inicio)));
+    const filas = conLista.filter((a) => enPeriodo(a, periodo) && (!texto || a.nombre.toLowerCase().includes(texto)) && (!estadoFiltro || estadoLista(a.folio, new Date(), listas).clave === estadoFiltro)).sort((a, b) => (periodo === "anteriores" ? b.fecha.localeCompare(a.fecha) : (a.fecha + a.inicio).localeCompare(b.fecha + b.inicio)));
     const deHoy = conLista.filter((a) => a.fecha === hoy);
+    const porPasar = conLista.filter((a) => estadoLista(a.folio, new Date(), listas).clave === "pendiente");
     const cerradas = conLista.filter((a) => estadoLista(a.folio, new Date(), listas).clave === "cerrada");
     const promedio = porcentaje(cerradas.reduce((s, a) => s + conteo(a.folio, listas).presentes, 0), cerradas.reduce((s, a) => s + conteo(a.folio, listas).inscritos + conteo(a.folio, listas).sinInscripcion, 0));
+    const elegir = (p: Periodo) => { setPagina(0); setParams(p === "hoy" ? {} : { ver: p }); };
+    const { paginas, actual, visibles } = paginar(filas, pagina, FILAS_POR_PAGINA);
+    const limpiar = () => { setBusqueda(""); setEstadoFiltro(""); elegir("hoy"); };
+    const titulos: Record<Periodo, string> = { hoy: "Actividades de hoy", semana: "Actividades de esta semana", anteriores: "Actividades anteriores" };
 
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Actividades"], ["Asistencia"], [periodo === "hoy" ? (deHoy.length ? "Hoy" : "Sin actividades hoy") : periodo === "semana" ? "Esta semana" : "Anteriores"]]} />
-                <Encabezado etiqueta="Actividades · Asistencia" titulo="Asistencia" texto="Pasa lista a las personas inscritas el día de la actividad." />
-                <BloqueResumen
-                    insignia="Asistencia"
-                    titulo="Asistencia de"
-                    resalte="hoy"
-                    subtitulo="Registro de quién asistió a cada actividad · cifras de ejemplo"
-                    accesos={[
-                        { icono: iconoArchivo, numero: deHoy.length, titulo: "Actividades hoy", texto: diaLargo(hoy), enlace: "Ver actividades", tono: "verde", alPresionar: () => setParams({}) },
-                        { icono: iconoReloj, numero: conLista.filter((a) => estadoLista(a.folio, new Date(), listas).clave === "pendiente").length, titulo: "Por pasar lista", texto: "Ya empezaron o pasaron", enlace: "Pasar lista", tono: "dorado", alPresionar: () => setParams({ ver: "anteriores" }) },
-                        { icono: iconoCheck, numero: cerradas.length, titulo: cerradas.length === 1 ? "Lista cerrada" : "Listas cerradas", texto: "Ya registradas", enlace: "Ver listas", tono: "verde", alPresionar: () => setParams({ ver: "anteriores" }) },
-                        { icono: iconoCheck, numero: `${promedio}%`, titulo: "Asistencia del mes", texto: "Promedio (ejemplo)", enlace: "Ver resumen", tono: "verde", alPresionar: () => navigate(`${BASE_ASISTENCIA}/resumen`) },
-                    ]}
-                />
-                <Tarjeta icono={iconoCasilla} titulo={periodo === "hoy" ? "Actividades de hoy" : periodo === "semana" ? "Actividades de esta semana" : "Actividades anteriores"}>
-                    <div className="cn-barra">
-                        <Filtros
-                            etiqueta="Periodo"
-                            valor={periodo}
-                            alCambiar={(p) => setParams(p === "hoy" ? {} : { ver: p })}
-                            opciones={[
-                                { valor: "hoy", texto: `Hoy (${deHoy.length})` },
-                                { valor: "semana", texto: `Esta semana (${conLista.filter((a) => enPeriodo(a, "semana")).length})` },
-                                { valor: "anteriores", texto: "Anteriores" },
-                            ]}
-                        />
-                        <Buscador texto="Buscar actividad" valor={busqueda} alCambiar={setBusqueda} />
-                    </div>
-                    {filas.length === 0 ? (
-                        texto ? (
-                            <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para «${busqueda.trim()}»`} texto="Prueba con otra palabra o cambia el periodo." accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
-                        ) : (
-                            <div className="cn-vacio">
-                                <span className="cn-vacio__icono" aria-hidden="true"><img src={vacioReloj} alt="" /></span>
-                                <p className="cn-vacio__titulo">{periodo === "hoy" ? "No hay actividades hoy" : "No hay actividades en este periodo"}</p>
-                                <p className="cn-vacio__texto">Revisa las anteriores para pasar o corregir listas.</p>
-                                {periodo !== "anteriores" && <button type="button" className={clasesBoton("contorno")} onClick={() => setParams({ ver: "anteriores" })}>Ver anteriores</button>}
-                            </div>
-                        )
+            <Migas raiz="Actividades" pasos={[["Asistencia"]]} />
+            <EncabezadoPagina etiqueta="Actividades · Asistencia" titulo="Asistencia"
+                texto="Pasa lista a las personas inscritas el día de la actividad y cierra la lista al terminar."
+                accion={<Link className="contenidos-boton contenidos-boton--contorno" to={RESUMEN}>Resumen del mes</Link>} />
+            <AccesosRapidos accesos={[
+                { clave: "hoy", icono: <IconoBandera />, cifra: deHoy.length, titulo: deHoy.length === 1 ? "Actividad hoy" : "Actividades hoy", texto: diaLargo(hoy), enlace: "Ver hoy", tono: "azul", activo: periodo === "hoy", alPresionar: () => elegir("hoy") },
+                { clave: "pendientes", icono: <IconoReloj />, cifra: porPasar.length, titulo: "Por pasar lista", texto: "Ya empezaron o terminaron.", enlace: "Ver anteriores", tono: "guinda", activo: periodo === "anteriores", alPresionar: () => elegir("anteriores") },
+                { clave: "promedio", icono: <IconoLista />, cifra: `${promedio}%`, titulo: "Asistencia promedio", texto: `${cerradas.length} ${cerradas.length === 1 ? "lista cerrada" : "listas cerradas"} (ejemplo)`, enlace: "Ver resumen", tono: "gris", alPresionar: () => navigate(RESUMEN) },
+            ]} />
+
+            <ControlesLista
+                etiqueta="Filtros de asistencia"
+                chips={{ etiqueta: "Periodo", activa: periodo, alElegir: elegir, opciones: [
+                    { valor: "hoy" as Periodo, texto: `Hoy (${deHoy.length})` },
+                    { valor: "semana" as Periodo, texto: `Esta semana (${conLista.filter((a) => enPeriodo(a, "semana")).length})` },
+                    { valor: "anteriores" as Periodo, texto: `Anteriores (${conLista.filter((a) => enPeriodo(a, "anteriores")).length})` },
+                ] }}
+                busqueda={{ etiqueta: "Buscar actividad", marcador: "Nombre de la actividad…", texto: busqueda, alBuscar: (v) => { setBusqueda(v); setPagina(0); } }}
+                grupos={[{ etiqueta: "Estado de la lista", opciones: [{ valor: "", texto: "Todas" }, { valor: "pendiente", texto: "Por pasar lista" }, { valor: "cerrada", texto: "Lista cerrada" }, { valor: "futura", texto: "Aún no empieza" }, { valor: "cancelada", texto: "Cancelada" }], activa: estadoFiltro, alElegir: (v) => { setEstadoFiltro(v); setPagina(0); } }]}
+                alLimpiar={limpiar}
+            />
+
+            <SeccionLista
+                id="asistencia-lista"
+                icono={<IconoLista />}
+                titulo={titulos[periodo]}
+                texto="Abre una actividad para marcar quién asistió."
+            >
+                <CuerpoLista>
+                {filas.length === 0 ? (
+                    texto || estadoFiltro ? (
+                        <EstadoVacio icono={vacioBuscar} titulo={texto ? `Sin resultados para «${busqueda.trim()}»` : "No hay actividades con este estado"} texto="Prueba con otra palabra, otro estado o cambia el periodo." accion={{ texto: "Quitar filtros", alPresionar: limpiar }} />
                     ) : (
-                        <>
-                            <Tabla
-                                columnas={[
-                                    { titulo: "FOLIO", ancho: 90, folio: true, celda: (a: Actividad) => a.folio },
-                                    { titulo: "ACTIVIDAD", fuerte: true, celda: (a: Actividad) => a.nombre },
-                                    { titulo: periodo === "hoy" ? "HORA" : "FECHA", ancho: 120, celda: (a: Actividad) => (periodo === "hoy" ? a.inicio : fechaCorta(a.fecha)) },
-                                    { titulo: "SALA", ancho: 150, celda: (a: Actividad) => a.espacio },
-                                    { titulo: "INSCRITOS", ancho: 90, celda: (a: Actividad) => a.inscritos },
-                                    { titulo: "ESTADO", ancho: 150, celda: (a: Actividad) => { const e = estadoLista(a.folio, new Date(), listas); return <Chip tono={e.tono} ancho={140}>{e.texto}</Chip>; } },
-                                    {
-                                        titulo: "ACCIÓN",
-                                        ancho: 140,
-                                        celda: (a: Actividad) => {
-                                            const e = estadoLista(a.folio, new Date(), listas).clave;
-                                            if (e === "cancelada") return <span>—</span>;
-                                            return <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="cn-enlace">{e === "cerrada" ? "Ver asistencia" : e === "pendiente" ? "Pasar lista" : "Ver lista"} →<span className="cn-solo-lectores"> {a.nombre}</span></Link>;
-                                        },
-                                    },
-                                ]}
-                                filas={filas}
-                                clave={(a) => a.folio}
-                            />
-                            <p className="cn-nota">{filas.length} actividades (ejemplo)</p>
-                        </>
-                    )}
-                </Tarjeta>
-                <div className="cn-acciones">
-                    <Link to={`${BASE_ASISTENCIA}/resumen`} className={clasesBoton("contorno")}>Resumen de asistencia</Link>
-                </div>
-                <PieDatos />
-            </Pagina>
+                        <EstadoVacio icono={vacioCheck} titulo={periodo === "hoy" ? "No hay actividades hoy" : "No hay actividades en este periodo"} texto="Revisa las anteriores para pasar o corregir listas."
+                            accion={periodo !== "anteriores" ? { texto: "Ver anteriores", alPresionar: () => elegir("anteriores") } : undefined} />
+                    )
+                ) : (
+                    <TablaLista
+                        clase="ac-tabla--asistencia"
+                        etiqueta={titulos[periodo]}
+                        filas={visibles}
+                        clave={(a) => a.folio}
+                        columnas={[
+                            { titulo: "Folio", folio: true, celda: (a) => a.folio },
+                            { titulo: "Actividad", celda: (a) => <CeldaDoble arriba={a.nombre} abajo={a.espacio} /> },
+                            { titulo: periodo === "hoy" ? "Hora" : "Fecha", celda: (a) => (periodo === "hoy" ? a.inicio : <CeldaDoble arriba={fechaCorta(a.fecha)} abajo={a.inicio} />) },
+                            { titulo: "Inscritos", celda: (a) => a.inscritos },
+                            { titulo: "Lista", celda: (a) => { const e = estadoLista(a.folio, new Date(), listas); return <Chip tono={e.tono}>{e.texto}</Chip>; } },
+                            {
+                                titulo: "Acción",
+                                celda: (a) => {
+                                    const e = estadoLista(a.folio, new Date(), listas).clave;
+                                    if (e === "cancelada") return <span className="ac-sin-accion">—</span>;
+                                    return <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="contenidos-tabla__accion">{e === "cerrada" ? "Ver lista" : e === "pendiente" ? "Pasar lista" : "Ver inscritos"} →<span className="tr-oculto"> {a.nombre}</span></Link>;
+                                },
+                            },
+                        ]}
+                    />
+                )}
+                </CuerpoLista>
+                {filas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filas.length} actividades (ejemplo)`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
+            </SeccionLista>
         </PanelLayout>
     );
 }
 
-const POR_PAGINA = 8;
+const POR_PAGINA = 10; // pasar lista: más personas por página para no cambiar tanto de hoja
 
 // Pasar lista (570:25383), error al guardar (570:25860), confirmar cierre (570:26348), agregar sin inscripción (570:27478);
 // si la lista ya está cerrada: detalle (570:26909) y corregir (570:27370)
@@ -156,6 +149,8 @@ export function PasarLista() {
     const { paginas, actual, visibles } = paginar(personas, pagina, POR_PAGINA);
     const marcaDe = (id: string, extra: boolean): Marca => (extra ? "presente" : lista.marcas[id] ?? "sin");
     const libres = lugaresParaExtras(a.folio);
+    const total = c.presentes + c.ausentes + c.sinMarcar;
+    const avance = porcentaje(c.presentes + c.ausentes, total);
 
     async function guardar() {
         setGuardado(false);
@@ -175,145 +170,138 @@ export function PasarLista() {
         setVentana({ id, persona });
     }
 
+    function marcarTodos(m: Marca) {
+        personas.filter((p) => !p.extra && marcaDe(p.id, false) === "sin").forEach((p) => marcar(a!.folio, p.id, m));
+        setGuardado(false);
+    }
+
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Actividades"], ["Asistencia", BASE_ASISTENCIA], [cerrada ? (ventana ? "Corregir asistencia" : "Lista cerrada") : error ? "Error al guardar" : ventana === "cerrar" ? "Confirmar cierre" : ventana === "agregar" ? "Agregar persona sin inscripción" : "Pasar lista"]]} />
-                <EncabezadoTarjeta
-                    volver={{ texto: "Volver a Asistencia", ruta: BASE_ASISTENCIA }}
-                    etiqueta={`Actividad ${a.folio}`}
-                    titulo={cerrada ? a.nombre : `Pasar lista · ${a.nombre}`}
-                    texto={`${fechaCorta(a.fecha)} · ${a.inicio} · ${a.espacio} · ${c.inscritos} inscritos.`}
-                />
+            <Migas raiz="Actividades" pasos={[["Asistencia", BASE_ASISTENCIA], [cerrada ? "Lista cerrada" : "Pasar lista"]]} />
+            <EncabezadoPagina
+                volver={{ texto: "Volver a Asistencia", ruta: BASE_ASISTENCIA }}
+                etiqueta={`Actividad ${a.folio} · ${cerrada ? "Lista cerrada" : "Pasar lista"}`}
+                titulo={a.nombre}
+                texto={`${fechaCorta(a.fecha)} · ${a.inicio} · ${a.espacio} · ${c.inscritos} inscritos.`}
+                accion={<Chip tono={cerrada ? "verde" : "dorado"}>{cerrada ? "Lista cerrada" : "Lista abierta"}</Chip>}
+            />
 
-                {error && <Resultado tono="guinda" icono={iconoAlerta} titulo="No se pudo guardar la asistencia" linea="Revisa tu conexión. Tus marcas siguen en pantalla; inténtalo de nuevo." chip={<Chip tono="guinda">Sin guardar</Chip>} />}
-                {guardado && <p className="cn-aviso cn-aviso--exito" role="status"><span className="cn-aviso__textos"><strong>Asistencia guardada (ejemplo).</strong></span></p>}
+            {error && <AvisoResultado tono="error" titulo="No se pudo guardar la asistencia" texto="Revisa tu conexión. Tus marcas siguen en pantalla; inténtalo de nuevo." chip="Sin guardar" />}
+            {guardado && <AvisoResultado tono="exito" titulo="Asistencia guardada" texto="Puedes seguir marcando o cerrar la lista cuando termines (ejemplo)." chip="Guardada" />}
 
-                {cerrada ? (
-                    <Tarjeta icono={iconoCasilla} titulo="Resumen">
-                        <Datos filas={[["Inscritos", String(c.inscritos)], ["Presentes", `${c.presentes}${c.sinInscripcion ? ` (${c.sinInscripcion} sin inscripción)` : ""}`], ["Ausentes", String(c.ausentes)], ["Cerró", lista.cerrada!.quien], ["Cierre", `${fechaCorta(lista.cerrada!.fecha)} · ${new Date(lista.cerrada!.fecha).toTimeString().slice(0, 5)}`]]} />
-                    </Tarjeta>
-                ) : (
-                    <BloqueResumen
-                        insignia="Asistencia"
-                        titulo=""
-                        resalte="Conteo"
-                        subtitulo="Registro de quién asistió a cada actividad · cifras de ejemplo"
-                        accesos={[
-                            { icono: iconoCheck, numero: c.presentes, titulo: "Presentes", texto: "Marcados", enlace: "", tono: "verde" },
-                            { icono: iconoX, numero: c.ausentes, titulo: "Ausentes", texto: "Marcados", enlace: "", tono: "guinda" },
-                            { icono: iconoX, numero: c.sinMarcar, titulo: "Sin marcar", texto: "Pendientes", enlace: "", tono: "dorado" },
-                            { icono: iconoArchivo, numero: c.sinInscripcion, titulo: "Sin inscripción", texto: "Se agregó al llegar", enlace: "", tono: "verde" },
-                        ]}
-                    />
-                )}
-
-                <Tarjeta icono={iconoLista} titulo={cerrada ? "Registro" : "Personas inscritas"}>
-                    {personas.length === 0 ? (
-                        <EstadoVacio icono={vacioReloj} titulo="No hay personas inscritas" texto="Puedes agregar a quien llegó sin inscripción." />
-                    ) : (
-                        <Tabla
-                            columnas={[
-                                { titulo: "N.º", ancho: 50, folio: true, celda: (p: { id: string }) => String(personas.findIndex((x) => x.id === p.id) + 1).padStart(2, "0") },
-                                { titulo: "PERSONA", fuerte: true, celda: (p: { persona: string; extra: boolean }) => `${p.persona}${p.extra ? " · sin inscripción" : ""}` },
-                                ...(cerrada ? [] : [{
-                                    titulo: "NOTA",
-                                    ancho: 200,
-                                    celda: (p: { id: string; persona: string }) => <input className="cn-control ac-nota" placeholder="Agregar nota" aria-label={`Nota de ${p.persona}`} value={lista.notas[p.id] ?? ""} onChange={(e) => anotar(a.folio, p.id, e.target.value)} />,
-                                }]),
-                                { titulo: "ASISTENCIA", ancho: 130, celda: (p: { id: string; extra: boolean }) => { const m = marcaDe(p.id, p.extra); return <Chip tono={TONO_MARCA[m]} ancho={120}>{NOMBRE_MARCA[m]}</Chip>; } },
-                                {
-                                    titulo: cerrada ? "ACCIÓN" : "MARCAR",
-                                    ancho: 170,
-                                    celda: (p: { id: string; persona: string; extra: boolean }) => cerrada ? (
-                                        p.extra ? <span>—</span> : <button type="button" className="cn-enlace" onClick={() => abrirCorreccion(p.id, p.persona)}>Corregir →<span className="cn-solo-lectores"> {p.persona}</span></button>
-                                    ) : p.extra ? <span>Presente</span> : (
-                                        <span className="ac-marcar" role="group" aria-label={`Marcar a ${p.persona}`}>
-                                            <button type="button" className="cn-enlace" aria-pressed={marcaDe(p.id, false) === "presente"} onClick={() => { marcar(a.folio, p.id, "presente"); setGuardado(false); }}>Presente</button>
-                                            <span aria-hidden="true"> · </span>
-                                            <button type="button" className="cn-enlace" aria-pressed={marcaDe(p.id, false) === "ausente"} onClick={() => { marcar(a.folio, p.id, "ausente"); setGuardado(false); }}>Ausente</button>
-                                        </span>
-                                    ),
-                                },
-                            ]}
-                            filas={visibles}
-                            clave={(p) => p.id}
-                        />
-                    )}
-                    {personas.length > 0 && (
-                        <div className="cn-pie-tabla">
-                            <p>Mostrando {visibles.length} de {personas.length} (ejemplo)</p>
-                            <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
-                        </div>
-                    )}
-                    {cerrada && lista.correcciones.length > 0 && (
-                        <ul className="cn-lista">
-                            {lista.correcciones.map((x) => <li key={x.fecha + x.persona}>{x.persona}: {NOMBRE_MARCA[x.de]} → {NOMBRE_MARCA[x.a]} · {x.motivo} ({x.quien})</li>)}
-                        </ul>
-                    )}
-                </Tarjeta>
-
-                <div className="cn-acciones">
-                    {cerrada ? (
-                        <Link to={BASE_ASISTENCIA} className={`${clasesBoton("suave")} panel-regresar`}>Volver</Link>
-                    ) : (
-                        <>
-                            <button type="button" className={clasesBoton("contorno")} onClick={() => { setNombre(""); setContacto(""); setErrorCampo(""); setVentana("agregar"); }}>Agregar persona sin inscripción</button>
-                            <button type="button" className={clasesBoton("contorno")} onClick={() => void guardar()}>Guardar y seguir</button>
-                            <button type="button" className={clasesBoton("verde")} onClick={() => setVentana("cerrar")}>Cerrar lista de asistencia</button>
-                        </>
-                    )}
+            <section className="ac-cupo-sesion" aria-label="Conteo de la lista">
+                <div className="ac-cupo-sesion__cifras">
+                    <div><span>Presentes</span><strong>{c.presentes}</strong></div>
+                    <div><span>Ausentes</span><strong>{c.ausentes}</strong></div>
+                    <div><span>Sin marcar</span><strong className={c.sinMarcar && !cerrada ? "ac-cupo-sesion__pendiente" : undefined}>{c.sinMarcar}</strong></div>
+                    <div><span>Sin inscripción</span><strong>{c.sinInscripcion}</strong></div>
                 </div>
-                <PieDatos />
-            </Pagina>
+                <div className="ac-cupo">
+                    <span className="ac-cupo__barra"><span className={`ac-cupo__relleno ac-cupo__relleno--${avance === 100 ? "verde" : "dorado"}`} style={{ width: `${avance}%` }} /></span>
+                    <span>{cerrada ? `Cerró ${lista.cerrada!.quien} el ${fechaCorta(lista.cerrada!.fecha)} · ${porcentaje(c.presentes, c.inscritos + c.sinInscripcion)}% de asistencia` : `${avance}% de la lista marcada`}</span>
+                </div>
+            </section>
+
+            <SeccionLista
+                id="pasar-lista"
+                icono={<IconoLista />}
+                titulo={cerrada ? "Registro de asistencia" : "Personas inscritas"}
+                texto={cerrada ? "Para cambiar una marca, usa «Corregir»: queda en la bitácora." : "Marca a cada persona. Puedes guardar y seguir después."}
+                extra={!cerrada && c.sinMarcar > 0 ? <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={() => marcarTodos("presente")}>Marcar pendientes como presentes</button> : undefined}
+            >
+                {personas.length === 0 ? (
+                    <EstadoVacio icono={vacioCheck} titulo="No hay personas inscritas" texto="Puedes agregar a quien llegó sin inscripción." />
+                ) : (
+                    <ul className="ac-inscritos">
+                        {visibles.map((p) => {
+                            const m = marcaDe(p.id, p.extra);
+                            const numero = String(personas.findIndex((x) => x.id === p.id) + 1).padStart(2, "0");
+                            return (
+                                <li key={p.id} className="ac-inscrito">
+                                    <div className="ac-inscrito__fila ac-inscrito__fila--lista">
+                                        <span className="ac-numero" aria-hidden="true">{numero}</span>
+                                        <span className="ac-inscrito__textos"><strong>{p.persona}</strong>{p.extra && <small>Llegó sin inscripción</small>}</span>
+                                        {!cerrada && !p.extra && (
+                                            <input className="tr-entrada ac-nota" placeholder="Nota (opcional)" aria-label={`Nota de ${p.persona}`} value={lista.notas[p.id] ?? ""} onChange={(e) => anotar(a.folio, p.id, e.target.value)} />
+                                        )}
+                                        {cerrada || p.extra ? (
+                                            <Chip tono={TONO_MARCA[m]}>{NOMBRE_MARCA[m]}</Chip>
+                                        ) : (
+                                            <span className="contenidos-filtros ac-marcar" role="group" aria-label={`Asistencia de ${p.persona}`}>
+                                                {(["presente", "ausente"] as const).map((op) => (
+                                                    <button key={op} type="button" aria-pressed={m === op} className={`contenidos-filtro ac-marcar__${op}${m === op ? " contenidos-filtro--activo" : ""}`}
+                                                        onClick={() => { marcar(a.folio, p.id, op); setGuardado(false); }}>{NOMBRE_MARCA[op]}</button>
+                                                ))}
+                                            </span>
+                                        )}
+                                        {cerrada && !p.extra && <button type="button" className="contenidos-tabla__accion ac-boton-texto" onClick={() => abrirCorreccion(p.id, p.persona)}>Corregir →<span className="tr-oculto"> {p.persona}</span></button>}
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+                {personas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${personas.length} personas (ejemplo)`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
+                {cerrada && lista.correcciones.length > 0 && (
+                    <div className="tr-datos__bloque">
+                        <p className="at-subtitulo">Correcciones registradas</p>
+                        <ol className="tr-eventos">
+                            {lista.correcciones.map((x) => <li key={x.fecha + x.persona} className="tr-eventos--hecho"><strong>{x.persona}: {NOMBRE_MARCA[x.de]} → {NOMBRE_MARCA[x.a]}</strong><small>{x.motivo} · {x.quien}</small></li>)}
+                        </ol>
+                    </div>
+                )}
+            </SeccionLista>
+
+            {!cerrada && (
+                <div className="ac-barra-acciones">
+                    <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => { setNombre(""); setContacto(""); setErrorCampo(""); setVentana("agregar"); }}><IconoMas /> Agregar persona sin inscripción</button>
+                    <span className="ac-barra-acciones__derecha">
+                        <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => void guardar()}>Guardar y seguir</button>
+                        <button type="button" className="contenidos-boton contenidos-boton--oscuro" onClick={() => setVentana("cerrar")}>Cerrar lista</button>
+                    </span>
+                </div>
+            )}
 
             {ventana === "cerrar" && (
-                <Ventana
-                    titulo="¿Cerrar la lista de asistencia?"
-                    texto="Después de cerrarla, los cambios requieren una corrección con motivo."
-                    alCerrar={() => setVentana(null)}
-                    pie={<><button type="button" className={clasesBoton("contorno")} onClick={() => setVentana(null)}>Seguir editando</button><button type="button" className={clasesBoton("verde")} onClick={() => { cerrarLista(a.folio); navigate(`${BASE_ASISTENCIA}/${a.folio}/cerrada`); }}>Cerrar lista</button></>}
-                >
-                    <Datos variante="caja" filas={[["Actividad", a.nombre], ["Presentes", String(c.presentes)], ["Ausentes", String(c.ausentes)], ["Sin marcar", c.sinMarcar ? `${c.sinMarcar} (se marcarán como ausentes)` : "0"]]} />
-                </Ventana>
+                <Ventana tono="verde" icono={modalCheck} angosta titulo="¿Cerrar la lista de asistencia?"
+                    texto={c.sinMarcar ? `Quedan ${c.sinMarcar} sin marcar: se registrarán como ausentes. Después, los cambios requieren una corrección con motivo.` : "Después de cerrarla, los cambios requieren una corrección con motivo."}
+                    textoConfirmar="Cerrar lista" textoCancelar="Seguir editando"
+                    alConfirmar={() => { cerrarLista(a.folio); navigate(`${BASE_ASISTENCIA}/${a.folio}/cerrada`); }}
+                    alCerrar={() => setVentana(null)} />
             )}
             {ventana === "agregar" && (
-                <Ventana
-                    titulo="Agregar persona sin inscripción"
-                    texto={libres > 0 ? "Para quien llegó y hay lugar. Se cuenta como asistente." : "No quedan lugares en esta actividad."}
-                    alCerrar={() => setVentana(null)}
-                    pie={<><button type="button" className={clasesBoton("contorno")} onClick={() => setVentana(null)}>Cancelar</button><button type="button" className={clasesBoton("verde")} disabled={libres <= 0} onClick={() => { if (!nombre.trim()) return setErrorCampo("Escribe el nombre completo."); agregarSinInscripcion(a.folio, nombre, contacto); setVentana(null); }}>Agregar y marcar presente</button></>}
-                >
-                    <CampoTexto id="as-nombre" etiqueta="Nombre completo" obligatorio error={errorCampo}>
-                        <input id="as-nombre" className={`cn-control ${errorCampo ? "cn-control--error" : ""}`} value={nombre} onChange={(e) => { setNombre(e.target.value); setErrorCampo(""); }} aria-invalid={!!errorCampo} />
-                    </CampoTexto>
-                    <CampoTexto id="as-contacto" etiqueta="Contacto (opcional)">
-                        <input id="as-contacto" className="cn-control" value={contacto} onChange={(e) => setContacto(e.target.value)} />
-                    </CampoTexto>
-                    <Datos variante="caja" filas={[["Lugares libres", `${libres} de ${a.cupo}`]]} />
+                <Ventana tono="verde" icono={modalLista} titulo="Agregar persona sin inscripción"
+                    texto={libres > 0 ? `Para quien llegó y hay lugar (${libres} de ${a.cupo} libres). Se cuenta como asistente.` : "No quedan lugares en esta actividad."}
+                    textoConfirmar="Agregar y marcar presente" ocupada={libres <= 0} error={errorCampo}
+                    alConfirmar={() => { if (!nombre.trim()) return setErrorCampo("Escribe el nombre completo."); agregarSinInscripcion(a.folio, nombre, contacto); setVentana(null); }}
+                    alCerrar={() => setVentana(null)}>
+                    <div className="contenidos-campo"><label htmlFor="as-nombre">Nombre completo <span className="contenidos-campo__obligatorio">*</span></label>
+                        <input id="as-nombre" className="tr-entrada" value={nombre} aria-invalid={!!errorCampo} onChange={(e) => { setNombre(e.target.value); setErrorCampo(""); }} /></div>
+                    <div className="contenidos-campo"><label htmlFor="as-contacto">Contacto (opcional)</label>
+                        <input id="as-contacto" className="tr-entrada" value={contacto} onChange={(e) => setContacto(e.target.value)} /></div>
                 </Ventana>
             )}
             {ventana && typeof ventana === "object" && (
-                <Ventana
-                    titulo="Corregir asistencia"
-                    texto="El cambio queda en la bitácora con tu nombre, la fecha y el motivo."
-                    alCerrar={() => setVentana(null)}
-                    pie={<><button type="button" className={clasesBoton("contorno")} onClick={() => setVentana(null)}>Cancelar</button><button type="button" className={clasesBoton("verde")} onClick={() => { if (!motivo.trim()) return setErrorCampo("Escribe el motivo de la corrección."); corregir(a.folio, ventana.id, nueva, motivo); setVentana(null); }}>Guardar corrección</button></>}
-                >
-                    <Datos variante="caja" filas={[["Persona", ventana.persona], ["Actual", NOMBRE_MARCA[marcaDe(ventana.id, false)]]]} />
-                    <CampoTexto id="as-nueva" etiqueta="Nueva asistencia" obligatorio>
-                        <select id="as-nueva" className="cn-control" value={nueva} onChange={(e) => setNueva(e.target.value as Marca)}><option value="presente">Presente</option><option value="ausente">Ausente</option></select>
-                    </CampoTexto>
-                    <CampoTexto id="as-motivo" etiqueta="Motivo de la corrección" obligatorio error={errorCampo}>
-                        <textarea id="as-motivo" className={`cn-control cn-control--area ${errorCampo ? "cn-control--error" : ""}`} placeholder="Ej.: sí asistió, se marcó por error." value={motivo} onChange={(e) => { setMotivo(e.target.value); setErrorCampo(""); }} aria-invalid={!!errorCampo} />
-                    </CampoTexto>
+                <Ventana tono="dorado" icono={modalInfo} titulo={`Corregir asistencia de ${ventana.persona}`}
+                    texto={`Ahora: ${NOMBRE_MARCA[marcaDe(ventana.id, false)]}. El cambio queda en la bitácora con tu nombre, la fecha y el motivo.`}
+                    textoConfirmar="Guardar corrección" error={errorCampo}
+                    alConfirmar={() => { if (!motivo.trim()) return setErrorCampo("Escribe el motivo de la corrección."); corregir(a.folio, ventana.id, nueva, motivo); setVentana(null); }}
+                    alCerrar={() => setVentana(null)}>
+                    <div className="contenidos-filtros tr-decisiones" role="radiogroup" aria-label="Nueva asistencia">
+                        {(["presente", "ausente"] as const).map((op) => (
+                            <label key={op} className={`contenidos-filtro${nueva === op ? " contenidos-filtro--activo" : ""}`}>
+                                <input type="radio" name="as-nueva" className="tr-oculto" checked={nueva === op} onChange={() => setNueva(op)} />{NOMBRE_MARCA[op]}
+                            </label>
+                        ))}
+                    </div>
+                    <div className="contenidos-campo"><label htmlFor="as-motivo">Motivo de la corrección <span className="contenidos-campo__obligatorio">*</span></label>
+                        <textarea id="as-motivo" rows={3} placeholder="Ej.: sí asistió, se marcó por error." value={motivo} aria-invalid={!!errorCampo} onChange={(e) => { setMotivo(e.target.value); setErrorCampo(""); }} /></div>
                 </Ventana>
             )}
         </PanelLayout>
     );
 }
 
-// Lista cerrada (Figma 570:26467)
 export function ListaCerrada() {
     const { folio } = useParams();
     useActividades();
@@ -323,73 +311,68 @@ export function ListaCerrada() {
     const c = conteo(a.folio, listas);
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Actividades"], ["Asistencia", BASE_ASISTENCIA], ["Lista cerrada"]]} />
-                <Encabezado grande etiqueta={`Actividad ${a.folio} · Asistencia`} titulo="Lista cerrada" texto="La asistencia quedó registrada." />
-                <Resultado tono="verde" icono={iconoResultado} titulo={a.nombre} linea={`${c.presentes} presentes · ${c.ausentes} ausentes · ${porcentaje(c.presentes, c.inscritos + c.sinInscripcion)}% de asistencia`} chip={<Chip tono="verde">Lista cerrada</Chip>} />
-                <div className="cn-acciones">
-                    <Link to={BASE_ASISTENCIA} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Asistencia</Link>
-                    <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className={clasesBoton("contorno")}>Ver la lista</Link>
-                </div>
-                <PieDatos />
-            </Pagina>
+            <Migas raiz="Actividades" pasos={[["Asistencia", BASE_ASISTENCIA], ["Lista cerrada"]]} />
+            <EncabezadoPagina etiqueta={`Actividad ${a.folio} · Asistencia`} titulo="Lista cerrada" texto="La asistencia quedó registrada." />
+            <AvisoResultado tono="exito" titulo={a.nombre} texto={`${c.presentes} presentes · ${c.ausentes} ausentes · ${porcentaje(c.presentes, c.inscritos + c.sinInscripcion)}% de asistencia`} chip="Lista cerrada" />
+            <div className="tr-acciones">
+                <Link to={BASE_ASISTENCIA} className="contenidos-boton contenidos-boton--oscuro">Volver a Asistencia</Link>
+                <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="contenidos-boton contenidos-boton--contorno">Ver la lista</Link>
+            </div>
         </PanelLayout>
     );
 }
 
-// Resumen de asistencia del mes (Figma 570:27596)
 export function ResumenAsistencia() {
     const actividades = useActividades();
     const listas = useAsistencia();
     useInscripciones();
     const hoy = hoyISO();
-    const mes = hoy.slice(0, 7);
+    const [anio, m] = hoy.slice(0, 7).split("-").map(Number);
     const pasadas = actividades.filter((a) => a.inscripcion && (a.estado === "publicada" || a.estado === "cancelada") && a.fecha <= hoy).sort((a, b) => b.fecha.localeCompare(a.fecha));
     const cerradas = pasadas.filter((a) => listaDe(a.folio, listas).cerrada);
     const asistentes = cerradas.reduce((s, a) => s + conteo(a.folio, listas).presentes, 0);
     const total = cerradas.reduce((s, a) => { const c = conteo(a.folio, listas); return s + c.inscritos + c.sinInscripcion; }, 0);
     const pendientes = pasadas.filter((a) => estadoLista(a.folio, new Date(), listas).clave === "pendiente").length;
-    const [anio, m] = mes.split("-").map(Number);
-    const nombreMes = new Date(anio, m - 1, 1).toLocaleDateString("es-MX", { month: "long" });
+    const nombreMes = new Date(anio, m - 1, 1).toLocaleDateString("es-MX", { month: "long", year: "numeric" });
 
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Actividades"], ["Asistencia", BASE_ASISTENCIA], ["Resumen"]]} />
-                <EncabezadoTarjeta volver={{ texto: "Volver a Asistencia", ruta: BASE_ASISTENCIA }} etiqueta="Asistencia" titulo="Resumen de asistencia" texto="Cómo ha ido la asistencia en las actividades ya realizadas (ejemplo)." />
-                <BloqueResumen
-                    insignia="Asistencia"
-                    titulo={nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}
-                    resalte={String(anio)}
-                    subtitulo="Registro de quién asistió a cada actividad · cifras de ejemplo"
-                    accesos={[
-                        { icono: iconoCheck, numero: `${porcentaje(asistentes, total)}%`, titulo: "Asistencia promedio", texto: "De inscritos", enlace: "", tono: "verde" },
-                        { icono: iconoCheck, numero: cerradas.length, titulo: "Actividades cerradas", texto: "Con lista", enlace: "", tono: "verde" },
-                        { icono: iconoCheck, numero: asistentes, titulo: "Asistentes", texto: "Total", enlace: "", tono: "verde" },
-                        { icono: iconoReloj, numero: pendientes, titulo: "Listas pendientes", texto: "Sin cerrar", enlace: "", tono: "dorado" },
-                    ]}
-                />
-                <Tarjeta icono={iconoTarjeta} titulo="Por actividad">
-                    {pasadas.length === 0 ? (
-                        <EstadoVacio icono={vacioReloj} titulo="Todavía no hay actividades realizadas" texto="Cuando se cierre una lista, aparecerá aquí." />
-                    ) : (
-                        <Tabla
-                            columnas={[
-                                { titulo: "FOLIO", ancho: 90, folio: true, celda: (a: Actividad) => <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="cn-enlace">{a.folio}</Link> },
-                                { titulo: "ACTIVIDAD", fuerte: true, celda: (a: Actividad) => a.nombre },
-                                { titulo: "FECHA", ancho: 120, celda: (a: Actividad) => fechaCorta(a.fecha) },
-                                { titulo: "INSCRITOS", ancho: 90, celda: (a: Actividad) => a.inscritos },
-                                { titulo: "PRESENTES", ancho: 90, celda: (a: Actividad) => (listaDe(a.folio, listas).cerrada ? conteo(a.folio, listas).presentes : "—") },
-                                { titulo: "ASISTENCIA", ancho: 100, celda: (a: Actividad) => { if (!listaDe(a.folio, listas).cerrada) return "—"; const c = conteo(a.folio, listas); return `${porcentaje(c.presentes, c.inscritos + c.sinInscripcion)}%`; } },
-                                { titulo: "ESTADO", ancho: 150, celda: (a: Actividad) => { const e = estadoLista(a.folio, new Date(), listas); return <Chip tono={e.tono} ancho={140}>{e.clave === "cerrada" ? "Cerrada" : e.texto}</Chip>; } },
-                            ]}
-                            filas={pasadas}
-                            clave={(a) => a.folio}
-                        />
-                    )}
-                </Tarjeta>
-                <PieDatos />
-            </Pagina>
+            <Migas raiz="Actividades" pasos={[["Asistencia", BASE_ASISTENCIA], ["Resumen del mes"]]} />
+            <EncabezadoPagina volver={{ texto: "Volver a Asistencia", ruta: BASE_ASISTENCIA }} etiqueta="Actividades · Asistencia"
+                titulo={`Resumen de ${nombreMes}`} texto="Cómo ha ido la asistencia en las actividades ya realizadas (ejemplo)." />
+            <AccesosRapidos titulo="Cifras del mes" accesos={[
+                { clave: "promedio", icono: <IconoBandera />, cifra: `${porcentaje(asistentes, total)}%`, titulo: "Asistencia promedio", texto: "De las personas inscritas.", tono: "azul" },
+                { clave: "asistentes", icono: <IconoLista />, cifra: asistentes, titulo: "Asistentes", texto: `En ${cerradas.length} ${cerradas.length === 1 ? "lista cerrada" : "listas cerradas"}.`, tono: "gris" },
+                { clave: "pendientes", icono: <IconoAviso />, cifra: pendientes, titulo: pendientes === 1 ? "Lista sin cerrar" : "Listas sin cerrar", texto: "Ya pasó la actividad.", tono: "guinda" },
+            ]} />
+            <SeccionLista id="resumen-por-actividad" icono={<IconoInfo />} titulo="Por actividad" texto="Las listas sin cerrar no cuentan en el promedio.">
+                {pasadas.length === 0 ? (
+                    <EstadoVacio icono={vacioCheck} titulo="Todavía no hay actividades realizadas" texto="Cuando se cierre una lista, aparecerá aquí." />
+                ) : (
+                    <TablaLista
+                        clase="ac-tabla--resumen"
+                        etiqueta="Asistencia por actividad"
+                        filas={pasadas}
+                        clave={(a) => a.folio}
+                        columnas={[
+                            { titulo: "Folio", folio: true, celda: (a) => <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="contenidos-tabla__accion">{a.folio}</Link> },
+                            { titulo: "Actividad", celda: (a) => <CeldaDoble arriba={a.nombre} abajo={fechaCorta(a.fecha)} /> },
+                            { titulo: "Inscritos", celda: (a) => a.inscritos },
+                            { titulo: "Presentes", celda: (a) => (listaDe(a.folio, listas).cerrada ? conteo(a.folio, listas).presentes : "—") },
+                            {
+                                titulo: "Asistencia",
+                                celda: (a) => {
+                                    if (!listaDe(a.folio, listas).cerrada) return "—";
+                                    const c = conteo(a.folio, listas);
+                                    const p = porcentaje(c.presentes, c.inscritos + c.sinInscripcion);
+                                    return <span className="ac-cupo ac-cupo--celda"><span className="ac-cupo__barra"><span className={`ac-cupo__relleno ac-cupo__relleno--${p >= 70 ? "verde" : p >= 40 ? "dorado" : "guinda"}`} style={{ width: `${p}%` }} /></span>{p}%</span>;
+                                },
+                            },
+                            { titulo: "Lista", celda: (a) => { const e = estadoLista(a.folio, new Date(), listas); return <Chip tono={e.tono}>{e.clave === "cerrada" ? "Cerrada" : e.texto}</Chip>; } },
+                        ]}
+                    />
+                )}
+            </SeccionLista>
         </PanelLayout>
     );
 }

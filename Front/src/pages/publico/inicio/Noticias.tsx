@@ -19,6 +19,7 @@ import flechaVerde from "../../../assets/inicio/noticia-flecha.svg";
 import anterior from "../../../assets/inicio/noticia-anterior.svg";
 import siguiente from "../../../assets/inicio/noticia-siguiente.svg";
 
+import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 // Color de la pastilla y su ícono según la categoría
 const categorias: Record<CategoriaNoticia, { color: string; icono: string }> = {
     Institucional: { color: "verde", icono: iconoUsuarios },
@@ -36,7 +37,7 @@ function Noticias() {
     const destacada = noticias[activa] ?? noticias[0];
     const total = noticias.length;
 
-    if (!destacada) return <section className="seccion-inicio"><h2>Noticias</h2><p role={error ? "alert" : "status"}>{error ?? (!datos ? "Cargando noticias…" : "Todavía no hay noticias publicadas.")}</p></section>;
+    if (!destacada) return <section className="seccion-inicio"><h2>Noticias</h2>{!error && !datos ? <EsqueletoTarjetas cantidad={3} texto="Cargando noticias…" /> : <p role={error ? "alert" : "status"}>{error ?? "Todavía no hay noticias publicadas."}</p>}</section>;
     return (
         <section className="seccion-inicio seccion-inicio--blanca">
             <Bloque tema="verde" circulos={[circulo1, circulo2]} textura={{ src: rama, ancho: 380, alto: 380 }}>

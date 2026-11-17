@@ -4,14 +4,12 @@ import iconoNube from "../../../assets/comun/iconos/estado-nube.svg";
 import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import iconoReintentar from "../../../assets/comun/iconos/reintentar-blanco.svg";
 
+import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 // Mientras llega la respuesta
 export function CargandoServicios() {
     return (
         <section className="servicios-seccion servicios-seccion--crema">
-            <p className="servicios-cargando" role="status">
-                <span className="servicios-cargando__punto" aria-hidden="true" />
-                Cargando servicios…
-            </p>
+            <EsqueletoTarjetas cantidad={3} texto="Cargando servicios…" />
         </section>
     );
 }

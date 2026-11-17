@@ -3,7 +3,7 @@
 import { useContext } from "react";
 import { Link, useLocation } from "react-router";
 import PanelLayout from "./PanelLayout";
-import { SECCIONES_MENU } from "./menu";
+import { SECCIONES_MENU, seccionDeRuta } from "./menu";
 import { ContextoPanel, capacidadPanel, nombresRoles, permisoGlobal } from "../../servicios/accesoPanel";
 import "./contenidos/Contenidos.css";
 import "./SinPermiso.css";
@@ -12,7 +12,7 @@ export default function SinPermiso() {
     const identidad = useContext(ContextoPanel);
     const { pathname } = useLocation();
     // En la barra va el nombre de la sección, como en las demás pantallas (Figma: «Administración»)
-    const seccion = SECCIONES_MENU.find((s) => pathname.startsWith(s.prefijo))?.texto ?? "Panel";
+    const seccion = seccionDeRuta(pathname);
     // Lo que esta cuenta sí puede abrir, agrupado como en el menú
     const permitidas = SECCIONES_MENU.map((seccion) => ({
         texto: seccion.texto,
