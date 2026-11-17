@@ -56,11 +56,8 @@ app.include_router(propuestas_router)
 app.include_router(avisos_router)
 app.include_router(foro_router)
 app.include_router(participacion_foro_router)
-<<<<<<< HEAD
 app.include_router(inscripciones_router)
-=======
 app.include_router(evidencias_router)
->>>>>>> origin/Valeria
 
 
 @app.exception_handler(RequestValidationError)
