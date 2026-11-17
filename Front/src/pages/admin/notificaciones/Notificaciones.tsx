@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { Ventana } from "../Ventana";
 import "./Notificaciones.css";
 import { capacidadPanel } from "../../../servicios/accesoPanel";
 import { AREAS_NOTIFICACION, filtrarNotificaciones, useNotificaciones, type FiltroNotificacion, type Notificacion } from "./datos";
 import iconoReloj from "../../../assets/comun/iconos/reloj-blanco.svg";
-import iconoBuscar from "../../../assets/comun/iconos/buscar-gris.svg";
+import { EncabezadoPagina, EstadoVacio, Migas } from "../componentes";
+import { IconoBuscar } from "../contenidos/piezas";
+import vacioCheck from "../../../assets/admin/vacio-check.svg";
+import vacioBuscar from "../../../assets/admin/vacio-search.svg";
 import iconoAlerta from "../../../assets/admin/modal-alert.svg";
 
 // Admin · Notificaciones (Figma 632:58443): lista, todas leídas, confirmar eliminar leídas y vacío.
@@ -32,42 +35,41 @@ export default function Notificaciones() {
     ];
 
     return (
-        <PanelLayout titulo="Notificaciones">
+        <PanelLayout titulo="Notificaciones" tema="contenidos">
             <div className="notif">
-            <nav className="notif-migas" aria-label="Ruta">
-                <Link to="/admin/resumen">Resumen</Link>
-                <span aria-hidden="true">›</span>
-                <span aria-current="page">Notificaciones</span>
-            </nav>
+            <Migas raiz="Resumen" pasos={[["Notificaciones"]]} />
+            <EncabezadoPagina
+                etiqueta="Panel · Notificaciones"
+                titulo="Notificaciones"
+                texto="Avisos del panel para el personal. Datos de ejemplo."
+                accion={
+                    <div className="notificaciones-acciones">
+                        <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={leerTodas} disabled={pendientes === 0}>
+                            Marcar todas como leídas
+                        </button>
+                        <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => setConfirmando(true)} disabled={leidas === 0}>
+                            Eliminar leídas
+                        </button>
+                    </div>
+                }
+            />
 
-            <header className="notif-encabezado">
-                <p className="notif-encabezado__etiqueta">PANEL · NOTIFICACIONES</p>
-                <h2>Notificaciones</h2>
-                <p className="notif-encabezado__texto">Avisos del panel para el personal. Datos de ejemplo.</p>
-            </header>
-
-            <div className="notificaciones-acciones">
-                <button type="button" className="boton-panel boton-panel--contorno-verde boton-panel--mediano-alto" onClick={leerTodas} disabled={pendientes === 0}>
-                    Marcar todas como leídas
-                </button>
-                <button type="button" className="boton-panel boton-panel--contorno-verde boton-panel--mediano-alto" onClick={() => setConfirmando(true)} disabled={leidas === 0}>
-                    Eliminar leídas
-                </button>
-            </div>
-
-            <section className="tarjeta-notificaciones" aria-labelledby="titulo-lista">
-                <div className="tarjeta-notificaciones__cabecera">
-                    <span className="tarjeta-notificaciones__icono"><img src={iconoReloj} alt="" /></span>
-                    <h3 id="titulo-lista">Notificaciones del panel</h3>
+            <section className="contenidos-lista" aria-labelledby="titulo-lista">
+                <div className="contenidos-lista__cabecera">
+                    <span className="contenidos-lista__icono"><img src={iconoReloj} alt="" className="at-icono" /></span>
+                    <div>
+                        <h2 id="titulo-lista">Notificaciones del panel</h2>
+                        <p>{pendientes ? `${pendientes} sin leer.` : "Estás al día."}</p>
+                    </div>
                 </div>
 
-                <div className="tarjeta-notificaciones__filtros">
-                    <div className="filtros-notificaciones" role="group" aria-label="Filtrar notificaciones">
+                <div className="contenidos-lista__herramientas">
+                    <div className="contenidos-filtros" role="group" aria-label="Filtrar notificaciones">
                         {filtros.map((f) => (
                             <button
                                 key={f.id}
                                 type="button"
-                                className={`filtro-notificacion${filtro === f.id ? " filtro-notificacion--activo" : ""}`}
+                                className={`contenidos-filtro${filtro === f.id ? " contenidos-filtro--activo" : ""}`}
                                 aria-pressed={filtro === f.id}
                                 onClick={() => setFiltro(f.id)}
                             >
@@ -75,10 +77,9 @@ export default function Notificaciones() {
                             </button>
                         ))}
                     </div>
-                    <label className="buscador-notificaciones">
-                        <img src={iconoBuscar} alt="" />
-                        <span className="solo-lectores">Buscar notificación</span>
-                        <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar notificación" />
+                    <label className="contenidos-buscar">
+                        <IconoBuscar />
+                        <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar notificación" aria-label="Buscar notificación" />
                     </label>
                 </div>
 
@@ -100,13 +101,14 @@ export default function Notificaciones() {
                         ))}
                     </ul>
                 ) : (
-                    <div className="notificaciones-vacio" role="status">
-                        <p className="notificaciones-vacio__titulo">{lista.length === 0 ? "Sin notificaciones" : "No hay notificaciones con ese filtro"}</p>
-                        <p>{lista.length === 0 ? "Estás al día." : "Prueba con otro filtro o búsqueda."}</p>
-                    </div>
+                    <EstadoVacio
+                        icono={lista.length === 0 ? vacioCheck : vacioBuscar}
+                        titulo={lista.length === 0 ? "Sin notificaciones" : "No hay notificaciones con ese filtro"}
+                        texto={lista.length === 0 ? "Estás al día." : "Prueba con otro filtro o búsqueda."}
+                    />
                 )}
 
-                <p className="tarjeta-notificaciones__pie" aria-live="polite">Mostrando {visibles.length} de {lista.length} (ejemplo)</p>
+                <div className="contenidos-lista__pie"><p aria-live="polite">Mostrando {visibles.length} de {lista.length} (ejemplo)</p></div>
             </section>
 
             {confirmando && (

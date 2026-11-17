@@ -98,7 +98,7 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
         { tono: "azul", icono: <IconoCheck />, cantidad: resueltas, titulo: `Resueltas ${config.periodoResueltas}`, texto: "Aprobadas o rechazadas.", enlace: "Ver aprobadas", filtro: "aprobada" },
     ];
 
-    const columnasRejilla = `110px ${columnas.map((c) => (c.ancho ? `${c.ancho}px` : "minmax(160px, 1fr)")).join(" ")} 170px 100px`;
+    const columnasRejilla = `90px ${columnas.map((c) => (c.ancho ? `${c.ancho}px` : "minmax(140px, 1fr)")).join(" ")} 140px 90px`;
     const paginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA));
 
     return (

@@ -89,3 +89,29 @@ export function EsqueletoPagina() {
         </div>
     );
 }
+
+// Armazón del panel mientras se comprueba el acceso: franja, menú verde y tarjetas del contenido
+export function EsqueletoPanel() {
+    return (
+        <div className="esqueleto-panel" role="status">
+            <Anuncio texto="Comprobando acceso al panel…" />
+            <div className="esqueleto-pagina__franja" aria-hidden="true" />
+            <div className="esqueleto-panel__cuerpo" aria-hidden="true">
+                <div className="esqueleto-panel__menu">
+                    <Bloque clase="esqueleto__titulo esqueleto__bloque--claro" ancho="70%" />
+                    {[0, 1, 2, 3, 4, 5].map((i) => <Bloque key={i} clase="esqueleto__linea esqueleto-panel__item esqueleto__bloque--claro" />)}
+                </div>
+                <div className="esqueleto-panel__contenido">
+                    <div className="esqueleto-panel__cabecera"><Bloque clase="esqueleto__titulo" ancho="180px" /><Bloque clase="esqueleto__boton" /></div>
+                    <div className="esqueleto-panel__pagina">
+                        <Bloque clase="esqueleto__chip" />
+                        <Bloque clase="esqueleto__titulo esqueleto__titulo--grande" ancho="360px" />
+                        <Bloque clase="esqueleto__linea" ancho="520px" />
+                        <div className="esqueleto-panel__tarjetas">{[0, 1, 2].map((i) => <Bloque key={i} clase="esqueleto-panel__tarjeta" />)}</div>
+                        <Bloque clase="esqueleto-panel__tabla" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

@@ -1,47 +1,44 @@
-.avisos-manuales-resultados:not(:empty) {
-    margin: 1rem 0;
-}
+/* Atención › Avisos por WhatsApp (AvisosManuales.tsx). Base: Contenidos.css, Atencion.css y AtencionTramites.css */
+@import './AtencionTramites.css';
 
-.avisos-manuales-opciones {
-    display: grid;
-    gap: .5rem;
-    margin: 0 0 1rem;
-    padding: 0;
-    border: 0;
-}
+.avisos-diseno { margin-bottom: 24px; }
+.avisos-buscar { display: flex; gap: 10px; }
+.avisos-buscar .contenidos-buscar { flex: 1; width: auto; }
+.avisos-buscar .contenidos-buscar input { width: 100%; }
+.avisos-manuales-resultados:not(:empty) { color: var(--solon-gris); font-size: 13px; }
 
-.avisos-manuales-opciones legend {
-    margin-bottom: .5rem;
-    font-weight: 700;
-}
+.avisos-manuales-opciones { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.avisos-manuales-opciones legend { margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+.avisos-manuales-cuenta { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--solon-borde); border-radius: 14px; background: #fff; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; }
+.avisos-manuales-cuenta input { accent-color: var(--solon-primario); }
+.avisos-manuales-cuenta:hover { border-color: var(--solon-primario); }
+.avisos-manuales-cuenta:has(input:checked) { border-color: var(--solon-primario); background: var(--solon-azul-suave); }
+.avisos-manuales-cuenta strong { display: block; font-size: 14px; }
+.avisos-manuales-cuenta small { display: block; color: var(--solon-gris); font-size: 12px; }
 
-.avisos-manuales-cuenta {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    padding: .75rem 1rem;
-    border: 1px solid #cbdad4;
-    border-radius: .75rem;
-    cursor: pointer;
-}
+.avisos-manuales-seleccion { display: flex; flex-direction: column; gap: 10px; }
+.avisos-preferencias { display: flex; flex-wrap: wrap; gap: 8px; }
+.avisos-campos { display: flex; flex-direction: column; gap: 16px; min-width: 0; margin: 0; padding: 0; border: none; }
 
-.avisos-manuales-cuenta:has(input:checked) {
-    border-color: #164f44;
-    background: #e4efeb;
-}
+.avisos-pasos { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; counter-reset: paso; }
+.avisos-pasos li { position: relative; display: flex; flex-direction: column; gap: 2px; padding-left: 42px; counter-increment: paso; }
+.avisos-pasos li::before { content: counter(paso); position: absolute; top: 0; left: 0; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--solon-primario); color: #fff; font-size: 13px; font-weight: 700; }
+.avisos-pasos strong { font-size: 14px; }
+.avisos-pasos span { color: var(--solon-gris); font-size: 13px; line-height: 1.45; }
 
-.avisos-manuales-cuenta small {
-    display: block;
-}
-
-.avisos-manuales-seleccion {
-    margin: 1rem 0;
-    padding: 1rem;
-    border-radius: .75rem;
-    background: #e4efeb;
-    color: #164f44;
-}
-
-.avisos-manuales-seleccion p {
-    margin: .25rem 0 0;
-}
+.avisos-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.avisos-esqueleto { height: 220px; border-radius: 20px; }
+.avisos-tarjeta { display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border: 1px solid var(--solon-borde); border-left: 5px solid var(--solon-acento); border-radius: 18px; background: #fff; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.avisos-tarjeta:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(22, 79, 68, 0.08); }
+.avisos-tarjeta--enviado, .avisos-tarjeta--entregado { border-left-color: var(--solon-primario); }
+.avisos-tarjeta--fallido { border-left-color: var(--solon-guinda); }
+.avisos-tarjeta__cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.avisos-tarjeta__cabecera p, .avisos-tarjeta h3 { margin: 0; }
+.avisos-tarjeta h3 { margin-top: 2px; font-size: 17px; line-height: 1.3; }
+.avisos-tarjeta__para { color: var(--solon-gris); font-size: 13px; }
+.avisos-tarjeta__mensaje { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--solon-neutro-suave); font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
+.avisos-tarjeta__paso { margin: 0; color: var(--solon-gris); font-size: 13px; }
+.avisos-tarjeta .tr-acciones { margin: 0; }
+.avisos-tarjeta .tr-acciones:empty { display: none; }
+.avisos-historial summary { color: var(--solon-primario); font-size: 13px; font-weight: 700; cursor: pointer; }
+.avisos-historial .at-eventos { margin-top: 12px; }

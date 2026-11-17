@@ -1,6 +1,7 @@
 // T-076 / HU-16. Solicitudes de visita o uso de espacio (Back/espacios.py).
 // Persona usuaria: /espacios/areas y /espacios/solicitudes (no se pide credencial).
 // Personal: /espacios/atencion/solicitudes (capacidad registrar_resoluciones_actividades).
+import { consultarConMemoria, enMemoria, olvidarMemoria } from './consultas';
 import { ErrorServicio, obtenerSupabase, pedirApi } from './api';
 
 export type TipoSolicitudEspacio = 'visita' | 'uso_espacio';
@@ -46,6 +47,7 @@ export interface NuevaSolicitudEspacio {
 async function pedir<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
     const { data, error } = await (await obtenerSupabase()).auth.getSession();
     if (error || !data.session) throw new ErrorServicio('Inicia sesión para continuar.', 401);
+    if (opciones.method) olvidarMemoria();
     return pedirApi<T>('/espacios' + ruta, { ...opciones, headers: { Authorization: `Bearer ${data.session.access_token}` } });
 }
 const enviarJson = (datos: unknown): RequestInit => ({ method: 'POST', body: JSON.stringify(datos) });
@@ -62,9 +64,12 @@ export const responderPropuesta = (folio: string, acepta: boolean, comentarios: 
     pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/respuesta`, enviarJson({ acepta, comentarios: comentarios.trim() || null }));
 
 // ---------- Personal ----------
-export const bandejaEspacios = (pagina = 0) =>
-    pedir<{ total: number; conteos: Record<EstadoSolicitudEspacio, number>; solicitudes: SolicitudEspacioPersonal[] }>('/atencion/solicitudes?limite=100' + (pagina ? `&desplazamiento=${pagina * 100}` : ''));
-export const detalleEspacio = (folio: string) => pedir<SolicitudEspacioPersonal>('/atencion/solicitudes/' + folioUrl(folio));
+type BandejaEspacios = { total: number; conteos: Record<EstadoSolicitudEspacio, number>; solicitudes: SolicitudEspacioPersonal[] };
+export const bandejaEspacios = (pagina = 0) => consultarConMemoria('espacios:bandeja:' + pagina, () =>
+    pedir<BandejaEspacios>('/atencion/solicitudes?limite=100' + (pagina ? `&desplazamiento=${pagina * 100}` : '')));
+export const bandejaEspaciosEnMemoria = (pagina = 0) => enMemoria<BandejaEspacios>('espacios:bandeja:' + pagina);
+export const detalleEspacio = (folio: string) => consultarConMemoria('espacios:detalle:' + folio, () => pedir<SolicitudEspacioPersonal>('/atencion/solicitudes/' + folioUrl(folio)));
+export const detalleEspacioEnMemoria = (folio: string) => enMemoria<SolicitudEspacioPersonal>('espacios:detalle:' + folio);
 export const aprobarEspacio = (folio: string, actualizadoEn: string, verificacion: boolean[], condiciones?: string, mensaje?: string) =>
     pedir<SolicitudEspacioPersonal>(`/atencion/solicitudes/${folioUrl(folio)}/aprobacion`,
         enviarJson({ actualizadoEn, verificacion, condiciones: condiciones?.trim() || null, mensaje: mensaje?.trim() || null }));

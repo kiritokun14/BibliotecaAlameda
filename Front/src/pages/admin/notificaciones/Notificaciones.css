@@ -233,3 +233,19 @@
   color: #4d4d4d;
   font-size: 14px;
 }
+
+/* ---------- Coherencia con el resto del panel (Contenidos, Atención…) ---------- */
+/* El espaciado entre bloques lo pone .panel-contenido, igual que en las demás pantallas */
+.notif { display: contents; }
+.panel--contenidos .lista-notificaciones { gap: 8px; }
+.panel--contenidos .lista-notificaciones li + li { border-top: 0; }
+.panel--contenidos .notificacion {
+  min-height: 58px;
+  padding: 10px 16px;
+  border: 1px solid var(--solon-borde);
+  border-radius: 14px;
+  background: #fff;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.panel--contenidos .notificacion:hover { border-color: var(--solon-primario); transform: translateY(-1px); box-shadow: 0 8px 18px rgba(22, 79, 68, 0.08); }
+.panel--contenidos .notificacion--sin-leer { border-left: 4px solid var(--solon-primario); background: var(--solon-azul-suave); }

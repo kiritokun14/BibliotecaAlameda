@@ -249,7 +249,7 @@ function TablaPendientes() {
                             <td><ChipEstado tono={p.estado.tono}>{p.estado.texto}</ChipEstado></td>
                             <td>
                                 <Enlace ruta={p.ruta} className="boton-resumen boton-resumen--contorno boton-resumen--fila">
-                                    Abrir<span className="solo-lectores"> {p.folio}</span>
+                                    Abrir →<span className="solo-lectores"> {p.folio}</span>
                                 </Enlace>
                             </td>
                         </tr>

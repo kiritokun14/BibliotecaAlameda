@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+import { Bloque } from "../../../components/portal/Esqueleto";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
-import { consultarPerfil, type PerfilPropio } from "../../../servicios/perfil";
+import { consultarPerfil, consultarPreferenciasAvisos, type PerfilPropio } from "../../../servicios/perfil";
 import { cerrarSesion } from "../../../servicios/auth";
 import { ErrorServicio, mensajeError, obtenerSupabase } from "../../../servicios/api";
 import { simulacion } from "../../../servicios/simulacion";
@@ -51,11 +52,13 @@ export default function Perfil({ vista }: { vista?: Vista }) {
     useEffect(() => {
         if (!usuario || simulado) return;
         let vigente = true;
+        // Avisos no depende de los datos del perfil: sus preferencias se piden al mismo tiempo
+        if (seccion === "avisos") consultarPreferenciasAvisos().catch(() => undefined);
         consultarPerfil()
             .then((perfil) => { if (vigente) setCarga({ perfil }); })
             .catch((e) => { if (vigente) setCarga({ error: mensajeError(e), ingresar: e instanceof ErrorServicio && e.estado === 401 }); });
         return () => { vigente = false; };
-    }, [usuario, intento]);
+    }, [usuario, intento]); // eslint-disable-line react-hooks/exhaustive-deps -- la sección solo decide qué precargar
 
     const recargar = useCallback(() => { setCarga(null); setIntento((x) => x + 1); }, []);
     const cancelarModal = useCallback(() => { setModal(false); setErrorCierre(""); }, []);
@@ -81,6 +84,7 @@ export default function Perfil({ vista }: { vista?: Vista }) {
         );
     }
     const perfil = carga && "perfil" in carga && carga.perfil.id === usuario ? carga.perfil : null;
+    if (!perfil && !(carga && "error" in carga)) return <PaginaPublica><EsqueletoPerfil /></PaginaPublica>;
     if (!perfil) {
         return (
             <PaginaPublica>
@@ -91,7 +95,7 @@ export default function Perfil({ vista }: { vista?: Vista }) {
                         {carga.ingresar
                             ? <Link className="perfil-boton" to="/iniciar-sesion">Iniciar sesión</Link>
                             : <button type="button" className="perfil-boton" onClick={recargar}>Reintentar</button>}
-                    </> : <p role="status">Cargando tu perfil…</p>}
+                    </> : <EsqueletoPerfil />}
                 </div>
             </PaginaPublica>
         );
@@ -123,5 +127,31 @@ export default function Perfil({ vista }: { vista?: Vista }) {
             </div>
             {modal && <ModalCerrarSesion cerrando={cerrando} error={errorCierre} alConfirmar={salir} alCancelar={cancelarModal} />}
         </PaginaPublica>
+    );
+}
+
+// Mientras llega el perfil: la misma forma de la página (encabezado verde, menú y contenido)
+function EsqueletoPerfil() {
+    return (
+        <div className="perfil-esqueleto" role="status">
+            <span className="solo-lectores">Cargando tu perfil…</span>
+            <div className="perfil-esqueleto__encabezado" aria-hidden="true">
+                <Bloque clase="perfil-esqueleto__avatar esqueleto__bloque--claro" />
+                <div className="perfil-esqueleto__textos">
+                    <Bloque clase="esqueleto__chip esqueleto__bloque--claro" />
+                    <Bloque clase="esqueleto__titulo esqueleto__titulo--grande esqueleto__bloque--claro" ancho="380px" />
+                    <Bloque clase="esqueleto__linea esqueleto__bloque--claro" ancho="240px" />
+                </div>
+            </div>
+            <div className="perfil-esqueleto__cuerpo" aria-hidden="true">
+                <div className="perfil-esqueleto__menu">{[0, 1, 2, 3, 4, 5, 6].map((i) => <Bloque key={i} clase="esqueleto__linea perfil-esqueleto__item" />)}</div>
+                <div className="perfil-esqueleto__contenido">
+                    <Bloque clase="esqueleto__chip" />
+                    <Bloque clase="esqueleto__titulo esqueleto__titulo--grande" ancho="320px" />
+                    <Bloque clase="perfil-esqueleto__tarjeta" />
+                    <Bloque clase="perfil-esqueleto__tarjeta" />
+                </div>
+            </div>
+        </div>
     );
 }

@@ -6,7 +6,9 @@ import PanelLayout from "../../PanelLayout";
 import Bandeja, { CeldaDoble, type Columna, type ConfigArea } from "../Bandeja";
 import { formatearFecha } from "../datos";
 import { mensajeError } from "../../../../servicios/api";
-import { bandejaEspacios } from "../../../../servicios/espacios";
+import { bandejaEspacios, bandejaEspaciosEnMemoria } from "../../../../servicios/espacios";
+import { Bloque } from "../../../../components/portal/Esqueleto";
+import "../AtencionTramites.css";
 import { aSolicitudAdmin, type SolicitudEspacioReal } from "./mapeo";
 import resumenCalendario from "../../../../assets/admin/resumen-calendar.svg";
 import resumenReloj from "../../../../assets/admin/resumen-clock.svg";
@@ -41,17 +43,21 @@ const configEspacios: ConfigArea = {
 
 const columnas: Columna<SolicitudEspacioReal>[] = [
     { titulo: "PERSONA SOLICITANTE", celda: (s) => <CeldaDoble arriba={s.persona} abajo={s.api.tipo === "visita" ? "Visita guiada" : "Uso de un área"} /> },
-    { titulo: "ÁREA", ancho: 230, celda: (s) => s.area },
+    { titulo: "ÁREA", celda: (s) => s.area },
     {
         titulo: "FECHA Y HORARIO",
-        ancho: 190,
+        ancho: 160,
         celda: (s) => <CeldaDoble arriba={formatearFecha(s.fecha)} abajo={s.horario || "Horario por confirmar"} />,
     },
-    { titulo: "PERSONAS", ancho: 100, celda: (s) => s.personas },
+    { titulo: "PERSONAS", ancho: 90, celda: (s) => s.personas },
 ];
 
 function Espacios({ vista }: { vista: "bandeja" | "todas" }) {
-    const [carga, setCarga] = useState<{ solicitudes: SolicitudEspacioReal[] } | { error: string } | null>(null);
+    // Lo último que se recibió se muestra al instante; la consulta lo actualiza en segundo plano
+    const [carga, setCarga] = useState<{ solicitudes: SolicitudEspacioReal[] } | { error: string } | null>(() => {
+        const guardada = bandejaEspaciosEnMemoria();
+        return guardada ? { solicitudes: guardada.solicitudes.map(aSolicitudAdmin) } : null;
+    });
     const [intento, setIntento] = useState(0);
 
     useEffect(() => {
@@ -65,7 +71,7 @@ function Espacios({ vista }: { vista: "bandeja" | "todas" }) {
     if (!carga || "error" in carga) {
         return (
             <PanelLayout titulo="Atención" tema="contenidos">
-                {!carga ? <p role="status">Cargando solicitudes de espacios…</p> : (
+                {!carga ? <div className="contenidos-tabla" aria-busy="true" role="status"><span className="tr-oculto">Cargando solicitudes de espacios…</span>{[0, 1, 2, 3].map((i) => <Bloque key={i} clase="tr-esqueleto" />)}</div> : (
                     <p role="alert">
                         {carga.error}{" "}
                         <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico"

@@ -12,7 +12,7 @@ const BASE = '/admin/actividades/inscripciones';
 const fecha = (valor: string) => new Date(valor).toLocaleString('es-MX', { timeZone: 'America/Mazatlan' });
 export default function Inscripciones() {
     const identidad = useContext(ContextoPanel);
-    return <PanelLayout titulo="Inscripciones y cupos"><Pagina><h1>Inscripciones y cupos</h1><BandejaActividades key={identidad?.acceso.usuarioId ?? ''} /></Pagina></PanelLayout>;
+    return <PanelLayout titulo="Actividades"><Pagina><h1>Inscripciones y cupos</h1><BandejaActividades key={identidad?.acceso.usuarioId ?? ''} /></Pagina></PanelLayout>;
 }
 function BandejaActividades() {
     const [pagina, setPagina] = useState(0);
@@ -42,7 +42,7 @@ function BandejaActividades() {
 export function InscritosActividad() {
     const { folio, id } = useParams();
     const identidad = useContext(ContextoPanel);
-    return <PanelLayout titulo="Inscripciones y cupos"><Pagina><Link to={BASE}>Volver a actividades</Link><h1>Inscripciones de la sesión</h1>
+    return <PanelLayout titulo="Actividades"><Pagina><Link to={BASE}>Volver a actividades</Link><h1>Inscripciones de la sesión</h1>
         {folio && <ListaSesion key={`${identidad?.acceso.usuarioId}:${folio}`} sesion={folio} seleccionada={id} />}
     </Pagina></PanelLayout>;
 }

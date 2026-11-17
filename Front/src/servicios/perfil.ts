@@ -21,5 +21,19 @@ export interface PreferenciasAvisos {
  actualizadoEn: string | null;
 }
 const rutaPreferencias = '/perfil/preferencias-avisos';
-export const consultarPreferenciasAvisos = () => pedir<PreferenciasAvisos>('GET', undefined, rutaPreferencias);
-export const guardarPreferenciasAvisos = (datos: PreferenciasAvisos) => pedir<PreferenciasAvisos>('PATCH', datos, rutaPreferencias);
+// La consulta se comparte: el perfil la pide en paralelo con /perfil y la sección Avisos reusa la misma promesa.
+let preferenciasEnCurso: Promise<PreferenciasAvisos> | null = null;
+export function consultarPreferenciasAvisos() {
+ if (!preferenciasEnCurso) {
+  preferenciasEnCurso = pedir<PreferenciasAvisos>('GET', undefined, rutaPreferencias);
+  const actual = preferenciasEnCurso;
+  // Solo se reutiliza mientras está en curso o unos segundos después; un error no se queda guardado
+  actual.then(() => setTimeout(() => { if (preferenciasEnCurso === actual) preferenciasEnCurso = null; }, 5000),
+   () => { if (preferenciasEnCurso === actual) preferenciasEnCurso = null; });
+ }
+ return preferenciasEnCurso;
+}
+export function guardarPreferenciasAvisos(datos: PreferenciasAvisos) {
+ preferenciasEnCurso = null;
+ return pedir<PreferenciasAvisos>('PATCH', datos, rutaPreferencias);
+}
