@@ -3,7 +3,7 @@ const cliente = vi.hoisted(() => ({ auth: { getSession: vi.fn() } }));
 vi.mock('../src/servicios/api', () => ({ obtenerSupabase: vi.fn(async () => cliente), pedirApi: vi.fn(async () => ({})), ErrorServicio: class extends Error {} }));
 import { pedirApi } from '../src/servicios/api';
 import {
-    aprobarEspacio, cancelarMiSolicitud, diaLocal, enviarSolicitud, horarioLocal, proponerEspacio, responderPropuesta,
+    aprobarEspacio, cancelarMiSolicitud, corregirMiSolicitud, diaLocal, enviarSolicitud, horarioLocal, proponerEspacio, responderPropuesta,
     type SolicitudEspacioPersonal,
 } from '../src/servicios/espacios';
 import { validarSolicitud, type DatosSolicitud } from '../src/pages/publico/espacios/datosSesion';
@@ -15,6 +15,13 @@ const cuerpo = (llamada: number) => JSON.parse(vi.mocked(pedirApi).mock.calls[ll
 beforeEach(() => { vi.clearAllMocks(); cliente.auth.getSession.mockResolvedValue({ data: { session: { access_token: 'sesion' } } }); });
 
 describe('Espacios con sesión (T-076)', () => {
+    it('corregir usa la versión leída y un motivo separado de la descripción de la actividad', async () => {
+        await corregirMiSolicitud('SE-0007', { tipo: 'uso_espacio', areaId: 'sala-lectura', fecha: '2030-01-01', horaInicio: '10:00', horaFin: '11:00', personas: 10,
+            motivo: 'Club de lectura', motivoCambio: 'Otro horario', actualizadoEn: '2026-11-09T12:00:00Z' });
+        expect(vi.mocked(pedirApi).mock.calls[0][0]).toBe('/espacios/solicitudes/SE-0007/correccion');
+        expect(vi.mocked(pedirApi).mock.calls[0][1]?.method).toBe('PUT');
+        expect(cuerpo(0)).toMatchObject({ motivo: 'Club de lectura', motivoCambio: 'Otro horario', actualizadoEn: '2026-11-09T12:00:00Z' });
+    });
     it('valida fecha, horario, personas, motivo y capacidad del área', () => {
         expect(validarSolicitud(ok, '2026-11-03')).toEqual({});
         const e = validarSolicitud({ ...ok, fecha: '2026-11-01', horaInicio: '18:00', horaFin: '16:00', personas: '0', motivo: ' ' }, '2026-11-03');
@@ -28,11 +35,11 @@ describe('Espacios con sesión (T-076)', () => {
         expect(cuerpo(0)).toMatchObject({ areaId: 'sala-lectura', personas: 15 });
     });
     it('cancela y responde propuestas por folio', async () => {
-        await cancelarMiSolicitud('SE-0007', '', '  ');
-        await responderPropuesta('SE-0007', true, ' Gracias ');
+        await cancelarMiSolicitud('SE-0007', 'Cambio de planes', '  ', '2026-11-09T12:00:00Z');
+        await responderPropuesta('SE-0007', true, ' Gracias ', '2026-11-09T12:00:00Z');
         expect(vi.mocked(pedirApi).mock.calls.map((c) => c[0])).toEqual(['/espacios/solicitudes/SE-0007/cancelacion', '/espacios/solicitudes/SE-0007/respuesta']);
-        expect(cuerpo(0)).toEqual({ motivo: null, comentarios: null });
-        expect(cuerpo(1)).toEqual({ acepta: true, comentarios: 'Gracias' });
+        expect(cuerpo(0)).toEqual({ actualizadoEn: '2026-11-09T12:00:00Z', motivo: 'Cambio de planes', comentarios: null });
+        expect(cuerpo(1)).toEqual({ actualizadoEn: '2026-11-09T12:00:00Z', acepta: true, comentarios: 'Gracias' });
     });
     it('el personal aprueba con la lista de cotejo y propone solo lo que cambia', async () => {
         await aprobarEspacio('SE-0007', '2026-11-09T12:00:00Z', [true, true, true, true], ' ', 'Listo');

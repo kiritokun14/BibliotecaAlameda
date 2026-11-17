@@ -5,7 +5,7 @@ import PaginaPublica from '../../../components/portal/PaginaPublica';
 import { consultarTramite, listarTramites, solicitarCredencial, estadoTramite, ESTADOS_CREDENCIAL, ESTADOS_PROPUESTA,
     type ListaTramites, type SolicitudAtencion, type TipoTramite } from '../../../servicios/tramites';
 import { mensajeError } from '../../../servicios/api';
-import { AccesoTramites, FichaTramite, FormularioPropuesta } from './piezas';
+import { AccesoTramites, AccionesPropuesta, FichaTramite, FormularioPropuesta } from './piezas';
 import './Tramites.css';
 
 export default function Tramites() {
@@ -40,7 +40,7 @@ export default function Tramites() {
                     <button disabled={(pagina + 1) * 20 >= actual.lista.total} onClick={() => setPagina(x => x + 1)}>Siguiente</button>
                 </>}
                 {actual?.solicitud && <section className="tramites-tarjeta"><Link to={base}>Volver a mis solicitudes</Link><FichaTramite solicitud={actual.solicitud} />
-                    {tipo === 'propuesta' && ['borrador', 'requiere_correccion'].includes(estadoTramite(actual.solicitud)) && <FormularioPropuesta key={actual.solicitud.actualizadoEn} anterior={actual.solicitud} alGuardar={() => recargar(x => x + 1)} />}
+                    {tipo === 'propuesta' && <AccionesPropuesta key={actual.solicitud.actualizadoEn} solicitud={actual.solicitud} alGuardar={() => recargar(x => x + 1)} />}
                 </section>}
             </>}
         </>}

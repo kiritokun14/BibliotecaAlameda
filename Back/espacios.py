@@ -30,7 +30,6 @@ Folio = Annotated[str, Path(pattern=r'^SE-[0-9]{4,}$', max_length=20)]
 Slug = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r'^[a-z0-9-]{1,80}$')]
 Motivo = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]
 Institucion = Annotated[str, StringConstraints(strip_whitespace=True, max_length=150)]
-MotivoCancelacion = Annotated[str, StringConstraints(strip_whitespace=True, max_length=120)]
 Comentarios = Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)]
 MotivoDecision = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
 Mensaje = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
@@ -114,17 +113,24 @@ class NuevaSolicitud(DatosBase):
 
 
 class Cancelacion(DatosBase):
-    motivo: MotivoCancelacion | None = None
+    actualizadoEn: AwareDatetime
+    motivo: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
     comentarios: Comentarios | None = None
 
 
 class Respuesta(DatosBase):
+    actualizadoEn: AwareDatetime
     acepta: bool = Field(description='true acepta la propuesta del personal; false pide que se revise de nuevo.')
     comentarios: Comentarios | None = None
 
 
 class VersionSolicitud(DatosBase):
     actualizadoEn: AwareDatetime
+
+
+class CorreccionSolicitud(NuevaSolicitud):
+    actualizadoEn: AwareDatetime
+    motivoCambio: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
 
 
 class Aprobacion(VersionSolicitud):
@@ -188,13 +194,19 @@ def obtener(folio: Folio, cliente: Cliente):
 @router.post('/solicitudes/{folio}/cancelacion')
 def cancelar(folio: Folio, datos: Cancelacion, cliente: Cliente):
     """Cancela una solicitud propia mientras está en revisión. No se puede deshacer."""
-    return ejecutar(cliente, 'cancelar', {**datos.model_dump(exclude_none=True), 'folio': folio})
+    return ejecutar(cliente, 'cancelar', {**datos.model_dump(mode='json', exclude_none=True), 'folio': folio}, 'modificar_solicitud_espacio')
 
 
 @router.post('/solicitudes/{folio}/respuesta')
 def responder(folio: Folio, datos: Respuesta, cliente: Cliente):
     """Responde la propuesta del personal. En ambos casos la solicitud vuelve a revisión."""
-    return ejecutar(cliente, 'responder', {**datos.model_dump(exclude_none=True), 'folio': folio})
+    return ejecutar(cliente, 'responder', {**datos.model_dump(mode='json', exclude_none=True), 'folio': folio}, 'modificar_solicitud_espacio')
+
+
+@router.put('/solicitudes/{folio}/correccion')
+def corregir_solicitud(folio: Folio, datos: CorreccionSolicitud, cliente: Cliente):
+    cuerpo = _horario(datos.model_dump(mode='json', exclude_none=True), datos)
+    return ejecutar(cliente, 'corregir', {**cuerpo, 'folio': folio}, 'modificar_solicitud_espacio')
 
 
 # ---------------------------------------------------------------------------

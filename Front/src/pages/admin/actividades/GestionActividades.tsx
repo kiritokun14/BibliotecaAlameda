@@ -11,7 +11,7 @@ import { consultarActividad, consultarEspaciosAgenda, decidirActividad, guardarA
 const BASE = '/admin/actividades/propuestas';
 const vacia: DatosActividadReal = { nombre: '', tipo: 'Taller', descripcion: '', fecha: '', inicio: '', fin: '', espacio: '',
     cupo: '', inscripcion: true, publico: 'Público en general', responsable: '', materiales: '' };
-const estados: Record<string, string> = { borrador: 'Borrador', 'en-revision': 'En revisión', aprobada: 'Aprobada', publicada: 'Publicada', archivada: 'Archivada o retirada' };
+const estados: Record<string, string> = { borrador: 'Borrador', 'en-revision': 'En revisión', aprobada: 'Aprobada', publicada: 'Publicada', cancelada: 'Cancelada', archivada: 'Archivada o retirada' };
 const acciones: Record<AccionActividad, string> = { enviar: 'Enviar a revisión', aprobar: 'Autorizar actividad', publicar: 'Publicar en la agenda',
     rechazar: 'Devolver al autor con motivo', retirar: 'Retirar de la agenda', archivar: 'Archivar borrador' };
 

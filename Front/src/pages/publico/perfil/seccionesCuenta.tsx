@@ -230,6 +230,7 @@ export function MisPropuestas() {
             )}
             <div className="perfil-acciones">
                 <Link to="/proponer" className="perfil-boton">Proponer una actividad <img src={flechaBlanca} alt="" /></Link>
+                <Link to="/mis-actividades/cambios" className="perfil-boton">Cambios y cancelaciones de mis actividades</Link>
                 <Link to="/mi-perfil/eventos" className="perfil-boton perfil-boton--negro">Ver mis eventos</Link>
             </div>
             <NotaInfo>Proponer no aprueba ni reserva</NotaInfo>

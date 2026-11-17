@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import { SeccionVisitante } from "../../../components/portal/Visitante";
 import { useSesion } from "../perfil/usarSesion";
+import AvisosCambiosActividad from "./AvisosCambiosActividad";
 import { filtrar, nombreArea, notificaciones, sinLeer, useNotificaciones, type Area, type Filtro } from "./datos";
 import "../../../components/portal/Visitante.css";
 import "./Notificaciones.css";
@@ -56,7 +57,8 @@ export default function Notificaciones() {
 
     return (
         <PaginaPublica>
-            <p className="cred-estado" role="status">El centro de notificaciones aún no tiene un servicio de consulta conectado. Los ejemplos del diseño no representan avisos de tu cuenta; consulta el seguimiento de tus solicitudes desde Mi perfil.</p>
+            {sesion && <AvisosCambiosActividad usuario={sesion} />}
+            <p className="cred-estado">Los avisos de cambios y cancelaciones se consultan arriba. Para otras gestiones, consulta su seguimiento desde Mi perfil.</p>
             <section className="encabezado-visitante">
                 <img className="encabezado-visitante__circulo encabezado-visitante__circulo--1" src={circulo1} alt="" />
                 <img className="encabezado-visitante__circulo encabezado-visitante__circulo--2" src={circulo2} alt="" />

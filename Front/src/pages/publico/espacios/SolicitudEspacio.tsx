@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
+import CorregirSolicitudEspacio from './CorregirSolicitudEspacio';
 import { EncabezadoNoticias } from "../noticias/piezas";
 import "../noticias/Noticias.css";
 import "../../../components/portal/Visitante.css";
@@ -149,7 +150,7 @@ export function GestionarSolicitud() {
                         <p className="cred-texto">Si aceptas, tu solicitud vuelve a revisión con estos datos para que el personal la apruebe.</p>
                         {errorAccion && !modal && <p className="cred-error-campo espacios-error" role="alert">{errorAccion}</p>}
                         <div className="cred-acciones">
-                            <button type="button" className="boton-visitante" disabled={guardando} onClick={() => ejecutar(() => responderPropuesta(s.folio, true, ""))}>
+                            <button type="button" className="boton-visitante" disabled={guardando} onClick={() => ejecutar(() => responderPropuesta(s.folio, true, "", s.actualizadoEn))}>
                                 Aceptar el cambio
                             </button>
                             <button type="button" className="boton-visitante cred-boton-contorno" disabled={guardando} onClick={() => { setErrorAccion(""); setModal("rechazar-propuesta"); }}>
@@ -158,6 +159,7 @@ export function GestionarSolicitud() {
                         </div>
                     </section>
                 )}
+                <CorregirSolicitudEspacio key={s.actualizadoEn} solicitud={s} alGuardar={solicitud => setCarga({ solicitud })} />
                 <div className="espacios-columnas espacios-columnas--gestion">
                     <section className="cred-tarjeta" aria-labelledby="titulo-estado">
                         <div className="espacios-plano__cabecera">
@@ -165,6 +167,7 @@ export function GestionarSolicitud() {
                             <h2 id="titulo-estado">Estado de tu solicitud</h2>
                         </div>
                         <Chip color={colorChip}>{nombreEstado[s.estado]}</Chip>
+                        {!!s.versiones?.length && <><h3>Versiones guardadas</h3><ol>{s.versiones.map(v => <li key={v.numero}>Versión {v.numero} · {v.motivo} · {new Date(v.fecha).toLocaleString('es-MX')}</li>)}</ol></>}
                         <EtapasTramite etapas={[
                             { titulo: "Solicitud enviada", texto: `Por ti · ${fechaCorta(diaLocal(s.creadaEn))}`, estado: "hecho" },
                             { titulo: "En revisión por el personal", texto: "Se verifica disponibilidad del área", estado: s.estado === "en_revision" ? "actual" : s.estado === "cancelada" ? "pendiente" : "hecho" },
@@ -213,9 +216,9 @@ export function GestionarSolicitud() {
             </div>
             {modal === "cancelar" && (
                 <ModalAgenda titulo="¿Cancelar tu solicitud de espacio?" icono={alerta} iconoGuinda alCerrar={() => setModal(null)}>
-                    <p className="modal-agenda__texto">Se avisará al personal y el área quedará libre para otras solicitudes. Esta acción no se puede deshacer.</p>
+                    <p className="modal-agenda__texto">La solicitud quedará cancelada y el motivo se conservará en su historial. Esta acción no se puede deshacer.</p>
                     <div className="cred-campo espacios-modal-campo">
-                        <label htmlFor="cancelar-motivo">Motivo de la cancelación (opcional)</label>
+                        <label htmlFor="cancelar-motivo">Motivo de la cancelación (obligatorio)</label>
                         <select id="cancelar-motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)}>
                             <option value="">Selecciona un motivo</option>
                             {motivosCancelacion.map((m) => <option key={m}>{m}</option>)}
@@ -228,8 +231,8 @@ export function GestionarSolicitud() {
                     {errorAccion && <p className="cred-error-campo espacios-error" role="alert">{errorAccion}</p>}
                     <div className="modal-agenda__acciones">
                         <button type="button" className="agenda-boton agenda-boton--contorno-verde" onClick={() => setModal(null)}>Mantener solicitud</button>
-                        <button type="button" className="agenda-boton agenda-boton--guinda" disabled={guardando}
-                            onClick={() => ejecutar(() => cancelarMiSolicitud(s.folio, motivo, comentarios))}>
+                        <button type="button" className="agenda-boton agenda-boton--guinda" disabled={guardando || !motivo}
+                            onClick={() => ejecutar(() => cancelarMiSolicitud(s.folio, motivo, comentarios, s.actualizadoEn))}>
                             {guardando ? "Cancelando…" : "Sí, cancelar solicitud"}
                         </button>
                     </div>
@@ -246,7 +249,7 @@ export function GestionarSolicitud() {
                     <div className="modal-agenda__acciones">
                         <button type="button" className="agenda-boton agenda-boton--contorno-verde" onClick={() => setModal(null)}>Volver</button>
                         <button type="button" className="agenda-boton agenda-boton--guinda" disabled={guardando}
-                            onClick={() => ejecutar(() => responderPropuesta(s.folio, false, comentarios))}>
+                            onClick={() => ejecutar(() => responderPropuesta(s.folio, false, comentarios, s.actualizadoEn))}>
                             {guardando ? "Enviando…" : "Enviar respuesta"}
                         </button>
                     </div>
