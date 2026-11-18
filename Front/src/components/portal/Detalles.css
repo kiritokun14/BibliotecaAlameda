@@ -1194,3 +1194,244 @@
 .pagina-publica .perfil-panel--ajustado { flex: none; } /* panel que mide lo que su contenido (no se estira al alto del menú) */
 /* Las opciones de dos renglones («Progreso y recompensas») crecen para que la rayita dorada no quede pegada al texto */
 .pagina-publica .perfil-menu ul .perfil-menu__opcion { height: auto; min-height: 48px; padding-top: 10px; padding-bottom: 14px; }
+
+/* ---------- Notificaciones con el catálogo del perfil (18 nov 2026, solo escritorio) ----------
+   Columna principal con el panel de lista (filtros segmentados, acciones y tarjetas: dorado = sin leer, gris = leída)
+   y columna lateral con «Cómo te avisamos», que acompaña al bajar. */
+.pagina-publica .notif-cuerpo {
+  display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start;
+  max-width: 1120px; margin: 0 auto; padding: 40px 24px 72px; box-sizing: content-box;
+}
+.pagina-publica .notif-principal { display: flex; flex-direction: column; min-width: 0; min-height: 520px; }
+.pagina-publica .notif-barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.pagina-publica .notif-barra__acciones { display: flex; gap: 8px; }
+.pagina-publica .notif-boton-quitar { border-color: #e8c3cf; color: #9b2247; }
+.pagina-publica .notif-anuncio { margin: 0; color: #164f44; font-size: 14px; font-weight: 700; }
+.pagina-publica .notif-anuncio:empty { display: none; }
+.pagina-publica .notif-item .perfil-solicitud__textos span { line-height: 20px; }
+.pagina-publica .notif-item__meta { color: #6b675e; font-size: 12.5px; font-weight: 700; }
+.pagina-publica .notif-item__quitar {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; cursor: pointer; transition: background-color 0.2s ease;
+}
+.pagina-publica .notif-item__quitar:hover { background: #f1efea; }
+.pagina-publica .notif-item__quitar img { width: 14px; height: 14px; }
+.pagina-publica .notif-lateral { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 14px; }
+.pagina-publica .notif-avisos__cabecera { display: flex; flex-direction: column; gap: 8px; }
+.pagina-publica .notif-avisos__cabecera p { margin: 0; color: #4d4d4d; font-size: 14px; line-height: 21px; }
+
+/* Notificaciones · columna derecha más amplia: resumen, «Cómo te avisamos» destacada y atajos a tus trámites */
+.pagina-publica .notif-cuerpo { grid-template-columns: minmax(0, 1fr) 360px; }
+.pagina-publica .notif-lateral { gap: 16px; }
+.pagina-publica :is(.notif-resumen, .notif-atajos) {
+  position: relative; display: flex; flex-direction: column; gap: 12px; padding: 22px 22px 20px; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 6px 16px rgba(22, 79, 68, 0.05);
+}
+.pagina-publica :is(.notif-resumen, .notif-atajos)::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #c9a24a, #e6d194); }
+.pagina-publica .notif-resumen__cifra { display: flex; align-items: baseline; gap: 8px; margin: 2px 0 0; color: #4d4d4d; font-size: 15px; font-weight: 600; }
+.pagina-publica .notif-resumen__cifra strong { color: #164f44; font-size: 40px; line-height: 44px; font-weight: 800; }
+.pagina-publica .notif-resumen__barra { height: 8px; overflow: hidden; border-radius: 999px; background: #f1efea; }
+.pagina-publica .notif-resumen__barra span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1f6b5c, #2a7d6b); transition: width 0.3s ease; }
+.pagina-publica .notif-resumen__areas { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
+.pagina-publica .notif-resumen__areas li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; background: #f7f5f0; color: #161a1d; font-size: 14px; font-weight: 600; }
+.pagina-publica .notif-resumen__areas strong { margin-left: auto; color: #164f44; }
+.pagina-publica .notif-resumen__punto { width: 9px; height: 9px; border-radius: 50%; background: #c9a24a; }
+.pagina-publica .notif-resumen__punto--actividades { background: #1f6b5c; }
+.pagina-publica .notif-resumen__punto--propuesta { background: #9b2247; }
+.pagina-publica .notif-resumen__punto--espacios { background: #2a7d6b; }
+.pagina-publica .notif-resumen__punto--avisos { background: #b9b3a5; }
+
+/* «Cómo te avisamos»: tarjeta verde con luces, centrada, insignia dorada y botón dorado a todo lo ancho */
+.pagina-publica .notif-como-tarjeta {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 28px 24px 24px; overflow: hidden;
+  border-radius: 24px; text-align: center; color: #fff;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(201, 162, 74, 0.3), transparent 45%),
+    radial-gradient(circle at 90% 100%, rgba(155, 34, 71, 0.35), transparent 45%),
+    linear-gradient(150deg, #0b3b33, #1f6b5c);
+  box-shadow: 0 12px 26px rgba(22, 79, 68, 0.18);
+}
+.pagina-publica .notif-como-tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .notif-como-tarjeta__insignia { position: relative; width: 64px; height: 64px; border-radius: 50%; background: #e6d194; box-shadow: 0 0 0 4px rgba(242, 227, 184, 0.45); }
+.pagina-publica .notif-como-tarjeta__insignia::after {
+  content: ""; position: absolute; inset: 18px; background: #164f44;
+  -webkit-mask: var(--icono-seccion) center / contain no-repeat; mask: var(--icono-seccion) center / contain no-repeat;
+}
+.pagina-publica .notif-como-tarjeta h2 { margin: 6px 0 0; color: #fff; font-size: 20px; line-height: 26px; }
+.pagina-publica .notif-como-tarjeta p { margin: 0; color: #e4efeb; font-size: 14px; line-height: 21px; }
+.pagina-publica .notif-como-tarjeta .perfil-boton--guardar { width: 100%; margin-top: 6px; background: #e6d194; color: #164f44; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18); }
+
+/* Atajos: filas como los accesos rápidos del Resumen */
+.pagina-publica .notif-atajos::before { background: linear-gradient(90deg, #164f44, #2a7d6b); }
+.pagina-publica .notif-atajos ul { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .notif-atajos .perfil-rapido { width: 100%; box-sizing: border-box; }
+.pagina-publica .notif-lateral { position: static; } /* la columna ya es alta: se desplaza con la página para que se vea completa */
+
+/* Notificaciones: franja verde compacta (la funcionalidad es lo que destaca) y la lista al mismo alto que la columna derecha */
+.pagina-publica:has(.notif-cuerpo) .encabezado-publico { gap: 10px; padding: 26px 24px 30px; }
+.pagina-publica:has(.notif-cuerpo) .encabezado-publico h1 { font-size: 36px; line-height: 42px; letter-spacing: -0.5px; }
+.pagina-publica:has(.notif-cuerpo) .encabezado-publico p { max-width: 640px; font-size: 15px; line-height: 22px; }
+.pagina-publica .notif-cuerpo { align-items: stretch; padding-top: 32px; }
+.pagina-publica .notif-principal { min-height: 0; }
+.pagina-publica .notif-principal > .perfil-panel { flex: 1; }
+/* Vacío dentro de un panel estirado: su contenido va centrado en el alto disponible («Estás al día») */
+.pagina-publica .perfil-panel .perfil-vacio--panel { justify-content: center; }
+/* «Tus trámites» más compacto: filas de 44 px con ícono de 30 px */
+.pagina-publica .notif-atajos { gap: 10px; padding: 18px 18px 16px; }
+.pagina-publica .notif-atajos ul { gap: 6px; }
+.pagina-publica .notif-atajos .perfil-rapido { height: auto; min-height: 44px; padding: 7px 12px; gap: 10px; border-radius: 14px; font-size: 14px; }
+.pagina-publica .notif-atajos .perfil-rapido__icono { width: 30px; height: 30px; }
+.pagina-publica .notif-atajos .perfil-rapido__icono img { width: 15px; height: 15px; }
+
+/* ---------- Área de trabajo ajustada a la pantalla (normalización, 18 nov 2026; solo escritorio) ----------
+   Igual que las secciones del inicio: debajo de la barra, el bloque de contenido mide exactamente el alto visible
+   (con 32 px arriba y abajo) y el scroll lo deja alineado. Lo largo se desplaza DENTRO de su panel, no empuja la página.
+   100vh se divide entre 0.9 por el zoom del portal; 61 px es la barra de navegación. */
+@media (min-width: 1025px) {
+  html:has(.pagina-publica .notif-cuerpo) { scroll-snap-type: y proximity; scroll-padding-top: 61px; }
+  .pagina-publica .notif-cuerpo {
+    grid-template-rows: minmax(0, 1fr); height: calc((100vh - 61px) / 0.9); max-width: 1168px; padding: 32px 24px;
+    box-sizing: border-box; scroll-snap-align: start;
+  }
+  .pagina-publica :is(.notif-principal, .notif-lateral) { height: 100%; min-height: 0; }
+  .pagina-publica .notif-principal > .perfil-panel { min-height: 0; }
+  .pagina-publica .notif-principal .perfil-solicitudes {
+    flex: 1; min-height: 0; margin: 0 -6px; padding: 2px 6px 6px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #cfc9bb transparent;
+  }
+  .pagina-publica .notif-lateral { overflow-y: auto; scrollbar-width: thin; }
+}
+.pagina-publica .notif-pie { margin: 0; color: #6b675e; font-size: 12.5px; line-height: 18px; }
+
+/* Columna derecha compacta para caber en 1366 × 768 */
+.pagina-publica .notif-lateral { gap: 12px; }
+.pagina-publica .notif-resumen { gap: 10px; padding: 18px 20px; }
+.pagina-publica .notif-resumen__cifra strong { font-size: 34px; line-height: 38px; }
+.pagina-publica .notif-resumen__areas { flex-direction: row; flex-wrap: wrap; gap: 6px; margin: 0; }
+.pagina-publica .notif-resumen__areas li { gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12.5px; }
+.pagina-publica .notif-resumen__areas strong { margin-left: 2px; }
+.pagina-publica .notif-como-tarjeta { gap: 8px; padding: 22px 22px 20px; }
+.pagina-publica .notif-como-tarjeta__insignia { width: 52px; height: 52px; }
+.pagina-publica .notif-como-tarjeta__insignia::after { inset: 13px; }
+.pagina-publica .notif-como-tarjeta h2 { margin-top: 2px; font-size: 18px; line-height: 24px; }
+.pagina-publica .notif-como-tarjeta p { font-size: 13.5px; line-height: 20px; }
+
+/* ---------- Desplegables de la barra (campana y «Mi perfil») con las tarjetas de Mis eventos (18 nov 2026) ----------
+   Fondo crema con franja guinda → dorado arriba; cada opción o aviso es una tarjeta blanca con borde de color a la
+   izquierda, ícono en recuadro verde claro y se eleva al pasar el mouse. */
+.menu-cuenta :is(.panel-notif, .menu-cuenta__panel) {
+  overflow: hidden; border: 1px solid #e2ded5; border-radius: 24px; background: #fbf9f4;
+  box-shadow: 0 18px 44px rgba(22, 26, 29, 0.22); animation: desplegable-entra 0.22s ease-out both;
+}
+.menu-cuenta :is(.panel-notif, .menu-cuenta__panel)::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
+}
+@keyframes desplegable-entra { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* Campana */
+.menu-cuenta .panel-notif { width: 380px; }
+.menu-cuenta .panel-notif__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 20px 18px 12px 20px; }
+.menu-cuenta .panel-notif__titulo { padding: 0; font-size: 17px; }
+.menu-cuenta .panel-notif__cuenta {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+  background: #f6eeda; box-shadow: inset 0 0 0 1px #e6d194; color: #6b4f12; font-size: 12px; font-weight: 700;
+}
+.menu-cuenta .panel-notif__cuenta::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #c9a24a; }
+.menu-cuenta .panel-notif__lista { display: flex; flex-direction: column; gap: 8px; padding: 0 14px; background: none; }
+.menu-cuenta .panel-notif__item {
+  flex-direction: row; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #e2ded5; border-left: 4px solid #c9a24a;
+  border-radius: 16px; background: #fff; box-shadow: 0 4px 12px rgba(22, 79, 68, 0.05); transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.menu-cuenta .panel-notif__item:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(22, 79, 68, 0.1); }
+.menu-cuenta .panel-notif__icono { display: flex; flex: none; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 12px; background: #e4efeb; }
+.menu-cuenta .panel-notif__icono img { width: 18px; height: 18px; }
+.menu-cuenta .panel-notif__textos { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.menu-cuenta .panel-notif__textos strong { display: -webkit-box; overflow: hidden; color: #161a1d; font-size: 14px; line-height: 19px; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.menu-cuenta .panel-notif__textos small { color: #6b675e; font-size: 12px; font-weight: 700; }
+.menu-cuenta .panel-notif__vacio { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 20px 4px; background: none; text-align: center; }
+.menu-cuenta .panel-notif__insignia { position: relative; width: 56px; height: 56px; margin-bottom: 6px; border-radius: 50%; background: #164f44; box-shadow: 0 0 0 4px #f2e3b8; }
+.menu-cuenta .panel-notif__insignia::after {
+  content: ""; position: absolute; inset: 16px; background: #fff;
+  -webkit-mask: var(--icono-seccion) center / contain no-repeat; mask: var(--icono-seccion) center / contain no-repeat;
+}
+.menu-cuenta .panel-notif__vacio strong { color: #161a1d; font-size: 16px; }
+.menu-cuenta .panel-notif__vacio span:last-child { color: #6b675e; font-size: 13px; }
+.menu-cuenta .panel-notif__pie { padding: 14px; }
+.menu-cuenta .panel-notif__boton {
+  justify-content: center; width: 100%; height: 44px; box-sizing: border-box;
+  background: linear-gradient(180deg, #1d6354, #123f37); box-shadow: 0 8px 18px rgba(18, 63, 55, 0.25);
+}
+
+/* «Mi perfil» */
+.menu-cuenta .menu-cuenta__panel { width: 330px; padding: 22px 14px 14px; box-sizing: border-box; }
+.menu-cuenta .menu-cuenta__persona { padding: 0 6px; }
+.menu-cuenta .menu-cuenta__avatar { box-shadow: 0 0 0 3px #f2e3b8; }
+.menu-cuenta .menu-cuenta__tipo { margin: 10px 0 4px 6px; background: #f6eeda; box-shadow: inset 0 0 0 1px #e6d194; color: #6b4f12; }
+.menu-cuenta .menu-cuenta__panel hr { display: none; }
+.menu-cuenta .menu-cuenta__panel ul { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 10px; padding: 0; }
+.menu-cuenta .menu-cuenta__opcion {
+  width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #e2ded5; border-left: 4px solid #1f6b5c; border-radius: 16px;
+  background: #fff; box-shadow: 0 4px 12px rgba(22, 79, 68, 0.05); transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.menu-cuenta .menu-cuenta__opcion:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(22, 79, 68, 0.1); }
+.menu-cuenta .menu-cuenta__opcion img { width: 38px; height: 38px; padding: 10px; box-sizing: border-box; border-radius: 12px; background: #e4efeb; }
+.menu-cuenta .menu-cuenta__salir { border-color: #e8c3cf; border-left-color: #9b2247; background: #fbf1f4; color: #9b2247; }
+.menu-cuenta .menu-cuenta__salir:hover { background: #f6eaee; }
+.menu-cuenta .menu-cuenta__salir img { background: #f6eaee; }
+@media (prefers-reduced-motion: reduce) { .menu-cuenta :is(.panel-notif, .menu-cuenta__panel) { animation: none; } .menu-cuenta :is(.panel-notif__item, .menu-cuenta__opcion):hover { transform: none; } }
+
+/* Notificaciones: la columna derecha llega al mismo alto que la lista; el espacio que sobre se reparte entre sus tarjetas
+   (las filas de «Tus trámites» crecen y el contenido de «Cómo te avisamos» va centrado) */
+.pagina-publica .notif-lateral > :is(.notif-como-tarjeta, .notif-atajos) { flex: 1 1 0; min-height: min-content; }
+.pagina-publica .notif-lateral > .notif-como-tarjeta { justify-content: center; }
+.pagina-publica .notif-atajos ul { flex: 1; }
+.pagina-publica .notif-atajos li { display: flex; flex: 1; }
+.pagina-publica .notif-atajos li > .perfil-rapido { flex: 1; max-height: 64px; }
+.pagina-publica .notif-lateral > .notif-resumen { flex: none; } /* el resumen nunca se encoge: las demás tarjetas toman el espacio que sobre */
+/* Ajuste fino para que la columna derecha quepa completa a 1366 × 768 con el resumen */
+.pagina-publica .notif-lateral { gap: 10px; }
+.pagina-publica .notif-resumen { gap: 8px; padding: 16px 18px; }
+.pagina-publica .notif-resumen__cifra strong { font-size: 30px; line-height: 34px; }
+.pagina-publica .notif-resumen__areas { gap: 5px; }
+.pagina-publica .notif-resumen__areas li { padding: 3px 8px; font-size: 12px; }
+.pagina-publica .notif-como-tarjeta { gap: 6px; padding: 18px 18px 16px; }
+.pagina-publica .notif-como-tarjeta p { font-size: 13px; line-height: 19px; }
+.pagina-publica .notif-atajos { padding: 16px 16px 14px; }
+.pagina-publica .notif-atajos .perfil-rapido { min-height: 40px; padding: 5px 12px; }
+/* Desplegable de la campana sin la franja de color al costado (a Aldahir no le gustó): borde parejo y
+   un punto dorado que late junto al ícono marca que el aviso está sin leer */
+.menu-cuenta .panel-notif__item { position: relative; border-left: 1px solid #e2ded5; }
+.menu-cuenta .panel-notif__item:hover { border-color: #e6d194; }
+.menu-cuenta .panel-notif__icono { position: relative; }
+.menu-cuenta .panel-notif__icono::after {
+  content: ""; position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border-radius: 50%;
+  background: #c9a24a; box-shadow: 0 0 0 2px #fff;
+}
+/* Sin franjas al costado (Aldahir, 18 nov): desplegable de «Mi perfil» y tarjetas de la página de Notificaciones.
+   Borde parejo; en Notificaciones, «sin leer» se marca con el punto dorado sobre el ícono, como en la campana. */
+.menu-cuenta .menu-cuenta__opcion { border-left: 1px solid #e2ded5; }
+.menu-cuenta .menu-cuenta__opcion:hover { border-color: #bfd9d0; }
+.menu-cuenta .menu-cuenta__salir { border-left-color: #e8c3cf; }
+.menu-cuenta .menu-cuenta__salir:hover { border-color: #d9a3b4; }
+.pagina-publica .perfil-solicitud.notif-item { border-left: 1px solid #e2ded5; }
+.pagina-publica .perfil-solicitud.notif-item:hover { border-color: #e6d194; }
+.pagina-publica .perfil-solicitud--dorado.notif-item .perfil-lista__icono { position: relative; }
+.pagina-publica .perfil-solicitud--dorado.notif-item .perfil-lista__icono::after {
+  content: ""; position: absolute; top: -3px; right: -3px; width: 11px; height: 11px; border-radius: 50%;
+  background: #c9a24a; box-shadow: 0 0 0 2px #fff;
+}
+
+/* ---------- «Últimas noticias»: la activa sin franja al costado (Aldahir, 18 nov) ----------
+   Tarjeta blanca con borde dorado fino alrededor, brillo dorado suave y una muesca dorada a la izquierda que
+   apunta a la noticia destacada (la que se está mostrando). Las demás, crema y sin borde. */
+.pagina-publica .noticia-mini--activa,
+.pagina-publica .noticia-mini--activa:hover {
+  border: 2px solid #e6d194; background: linear-gradient(135deg, #fffdf8, #ffffff 60%);
+  box-shadow: 0 0 0 4px rgba(230, 209, 148, 0.28), 0 12px 24px rgba(0, 0, 0, 0.16);
+  overflow: visible;
+}
+.pagina-publica .noticia-mini--activa::before {
+  content: ""; position: absolute; top: 50%; left: -9px; width: 14px; height: 14px; margin-top: -7px;
+  border-bottom: 2px solid #e6d194; border-left: 2px solid #e6d194; border-radius: 0 0 0 3px; background: #fffdf8;
+  transform: rotate(45deg); box-shadow: -3px 3px 6px rgba(0, 0, 0, 0.06);
+}
+.pagina-publica .noticia-mini { border-width: 2px; }

@@ -55,6 +55,7 @@ Si una pantalla se ve distinta a esas dos, se ajusta a ellas, no al revés. Los 
   - Secundario: contorno verde de 1.5 px, mismo alto que el principal de su grupo.
 - **Secciones del inicio:** cada una mide el alto visible bajo el menú, con su bloque centrado y `scroll-snap` en *proximity*. **Todos los bloques miden lo mismo de alto** (el alto visible menos 64 px), así entre un bloque y el siguiente quedan **siempre 64 px** en cualquier pantalla; la única excepción es la franja dorada de cifras, que conserva su propio espacio. Si agregas una sección al inicio, usa la misma regla (`Detalles.css`, «Misma separación entre todos los bloques»). Si un bloque no cabe, primero se quita aire (gaps, rellenos) y solo después se encoge su contenido; los bloques hermanos (Lecturas, Actividades, Noticias) van a la **misma escala**.
 - **Aire dentro de los bloques:** la etiqueta de sección queda a **≈ 45 px del borde de arriba** del bloque en pantalla (nunca pegada); el pie del bloque (nota + botón) a ≈ 20 px del borde de abajo. Si falta espacio, se quita de los huecos entre título, filtros y tarjetas, no del borde de arriba.
+- **Área de trabajo ajustada a la pantalla** (Aldahir, 18 nov 2026; **aplica a toda pantalla nueva o que se rehaga**, no solo al inicio): debajo de la barra de navegación, el bloque principal de contenido mide **exactamente el alto visible** (`height: calc((100vh - 61px) / 0.9)`, con 32 px arriba y abajo) y se alinea al hacer scroll (`scroll-snap-type: y proximity` con `scroll-padding-top: 61px` en `html` y `scroll-snap-align: start` en el bloque). Al llegar a él queda **perfectamente encuadrado**: nada se corta ni sobra. Lo que es más largo (listas) **se desplaza dentro de su panel**, no empuja la página; las columnas hermanas miden lo mismo. Si una columna no cabe a 1366 × 768, primero se compacta (chips en vez de filas, menos aire) antes de dejarla con scroll propio. Ejemplo: Notificaciones (`.notif-cuerpo`, `Detalles.css`, «Área de trabajo ajustada a la pantalla»). Solo escritorio.
 - **Carruseles:** elementos del mismo tamaño en carruseles hermanos (libro = tarjeta de actividad: 360 px de ancho, 24 px entre ellos); flechas ‹ › a media altura de la pista, 64 px hacia dentro de la orilla.
 
 ### 2. Elementos de identidad (los «detalles del login»)
@@ -78,6 +79,10 @@ Si una pantalla se ve distinta a esas dos, se ajusta a ellas, no al revés. Los 
 - **Estados vacíos importantes** (p. ej. Mis eventos): fondo con luces dorada y verde, franja guinda → dorado arriba, insignia grande (círculo verde con aro dorado), sugerencias en pastillas de colores y el botón principal.
 - **Trámites por estados:** a la izquierda el objeto (la credencial o su lugar punteado mientras no existe) y a la derecha el estado (chip), qué pasa y la acción; debajo, los pasos del trámite con el actual marcado.
 - **Listas de actividades o fechas:** cada elemento con su bloque de fecha (día grande y mes), como en la agenda.
+- **Franjas de color al costado (borde izquierdo grueso): solo en las tarjetas de lista de las secciones del perfil** (Mis eventos, Mis propuestas, Mis espacios, recompensas y sesión), donde Aldahir las aprobó. **En todo lo demás no se usan** (Aldahir las quitó el 18 nov en la campana, «Mi perfil», la página de Notificaciones y las noticias del inicio). Para marcar algo:
+  - **Sin leer o pendiente:** borde parejo y un **punto dorado** sobre el ícono (`::after`, 10–11 px, con aro blanco).
+  - **Elemento activo o seleccionado** (la noticia que se está viendo): tarjeta blanca con **borde dorado fino alrededor** (`#e6d194`, 2 px), brillo dorado suave y, si señala a otro elemento, una **muesca** dorada que apunta hacia él.
+  - **Recuadros de ayuda** (`perfil-nota`) conservan su borde dorado a la izquierda: son notas, no tarjetas.
 - **Sin etiquetas pequeñas sobre los títulos** que repitan las migas o el título. Las etiquetas de sección del portal (pastilla con ícono arriba del título del bloque) sí se usan.
 
 ### 3. Animaciones (solo `transform` y `opacity`)
@@ -131,6 +136,11 @@ Si algo no encaja, usa la más parecida y pregunta antes de inventar otra. Los r
 | `.perfil-interruptor` | `Detalles.css` | Activar o desactivar algo (tipos de aviso): fila con título, descripción e interruptor verde |
 | `.perfil-requisitos` | `Detalles.css` | Requisitos en vivo (contraseña): pastillas grises que se ponen verdes al cumplirse |
 | `.perfil-niveles--ruta` | `Detalles.css` | Niveles o etapas numeradas en fila, unidas por una línea, con su chip de estado |
+| Desplegables de la barra (campana `PanelNotificaciones` y «Mi perfil» `MenuCuenta`) | `notificaciones/PanelNotificaciones.tsx` · `perfil/MenuCuenta.tsx` · `Detalles.css` | Con las **tarjetas de lista de Mis eventos**: fondo crema con franja guinda → dorado, entrada suave, cada aviso u opción como tarjeta blanca **sin franja al costado** (Aldahir las quitó en la campana, en «Mi perfil» y en la página de Notificaciones): borde parejo, y un punto dorado sobre el ícono marca «sin leer»; «Cerrar sesión» en rosa claro con texto guinda, ícono en recuadro verde claro y elevación al pasar el mouse; contador «N sin leer» en pastilla; vacío «Estás al día» con insignia; botón principal a todo lo ancho |
+| `.notif-resumen` | `Detalles.css` | Tarjeta de resumen: cifra grande («5 sin leer de 6»), barra de avance y conteo por categoría con su punto de color |
+| `.notif-como-tarjeta` | `Detalles.css` | Tarjeta destacada de la columna derecha: verde con luces, centrada, insignia dorada (`--icono-seccion`) y botón dorado a todo lo ancho |
+| `.notif-atajos` + `.perfil-rapido` | `Detalles.css` · `Perfil.css` | Atajos compactos (filas de 44 px con ícono de 30 px) a otras secciones |
+| Franja compacta (`.pagina-publica:has(.notif-cuerpo) .encabezado-publico`) | `Detalles.css` | Franja verde de ≈ 150 px (título 36 px, texto 15 px) para pantallas de uso, donde manda la funcionalidad |
 | `Chip` | `pages/publico/credencial/piezas.tsx` | Estado en pastilla con punto (`verde`, `dorado`, `guinda`, `gris`) |
 | `.perfil-filtro` | `Perfil.css` | Filtros en pastilla con contador; el activo en verde |
 | `.perfil-credencial-estado` + `EtapasTramite` | `Detalles.css` · `credencial/piezas.tsx` | Trámite por estados: objeto a la izquierda, estado y acción a la derecha; pasos debajo |
@@ -170,6 +180,31 @@ Si algo no encaja, usa la más parecida y pregunta antes de inventar otra. Los r
 **Para revisar sin backend (solo en desarrollo):** `?simular=sesion` (persona adulta) y `?simular=sesion-menor` muestran el perfil, notificaciones, inscripciones, preferencias de avisos y mensajes de ejemplo; en Mi credencial, el selector «Vista de ejemplo de estados» cambia el estado del trámite.
 
 **Al hacer una pantalla nueva con sesión:** encabezado de sección con insignia y acción → tarjetas o panel de lista → nota al final; estados con `Chip` y borde de color; vacío con `perfil-vacio--eventos`; formularios con `Campo`, interruptores u opciones y la barra `perfil-guardar`. Todo en escritorio; lo responsivo, después.
+
+### 7. Plantillas de pantalla (normalización final, 18 nov 2026)
+
+Toda pantalla con sesión usa **una de estas dos plantillas**, ya probadas en Mi perfil y en Notificaciones. No se inventan otras.
+
+**A. Sección con menú lateral** (Mi perfil y sus submódulos; `perfil-cuerpo`):
+- Columna izquierda: menú de 212 px que acompaña al scroll (`sticky`), etiqueta «Secciones del perfil», opciones a la izquierda con la rayita dorada de la barra principal, «Cerrar sesión» en guinda con ícono.
+- Columna derecha (la sección), en este orden: `EncabezadoSeccion` (insignia + título + texto + acción principal a la derecha) → contenido → nota de ayuda al final.
+- Contenido según el caso: **datos** en `TarjetaPerfil` + fichas `Dato`; **listas** en `perfil-panel` (filtros segmentados + tarjetas de lista o vacío) que llega al alto del menú; **formularios** con `perfil-editar-intro` (si editan datos personales), `Campo`, opciones o interruptores y la barra `perfil-guardar` hasta abajo; **trámites** con `perfil-credencial-estado` + pasos.
+
+**B. Herramienta de dos columnas** (Notificaciones; `notif-cuerpo`, máximo 1120 px):
+- Arriba, la **franja verde compacta** (≈ 150 px) para que destaque la funcionalidad.
+- Columna principal: `perfil-panel` con la barra de herramientas (filtros segmentados con contador a la izquierda y acciones como botones chicos con contorno a la derecha), el aviso de lo que pasó (`role="status"`) y las tarjetas de lista; si no hay nada, el vacío con insignia **centrado en el alto disponible**.
+- Columna derecha de 360 px: `notif-resumen` (si hay datos) → `notif-como-tarjeta` (lo más importante de configurar) → `notif-atajos` → nota.
+- **El bloque de las dos columnas es el área de trabajo ajustada a la pantalla** (ver §1): mide el alto visible bajo la barra, el scroll lo encuadra, las dos columnas miden lo mismo y la lista se desplaza dentro de su panel. La columna derecha va compacta (resumen en chips) para caber a 1366 × 768 y **siempre termina a la par de la lista**: el resumen no se encoge y el espacio que sobre se reparte entre «Cómo te avisamos» (contenido centrado) y los atajos (sus filas crecen hasta 64 px); la nota «Eliminar no cancela nada» va al pie del panel.
+
+**Reglas comunes a las dos:**
+- Colores con significado (verde = listo, dorado = en curso o sin leer, guinda = requiere acción, gris = terminado o leído), los mismos en bordes, chips, fichas y franjas.
+- Etiquetas siempre con `EtiquetaPerfil`; títulos sin mayúsculas sostenidas; nada de etiquetas que repitan el título.
+- Toda tarjeta lleva su franja de color arriba; las tarjetas de lista, su borde de color a la izquierda.
+- Botones solo con texto (salvo «Cerrar sesión»), de 46 px; en barras y tarjetas de lista, `perfil-boton--chico`.
+- Vacíos: `perfil-vacio--eventos` con insignia, texto y su botón; dentro de un panel, centrados.
+- Con `?simular=sesion` cada pantalla debe verse con datos de ejemplo (para revisar sin backend).
+- **Área de trabajo ajustada a la pantalla** (§1) en toda pantalla nueva: al hacer scroll, el contenido queda encuadrado exactamente bajo la barra.
+- Escritorio primero (1366 × 768); lo responsivo, en la pasada aparte.
 
 ## Diseño responsivo
 
@@ -267,7 +302,7 @@ Los íconos de la ficha ya vienen descargados en `src/assets/`. Si algo no está
   - Unificó los íconos repetidos en `assets/comun/iconos/`, después de comprobar sus MD5, y eliminó las dos copias sin referencias.
   - Agregó «Reintentar» a los estados de error de Estadísticas y Bitácora sin alterar sus datos ni servicios.
   - Verificación: `npm run lint` sin errores, **340 pruebas aprobadas y 1 omitida**, y `npm run build` exitoso.
-- **Terminado (T1, 18 nov 2026): Mi perfil completo** (todas sus secciones, con el catálogo de piezas). Sigue: Notificaciones con sesión.
+- **Terminado (T1, 18 nov 2026): Mi perfil completo** (todas sus secciones) y **Notificaciones**, con el catálogo de piezas (§5), los recursos (§6) y las plantillas de pantalla (§7). Lo que sigue se arma con esas tres secciones.
 - En curso: T4 · Actor 2 (`476:9982`).
 - Pendientes que dependen del backend, no de nuevas pantallas frontend: Estadísticas, Bitácora y Configuración (`administracion/datos.ts`), Resumen y Notificaciones del panel, y Recuperación asistida conservan datos de ejemplo señalados con `TODO backend`.
 - 3 nov 2026: `main` y `Aldahir` ya tienen la organización de carpetas corregida después del merge.
@@ -310,7 +345,7 @@ Lo que ya se decidió y está hecho. **No lo deshagas**; si algo no te cuadra, p
 - **«Cómo encontrarnos»:** datos en tarjetas de vidrio (horario y dirección a todo lo ancho; el horario va en **una sola línea** y el estado «Abierto/Cerrado ahora» junto a la palabra «Horario», con `useEstadoBiblioteca`); etiqueta, título y botón «Contacto y sugerencias» centrados, teléfono y correo como enlaces `tel:` y `mailto:`, y el mapa de Google con marco dorado y una placa con el nombre arriba a la derecha (a la izquierda Google pone su ficha).
 - **Pie de bloque igual en Lecturas, Actividades y Noticias:** nota o aviso a la izquierda y el botón dorado «Ver todas las …» a la derecha, los tres del mismo tamaño (los tres bloques al 95 %). Ningún «Ver todas…» va bajo el título.
 - **Carruseles parejos:** los libros de Lecturas miden lo mismo que las tarjetas de Actividades (360 px de ancho, mismo espacio entre ellos, mismo alto) y los dos bloques se dibujan a la misma escala (95 %); las flechas de ambos carruseles van a media altura de la pista, en la misma posición.
-- **Noticias:** «Ver todas las noticias» va al pie del bloque, junto a la nota, igual que en Actividades. La lista de la derecha muestra cada noticia con miniatura, categoría y fecha, título (2 líneas) y **su descripción** (2 líneas).
+- **Noticias:** «Ver todas las noticias» va al pie del bloque, junto a la nota, igual que en Actividades. La lista de la derecha muestra cada noticia con miniatura, categoría y fecha, título (2 líneas) y **su descripción** (2 líneas). La noticia activa ya **no lleva franja al costado**: borde dorado fino alrededor, brillo suave, pastilla «Viendo» y una muesca dorada a la izquierda que apunta a la destacada.
 - **Campana de notificaciones:** blanca con borde claro (no verde).
 - **Actividades del inicio:** «Ver todas las actividades» va abajo a la derecha, junto a la nota de programación (no bajo el título). El bloque es más bajo (menos aire, foto de 170 px) y por eso se dibuja al 95 %, con tarjetas más grandes.
 - **Plantas a los costados del inicio:** dos ilustraciones propias (`assets/inicio/adorno-planta-verde.svg` y `adorno-planta-dorada.svg`): rama verde con bayas doradas en una esquina superior del bloque y ramita dorada con flores, inclinada 20°, en la inferior opuesta, alternando lado en cada sección. Salen de la orilla de la pantalla y montan unos 60 px sobre la esquina del bloque (vacía), para que se vean también en laptops. El espejo se hace sobre su centro (`transform-origin: 50% …`) o se sale de la pantalla.
@@ -331,5 +366,6 @@ Lo que ya se decidió y está hecho. **No lo deshagas**; si algo no te cuadra, p
   - **Cuarta vuelta (18 nov):** barra de guardar rediseñada en Editar mis datos, Mis datos sin notas grises y Mis eventos vacío con luces, insignia y sugerencias; las tarjetas de inscripción llevan borde de color a la izquierda según su estado.
   - **Quinta vuelta (18 nov, catálogo aplicado):** menú de 236 px; Mis propuestas, Mis espacios y Mis eventos con acción en el encabezado y `perfil-panel` (filtros segmentados con contador en círculo, tarjetas de lista o vacío con insignia); Progreso con niveles en ruta y recompensas como tarjetas de lista; Mis mensajes con vacío de pasos (Recibido · En revisión · Atendido); Avisos con canales en tarjetas de opción, tipos con interruptores y la barra de guardar hasta abajo; Seguridad con requisitos en vivo, sesión como tarjeta de lista y consejos en nota positiva.
   - **Mis mensajes (18 nov):** al enviar un mensaje de contacto con sesión, su folio se guarda en este navegador para esa cuenta (`perfil/mensajesGuardados.ts`, pruebas en `tests/mensajesGuardados.test.ts`); también al consultar un folio válido. Mis mensajes los lista solos como tarjetas de lista con su estado y «Ver seguimiento»; el buscador por folio queda para mensajes enviados desde otro equipo. `TODO backend`: cuando `GET /mis-solicitudes` incluya los mensajes de contacto, la lista sale de ahí.
+  - **Notificaciones con el catálogo (18 nov):** columna principal con `perfil-panel` (filtros segmentados con contador por filtro, «Marcar todas como leídas» y «Eliminar las leídas» como botones chicos) y tarjetas de lista **sin franja al costado** (sin leer = punto dorado sobre el ícono + chip «Sin leer»; leída = fondo gris; ícono de su área, título, texto, área · cuándo, acción y la × para quitarla); vacío «Estás al día» con insignia. Columna derecha de 360 px (se desplaza con la página): «Resumen» (sin leer de total, barra de leídas y conteo por área con su color), «Cómo te avisamos» como tarjeta verde con luces, centrada, insignia dorada y botón dorado a todo lo ancho, «Tus trámites» con atajos (Mis eventos, Mi credencial, Mis propuestas, Mis espacios) y la nota «Eliminar no cancela nada». **La lista mide lo mismo que la columna derecha** (las dos columnas se estiran al mismo alto). **Franja verde compacta en Notificaciones** (≈ 150 px: título de 36 px y texto de 15 px) para que destaque la funcionalidad; usa este tamaño en las demás pantallas con sesión que sean herramientas. «Estás al día» va centrado en el alto del panel y «Tus trámites» es compacto (filas de 44 px). Con sesión real, `AvisosActividad` usa el mismo panel con bloque de fecha por aviso. Estilos en `Detalles.css` («Notificaciones con el catálogo del perfil»).
   - **Mis eventos:** cada inscripción es una tarjeta con su bloque de fecha (verde si está confirmada, gris si se canceló); el estado vacío trae «Explorar actividades». Con `?simular=sesion` hay inscripciones de ejemplo.
 - **Sin flechas** en botones, pastillas ni enlaces (se quitaron unas 70 en 38 archivos, y el 18 nov las que quedaban en los botones «Volver a …» de Noticias, Lecturas, Servicios, Eventos y el encabezado de visitante, y en las acciones de las tarjetas de Servicios). Solo conservan flecha los controles ‹ › de los carruseles y el globo del asistente.

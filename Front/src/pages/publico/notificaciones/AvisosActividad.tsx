@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { mensajeError, ErrorServicio, obtenerSupabase, pedirApi } from '../../../servicios/api';
 
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
-import iconoCalendario from "../../../assets/perfil/fila-calendario.svg";
-import vacioCampana from "../../../assets/notificaciones/vacio-campana.svg";
+import { Link } from 'react-router';
+import { Chip } from "../credencial/piezas";
+import { EtiquetaPerfil } from "../perfil/piezas";
+import { iconosSeccion } from "../perfil/iconos";
 type Aviso = { id: string; titulo: string; cuerpoAviso: string; creadoEn: string };
 
 export function AvisosActividad() {
@@ -26,35 +28,42 @@ export function AvisosActividad() {
         return () => { vigente = false; };
     }, [clave, pagina]);
 
-    return <section className="notif-avisos" aria-labelledby="avisos-actividad-titulo">
+    // Bloque de fecha («20 / NOV») de cada aviso, como en las tarjetas de lista del catálogo
+    const fecha = (iso: string) => {
+        const d = new Date(iso);
+        return { dia: d.toLocaleString('es-MX', { timeZone: 'America/Mazatlan', day: 'numeric' }), mes: d.toLocaleString('es-MX', { timeZone: 'America/Mazatlan', month: 'short' }).replace('.', '') };
+    };
+    return <section className="perfil-panel" aria-labelledby="avisos-actividad-titulo">
         <div className="notif-avisos__cabecera">
-            <h2 id="avisos-actividad-titulo">Cambios y cancelaciones de tus actividades</h2>
+            <EtiquetaPerfil id="avisos-actividad-titulo" icono={iconosSeccion.eventos}>Cambios y cancelaciones de tus actividades</EtiquetaPerfil>
             <p>Te avisamos aquí cuando una sesión en la que te inscribiste cambia de fecha, de lugar o se cancela.</p>
         </div>
         {!actual && <EsqueletoLista texto="Cargando avisos…" />}
-        {actual?.error && <div className="notif-vacio" role="alert">
-            <span><img src={vacioCampana} alt="" /></span>
-            <h2>No pudimos cargar tus avisos</h2>
-            <p>{actual.error}</p>
-            <button type="button" className="notif-tarjeta__ver" onClick={() => reintentar(i => i + 1)}>Reintentar</button>
+        {actual?.error && <div className="perfil-vacio perfil-vacio--eventos perfil-vacio--panel" role="alert">
+            <span className="perfil-vacio__insignia" aria-hidden="true" />
+            <p><strong>No pudimos cargar tus avisos</strong>{actual.error}</p>
+            <button type="button" className="perfil-boton" onClick={() => reintentar(i => i + 1)}>Reintentar</button>
         </div>}
-        {actual?.avisos?.length === 0 && <div className="notif-vacio">
-            <span><img src={vacioCampana} alt="" /></span>
-            <h2>No tienes avisos de cambios</h2>
-            <p>Si una actividad en la que te inscribiste cambia o se cancela, aparecerá aquí.</p>
+        {actual?.avisos?.length === 0 && <div className="perfil-vacio perfil-vacio--eventos perfil-vacio--panel">
+            <span className="perfil-vacio__insignia" aria-hidden="true" />
+            <p><strong>Estás al día</strong>Si una actividad en la que te inscribiste cambia o se cancela, aparecerá aquí.</p>
+            <Link to="/mi-perfil/eventos" className="perfil-boton">Ver mis eventos</Link>
         </div>}
-        {!!actual?.avisos?.length && <ul className="notif-tarjetas">{actual.avisos.slice(0, 20).map(aviso => <li className="notif-tarjeta" key={aviso.id}>
-            <span className="notif-tarjeta__icono"><img src={iconoCalendario} alt="" /></span>
-            <div className="notif-tarjeta__textos">
-                <p className="notif-tarjeta__area">Actividades</p>
-                <h2>{aviso.titulo}</h2>
-                <p>{aviso.cuerpoAviso}</p>
-                <small><time dateTime={aviso.creadoEn}>{new Date(aviso.creadoEn).toLocaleString('es-MX', { timeZone: 'America/Mazatlan', dateStyle: 'long', timeStyle: 'short' })}</time></small>
-            </div>
-        </li>)}</ul>}
-        {(pagina > 0 || (actual?.avisos?.length ?? 0) > 20) && <div className="notif-acciones">
-            <button type="button" className="notif-tarjeta__ver" disabled={!actual || pagina === 0} onClick={() => setPagina(i => i - 1)}>Anteriores</button>
-            <button type="button" className="notif-tarjeta__ver" disabled={(actual?.avisos?.length ?? 0) <= 20 || pagina >= 5000} onClick={() => setPagina(i => i + 1)}>Siguientes</button>
+        {!!actual?.avisos?.length && <ul className="perfil-solicitudes">{actual.avisos.slice(0, 20).map(aviso => {
+            const { dia, mes } = fecha(aviso.creadoEn);
+            return <li className="perfil-solicitud perfil-solicitud--dorado perfil-evento" key={aviso.id}>
+                <span className="perfil-evento__fecha" aria-hidden="true"><strong>{dia}</strong>{mes}</span>
+                <div className="perfil-solicitud__textos">
+                    <strong>{aviso.titulo}</strong>
+                    <span>{aviso.cuerpoAviso}</span>
+                    <small className="notif-item__meta">Actividades · <time dateTime={aviso.creadoEn}>{new Date(aviso.creadoEn).toLocaleString('es-MX', { timeZone: 'America/Mazatlan', dateStyle: 'long', timeStyle: 'short' })}</time></small>
+                </div>
+                <Chip color="dorado">Cambio</Chip>
+            </li>;
+        })}</ul>}
+        {(pagina > 0 || (actual?.avisos?.length ?? 0) > 20) && <div className="perfil-acciones">
+            <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" disabled={!actual || pagina === 0} onClick={() => setPagina(i => i - 1)}>Anteriores</button>
+            <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" disabled={(actual?.avisos?.length ?? 0) <= 20 || pagina >= 5000} onClick={() => setPagina(i => i + 1)}>Siguientes</button>
         </div>}
     </section>;
 }
