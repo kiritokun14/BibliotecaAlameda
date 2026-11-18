@@ -7,6 +7,10 @@ El orquestador (T1) mantiene este archivo; las demás terminales no lo editan: s
 ## Reglas para todas las terminales
 
 - Todo en **español**: código, nombres, comentarios y respuestas. Solo escritorio (1280 a 1920 px), fuente Noto Sans.
+- **Excepción: las pantallas de acceso ya son responsivas** (17 nov 2026): Iniciar sesión, Crear cuenta, menor de 18 años, Recuperar acceso,
+  Confirmar correo, Cuenta deshabilitada y el aviso de Altas asistidas (`AccesoLayout` + `src/pages/acceso/Acceso.css`).
+  Teléfono hasta 600 px, tableta de 601 a 1024 px; en táctil los campos usan 16 px para que iOS no haga zoom.
+  No quites esas reglas `@media` (sección «Responsivo» de `Acceso.css`); si cambias algo en acceso, revísalo también a 390 px y 820 px.
 - **Solo frontend:** nadie de estas terminales hace backend (`Back/`, `Supabase/`).
 - **No hagas commits ni pushes**: los hace Aldahir. **No edites `AVANCES_ALDAHIR.md`**: di qué agregar. Única excepción: T2 escribe ahí la sección «Relevo para opencode» cuando se le está acabando el uso.
 - Trabaja **solo en tus carpetas** (tabla de abajo). Si necesitas tocar un archivo compartido, pregunta primero.
