@@ -70,10 +70,7 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
     }
     return (
         <nav className="navegacion" aria-label="Principal">
-            <Link to="/" className="navegacion__marca" aria-label="Biblioteca Solón Argüello, ir al inicio">
-                <span className="logo-solon logo-solon--verde" />
-            </Link>
-
+            {/* El logo de la biblioteca va en la franja guinda, junto a los de México y Nayarit */}
             <button className="navegacion__menu" type="button" aria-expanded={menuAbierto} aria-controls="navegacion-movil" onClick={() => setMenuAbierto(!menuAbierto)}>
                 {menuAbierto ? "Cerrar menú" : "Menú"}
             </button>

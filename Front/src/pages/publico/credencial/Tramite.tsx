@@ -13,7 +13,6 @@ import {
 } from "./datos";
 import "./Credencial.css";
 import "./CredencialSesion.css";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import radioMarcado from "../../../assets/credencial/radio.svg";
 import infoVerde from "../../../assets/credencial/info-verde.svg";
 import infoSeguimiento from "../../../assets/credencial/seg-info.svg";
@@ -212,7 +211,7 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
                 {errorEnvio && <p className="cred-error-campo" role="alert">No pudimos enviar tu solicitud: {errorEnvio}</p>}
                 <div className="cred-acciones">
                     <button type="submit" className="boton-visitante" disabled={enviando}>
-                        {enviando ? "Enviando…" : "Enviar solicitud"} <img src={flechaBlanca} alt="" />
+                        {enviando ? "Enviando…" : "Enviar solicitud"}
                     </button>
                     <Link to="/credencial" className="boton-visitante cred-boton-contorno">Volver a información</Link>
                 </div>
@@ -258,7 +257,7 @@ function Enviada({ tramite }: { tramite: TramiteCredencial }) {
             </dl>
             <Nota color="dorada" icono={infoDorado}>Acude a Préstamos para el cotejo presencial. Enviar la solicitud no valida tu credencial.</Nota>
             <div className="cred-acciones">
-                <Link to="/credencial/seguimiento" className="boton-visitante">Ver seguimiento <img src={flechaBlanca} alt="" /></Link>
+                <Link to="/credencial/seguimiento" className="boton-visitante">Ver seguimiento</Link>
                 <Link to="/" className="boton-visitante cred-boton-contorno">Volver al inicio</Link>
             </div>
         </div>
@@ -307,7 +306,7 @@ function Seguimiento({ tramite, titular }: { tramite: TramiteCredencial; titular
                     ¿Qué sigue? Te avisaremos en tus notificaciones cuando debas acudir a Préstamos para el cotejo presencial.
                 </Nota>
                 <div className="cred-acciones">
-                    <Link to="/contacto" className="boton-visitante">Contactar a la biblioteca <img src={flechaBlanca} alt="" /></Link>
+                    <Link to="/contacto" className="boton-visitante">Contactar a la biblioteca</Link>
                     <Link to="/credencial" className="boton-visitante cred-boton-contorno">Ver requisitos</Link>
                 </div>
             </div>
@@ -373,7 +372,7 @@ function Correccion({ tramite }: { tramite: TramiteCredencial }) {
                     {errores.numero && <p id="cor-numero-error" className="cred-error-campo">{errores.numero}</p>}
                 </div>
                 <div className="cred-acciones">
-                    <button type="submit" className="boton-visitante">Enviar corrección <img src={flechaBlanca} alt="" /></button>
+                    <button type="submit" className="boton-visitante">Enviar corrección</button>
                     <button type="button" className="boton-visitante cred-boton-contorno" onClick={() => navegar("/credencial")}>Cancelar</button>
                 </div>
             </form>
@@ -404,7 +403,7 @@ function MiCredencial({ tramite, titular }: { tramite: TramiteCredencial; titula
                         </p>
                         <Nota color="dorada" icono={alertaDorada}>Mientras no renueves, algunos servicios en sala pueden no estar disponibles.</Nota>
                         <div className="cred-acciones">
-                            <Link to="/credencial/solicitud?tipo=renovacion" className="boton-visitante">Solicitar renovación <img src={flechaBlanca} alt="" /></Link>
+                            <Link to="/credencial/solicitud?tipo=renovacion" className="boton-visitante">Solicitar renovación</Link>
                         </div>
                     </div>
                 ) : <>

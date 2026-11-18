@@ -5,8 +5,6 @@ import circulo1 from "../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../assets/comun/iconos/encabezado-circulo-2.svg";
 import circuloDorado from "../../assets/comun/iconos/circulo-grande.svg";
 import volverBlanca from "../../assets/comun/iconos/volver-blanca.svg";
-import flechaBlanca from "../../assets/comun/iconos/flecha-blanca.svg";
-import flechaOscura from "../../assets/comun/iconos/flecha-oscura.svg";
 import candado from "../../assets/comun/iconos/candado-dorado.svg";
 import check from "../../assets/comun/iconos/check-verde.svg";
 
@@ -98,7 +96,7 @@ export function AvisoCuenta({
                 </div>
                 <div className="aviso-cuenta__botones">
                     <Link to="/iniciar-sesion" className="boton-visitante">
-                        Iniciar sesión <img src={flechaBlanca} alt="" />
+                        Iniciar sesión
                     </Link>
                     <Link to="/crear-cuenta" className="boton-visitante boton-visitante--contorno">
                         Crear cuenta
@@ -159,7 +157,7 @@ export function LlamadoVisitante({ titulo, texto }: { titulo: string; texto: str
                     </div>
                     <div className="llamado-visitante__botones">
                         <Link to="/iniciar-sesion" className="boton-visitante boton-visitante--dorado">
-                            Iniciar sesión <img src={flechaOscura} alt="" />
+                            Iniciar sesión
                         </Link>
                         <Link to="/crear-cuenta" className="boton-visitante boton-visitante--claro">
                             Crear cuenta

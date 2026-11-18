@@ -7,7 +7,6 @@ import { BotonRegreso, EncabezadoNoticias, EstadoNoticias, ImagenNoticia, PuntoC
 import { EsqueletoArticulo } from "../../../components/portal/Esqueleto";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
 import iconoCalendario from "../../../assets/noticias/dato-calendario.svg";
 import iconoReloj from "../../../assets/noticias/dato-reloj.svg";
@@ -152,7 +151,6 @@ function DetalleNoticia() {
                                 </Link>
                                 <Link to="/noticias/todas" className="boton-noticias boton-noticias--verde boton-noticias--chico">
                                     Ver más noticias
-                                    <img src={flechaBlanca} alt="" />
                                 </Link>
                             </>
                         )}

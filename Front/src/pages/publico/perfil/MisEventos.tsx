@@ -10,7 +10,6 @@ import { EncabezadoSeccion } from './piezas';
 import { sesionSimulada } from './usarSesion';
 import { EsqueletoLista } from '../../../components/portal/Esqueleto';
 import filaCalendario from '../../../assets/perfil/fila-calendario-verde.svg';
-import flechaBlanca from '../../../assets/comun/iconos/flecha-blanca.svg';
 
 // Perfil › Mis eventos (datos reales: GET /mis-inscripciones). Mismo diseño de lista que «Mis propuestas».
 const COLOR = { pendiente: 'dorado', confirmada: 'verde', rechazada: 'gris', cancelada: 'guinda' } as const;
@@ -92,7 +91,7 @@ export default function MisEventos() {
         </>}
 
         <div className="perfil-acciones">
-            <Link to="/eventos" className="perfil-boton">Explorar actividades <img src={flechaBlanca} alt="" /></Link>
+            <Link to="/eventos" className="perfil-boton">Explorar actividades</Link>
         </div>
     </>;
 }

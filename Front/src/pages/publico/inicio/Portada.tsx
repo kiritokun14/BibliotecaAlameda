@@ -4,13 +4,11 @@ import { consultarAgenda } from "../../../servicios/actividades";
 import { INTERVALO_PORTADA, eventosPortada, type EventoPortada } from "./eventosPortada";
 import type { TipoActividad } from "./datos";
 import { useTramite } from "../credencial/datos";
+import { useEstadoBiblioteca } from "./horarioBiblioteca";
 import foto from "../../../assets/inicio/portada-foto.webp";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import rama from "../../../assets/inicio/portada-rama.svg";
-import indicador from "../../../assets/inicio/portada-indicador.svg";
-import flecha from "../../../assets/comun/iconos/portada-flecha.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import iconoUsuarios from "../../../assets/inicio/somos-usuarios.svg";
 import iconoAcervo from "../../../assets/inicio/somos-libro.svg";
 import iconoAgenda from "../../../assets/inicio/somos-calendario.svg";
@@ -128,6 +126,7 @@ function Portada({ sesion = false }: { sesion?: boolean }) {
     const imagen = evento?.imagen ?? foto;
     const fotos = [...new Set([foto, ...(eventos ?? []).map((e) => e.imagen)])];
 
+    const estadoAcervo = useEstadoBiblioteca();
     return (
         <section className="portada">
             <img className="portada__circulo portada__circulo--1" src={circulo1} alt="" />
@@ -135,9 +134,10 @@ function Portada({ sesion = false }: { sesion?: boolean }) {
             <img className="portada__rama" src={rama} alt="" />
 
             <div className="portada__texto">
-                <span className="portada__etiqueta">
-                    <img src={indicador} alt="" />
-                    Acervo abierto · Parque Alameda, Tepic
+                {/* Abierto o cerrado según el horario y la hora de Tepic; se actualiza cada minuto */}
+                <span key={estadoAcervo.texto} className={`portada__etiqueta portada__etiqueta--${estadoAcervo.abierta ? "abierta" : "cerrada"}`} role="status">
+                    <span className="portada__estado-punto" aria-hidden="true" />
+                    {estadoAcervo.texto}
                 </span>
                 <h1 className="portada__titulo">
                     Biblioteca <span>Solón Argüello</span>
@@ -161,11 +161,9 @@ function Portada({ sesion = false }: { sesion?: boolean }) {
                     {/* HU-04: inicio → /catalogo → Koha (2 clics) */}
                     <Link to="/catalogo" className="boton-blanco">
                         Explora el catálogo Koha
-                        <img src={flecha} alt="" />
                     </Link>
                     <Link to="/acerca" className="boton-contorno boton-contorno--alto">
                         Acerca de la biblioteca
-                        <img src={flechaBlanca} alt="" />
                     </Link>
                 </div>
             </div>

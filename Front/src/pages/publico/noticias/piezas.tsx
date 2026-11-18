@@ -7,8 +7,6 @@ import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import volverBlanca from "../../../assets/comun/iconos/volver-blanca.svg";
 import iconoNube from "../../../assets/comun/iconos/estado-nube.svg";
 import iconoReintentar from "../../../assets/comun/iconos/reintentar-blanco.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import flechaVerde from "../../../assets/noticias/flecha-verde.svg";
 import iconoBuscarGrande from "../../../assets/noticias/vacio-buscar.svg";
 import paginaAnterior from "../../../assets/noticias/pagina-anterior.svg";
 import paginaSiguiente from "../../../assets/noticias/pagina-siguiente.svg";
@@ -138,7 +136,6 @@ export function TarjetaArchivo({ noticia, vista, origen }: { noticia: Noticia; v
                 <span className="tarjeta-noticia__resumen">{noticia.resumen}</span>
                 <span className="tarjeta-noticia__leer">
                     Leer más
-                    <img src={flechaVerde} alt="" />
                 </span>
             </span>
         </Link>
@@ -217,7 +214,6 @@ export function EstadoNoticias({
                     <>
                         <Link to="/noticias/todas" className="boton-noticias boton-noticias--verde">
                             Ver todas las noticias
-                            <img src={flechaBlanca} alt="" />
                         </Link>
                         <Link to="/" className="boton-noticias boton-noticias--contorno">
                             Ir al inicio

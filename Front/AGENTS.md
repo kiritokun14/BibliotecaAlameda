@@ -6,7 +6,7 @@ El orquestador (T1) mantiene este archivo; las demás terminales no lo editan: s
 
 ## Reglas para todas las terminales
 
-- Todo en **español**: código, nombres, comentarios y respuestas. Solo escritorio (1280 a 1920 px), fuente Noto Sans.
+- Todo en **español**: código, nombres, comentarios y respuestas. Fuente Noto Sans. El panel es solo de escritorio (1280 a 1920 px); acceso y portal siguen la sección **«Diseño responsivo»** de abajo. Todo sigue la **«Normalización de diseño»**.
 - **Excepción: las pantallas de acceso ya son responsivas** (17 nov 2026): Iniciar sesión, Crear cuenta, menor de 18 años, Recuperar acceso,
   Confirmar correo, Cuenta deshabilitada y el aviso de Altas asistidas (`AccesoLayout` + `src/pages/acceso/Acceso.css`).
   Teléfono hasta 600 px, tableta de 601 a 1024 px; en táctil los campos usan 16 px para que iOS no haga zoom.
@@ -34,6 +34,69 @@ El orquestador (T1) mantiene este archivo; las demás terminales no lo editan: s
   pastillas («Crear cuenta») y enlaces («Volver a iniciar sesión», «¿Olvidaste tu contraseña?») no llevan íconos de ningún tipo,
   ni flechas de texto (→ ←, «Ver todas →», «← Volver»). Excepciones: el ícono de carga que gira mientras se envía y el ojo de «Mostrar» en los campos de contraseña.
   Los íconos van fuera de los botones (encabezados de tarjeta, recuadros de ayuda, estados vacíos).
+
+## Normalización de diseño (obligatoria en todo el frontend)
+
+El inicio de sesión (`AccesoLayout` + `src/pages/acceso/Acceso.css`) y la página de inicio
+(`src/pages/publico/inicio/` + `src/components/portal/Detalles.css`) son **la referencia**. Todo lo demás
+(portal, perfil con sesión y panel) debe verse de la misma familia: mismas medidas, mismos colores, mismas animaciones.
+Si una pantalla se ve distinta a esas dos, se ajusta a ellas, no al revés. Los colores permitidos están en `docs/guia-diseno.md`.
+
+### 1. Escala y medidas
+- **Escritorio del portal:** franja, menú, contenido y pie con `zoom: 0.9` (≥ 1025 px, en `Detalles.css`). Si usas `100vh` dentro del portal, divídelo entre 0.9. El botón del asistente no se escala.
+- **Ancho de contenido:** bloques de máximo 1360 px (≈ 1224 px en pantalla), centrados, con 24 px mínimos a los lados.
+- **Tipografía:** Noto Sans en portal y panel (DM Sans solo en acceso). Títulos de sección del portal de 40–44 px con una palabra en dorado (`<span>`); título de tarjeta de acceso 24 px; títulos de tarjeta 16–20 px; texto 14–16 px; ayudas 12–13 px. Panel: la escala de `docs/guia-diseno.md` (título 25 px, texto 14 px).
+- **Radios:** bloques de color 40 px · tarjetas 24–28 px · tarjeta de acceso 24 px · campos 12 px · botones, chips y pastillas 999 px.
+- **Campos:** 44 px de alto en escritorio (48 px en táctil), borde `#b9b3a5` / `#e2ded5`, radio 12 px, texto de 15 px (16 px en táctil).
+- **Botones** (píldora, solo texto):
+  - Principal de formulario: 46 px de alto, a todo lo ancho, degradado verde `#1d6354 → #123f37` con sombra verde.
+  - Botones de sección («Ver todas las …», «Ver servicios y programas», «Contacto y sugerencias»): **≈ 214 × 39 px en pantalla**, dorados `#e6d194` o con contorno; todos los de una misma página miden lo mismo.
+  - Botones grandes de portada: 54 px, repartidos a lo ancho de su fila.
+  - Secundario: contorno verde de 1.5 px, mismo alto que el principal de su grupo.
+- **Secciones del inicio:** cada una mide el alto visible bajo el menú, con su bloque centrado y `scroll-snap` en *proximity*. **Todos los bloques miden lo mismo de alto** (el alto visible menos 64 px), así entre un bloque y el siguiente quedan **siempre 64 px** en cualquier pantalla; la única excepción es la franja dorada de cifras, que conserva su propio espacio. Si agregas una sección al inicio, usa la misma regla (`Detalles.css`, «Misma separación entre todos los bloques»). Si un bloque no cabe, primero se quita aire (gaps, rellenos) y solo después se encoge su contenido; los bloques hermanos (Lecturas, Actividades, Noticias) van a la **misma escala**.
+- **Carruseles:** elementos del mismo tamaño en carruseles hermanos (libro = tarjeta de actividad: 360 px de ancho, 24 px entre ellos); flechas ‹ › a media altura de la pista, 64 px hacia dentro de la orilla.
+
+### 2. Elementos de identidad (los «detalles del login»)
+- **Franja guinda → dorado** (`linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194)`): arriba de las tarjetas de acceso y de los bloques de color, y bajo la franja superior. En bloques guinda o dorados va verde → dorado.
+- **Luces:** degradados radiales tenues, dorado arriba a la izquierda y verde o guinda abajo a la derecha (franja superior, pie, portada, encabezados verdes, pantallas de acceso). Nunca fondos de color en los enlaces del menú.
+- **Logos:** México | Nayarit | Solón Argüello juntos, separados por una línea fina (franja superior del portal y pantallas de acceso). **Los logos institucionales nunca se animan** (ni entrada ni desvanecido al cambiar de pantalla).
+- **Insignia:** ícono en círculo verde `#164f44` con aro dorado `#f2e3b8` arriba del título de una tarjeta principal (acceso, Crear cuenta, menor de edad).
+- **Recuadros de ayuda:** fondo crema `#f7f5f0`, borde `#e2ded5` y **borde izquierdo dorado de 4 px**; notas positivas en verde claro `#e4efeb`.
+- **Ilustraciones** (`assets/inicio/adorno-*.svg`): plantas y troncos propios en los colores de la institución, detrás del contenido o en esquinas vacías, nunca tapando texto; se quitan si estorban en teléfono.
+- **Sin flechas ni íconos dentro de botones o enlaces** (excepciones: el ícono de carga y el ojo de «Mostrar»). Los íconos van en encabezados, insignias, recuadros y estados.
+- **Sin etiquetas pequeñas sobre los títulos** que repitan las migas o el título. Las etiquetas de sección del portal (pastilla con ícono arriba del título del bloque) sí se usan.
+
+### 3. Animaciones (solo `transform` y `opacity`)
+| Qué | Cómo |
+|---|---|
+| Entrada de tarjetas y encabezados (nunca los logos) | sube 8–14 px y aparece; 0.5 s `ease-out` |
+| Pasar el mouse sobre **cualquier** botón | se eleva 2 px con sombra en 0.2 s y regresa al presionar. **Una sola animación por botón**: sin brillos ni rellenos extra |
+| Tarjetas clicables | se elevan 4 px con sombra; 0.2 s |
+| Enlaces | subrayado dorado que aparece o se engrosa |
+| Elementos vivos (abierto, «ahora») | punto que late; 1.8 s |
+| Ilustraciones | se mecen ±2–3° en 8–9 s desde su punto de apoyo, cada una a destiempo |
+| Foco con teclado | contorno dorado `#c9a24a` de 3 px |
+
+Todo se apaga con `@media (prefers-reduced-motion: reduce)`, salvo el ícono de carga.
+
+### 4. Cómo aplicarlo en otras partes
+- Antes de diseñar, abre el login y el inicio a 1366 × 768 y compara: encabezado, tarjetas, botones, chips, espacios y animaciones.
+- Reutiliza clases y piezas existentes. Si una medida no está aquí, toma la más cercana; no agregues colores ni tamaños nuevos.
+- Retoques del portal → `Detalles.css`; acceso → `Acceso.css`; panel → `Panel.css` y las piezas de `componentes.tsx`.
+- Al terminar, **mide en el navegador** (no a ojo): botones hermanos del mismo tamaño, bloques del mismo ancho, nada desbordado ni cortado.
+
+## Diseño responsivo
+
+Puntos de corte comunes: **teléfono ≤ 600 px**, **tableta 601–1024 px**, **escritorio ≥ 1025 px** (laptop de referencia 1366 × 768; pantalla grande 1920 × 1080).
+- **Ya es responsivo:** las pantallas de acceso (completas) y la estructura del portal (menú desplegable desde 1100 px, pie en columnas que se apilan, logos de la franja más chicos en teléfono, portada en una columna y adornos que se ocultan).
+- **Reglas para cualquier pantalla nueva o que se rehaga:**
+  - Teléfono: una sola columna, márgenes de 16 px, sin desplazamiento horizontal; filas de campos y grillas de tarjetas a una columna; el botón principal a todo lo ancho; enlaces que no quepan juntos se apilan centrados.
+  - Tableta: hasta dos columnas; bloques al ancho disponible con 32 px de margen.
+  - Táctil (≤ 1024 px): texto de **16 px** en los campos (iOS no hace zoom), objetivos táctiles de **44 px mínimo**, casillas de 22 px.
+  - El `zoom: 0.9` del portal y el ajuste de secciones a la pantalla son **solo de escritorio**; en táctil la página fluye normal.
+  - Ilustraciones y adornos se ocultan o encogen si quedarían detrás del texto.
+  - Revisa siempre a **390 × 844** (teléfono), **820 × 1180** (tableta) y **1366 × 768** (escritorio).
+- **Pendiente:** el panel de administración sigue siendo solo de escritorio (1280–1920 px); las páginas internas del portal se revisan con estas reglas cuando se toquen.
 
 ## Diseño del panel de administración
 
@@ -116,3 +179,48 @@ Los íconos de la ficha ya vienen descargados en `src/assets/`. Si algo no está
 - En curso: T4 · Actor 2 (`476:9982`).
 - Pendientes que dependen del backend, no de nuevas pantallas frontend: Estadísticas, Bitácora y Configuración (`administracion/datos.ts`), Resumen y Notificaciones del panel, y Recuperación asistida conservan datos de ejemplo señalados con `TODO backend`.
 - 3 nov 2026: `main` y `Aldahir` ya tienen la organización de carpetas corregida después del merge.
+
+## Registro de cambios de diseño (T1, 17 y 18 nov 2026)
+
+Lo que ya se decidió y está hecho. **No lo deshagas**; si algo no te cuadra, pregúntale a Aldahir.
+
+### Panel de administración
+- Auditoría completa (≈95 pantallas, 150 rutas) con las cuentas de prueba: todas usan la misma estructura (migas, encabezado, tema «contenidos», esqueletos de carga, estados vacíos). Lo que falta es solo backend: `docs/pendientes-backend.md` (contrato por pantalla).
+- **Sin franja dorada «Datos de ejemplo»** y sin «(ejemplo)» en textos, contadores y pies de tabla. Lo que aún usa datos locales se marca solo con `TODO backend` en su `datos.ts`.
+- **Sin la etiqueta pequeña sobre los títulos** («ATENCIÓN · SOLICITUDES…»): repetía las migas. `EncabezadoPagina`, `Encabezado` y `EncabezadoTarjeta` aceptan `etiqueta` pero ya no la muestran.
+- Inscripciones y cupos: la columna «Cupo» va en dos renglones (cifra arriba, barra corta abajo).
+- Publicar propuesta (`atencion/propuestas/PublicarPropuesta.tsx`) con el diseño común del panel.
+
+### Pantallas de acceso (`AccesoLayout` + `src/pages/acceso/Acceso.css`)
+- **Un solo diseño:** tarjeta centrada sobre la foto de la biblioteca, con luces dorada y guinda, franja guinda → dorado arriba de la tarjeta, entrada suave y los logos de México, Nayarit y Solón Argüello encima. Se eliminó el diseño de dos columnas, las franjas guindas y «Volver al inicio» (y sus recursos).
+- Compacto: tarjeta de 470 px (Crear cuenta 680 px), campos de 44 px, botones de 46 px. Iniciar sesión cabe sin scroll a 1366 × 700.
+- **Responsivo** (excepción a «solo escritorio», ver Reglas). Teléfono ≤ 600 px, tableta 601–1024 px.
+- Enlaces: subrayado dorado; «Crear cuenta» / «Iniciar sesión» del pie como pastilla verde clara.
+- Crear cuenta: nombres en una fila de tres; fecha y teléfono juntos; aviso de privacidad en recuadro con casilla grande (estados normal, marcada y error); en menor de edad, relación y teléfono del tutor juntos y su domicilio en dos columnas.
+- Pantalla «Eres menor de 18 años»: qué se pedirá del tutor en una lista, nota de privacidad, «Continuar con datos del tutor» como botón principal y «Cambiar fecha» como secundario.
+- Recupera tu acceso: recuadro de recuperación asistida con tres pasos numerados y botón.
+
+### Portal público (`src/components/portal/Detalles.css`, importado en `PaginaPublica`)
+- Todo el retoque del portal vive en `Detalles.css`; si se quita, el portal vuelve a como estaba. No repitas esos estilos en otros archivos.
+- **Tamaño:** en escritorio (≥ 1025 px) franja, menú, contenido y pie se dibujan con `zoom: 0.9`. El botón del asistente queda fuera (se arrastra con coordenadas de pantalla). Si usas `100vh` dentro del portal, divídelo entre 0.9.
+- **Franja superior:** guinda con **las mismas luces del pie** (dorada a la izquierda, verde a la derecha), línea guinda → dorado abajo y **los tres logos**: México | Nayarit | Solón Argüello (este último enlaza al inicio). El logo ya no va en la barra de navegación.
+- **Barra de navegación:** opciones a la izquierda; cuenta a la derecha (Ingresar/Crear cuenta, o campana y «Mi perfil»). **Sin fondos de color en los enlaces** (Aldahir no los quiere): solo detalles mínimos, una luz dorada/verde muy tenue como la del pie, una rama decorativa casi transparente y una rayita dorada que se dibuja al pasar el mouse (más gruesa en la sección activa).
+- **Campana y «Mi perfil»:** campana en círculo verde claro con la insignia arriba a la derecha; «Mi perfil» en pastilla blanca con borde verde y avatar con aro dorado.
+- **Pie:** fondo guinda con luces dorada y verde, franja guinda → dorado arriba, rayita dorada bajo cada título de columna, enlaces con subrayado dorado al pasar el mouse y redes en círculos que se elevan.
+- **Inicio:** la portada llena la pantalla bajo la franja y el menú; los botones «Explora el catálogo Koha» y «Acerca de la biblioteca» miden 54 px y ocupan juntos el ancho de las tres cajas de arriba. Cada sección mide el alto visible bajo el menú, con su bloque centrado, y el scroll se acomoda al inicio de cada una (`scroll-snap` en modo *proximity*). Todos los bloques miden lo mismo de ancho. Lecturas, Actividades y Noticias se dibujan al 84 % en pantallas bajas (≤ 900 px de alto) para que quepan completas; no las reduzcas más, Aldahir las quiere así de grandes.
+- **Carruseles del inicio:** las flechas ‹ › van hacia dentro (el carrusel deja 64 px a cada lado), no pegadas a la orilla del bloque. Los libros de «Para leer esta semana» son más grandes y van centrados; para que quepan se redujo el aire entre título, libros y estante, no los libros. El aviso «La disponibilidad… se consulta en el catálogo» es una pastilla compacta, no un recuadro a todo lo ancho; su botón «Ver en el catálogo» es chico (30 px).
+- **Letrero de la portada:** dice «Abierto ahora · cierra a las …» o «Cerrado ahora · abre … a las …» según el horario (L–V 8:00–19:30, sáb 9:00–14:00, hora de Tepic); lógica y pruebas en `inicio/horarioBiblioteca.ts` y `tests/horarioBiblioteca.test.ts`. Se recalcula cada minuto; entra con animación y el punto late en verde si está abierto. Días festivos: `TODO backend`.
+- **Troncos de la portada:** dos ilustraciones con diseño distinto, como seudoelementos de `.portada` detrás del texto: `adorno-tronco-pared.svg` sale de la pared izquierda y se curva hacia arriba; `adorno-tronco-esquina.svg` baja desde la esquina superior derecha con lianas y flores doradas. Se mecen despacio desde donde nacen. Se quitan en teléfono y tableta.
+- **«¿Qué quieres hacer hoy?»:** tarjetas centradas (ícono en círculo con aro, título y texto al centro) con una rayita de color abajo que se alarga al pasar el mouse; tarjetas al 112 % en escritorio y guías (enredaderas) con flores de cinco pétalos, botones y hojas con nervadura (`assets/inicio/adorno-guia-flores.svg`, dibujada para la esquina superior izquierda) que corren por la orilla del bloque y bajan por el costado en las cuatro esquinas (volteadas con `scale` sobre su centro) y se mecen despacio. La etiqueta «Accesos» lleva ícono de brújula (`etiqueta-accesos.svg`): **toda etiqueta de sección del inicio lleva ícono**.
+- **Separación entre bloques del inicio:** 64 px entre todos los bloques (incluido el primero después de la portada); los bloques al 95 % compensan su escala para medir lo mismo. Excepción: la franja dorada de cifras.
+- **Botones del mismo tamaño en todo el inicio:** «Ver todas las …», «Ver servicios y programas» y «Contacto y sugerencias» miden lo mismo en pantalla (≈ 214 × 39 px). Si agregas otro botón de ese tipo, usa la misma medida.
+- **«Cómo encontrarnos»:** datos en tarjetas de vidrio (horario y dirección a todo lo ancho; el horario va en **una sola línea** y el estado «Abierto/Cerrado ahora» junto a la palabra «Horario», con `useEstadoBiblioteca`); etiqueta, título y botón «Contacto y sugerencias» centrados, teléfono y correo como enlaces `tel:` y `mailto:`, y el mapa de Google con marco dorado y una placa con el nombre arriba a la derecha (a la izquierda Google pone su ficha).
+- **Pie de bloque igual en Lecturas, Actividades y Noticias:** nota o aviso a la izquierda y el botón dorado «Ver todas las …» a la derecha, los tres del mismo tamaño (los tres bloques al 95 %). Ningún «Ver todas…» va bajo el título.
+- **Carruseles parejos:** los libros de Lecturas miden lo mismo que las tarjetas de Actividades (360 px de ancho, mismo espacio entre ellos, mismo alto) y los dos bloques se dibujan a la misma escala (95 %); las flechas de ambos carruseles van a media altura de la pista, en la misma posición.
+- **Noticias:** «Ver todas las noticias» va al pie del bloque, junto a la nota, igual que en Actividades. La lista de la derecha muestra cada noticia con miniatura, categoría y fecha, título (2 líneas) y **su descripción** (2 líneas).
+- **Campana de notificaciones:** blanca con borde claro (no verde).
+- **Actividades del inicio:** «Ver todas las actividades» va abajo a la derecha, junto a la nota de programación (no bajo el título). El bloque es más bajo (menos aire, foto de 170 px) y por eso se dibuja al 95 %, con tarjetas más grandes.
+- **Plantas a los costados del inicio:** dos ilustraciones propias (`assets/inicio/adorno-planta-verde.svg` y `adorno-planta-dorada.svg`): rama verde con bayas doradas en una esquina superior del bloque y ramita dorada con flores, inclinada 20°, en la inferior opuesta, alternando lado en cada sección. Salen de la orilla de la pantalla y montan unos 60 px sobre la esquina del bloque (vacía), para que se vean también en laptops. El espejo se hace sobre su centro (`transform-origin: 50% …`) o se sale de la pantalla.
+- **Bloques de color del inicio** y franjas verdes de título de cada página: luces dorada y guinda; los bloques llevan franja de color en el borde de arriba.
+- **Botones:** una sola animación en todo el portal (se elevan 2 px con sombra y regresan al presionar). Botones principales del inicio de 46 px y «Ver todas…» de 36 px. No agregues otras animaciones a un botón (brillos, rellenos): pierde la coherencia.
+- **Sin flechas** en botones, pastillas ni enlaces (se quitaron unas 70 en 38 archivos). Solo conservan flecha los controles ‹ › de los carruseles y el globo del asistente.

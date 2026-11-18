@@ -17,7 +17,6 @@ import { listarMisSolicitudes, type SolicitudEspacioApi } from "../../../servici
 import { etapasCompletas, etapasEnRevision, fechaLarga, useTramite } from "../credencial/datos";
 import { Chip, EtapasTramite, TarjetaCredencial } from "../credencial/piezas";
 import "../credencial/CredencialSesion.css";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import notaInfo from "../../../assets/perfil/nota-info.svg";
 import notaInfoDorada from "../../../assets/perfil/nota-info-dorada.svg";
 import tarjetaCheck from "../../../assets/perfil/tarjeta-check.svg";
@@ -171,7 +170,7 @@ export function MisPropuestas() {
                 }))} />
             )}
             <div className="perfil-acciones">
-                <Link to="/proponer" className="perfil-boton">Proponer una actividad <img src={flechaBlanca} alt="" /></Link>
+                <Link to="/proponer" className="perfil-boton">Proponer una actividad</Link>
                 <Link to="/mi-perfil/eventos" className="perfil-boton perfil-boton--negro">Ver mis eventos</Link>
             </div>
             <NotaInfo>Proponer no aprueba ni reserva</NotaInfo>
@@ -218,7 +217,7 @@ export function MisEspacios() {
                 }))} />
             )}
             <div className="perfil-acciones">
-                <Link to="/espacios" className="perfil-boton">Solicitar un espacio <img src={flechaBlanca} alt="" /></Link>
+                <Link to="/espacios" className="perfil-boton">Solicitar un espacio</Link>
                 <Link to="/mi-perfil/propuestas" className="perfil-boton perfil-boton--negro">Ver mis propuestas</Link>
             </div>
             <NotaInfo>Solicitar no es reservar: el personal te responde en tus notificaciones.</NotaInfo>

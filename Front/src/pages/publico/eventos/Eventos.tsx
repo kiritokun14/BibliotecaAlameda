@@ -16,7 +16,6 @@ import pin from '../../../assets/eventos/destacada-pin.svg';
 import cupo from '../../../assets/eventos/detalle-cupo.svg';
 import circuloGrande from '../../../assets/comun/iconos/circulo-grande.svg';
 import circuloChico from '../../../assets/comun/iconos/circulo-chico.svg';
-import flechaOscura from '../../../assets/comun/iconos/flecha-oscura.svg';
 
 import { EsqueletoArticulo } from "../../../components/portal/Esqueleto";
 export default function Eventos() {
@@ -74,7 +73,7 @@ function Detalle({ actividad: a }: { actividad: ActividadPublica }) {
                     <Dato icono={pin} etiqueta="LUGAR" valor={primera.lugar} />
                     <Dato icono={cupo} etiqueta="CUPO" valor={`${a.sesiones[0].cupo} personas`} />
                 </>}</dl>
-                {a.inscripcion && a.sesiones.length > 0 && <a href="#sesiones" className="agenda-boton agenda-boton--dorado agenda-boton--ancho">{usuario ? 'Ver sesiones e inscribirme' : 'Ver sesiones'} <img src={flechaOscura} alt="" /></a>}
+                {a.inscripcion && a.sesiones.length > 0 && <a href="#sesiones" className="agenda-boton agenda-boton--dorado agenda-boton--ancho">{usuario ? 'Ver sesiones e inscribirme' : 'Ver sesiones'}</a>}
                 <p className="detalle-actividad__nota">{a.inscripcion ? 'Elige una sesión para solicitar tu lugar o consultar tu inscripción. El personal la confirma según el cupo.' : 'Entrada libre, sujeta a la disponibilidad del espacio.'}</p>
             </aside>
         </div>

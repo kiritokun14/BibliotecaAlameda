@@ -10,7 +10,6 @@ import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import textura from "../../../assets/inicio/lecturas-textura.svg";
 import iconoLibro from "../../../assets/comun/iconos/lecturas-libro.svg";
-import flechaBlanca from "../../../assets/inicio/lecturas-flecha.svg";
 import anterior from "../../../assets/inicio/carrusel-anterior.svg";
 import siguiente from "../../../assets/inicio/carrusel-siguiente.svg";
 import formaNarrativa from "../../../assets/inicio/forma-narrativa.svg";
@@ -27,7 +26,6 @@ import formaEnsayo5 from "../../../assets/inicio/forma-ensayo-5.svg";
 import formaEnsayo6 from "../../../assets/inicio/forma-ensayo-6.svg";
 import iconoSala from "../../../assets/inicio/estado-consulta-sala.svg";
 import iconoInfo from "../../../assets/comun/iconos/lecturas-info.svg";
-import flechaVerde from "../../../assets/inicio/lecturas-flecha-verde.svg";
 
 import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 // El dibujo del centro de cada portada cambia según el género
@@ -131,7 +129,6 @@ function Lecturas() {
                     etiqueta="Lecturas y reseñas"
                     iconoEtiqueta={iconoLibro}
                     titulo={<>Para leer <span>esta semana</span></>}
-                    boton={{ texto: "Ver todas las lecturas", ruta: "/lecturas", icono: flechaBlanca }}
                 />
 
                 <div className="carrusel">
@@ -163,14 +160,17 @@ function Lecturas() {
                 <Puntos total={totalPaginas} activo={pagina} alElegir={irAPagina} />
                 <div className="repisa" />
 
-                {/* El portal no muestra disponibilidad: eso vive en Koha (HU-04) */}
-                <div className="aviso-catalogo">
-                    <img src={iconoInfo} alt="" />
-                    <p>La disponibilidad de cada libro se consulta en el catálogo de la biblioteca.</p>
-                    <Link to="/catalogo" className="boton-contorno-verde">
-                        Ver en el catálogo
-                        <img src={flechaVerde} alt="" />
-                    </Link>
+                {/* Pie del bloque, igual que en Actividades y Noticias: el aviso a la izquierda y el botón a la derecha.
+                    El portal no muestra disponibilidad: eso vive en Koha (HU-04) */}
+                <div className="actividades-pie">
+                    <div className="aviso-catalogo">
+                        <img src={iconoInfo} alt="" />
+                        <p>La disponibilidad de cada libro se consulta en el catálogo de la biblioteca.</p>
+                        <Link to="/catalogo" className="boton-contorno-verde">
+                            Ver en el catálogo
+                        </Link>
+                    </div>
+                    <Link to="/lecturas" className="boton-dorado boton-dorado--chico">Ver todas las lecturas</Link>
                 </div>
             </Bloque>
         </section>

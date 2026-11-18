@@ -7,7 +7,6 @@ import texturaLibros from "../../../assets/acerca/textura-libros.svg";
 import texturaRama from "../../../assets/acerca/textura-rama.svg";
 import texturaCredencial from "../../../assets/acerca/textura-credencial.svg";
 import iconoLibro from "../../../assets/comun/iconos/lecturas-libro.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 
 // Piezas que comparten las pestañas de "Acerca de"
 
@@ -78,7 +77,6 @@ export function SinInformacion({ seccion, otra }: { seccion: string; otra: { tex
             <div className="estado-acerca__botones">
                 <Link to={otra.ruta} className="boton-acerca boton-acerca--verde">
                     {otra.texto}
-                    <img src={flechaBlanca} alt="" />
                 </Link>
                 <Link to="/contacto" className="boton-acerca boton-acerca--contorno">Ir a Contacto</Link>
             </div>

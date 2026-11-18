@@ -3,6 +3,7 @@ import { useLocation } from "react-router";
 import "../../pages/publico/inicio/Inicio.css"; // fuentes, colores y botones del portal
 import "./PaginaPublica.css";
 import "./Uniforme.css"; // tarjetas simétricas y movimiento común de todo el portal
+import "./Detalles.css"; // retoques: tamaño, franja y pie con los detalles del inicio de sesión
 import { EncabezadoPortal, PiePortal } from "./Portal";
 import Navegacion from "./Navegacion";
 import BotonAsistente from "./BotonAsistente";

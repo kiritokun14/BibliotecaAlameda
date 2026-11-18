@@ -1,0 +1,584 @@
+/* =========================================================
+   DETALLES DEL PORTAL PÚBLICO (17 nov 2026)
+   Retoques sobre el diseño ya definido, con los mismos detalles del inicio de sesión:
+   luces de color, franja guinda → dorado, relieve al pasar el mouse y entradas suaves.
+   No cambia la estructura: si quitas este archivo, el portal vuelve a como estaba.
+   ========================================================= */
+
+/* ---------- Tamaño: el portal se dibuja un 10 % más chico en escritorio ----------
+   El diseño se hizo a 1920 px y se veía grande en laptops. El botón del asistente queda fuera:
+   se arrastra con coordenadas de la pantalla y no debe escalarse. */
+@media (min-width: 1025px) {
+  .pagina-publica > :is(.encabezado-portal, .navegacion, main, .pie-portal) { zoom: 0.9; }
+}
+
+/* ---------- Franja guinda superior: los tres logos y las mismas luces del pie ---------- */
+.pagina-publica .encabezado-portal__logos {
+  position: relative;
+  gap: 24px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border-bottom: 0;
+  /* las mismas luces del pie: dorada a la izquierda y verde a la derecha */
+  background:
+    radial-gradient(circle at 6% 0%, rgba(201, 162, 74, 0.30), transparent 34%),
+    radial-gradient(circle at 96% 100%, rgba(22, 79, 68, 0.55), transparent 40%),
+    linear-gradient(160deg, #4f0e28, #611232 50%, #6f1739);
+  overflow: hidden;
+}
+.pagina-publica .encabezado-portal__logos::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
+}
+.pagina-publica .encabezado-portal__logos > * { position: relative; } /* los logos institucionales no se animan */
+.pagina-publica .encabezado-portal__biblioteca { display: flex; border-radius: 6px; }
+.pagina-publica .encabezado-portal__biblioteca .logo-solon--blanco { width: 104px; height: 40px; }
+
+/* ---------- Barra de navegación: opciones a la izquierda, cuenta a la derecha ---------- */
+@media (min-width: 1101px) {
+  .pagina-publica .navegacion { grid-template-columns: 1fr auto; min-height: 68px; }
+  .pagina-publica .navegacion__enlaces { justify-self: start; margin-left: -11px; }
+}
+
+/* Barra de navegación: detalles mínimos, sin fondos de color en los enlaces.
+   Una luz dorada muy tenue a la izquierda y una verde a la derecha (como el pie), una rama
+   decorativa casi transparente y la rayita dorada que se dibuja bajo la sección activa. */
+.pagina-publica .navegacion {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(201, 162, 74, 0.18), transparent 34%),
+    radial-gradient(ellipse at 100% 100%, rgba(22, 79, 68, 0.12), transparent 38%),
+    #fff;
+  box-shadow: 0 10px 24px rgba(11, 59, 51, 0.10);
+}
+.pagina-publica .navegacion::before {
+  content: "";
+  position: absolute;
+  right: 26%;
+  top: 0;
+  width: 110px;
+  height: 100%; /* dentro de la barra: no tapa el contenido ni los menús desplegables */
+  background: #164f44;
+  -webkit-mask: url("../../assets/inicio/portada-rama.svg") no-repeat center / contain;
+  mask: url("../../assets/inicio/portada-rama.svg") no-repeat center / contain;
+  opacity: 0.10;
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+.pagina-publica .navegacion > * { position: relative; }
+.pagina-publica .navegacion__enlace { color: #1f2a28; font-weight: 600; }
+.pagina-publica .navegacion__enlace:hover { color: #164f44; background: none; }
+.pagina-publica .navegacion__enlace.active { color: #164f44; background: none; }
+.pagina-publica .navegacion__enlace.active::after { right: 12px; left: 12px; bottom: 2px; height: 3px; background: linear-gradient(90deg, #c9a24a, #e6d194); }
+/* Al pasar el mouse se dibuja una rayita dorada fina (la activa es más gruesa) */
+.pagina-publica .navegacion__enlace:not(.active)::after {
+  content: ""; position: absolute; right: 12px; bottom: 4px; left: 12px; height: 2px; border-radius: 2px;
+  background: #e6d194; transform: scaleX(0); transition: transform 0.2s ease;
+}
+.pagina-publica .navegacion__enlace:not(.active):hover::after { transform: scaleX(1); }
+.pagina-publica .navegacion__boton:not(.navegacion__boton--relleno) { border-color: #164f44; color: #164f44; }
+.pagina-publica .navegacion__boton--relleno { background: linear-gradient(135deg, #1d6354, #123f37); }
+
+/* Campana y «Mi perfil» pulidos */
+.pagina-publica .menu-cuenta { gap: 10px; }
+.pagina-publica .menu-cuenta__campana {
+  width: 44px; height: 44px; border: 1px solid #e2ded5; background: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.pagina-publica .menu-cuenta__campana img { width: 20px; height: 20px; }
+.pagina-publica .menu-cuenta__campana:hover,
+.pagina-publica .menu-cuenta__campana[aria-expanded="true"] { background: #fff; border-color: #164f44; box-shadow: 0 6px 14px rgba(22, 79, 68, 0.18); }
+.pagina-publica .menu-cuenta__insignia { top: -4px; left: auto; right: -4px; min-width: 20px; height: 20px; font-size: 10.5px; box-shadow: 0 2px 6px rgba(155, 34, 71, 0.35); }
+.pagina-publica .menu-cuenta__boton {
+  gap: 10px; padding: 4px 16px 4px 4px; border: 1px solid #bfd9d0; background: #fff;
+  box-shadow: 0 4px 12px rgba(22, 79, 68, 0.10);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.pagina-publica .menu-cuenta__boton > img {
+  width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 0 0 3px #f2e3b8;
+}
+.pagina-publica .menu-cuenta__boton:hover,
+.pagina-publica .menu-cuenta__boton[aria-expanded="true"] { border-color: #164f44; box-shadow: 0 8px 18px rgba(22, 79, 68, 0.18); }
+
+/* ---------- Pie ---------- */
+.pagina-publica .pie-portal {
+  position: relative;
+  overflow: hidden;
+  border-top: 0;
+  background:
+    radial-gradient(circle at 6% 0%, rgba(201, 162, 74, 0.26), transparent 34%),
+    radial-gradient(circle at 96% 100%, rgba(22, 79, 68, 0.55), transparent 40%),
+    linear-gradient(160deg, #4f0e28, #611232 50%, #6f1739);
+}
+.pagina-publica .pie-portal::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
+}
+.pagina-publica .pie-portal > * { position: relative; }
+
+/* Títulos de columna con una rayita dorada debajo */
+.pagina-publica .pie-portal__columnas h2 { position: relative; padding-bottom: 8px; }
+.pagina-publica .pie-portal__columnas h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 28px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #c9a24a, #e6d194);
+}
+
+/* Enlaces: subrayado dorado que aparece al pasar el mouse */
+.pagina-publica .pie-portal__columnas a {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+.pagina-publica .pie-portal__columnas a:hover { color: #f2e3b8; text-decoration-color: #c9a24a; }
+
+/* Redes en círculos que se elevan */
+.pagina-publica .pie-portal .redes--grandes { gap: 10px; }
+.pagina-publica .pie-portal .redes--grandes li {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(230, 209, 148, 0.35);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.pagina-publica .pie-portal .redes--grandes li:hover { transform: translateY(-2px); background: rgba(201, 162, 74, 0.22); border-color: #c9a24a; }
+.pagina-publica .pie-portal .redes--grandes img { width: 20px; height: 20px; }
+
+/* Línea legal con la misma franja de color, más fina */
+.pagina-publica .pie-portal__legal { border-top: 0; position: relative; }
+.pagina-publica .pie-portal__legal::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(230, 209, 148, 0.5) 20%, rgba(230, 209, 148, 0.5) 80%, transparent);
+}
+
+/* ---------- Inicio ---------- */
+/* Portada: las mismas luces dorada y guinda del inicio de sesión */
+.pagina-publica .portada {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(201, 162, 74, 0.28), transparent 40%),
+    radial-gradient(circle at 88% 92%, rgba(155, 34, 71, 0.38), transparent 44%),
+    linear-gradient(151deg, #0b3b33 0%, #1f6b5c 71.429%);
+}
+
+/* Franja verde con el título de cada página: mismas luces y entrada suave del título */
+.pagina-publica .encabezado-publico {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(201, 162, 74, 0.26), transparent 40%),
+    radial-gradient(circle at 85% 100%, rgba(155, 34, 71, 0.32), transparent 44%),
+    linear-gradient(166deg, #0b3b33 0%, #1f6b5c 71%);
+}
+.pagina-publica .encabezado-publico > :is(.etiqueta-inicio, h1, p) { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .encabezado-publico > p { animation-delay: 0.08s; }
+
+/* Bloques de color: franja guinda → dorado en el borde de arriba (como la tarjeta del login) */
+.pagina-publica .bloque::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  height: 7px;
+  background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
+  pointer-events: none;
+}
+/* En los bloques guinda y dorado la franja va en verde → dorado para que se distinga del fondo */
+.pagina-publica :is(.bloque--guinda, .bloque--dorado)::before { background: linear-gradient(90deg, #164f44, #c9a24a 55%, #e6d194); }
+/* Luz suave dentro de cada bloque */
+.pagina-publica .bloque--verde { background: radial-gradient(circle at 10% 0%, rgba(201, 162, 74, 0.22), transparent 38%), linear-gradient(140deg, #0b3b33 0%, #1f6b5c 71.429%); }
+.pagina-publica .bloque--guinda { background: radial-gradient(circle at 10% 0%, rgba(201, 162, 74, 0.22), transparent 38%), linear-gradient(145deg, #611232 0%, #9b2247 71.429%); }
+
+/* Tarjetas de «¿Qué quieres hacer hoy?»: relieve al pasar el mouse */
+.pagina-publica .tarjeta-acceso { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.pagina-publica .tarjeta-acceso:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18); }
+
+/* Portada: ocupa el alto de la pantalla bajo la franja y el menú, con el contenido centrado
+   (antes asomaba una franja crema abajo y se veía descuadrada). 100vh se divide entre 0.9 por el zoom. */
+@media (min-width: 1025px) {
+  .pagina-publica .portada { min-height: calc((100vh - 118px) / 0.9); box-sizing: border-box; }
+}
+
+/* ---------- Botones de la portada (Koha y Acerca de) ----------
+   Más grandes y a lo ancho de las tres cajas de arriba (Comunitaria, Académica, Cultural).
+   Una sola animación, la del inicio de sesión: se elevan con sombra. Se quitan el brillo y el relleno que tenían. */
+.pagina-publica .portada__acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; width: 100%; }
+.pagina-publica .portada__acciones :is(.boton-blanco, .boton-contorno) { width: 100%; height: 54px; padding: 0 20px; font-size: 16px; }
+.pagina-publica .portada__acciones :is(.boton-blanco, .boton-contorno)::before,
+.pagina-publica .portada__acciones :is(.boton-blanco, .boton-contorno)::after { content: none; }
+.pagina-publica .portada__acciones .boton-contorno:hover { color: #fff; background: rgba(255, 255, 255, 0.12); }
+
+/* ---------- Botones del inicio: mismas medidas ----------
+   Principales (portada, accesos, crear cuenta, contacto): 46 px. Los de «Ver todas…» bajo cada título: 36 px. */
+.pagina-publica :is(.boton-blanco, .boton-dorado, .boton-contorno, .boton-contorno--alto, .boton-contorno--mediano, .boton-dorado--chico, .boton-contorno-verde) {
+  height: 46px;
+  padding: 0 26px;
+  gap: 8px;
+  font-size: 15px;
+}
+.pagina-publica .boton-contorno.boton-contorno--chico { height: 36px; padding: 0 18px; font-size: 14px; }
+
+/* ---------- Animación igual para todos los botones del portal ----------
+   Al pasar el mouse se elevan 2 px con sombra; al presionar regresan. Sin excepciones. */
+.pagina-publica :is(a, button):is([class*="boton"], [class*="__boton"]):not([class*="asistente"]) {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, filter 0.2s ease;
+}
+.pagina-publica :is(a, button):is([class*="boton"], [class*="__boton"]):not([class*="asistente"]):not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.16);
+  filter: brightness(1.04);
+}
+.pagina-publica :is(a, button):is([class*="boton"], [class*="__boton"]):not([class*="asistente"]):not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- Secciones del inicio simétricas con el scroll ----------
+   Cada sección ocupa justo el alto visible bajo el menú, con su bloque centrado, y el scroll se acomoda
+   suavemente al inicio de cada una (proximity: solo si quedas cerca; nunca te obliga). La franja de cifras
+   es una banda corta y no se ajusta. Lecturas, Actividades y Noticias se dibujan algo más chicas
+   en pantallas bajas para que quepan completas. */
+@media (min-width: 1025px) {
+  html:has(.pagina-publica .portada) { scroll-snap-type: y proximity; scroll-padding-top: 61px; }
+  .pagina-publica .encabezado-portal { scroll-snap-align: start; } /* arriba del todo: franja + menú + portada llenan la pantalla */
+  .pagina-publica .seccion-inicio:not(:has(.cifras)) {
+    min-height: calc((100vh - 61px) / 0.9);
+    box-sizing: border-box;
+    align-items: center;
+    padding-top: 32px;
+    padding-bottom: 32px;
+    scroll-snap-align: start;
+  }
+}
+@media (min-width: 1025px) and (max-height: 900px) {
+  .pagina-publica .seccion-inicio:is(:has(.carrusel), :has(.noticia-destacada)) { padding-top: 16px; padding-bottom: 16px; }
+  .pagina-publica .seccion-inicio:is(:has(.carrusel), :has(.noticia-destacada)) > .bloque {
+    zoom: 0.84; max-width: calc(1360px / 0.84); padding-top: 40px; padding-bottom: 40px;
+  }
+  /* el ancho máximo se compensa para que midan lo mismo que los demás bloques */
+  /* Actividades y Lecturas a la misma escala, para que tarjetas y libros midan lo mismo */
+  .pagina-publica .seccion-inicio:is(:has(.tarjeta-actividad), :has(.libro), :has(.noticia-destacada)) > .bloque {
+    zoom: 0.95; max-width: calc(1360px / 0.95); padding-top: 26px; padding-bottom: 26px;
+  }
+}
+
+/* ---------- Misma separación entre todos los bloques del inicio ----------
+   Cada bloque mide el alto de su sección menos 64 px y va centrado, así entre un bloque y el siguiente
+   quedan siempre 64 px (32 + 32), en cualquier pantalla. 125 = 61 del menú + 64 de separación.
+   La franja dorada de cifras es la excepción: conserva su propio espacio. */
+@media (min-width: 1025px) {
+  .pagina-publica .seccion-inicio:not(:has(.cifras)) { padding-top: 0; padding-bottom: 0; }
+  .pagina-publica .seccion-inicio:not(:has(.cifras)) > .bloque {
+    min-height: calc((100vh - 125px) / 0.9);
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  /* Después de la portada no hay bloque arriba: se agregan los 32 px que faltan para que también sean 64 */
+  .pagina-publica .portada + .seccion-inicio { padding-top: 32px; min-height: calc((100vh - 61px) / 0.9 + 32px); }
+}
+@media (min-width: 1025px) and (max-height: 900px) {
+  /* los bloques dibujados al 95 % compensan su escala (0.855 = 0.9 × 0.95) para medir lo mismo */
+  .pagina-publica .seccion-inicio:is(:has(.tarjeta-actividad), :has(.libro), :has(.noticia-destacada)) > .bloque { min-height: calc((100vh - 125px) / 0.855); }
+}
+
+/* ---------- Carruseles del inicio: flechas hacia dentro y libros más grandes ----------
+   Las flechas estaban casi en la orilla del bloque; ahora el carrusel deja un margen a cada lado
+   y las flechas quedan dentro de él, más cerca del contenido. */
+.pagina-publica .seccion-inicio .carrusel { padding-inline: 64px; box-sizing: border-box; }
+.pagina-publica .seccion-inicio .carrusel .flecha-carrusel--anterior { left: 4px; }
+.pagina-publica .seccion-inicio .carrusel .flecha-carrusel--siguiente { right: 4px; }
+/* Libros de «Para leer esta semana»: cada libro ocupa lo mismo que una tarjeta de Actividades
+   (360 px de ancho y el mismo espacio entre ellos), y el bloque se dibuja a la misma escala (95 %).
+   Las flechas de los dos carruseles quedan a media altura de la pista, en el mismo lugar. */
+.pagina-publica .carrusel:has(.libro) .carrusel__pista { gap: 24px; padding-inline: 6px; }
+.pagina-publica .libro { flex-basis: 360px; padding: 0; }
+.pagina-publica .carrusel .portada-libro { zoom: 1.05; }
+.pagina-publica .libro h3 { font-size: 17px; }
+.pagina-publica .seccion-inicio .carrusel:has(.libro) .flecha-carrusel { top: 50%; }
+/* Para que los libros grandes quepan: menos aire entre título, libros y estante (no se encogen los libros) */
+.pagina-publica .bloque:has(.libro) { gap: 12px; }
+.pagina-publica .carrusel:has(.libro) .carrusel__pista { padding-top: 8px; padding-bottom: 4px; }
+/* Aviso «La disponibilidad… se consulta en el catálogo»: pastilla compacta centrada, no un recuadro a todo lo ancho */
+.pagina-publica .aviso-catalogo {
+  width: auto; align-self: center; gap: 12px; padding: 6px 6px 6px 16px; border-radius: 999px;
+}
+.pagina-publica .aviso-catalogo > img { width: 18px; height: 18px; }
+.pagina-publica .aviso-catalogo p { flex: 0 1 auto; font-size: 14px; }
+.pagina-publica .aviso-catalogo .boton-contorno-verde { height: 30px; padding: 0 14px; font-size: 13px; }
+
+/* ---------- Actividades del inicio: tarjetas más grandes y bloque más bajo ---------- */
+.pagina-publica .bloque:has(.tarjeta-actividad) { gap: 16px; }
+.pagina-publica .carrusel__pista--tarjetas { padding-top: 8px; padding-bottom: 8px; }
+.pagina-publica .filtros-actividad { margin-bottom: 8px; }
+.pagina-publica .tarjeta-actividad { flex-basis: 360px; }
+.pagina-publica .tarjeta-actividad__imagen { height: 170px; }
+.pagina-publica .tarjeta-actividad h3 { font-size: 18px; }
+.pagina-publica .actividades-pie { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: 100%; padding-inline: 64px; box-sizing: border-box; }
+.pagina-publica .actividades-pie .nota-ejemplo { text-align: left; }
+.pagina-publica .actividades-pie .boton-dorado { flex-shrink: 0; }
+
+/* ---------- Troncos de la portada (fondo verde) ----------
+   Uno sale de la pared izquierda y se curva hacia arriba (adorno-tronco-pared.svg); el otro baja desde la
+   esquina superior derecha con lianas y flores doradas (adorno-tronco-esquina.svg). Se mecen despacio desde
+   donde nacen (la pared y la esquina). Van detrás del texto y la foto. */
+.pagina-publica .portada > :is(.portada__texto, .portada__composicion) { z-index: 1; }
+.pagina-publica .portada::before,
+.pagina-publica .portada::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.9;
+}
+.pagina-publica .portada::before {
+  left: 0;
+  bottom: 2%;
+  height: 84%;
+  aspect-ratio: 460 / 640;
+  background-image: url("../../assets/inicio/adorno-tronco-pared.svg");
+  background-position: left bottom;
+  transform-origin: 0% 76%; /* donde el tronco sale de la pared */
+  animation: detalle-tronco 8s ease-in-out infinite alternate;
+}
+.pagina-publica .portada::after {
+  top: 0;
+  right: 0;
+  width: 400px;
+  aspect-ratio: 440 / 420;
+  background-image: url("../../assets/inicio/adorno-tronco-esquina.svg");
+  background-position: right top;
+  transform-origin: 100% 0%; /* la esquina */
+  animation: detalle-tronco 9s ease-in-out -3s infinite alternate-reverse;
+}
+@keyframes detalle-tronco { from { rotate: -1.6deg; } to { rotate: 1.6deg; } }
+
+/* ---------- Botones del mismo tamaño en todo el inicio ----------
+   «Ver todas las …», «Ver servicios y programas» y «Contacto y sugerencias» miden lo mismo en pantalla
+   (≈ 214 × 39 px). Los bloques al 95 % usan 250 × 46; los demás (solo el 90 % del portal) se compensan. */
+.pagina-publica .bloque:has(.tarjetas-acceso) > .boton-contorno,
+.pagina-publica .contacto__datos > .boton-dorado {
+  min-width: calc(250px * 0.95); height: calc(46px * 0.95); padding: 0 calc(26px * 0.95);
+  justify-content: center; font-size: calc(15px * 0.95);
+}
+
+/* ---------- Pie de bloque (Lecturas, Actividades, Noticias): botones del mismo tamaño ---------- */
+.pagina-publica .actividades-pie .boton-dorado { min-width: 250px; justify-content: center; }
+.pagina-publica .actividades-pie .aviso-catalogo { align-self: auto; }
+/* Noticias a la misma escala que Lecturas y Actividades: menos aire entre sus partes para que quepa */
+.pagina-publica .bloque:has(.noticia-destacada) { gap: 14px; }
+
+/* ---------- «Cómo encontrarnos» ----------
+   Datos en tarjetas de vidrio (el horario y la dirección a todo lo ancho; el horario dice en vivo si está
+   abierto), teléfono y correo como enlaces, y el mapa con marco dorado y una placa con el nombre. */
+.pagina-publica .contacto__datos { gap: 18px; flex-basis: 470px; align-items: center; } /* etiqueta, título y botón centrados */
+.pagina-publica .contacto__datos > .titulo-seccion { text-align: center; }
+.pagina-publica .datos-contacto__titulo-horario { display: flex; align-items: center; gap: 8px; }
+.pagina-publica .datos-contacto .datos-contacto__horario { white-space: nowrap; }
+.pagina-publica .datos-contacto { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 10px; width: 100%; } /* el correo es más largo que el teléfono */
+.pagina-publica .datos-contacto__tarjeta {
+  align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1px solid rgba(230, 209, 148, 0.22);
+  border-radius: 18px; background: rgba(255, 255, 255, 0.07); transition: background 0.2s ease, border-color 0.2s ease;
+}
+.pagina-publica .datos-contacto__tarjeta:hover { background: rgba(255, 255, 255, 0.11); border-color: rgba(230, 209, 148, 0.4); }
+.pagina-publica .datos-contacto__tarjeta--ancha { grid-column: 1 / -1; }
+.pagina-publica .datos-contacto__icono { width: 38px; height: 38px; background: rgba(230, 209, 148, 0.16); box-shadow: inset 0 0 0 1px rgba(230, 209, 148, 0.35); }
+.pagina-publica .datos-contacto__icono img { width: 18px; height: 18px; }
+.pagina-publica .datos-contacto small { color: #e6d194; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
+.pagina-publica .datos-contacto p, .pagina-publica .datos-contacto a { color: #fff; font-size: 15px; line-height: 21px; }
+.pagina-publica .datos-contacto a { font-weight: 700; text-decoration: underline; text-decoration-color: rgba(230, 209, 148, 0.5); text-underline-offset: 3px; }
+.pagina-publica .datos-contacto a:hover { color: #f2e3b8; text-decoration-color: #e6d194; }
+.pagina-publica .datos-contacto__tarjeta > div { min-width: 0; }
+.pagina-publica .datos-contacto a { font-size: 14px; overflow-wrap: anywhere; }
+.pagina-publica .datos-contacto__estado {
+  display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0;
+}
+.pagina-publica .datos-contacto__estado::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pagina-publica .datos-contacto__estado--abierta { background: rgba(46, 158, 107, 0.22); color: #7fe0b0; }
+.pagina-publica .datos-contacto__estado--cerrada { background: rgba(255, 255, 255, 0.12); color: #f2c9d6; }
+/* Mapa: marco dorado y placa con el nombre arriba a la derecha */
+.pagina-publica .mapa { border: 0; padding: 5px; background: linear-gradient(135deg, #e6d194, #c9a24a 50%, #f2e3b8); }
+.pagina-publica .mapa__iframe { border-radius: 31px; }
+.pagina-publica .mapa__placa {
+  position: absolute; top: 18px; right: 18px; z-index: 2; /* a la derecha: a la izquierda Google pone su ficha */ display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px 8px 8px; border-radius: 16px; background: #fff; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+.pagina-publica .mapa__placa img { width: 30px; height: 30px; padding: 6px; box-sizing: border-box; border-radius: 50%; background: #f6eaee; }
+.pagina-publica .mapa__placa strong { display: block; color: #611232; font-size: 13.5px; }
+.pagina-publica .mapa__placa small { display: block; color: #4d4d4d; font-size: 12px; }
+
+/* ---------- «Últimas noticias»: lista de la derecha ----------
+   Cada noticia con miniatura a la izquierda y, a la derecha, categoría y fecha, título (2 líneas)
+   y su descripción (2 líneas). La activa conserva el borde dorado y la pastilla «Viendo». */
+.pagina-publica .noticia-mini { flex-direction: row; align-items: stretch; gap: 14px; padding: 12px; }
+.pagina-publica .noticia-mini__miniatura {
+  flex: none; width: 96px; align-self: stretch; min-height: 88px; object-fit: cover; border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12); transition: transform 0.3s ease;
+}
+.pagina-publica .noticia-mini:hover .noticia-mini__miniatura { transform: scale(1.03); }
+.pagina-publica .noticia-mini__cuerpo { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1; }
+.pagina-publica .noticia-mini__meta { font-size: 12.5px; }
+.pagina-publica .noticia-mini__titulo { font-size: 16px; line-height: 20px; }
+.pagina-publica .noticia-mini__resumen {
+  display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  color: #4d4d4d; font-size: 13.5px; line-height: 19px;
+}
+.pagina-publica .noticia-mini--activa .noticia-mini__miniatura { box-shadow: 0 0 0 3px #e6d194, 0 6px 14px rgba(0, 0, 0, 0.16); }
+
+/* ---------- Letrero de la portada: abierto o cerrado según la hora ----------
+   Aparece con una entrada suave cuando cambia; el punto late en verde si está abierto y queda quieto en guinda si no. */
+.pagina-publica .portada__etiqueta { animation: detalle-letrero 0.5s ease-out both; }
+.pagina-publica .portada__estado-punto { position: relative; width: 10px; height: 10px; border-radius: 50%; background: #2e9e6b; }
+.pagina-publica .portada__etiqueta--abierta .portada__estado-punto::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; background: #2e9e6b;
+  animation: detalle-latido 1.8s ease-out infinite;
+}
+.pagina-publica .portada__etiqueta--cerrada { color: #611232; }
+.pagina-publica .portada__etiqueta--cerrada .portada__estado-punto { background: #9b2247; }
+@keyframes detalle-letrero { from { opacity: 0; transform: translateY(-6px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes detalle-latido { from { opacity: 0.7; transform: scale(1); } to { opacity: 0; transform: scale(2.8); } }
+
+/* ---------- «¿Qué quieres hacer hoy?»: tarjetas centradas ----------
+   Ícono en círculo con aro, título y texto al centro, y una rayita de color abajo que se alarga al pasar el mouse. */
+.pagina-publica .tarjeta-acceso {
+  position: relative; align-items: center; justify-content: center; gap: 10px; padding: 26px 22px 30px;
+  text-align: center; border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14);
+}
+.pagina-publica .tarjeta-acceso__icono { width: 58px; height: 58px; margin-bottom: 4px; box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.55), 0 6px 14px rgba(0, 0, 0, 0.10); }
+.pagina-publica .tarjeta-acceso__icono img { width: 26px; height: 26px; }
+.pagina-publica .tarjeta-acceso h3 { font-size: 20px; line-height: 25px; }
+.pagina-publica .tarjeta-acceso p { font-size: 14.5px; line-height: 21px; max-width: 24ch; }
+.pagina-publica .tarjeta-acceso::after {
+  content: ""; position: absolute; left: 50%; bottom: 14px; width: 36px; height: 4px; border-radius: 4px;
+  translate: -50% 0; background: linear-gradient(90deg, #c9a24a, #e6d194); transition: width 0.25s ease;
+}
+.pagina-publica .tarjeta-acceso:hover::after { width: 72px; }
+.pagina-publica .tarjeta-acceso--verde::after { background: linear-gradient(90deg, #164f44, #2a7d6b); }
+.pagina-publica .tarjeta-acceso--rosa::after { background: linear-gradient(90deg, #9b2247, #c45a7b); }
+
+/* ---------- Plantas a los costados de las secciones del inicio ----------
+   Dos ilustraciones propias (assets/inicio/adorno-planta-verde.svg y adorno-planta-dorada.svg):
+   una rama verde con bayas doradas en una esquina superior del bloque y una ramita dorada con flores
+   en la esquina inferior opuesta. Salen desde la orilla de la pantalla y montan unos 60 px sobre la
+   esquina del bloque (donde no hay contenido), así se ven también en laptops, donde el margen es angosto.
+   Alternan lado en cada sección. Se mecen despacio; con «reducir animaciones», quietas. */
+.pagina-publica .seccion-inicio:not(:has(.cifras)) {
+  --orilla-bloque: max(24px, calc(50% - 680px)); /* dónde empieza el bloque dentro de la sección */
+  position: relative;
+  overflow: hidden;
+  background-image:
+    radial-gradient(circle at 4% 20%, rgba(201, 162, 74, 0.16), transparent 22%),
+    radial-gradient(circle at 96% 82%, rgba(22, 79, 68, 0.08), transparent 24%);
+}
+.pagina-publica .seccion-inicio > .bloque { z-index: 1; }
+.pagina-publica .seccion-inicio:not(:has(.cifras))::before,
+.pagina-publica .seccion-inicio:not(:has(.cifras))::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 8px 12px rgba(11, 59, 51, 0.18));
+  animation: detalle-mecer 9s ease-in-out infinite alternate;
+}
+/* Rama verde: esquina superior izquierda del bloque */
+.pagina-publica .seccion-inicio:not(:has(.cifras))::before {
+  top: 3%;
+  left: calc(var(--orilla-bloque) - 186px);
+  width: 250px;
+  height: 333px;
+  background-image: url("../../assets/inicio/adorno-planta-verde.svg");
+  background-position: left top;
+  transform-origin: 0% 100%;
+}
+/* Ramita dorada: esquina inferior derecha del bloque */
+.pagina-publica .seccion-inicio:not(:has(.cifras))::after {
+  right: calc(var(--orilla-bloque) - 158px);
+  bottom: 2%;
+  width: 210px;
+  height: 272px;
+  background-image: url("../../assets/inicio/adorno-planta-dorada.svg");
+  background-position: right bottom;
+  transform: rotate(-20deg); /* inclinada hacia el bloque, como la rama verde */
+  transform-origin: 50% 100%;
+  animation-delay: -4s;
+}
+/* Secciones alternas, en espejo: rama verde arriba a la derecha y dorada abajo a la izquierda */
+.pagina-publica main > .seccion-inicio:nth-of-type(even) {
+  background-image:
+    radial-gradient(circle at 96% 20%, rgba(201, 162, 74, 0.16), transparent 22%),
+    radial-gradient(circle at 4% 82%, rgba(22, 79, 68, 0.08), transparent 24%);
+}
+.pagina-publica main > .seccion-inicio:nth-of-type(even)::before { left: auto; right: calc(var(--orilla-bloque) - 186px); scale: -1 1; transform-origin: 50% 100%; } /* el espejo se hace sobre su centro para que no se salga de la pantalla */
+.pagina-publica main > .seccion-inicio:nth-of-type(even)::after { right: auto; left: calc(var(--orilla-bloque) - 158px); scale: -1 1; transform: rotate(20deg); }
+@keyframes detalle-mecer { from { rotate: -2.5deg; } to { rotate: 2.5deg; } }
+
+/* ---------- «¿Qué quieres hacer hoy?»: guías con flores dentro del bloque ----------
+   Una enredadera (adorno-guia-flores.svg, dibujada para la esquina superior izquierda) corre por la orilla
+   y baja por el costado, con flores de pétalos, botones y hojas. Se voltea sobre su centro para las otras
+   tres esquinas y se mece despacio; con «reducir animaciones», quieta. */
+.pagina-publica .bloque > .accesos__flores {
+  width: 330px; height: auto; opacity: 0.95; transform-origin: 50% 50%;
+  animation: guia-mecer 9s ease-in-out infinite alternate;
+}
+/* Tarjetas un poco más grandes para llenar mejor el bloque (solo escritorio) */
+@media (min-width: 1025px) { .pagina-publica .tarjetas-acceso { zoom: 1.12; } }
+.pagina-publica .bloque > .accesos__flores--arriba-izquierda { top: 6px; left: 6px; }
+.pagina-publica .bloque > .accesos__flores--arriba-derecha { top: 6px; right: 6px; scale: -1 1; animation-delay: -3s; }
+.pagina-publica .bloque > .accesos__flores--izquierda { bottom: 6px; left: 6px; scale: 1 -1; animation-delay: -5s; }
+.pagina-publica .bloque > .accesos__flores--derecha { bottom: 6px; right: 6px; scale: -1 -1; animation-delay: -7s; }
+@keyframes guia-mecer { from { rotate: -1.5deg; } to { rotate: 1.5deg; } }
+@media (max-width: 600px) { .pagina-publica .bloque > .accesos__flores { width: 150px !important; } }
+
+/* Foco visible dorado en todo el portal */
+.pagina-publica a:focus-visible, .pagina-publica button:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+
+@keyframes detalle-entrada { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica :is(.encabezado-portal__logos > *, .encabezado-publico > *, .seccion-inicio::before, .seccion-inicio::after, .portada__etiqueta, .portada__estado-punto::after, .portada::before, .portada::after, .accesos__flores) { animation: none; }
+  .pagina-publica .noticia-mini__miniatura { transition: none; }
+  .pagina-publica .tarjeta-acceso::after { transition: none; }
+  .pagina-publica :is(.tarjeta-acceso, .pie-portal__columnas a, .pie-portal .redes--grandes li) { transition: none; }
+  .pagina-publica .tarjeta-acceso:hover, .pagina-publica .pie-portal .redes--grandes li:hover { transform: none; }
+  .pagina-publica :is(a, button):is([class*="boton"], [class*="__boton"]), .pagina-publica .navegacion__enlace::after { transition: none; }
+  .pagina-publica :is(a, button):is([class*="boton"], [class*="__boton"]):hover { transform: none; }
+}
+
+/* Teléfono: los tres logos de la franja caben en una línea */
+@media (max-width: 600px) {
+  .pagina-publica .encabezado-portal__logos { gap: 10px; padding: 10px 16px; }
+  .pagina-publica .encabezado-portal__logos .logo-mexico { width: 80px; height: 30px; }
+  .pagina-publica .encabezado-portal__logos .logo-nayarit { width: 84px; height: 30px; }
+  .pagina-publica .encabezado-portal__biblioteca .logo-solon--blanco { width: 80px; height: 32px; }
+  .pagina-publica .encabezado-portal__separador { height: 26px; }
+}
+
+/* Teléfono y tableta: la portada va en una columna y los troncos quedarían detrás del texto; se quitan */
+@media (max-width: 1024px) {
+  .pagina-publica .portada::before, .pagina-publica .portada::after { display: none; }
+  .pagina-publica .portada {
+    background:
+      radial-gradient(circle at 12% 8%, rgba(201, 162, 74, 0.28), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(155, 34, 71, 0.38), transparent 44%),
+      linear-gradient(151deg, #0b3b33 0%, #1f6b5c 71.429%);
+  }
+}

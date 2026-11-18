@@ -7,7 +7,6 @@ import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import volverBlanca from "../../../assets/comun/iconos/volver-blanca.svg";
 import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import iconoCandado from "../../../assets/comun/iconos/candado.svg";
 import iconoLibro from "../../../assets/lecturas/libro-guinda.svg";
 import iconoExterno from "../../../assets/lecturas/externo-blanco.svg";
@@ -72,7 +71,7 @@ export function TarjetaResena({ resena, desde }: { resena: Resena; desde?: "tema
             <p className="tarjeta-resena__autoria">{resena.autoria}</p>
             <p className="tarjeta-resena__fecha">Reseña del equipo · {mesAnio(resena.publicada)}</p>
             <Link to={ruta} className="boton-lectura boton-lectura--chico">
-                Leer reseña <img src={flechaBlanca} alt="" />
+                Leer reseña
                 <span className="solo-lectores">: {resena.libro}</span>
             </Link>
         </li>
@@ -91,7 +90,7 @@ export function TarjetaMemoria({ memoria, desde }: { memoria: Memoria; desde?: "
                 <p className="tipo-lectura tipo-lectura--memoria"><span />MEMORIA <small>{memoria.anio}</small></p>
                 <h3>{memoria.titulo}</h3>
                 <Link to={ruta} className="boton-lectura boton-lectura--chico">
-                    Ver registro <img src={flechaBlanca} alt="" />
+                    Ver registro
                     <span className="solo-lectores">: {memoria.titulo}</span>
                 </Link>
             </div>

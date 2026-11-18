@@ -3,12 +3,12 @@ import { Bloque, Etiqueta } from "./Bloque";
 import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import textura from "../../../assets/inicio/cuenta-textura.svg";
+import iconoEtiqueta from "../../../assets/inicio/etiqueta-accesos.svg";
+import flores from "../../../assets/inicio/adorno-guia-flores.svg";
 import iconoBuscar from "../../../assets/comun/iconos/accesos-buscar.svg";
 import iconoCredencial from "../../../assets/comun/iconos/accesos-credencial.svg";
 import iconoSala from "../../../assets/inicio/accesos-sala.svg";
 import iconoCalendario from "../../../assets/inicio/accesos-calendario.svg";
-import flecha from "../../../assets/inicio/accesos-flecha.svg";
-import flechaBlanca from "../../../assets/inicio/accesos-flecha-blanca.svg";
 
 // color = fondo de la tarjeta y del botón redondo
 const accesos = [
@@ -28,8 +28,13 @@ function Accesos({ sesion = false }: { sesion?: boolean }) {
     return (
         <section className="seccion-inicio seccion-inicio--crema">
             <Bloque tema="guinda" circulos={[circulo1, circulo2]} textura={{ src: textura, ancho: 380, alto: 260 }}>
+                {/* Guías con flores dentro del bloque, en las cuatro esquinas (solo adorno) */}
+                <img className="bloque__textura accesos__flores accesos__flores--izquierda" src={flores} alt="" />
+                <img className="bloque__textura accesos__flores accesos__flores--derecha" src={flores} alt="" />
+                <img className="bloque__textura accesos__flores accesos__flores--arriba-izquierda" src={flores} alt="" />
+                <img className="bloque__textura accesos__flores accesos__flores--arriba-derecha" src={flores} alt="" />
                 <div className="encabezado-seccion__titular">
-                    <Etiqueta>Accesos</Etiqueta>
+                    <Etiqueta icono={iconoEtiqueta}>Accesos</Etiqueta>
                     <h2 className="titulo-seccion">
                         ¿Qué quieres <span>hacer hoy</span>?
                     </h2>
@@ -43,16 +48,12 @@ function Accesos({ sesion = false }: { sesion?: boolean }) {
                             </span>
                             <h3>{(sesion && textosConSesion[acceso.titulo]) || acceso.titulo}</h3>
                             <p>{acceso.texto}</p>
-                            <span className="tarjeta-acceso__flecha">
-                                <img src={flecha} alt="" />
-                            </span>
                         </Link>
                     ))}
                 </div>
 
                 <Link to="/servicios" className="boton-contorno">
                     Ver servicios y programas
-                    <img src={flechaBlanca} alt="" />
                 </Link>
             </Bloque>
         </section>

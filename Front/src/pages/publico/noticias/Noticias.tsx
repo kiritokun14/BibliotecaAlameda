@@ -6,8 +6,6 @@ import { CATEGORIAS, fechaLarga, filtrarNoticias, nombreCategoria, type Categori
 import { CargandoNoticias, EncabezadoNoticias, EstadoNoticias, ImagenNoticia, PuntoCategoria, TarjetaChica } from "./piezas";
 import { ChipsFiltro } from "../../../components/portal/BarraFiltros";
 import { useNoticias } from "./useNoticias";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import flechaOscura from "../../../assets/comun/iconos/flecha-oscura.svg";
 import circuloGrande from "../../../assets/comun/iconos/circulo-grande.svg";
 import circuloChico from "../../../assets/comun/iconos/circulo-chico.svg";
 
@@ -34,7 +32,6 @@ function Noticias() {
                         </div>
                         <Link to="/noticias/todas" className="boton-noticias boton-noticias--verde">
                             Ver todas las noticias
-                            <img src={flechaBlanca} alt="" />
                         </Link>
                     </div>
 
@@ -98,7 +95,6 @@ function ContenidoListado({
                             <span className="noticia-principal__resumen">{destacada.resumen}</span>
                             <span className="boton-noticias boton-noticias--dorado">
                                 Leer la noticia
-                                <img src={flechaOscura} alt="" />
                             </span>
                         </span>
                     </Link>

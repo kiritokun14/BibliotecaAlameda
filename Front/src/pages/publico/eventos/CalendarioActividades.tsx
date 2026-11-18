@@ -13,7 +13,6 @@ import mesAnterior from "../../../assets/noticias/mes-anterior.svg";
 import mesSiguiente from "../../../assets/noticias/mes-siguiente.svg";
 import listaVerde from "../../../assets/noticias/vista-lista-verde.svg";
 import pinClaro from "../../../assets/eventos/destacada-pin.svg";
-import flechaDorada from "../../../assets/servicios/flecha-dorada.svg";
 
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 // T-052 · Calendario de actividades (Figma A-02, 476:11442): mes, días con actividades y panel del día elegido.
@@ -114,7 +113,7 @@ export default function CalendarioActividades() {
                                             </p>
                                             <h4>{a.titulo}</h4>
                                             <p className="calendario-agenda__lugar"><img src={pinClaro} alt="" />{a.lugar}</p>
-                                            <Link to={`/eventos/${a.id}`} className="calendario-agenda__ver">Ver detalle <img src={flechaDorada} alt="" /></Link>
+                                            <Link to={`/eventos/${a.id}`} className="calendario-agenda__ver">Ver detalle</Link>
                                         </li>
                                     ))}
                                 </ul>

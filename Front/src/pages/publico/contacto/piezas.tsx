@@ -9,7 +9,6 @@ import iconoTelefono from "../../../assets/contacto/dato-telefono.svg";
 import iconoCorreo from "../../../assets/contacto/dato-correo.svg";
 import iconoAlerta from "../../../assets/contacto/campo-alerta.svg";
 import iconoCheck from "../../../assets/contacto/enviado-check.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import { EtapasTramite } from "../credencial/piezas";
 import { etapasContacto } from "./seguimiento";
 import "../credencial/CredencialSesion.css";
@@ -154,7 +153,6 @@ export const Confirmacion = forwardRef<HTMLHeadingElement, {
                             <Link to={folio ? `/mi-perfil/mensajes?folio=${encodeURIComponent(folio)}` : "/mi-perfil/mensajes"}
                                 className="boton-contacto boton-contacto--verde">
                                 Ver el seguimiento en mi perfil
-                                <img src={flechaBlanca} alt="" />
                             </Link>
                             <button type="button" className="boton-contacto boton-contacto--contorno" onClick={alEnviarOtro}>
                                 Enviar otro mensaje
@@ -173,7 +171,6 @@ export const Confirmacion = forwardRef<HTMLHeadingElement, {
                         <div className="confirmacion-contacto__botones">
                             <Link to="/crear-cuenta" className="boton-contacto boton-contacto--verde">
                                 Crear mi cuenta
-                                <img src={flechaBlanca} alt="" />
                             </Link>
                             <Link to="/" className="boton-contacto boton-contacto--contorno">Volver al inicio</Link>
                             <button type="button" className="boton-contacto boton-contacto--contorno" onClick={alEnviarOtro}>
@@ -213,7 +210,7 @@ export function CanalesContacto() {
                                 <strong>{c.titulo}</strong>
                                 <span className="canal-contacto__texto">{c.texto}</span>
                                 <span className="canal-contacto__accion">
-                                    {c.accion} <span aria-hidden="true">→</span>
+                                    {c.accion}
                                     {c.externo && <span className="solo-lectores"> (se abre en una pestaña nueva)</span>}
                                 </span>
                             </a>
@@ -246,7 +243,7 @@ export function PreguntasFrecuentes() {
                             <summary>{p.pregunta}</summary>
                             <div className="pregunta-contacto__respuesta">
                                 <p>{p.respuesta}</p>
-                                <Link to={p.enlace.ruta}>{p.enlace.texto} <span aria-hidden="true">→</span></Link>
+                                <Link to={p.enlace.ruta}>{p.enlace.texto}</Link>
                             </div>
                         </details>
                     ))}

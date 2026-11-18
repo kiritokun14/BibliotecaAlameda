@@ -8,7 +8,6 @@ import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import volverBlanca from "../../../assets/comun/iconos/volver-blanca.svg";
 import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import SolicitudBibliocomunidad from "./SolicitudBibliocomunidad";
 import iconoCheck from "../../../assets/comun/iconos/check-verde.svg";
 
@@ -123,7 +122,6 @@ function DetalleServicio() {
                     {id === "bibliocomunidad" && (
                         <Link to="/club-alameda" className="boton-servicios boton-servicios--verde">
                             Entrar al foro Club Alameda
-                            <img src={flechaBlanca} alt="" />
                         </Link>
                     )}
                     <Link to="/servicios" className="boton-servicios boton-servicios--contorno">

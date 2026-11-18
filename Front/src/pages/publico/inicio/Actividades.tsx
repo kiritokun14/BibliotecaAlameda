@@ -13,14 +13,12 @@ import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import textura from "../../../assets/inicio/actividades-textura.svg";
 import iconoCalendarioEtiqueta from "../../../assets/inicio/noticia-calendario.svg";
-import flechaBlanca from "../../../assets/inicio/lecturas-flecha.svg";
 import iconoLibro from "../../../assets/inicio/portada-libro.svg";
 import iconoUsuariosEtiqueta from "../../../assets/inicio/etiqueta-usuarios.svg";
 import iconoPeriodico from "../../../assets/inicio/etiqueta-periodico.svg";
 import iconoCalendario from "../../../assets/inicio/dato-calendario.svg";
 import iconoReloj from "../../../assets/comun/iconos/dato-reloj.svg";
 import iconoUsuarios from "../../../assets/comun/iconos/dato-usuarios.svg";
-import flechaVerde from "../../../assets/inicio/noticia-flecha.svg";
 import anterior from "../../../assets/inicio/carrusel-anterior.svg";
 import siguiente from "../../../assets/inicio/carrusel-siguiente.svg";
 import filtroTodas from "../../../assets/comun/iconos/filtro-todas.svg";
@@ -85,7 +83,6 @@ function Actividades() {
                     etiqueta="Eventos y actividades"
                     iconoEtiqueta={iconoCalendarioEtiqueta}
                     titulo={<>Actividades <span>bibliotecarias</span></>}
-                    boton={{ texto: "Ver todas las actividades", ruta: "/eventos", icono: flechaBlanca }}
                 />
 
                 {/* Mismas pastillas que los demás filtros del portal, en su versión para fondo oscuro */}
@@ -139,7 +136,6 @@ function Actividades() {
                                     </ul>
                                     <span className="enlace-flecha" aria-hidden="true">
                                         Ver detalle
-                                        <img src={flechaVerde} alt="" />
                                     </span>
                                 </div>
                             </article>
@@ -149,9 +145,13 @@ function Actividades() {
                 </div>
 
                 <Puntos total={totalPaginas} activo={pagina} alElegir={irAPagina} />
-                <p className="nota-ejemplo">
-                    {!resultado ? <span role="status">Cargando próximas actividades…</span> : resultado.error ? resultado.error : actividades.length === 0 ? 'No hay próximas actividades publicadas.' : 'Programación publicada por la biblioteca. Consulta los avisos en cada actividad.'}
-                </p>
+                {/* Pie del bloque: la nota a la izquierda y «Ver todas las actividades» a la derecha */}
+                <div className="actividades-pie">
+                    <p className="nota-ejemplo">
+                        {!resultado ? <span role="status">Cargando próximas actividades…</span> : resultado.error ? resultado.error : actividades.length === 0 ? 'No hay próximas actividades publicadas.' : 'Programación publicada por la biblioteca. Consulta los avisos en cada actividad.'}
+                    </p>
+                    <Link to="/eventos" className="boton-dorado boton-dorado--chico">Ver todas las actividades</Link>
+                </div>
             </Bloque>
         </section>
     );

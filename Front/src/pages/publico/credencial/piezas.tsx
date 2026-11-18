@@ -7,8 +7,6 @@ import puntoGris from "../../../assets/credencial/punto-gris.svg";
 import puntoGuinda from "../../../assets/credencial/punto-guinda.svg";
 import pasoCheck from "../../../assets/credencial/paso-check.svg";
 import iconoTramite from "../../../assets/credencial/tramite-archivo.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import flechaVerde from "../../../assets/inicio/lecturas-flecha-verde.svg";
 import checkEtapa from "../../../assets/credencial/etapa-check.svg";
 import libro from "../../../assets/credencial/libro.svg";
 import circulo1 from "../../../assets/acerca/circulo-grande.svg";
@@ -82,14 +80,14 @@ export function TarjetaMiTramite() {
             </label>
             {error && !leido && <p id="cred-leido-error" className="cred-error-campo">Marca la casilla para continuar.</p>}
             <div className="cred-acciones">
-                <button type="button" className="boton-visitante" onClick={solicitar}>Solicitar credencial <img src={flechaBlanca} alt="" /></button>
+                <button type="button" className="boton-visitante" onClick={solicitar}>Solicitar credencial</button>
                 <Link to="/" className="boton-visitante cred-boton-contorno">Ahora no</Link>
             </div>
             <hr className="cred-linea" />
             <div className="cred-tramite__ya">
                 <strong>¿Ya iniciaste el trámite?</strong>
                 <Link to="/credencial/seguimiento" className="boton-visitante cred-boton-contorno">
-                    Ver seguimiento de mi solicitud <img src={flechaVerde} alt="" />
+                    Ver seguimiento de mi solicitud
                 </Link>
                 <Link to="/credencial/solicitud?tipo=renovacion" className="boton-visitante cred-boton-contorno">Renovar mi credencial</Link>
             </div>

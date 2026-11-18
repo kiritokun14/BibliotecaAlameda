@@ -35,7 +35,6 @@ function Credencial() {
                 <SeccionVisitante fondo="crema">
                     <Link to="/mis-tramites/credencial" className="cred-enlace-tramites">
                         <span><strong>Mis solicitudes registradas</strong>Consulta el estado de las solicitudes de credencial que ya enviaste.</span>
-                        <span aria-hidden="true" className="cred-enlace-tramites__flecha">→</span>
                     </Link>
                     <TarjetaMiTramite />
                 </SeccionVisitante>

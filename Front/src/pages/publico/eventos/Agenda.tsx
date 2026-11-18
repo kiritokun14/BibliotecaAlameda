@@ -10,8 +10,6 @@ import { useAgendaPublica } from "../../../servicios/usarAgendaPublica";
 import { fechaHoyTepic } from "../../../servicios/propuestasUsuario";
 import circuloGrande from "../../../assets/comun/iconos/circulo-grande.svg";
 import circuloChico from "../../../assets/comun/iconos/circulo-chico.svg";
-import flechaOscura from "../../../assets/comun/iconos/flecha-oscura.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import estrella from "../../../assets/eventos/proponer-estrella.svg";
 import puntoDestacada from "../../../assets/eventos/destacada-punto.svg";
 import relojDestacada from "../../../assets/eventos/destacada-reloj.svg";
@@ -19,7 +17,6 @@ import pinDestacada from "../../../assets/eventos/destacada-pin.svg";
 import puntoItem from "../../../assets/eventos/item-punto.svg";
 import relojItem from "../../../assets/eventos/item-reloj.svg";
 import pinItem from "../../../assets/eventos/item-pin.svg";
-import flechaVerde from "../../../assets/noticias/flecha-verde.svg";
 import relojTarjeta from "../../../assets/eventos/tarjeta-reloj.svg";
 import pinTarjeta from "../../../assets/eventos/tarjeta-pin.svg";
 
@@ -50,7 +47,7 @@ export default function Agenda() {
                             <h2 id="titulo-proximas">Próximas <span>actividades</span></h2>
                             <p>Talleres, clubes y visitas guiadas que se vienen, para que elijas la tuya.</p>
                         </div>
-                        <Link to="/eventos/todas" className="agenda-boton agenda-boton--verde">Ver todas las actividades <img src={flechaBlanca} alt="" /></Link>
+                        <Link to="/eventos/todas" className="agenda-boton agenda-boton--verde">Ver todas las actividades</Link>
                     </div>
                     <div className="agenda-herramientas">
                     <ChipsFiltro etiqueta="Filtrar por tipo de actividad" opciones={filtrosCategoria} activa={filtro} alElegir={setFiltro} />
@@ -100,7 +97,7 @@ function Destacada({ actividad: a }: { actividad: ActividadAgenda }) {
                     <div><span><img src={relojDestacada} alt="" /></span><dt>HORARIO</dt><dd>{a.horario}</dd></div>
                     <div><span><img src={pinDestacada} alt="" /></span><dt>LUGAR</dt><dd>{a.lugar}</dd></div>
                 </dl>
-                <span className="agenda-boton agenda-boton--dorado">Ver detalles <img src={flechaOscura} alt="" /></span>
+                <span className="agenda-boton agenda-boton--dorado">Ver detalles</span>
             </div>
         </Link>
     );
@@ -122,7 +119,7 @@ export function Fila({ actividad: a }: { actividad: ActividadAgenda }) {
                     <span><img src={pinItem} alt="" />{a.lugar}</span>
                 </p>
             </div>
-            <span className="agenda-boton agenda-boton--verde agenda-boton--chico">Ver detalle <img src={flechaBlanca} alt="" /></span>
+            <span className="agenda-boton agenda-boton--verde agenda-boton--chico">Ver detalle</span>
         </Link>
     );
 }
@@ -138,7 +135,7 @@ export function TarjetaProponer() {
             </p>
             <div className="agenda-proponer__acciones">
                 <Link to="/mi-perfil/propuestas" className="agenda-proponer__enlace">Mis propuestas</Link>
-                <Link to="/proponer" className="agenda-boton agenda-boton--dorado agenda-boton--chico">Proponer <img src={flechaOscura} alt="" /></Link>
+                <Link to="/proponer" className="agenda-boton agenda-boton--dorado agenda-boton--chico">Proponer</Link>
             </div>
         </section>
     );
@@ -179,7 +176,7 @@ export function TarjetaActividad({ actividad: a, hoy }: { actividad: ActividadAg
                     <span><img src={relojTarjeta} alt="" />{a.horario}</span>
                     <span><img src={pinTarjeta} alt="" />{a.lugar}</span>
                 </p>
-                <span className="agenda-tarjeta__enlace">{estado === "finalizada" ? "Ver resumen" : "Ver detalle"} <img src={flechaVerde} alt="" /></span>
+                <span className="agenda-tarjeta__enlace">{estado === "finalizada" ? "Ver resumen" : "Ver detalle"}</span>
             </div>
         </Link>
     );

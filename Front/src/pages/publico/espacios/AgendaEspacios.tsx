@@ -153,7 +153,7 @@ export default function AgendaEspacios() {
                                 {area ? <>Elegiste <strong>{area.nombre}</strong>{area.capacidad ? ` · hasta ${area.capacidad} personas` : ""}</> : "Elige un área para continuar."}
                             </p>
                             <button type="button" className="espacios-enviar espacios-boton-paso" disabled={!area} onClick={() => irA(2)}>
-                                Continuar con fecha y horario →
+                                Continuar con fecha y horario
                             </button>
                         </div>
                     </section>
@@ -205,8 +205,8 @@ export default function AgendaEspacios() {
                                     </Campo>
                                 </div>
                                 <div className="espacios-botones">
-                                    <button type="button" className="espacios-atras" onClick={() => irA(1)}>← Atrás</button>
-                                    <button type="submit" className="espacios-enviar espacios-boton-paso">Continuar →</button>
+                                    <button type="button" className="espacios-atras" onClick={() => irA(1)}>Atrás</button>
+                                    <button type="submit" className="espacios-enviar espacios-boton-paso">Continuar</button>
                                 </div>
                             </form>
                         ) : (
@@ -232,7 +232,7 @@ export default function AgendaEspacios() {
                                 {errorEnvio && <p className="cred-error-campo espacios-error" role="alert">{errorEnvio}</p>}
                                 <Nota color="dorada" icono={infoDorado}>Enviar la solicitud no reserva el espacio. El personal la revisa y te responde en tu cuenta.</Nota>
                                 <div className="espacios-botones">
-                                    <button type="button" className="espacios-atras" onClick={() => irA(2)} disabled={enviando}>← Atrás</button>
+                                    <button type="button" className="espacios-atras" onClick={() => irA(2)} disabled={enviando}>Atrás</button>
                                     <button type="submit" className="espacios-enviar espacios-boton-paso" disabled={enviando}>
                                         {enviando ? "Enviando…" : "Enviar solicitud"} <img src={enviar} alt="" />
                                     </button>

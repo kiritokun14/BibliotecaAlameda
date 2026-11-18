@@ -5,7 +5,6 @@ import { perspectivas } from "./datos";
 import iconoPersonas from "../../../assets/acerca/etiqueta-personas.svg";
 import iconoCheck from "../../../assets/acerca/dato-check.svg";
 import circuloInvitacion from "../../../assets/acerca/invitacion-circulo.svg";
-import flecha from "../../../assets/comun/iconos/flecha-oscura.svg";
 
 function RolBiblioteca() {
     return (
@@ -55,7 +54,6 @@ function RolBiblioteca() {
                     <div className="invitacion-acerca__botones">
                         <Link to="/eventos" className="boton-dorado">
                             Programa de actividades
-                            <img src={flecha} alt="" />
                         </Link>
                         <Link to="/espacios" className="boton-contorno">Solicitar uso de espacio</Link>
                     </div>

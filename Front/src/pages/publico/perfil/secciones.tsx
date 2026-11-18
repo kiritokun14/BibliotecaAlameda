@@ -13,8 +13,6 @@ import { useTramite } from "../credencial/datos";
 import iconoArchivo from "../../../assets/perfil/acceso-archivo.svg";
 import iconoBuscar from "../../../assets/perfil/acceso-buscar.svg";
 import iconoSala from "../../../assets/perfil/acceso-sala.svg";
-import flechaBlanca from "../../../assets/perfil/acceso-flecha.svg";
-import flechaOscura from "../../../assets/comun/iconos/flecha-oscura.svg";
 import circuloProgreso from "../../../assets/perfil/progreso-circulo.svg";
 import filaCampana from "../../../assets/perfil/fila-campana.svg";
 import filaCalendario from "../../../assets/perfil/fila-calendario.svg";
@@ -81,7 +79,7 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
                             <strong>{avisos ? `${avisos} ${avisos === 1 ? "aviso sin leer" : "avisos sin leer"}` : "Estás al día"}</strong>
                             <span>{avisos ? "Revisa lo que te envió la biblioteca." : "No tienes avisos pendientes."}</span>
                         </span>
-                        <span className="perfil-estado__accion">Ver avisos <img src={flechaOscura} alt="" /></span>
+                        <span className="perfil-estado__accion">Ver avisos</span>
                     </Link>
                     <Link to={credencial.ruta} className={`perfil-estado${credencial.atender ? " perfil-estado--atender" : ""}`}>
                         <span className="perfil-estado__icono"><img src={iconoArchivo} alt="" /></span>
@@ -89,7 +87,7 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
                             <strong>{credencial.titulo}</strong>
                             <span>{credencial.texto}</span>
                         </span>
-                        <span className="perfil-estado__accion">{credencial.accion} <img src={flechaOscura} alt="" /></span>
+                        <span className="perfil-estado__accion">{credencial.accion}</span>
                     </Link>
                 </div>
             </section>
@@ -105,7 +103,6 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
                         <span className="tarjeta-acceso__icono"><img src={a.icono} alt="" /></span>
                         <h3>{a.titulo}</h3>
                         <p>{a.texto}</p>
-                        <span className="tarjeta-acceso__flecha"><img src={flechaBlanca} alt="" /></span>
                     </Link>
                 ))}
             </div>
@@ -117,7 +114,7 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
                         <p className="perfil-progreso__cifra"><strong>{r.progreso.actuales}</strong> de {r.progreso.meta} asistencias para el siguiente nivel</p>
                     </div>
                     <Link to="/mi-perfil/progreso" className="perfil-boton perfil-boton--dorado">
-                        Ver mi progreso <img src={flechaOscura} alt="" />
+                        Ver mi progreso
                     </Link>
                 </div>
                 <div className="perfil-progreso__barra" role="progressbar" aria-valuemin={0} aria-valuemax={r.progreso.meta}

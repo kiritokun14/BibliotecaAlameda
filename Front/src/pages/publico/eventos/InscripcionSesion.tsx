@@ -3,7 +3,6 @@ import { mensajeError } from '../../../servicios/api';
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 import { cancelarInscripcionPropia, consultarInscripcionPropia, estadoInscripcionPropia,
     solicitarInscripcionPropia, type InscripcionPropia } from '../../../servicios/inscripciones';
-import flechaBlanca from '../../../assets/comun/iconos/flecha-blanca.svg';
 
 // Mi inscripción en una sesión (datos reales). Se usa en el detalle de la actividad y en Perfil › Mis eventos.
 const TONO: Record<string, 'verde' | 'dorado' | 'guinda' | 'gris'> = { confirmada: 'verde', pendiente: 'dorado', cancelada: 'guinda', rechazada: 'gris' };
@@ -51,7 +50,7 @@ export default function InscripcionSesion({ sesion, desdePerfil = false }: { ses
             {aviso && <p className="insc-sesion__texto">{aviso}</p>}
         </>}
         {!accion && (puedeSolicitar || datos?.puedeCancelar) && <div className="insc-sesion__botones">
-            {puedeSolicitar && <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => setAccion('solicitar')}>Solicitar inscripción <img src={flechaBlanca} alt="" /></button>}
+            {puedeSolicitar && <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => setAccion('solicitar')}>Solicitar inscripción</button>}
             {datos?.puedeCancelar && <button type="button" className="agenda-boton agenda-boton--contorno-verde insc-sesion__cancelar" onClick={() => setAccion('cancelar')}>Cancelar mi inscripción</button>}
         </div>}
         {accion && <div className={`insc-sesion__confirmar${accion === 'cancelar' ? ' insc-sesion__confirmar--cancelar' : ''}`}>

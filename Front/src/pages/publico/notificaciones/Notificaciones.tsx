@@ -9,12 +9,10 @@ import "../../../components/portal/Visitante.css";
 import "./Notificaciones.css";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
-import flechaVerde from "../../../assets/inicio/lecturas-flecha-verde.svg";
 import iconoArchivo from "../../../assets/admin/resumen/file-verde.svg";
 import iconoCalendario from "../../../assets/perfil/fila-calendario.svg";
 import iconoInfo from "../../../assets/notificaciones/tipo-info.svg";
 import puntoSinLeer from "../../../assets/notificaciones/punto-sin-leer.svg";
-import verFlecha from "../../../assets/notificaciones/ver-flecha.svg";
 import marcarCheck from "../../../assets/notificaciones/marcar-check.svg";
 import eliminarX from "../../../assets/notificaciones/eliminar-x.svg";
 import quitarX from "../../../assets/notificaciones/quitar-x.svg";
@@ -102,7 +100,7 @@ export default function Notificaciones() {
                                             {n.accion && (
                                                 <button type="button" className="notif-tarjeta__ver"
                                                     onClick={() => { notificaciones.marcarLeida(n.id); navegar(n.accion!.ruta); }}>
-                                                    {n.accion.texto} <img src={verFlecha} alt="" />
+                                                    {n.accion.texto}
                                                 </button>
                                             )}
                                         </div>
@@ -128,7 +126,7 @@ export default function Notificaciones() {
                             <p className="notif-como__titulo">CÓMO TE AVISAMOS</p>
                             <p>Aquí aparecen los cambios y cancelaciones de las sesiones en las que tienes una inscripción.</p>
                             <Link to="/mi-perfil/avisos" className="boton-visitante notif-boton-contorno">
-                                Configurar mis avisos <img src={flechaVerde} alt="" />
+                                Configurar mis avisos
                             </Link>
                             {lista.length > 0 && <p className="notif-como__nota">Eliminar una notificación solo la quita de esta lista. No cancela tu solicitud ni tu inscripción.</p>}
                         </div>

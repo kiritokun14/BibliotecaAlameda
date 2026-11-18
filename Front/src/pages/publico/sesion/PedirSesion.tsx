@@ -1,6 +1,5 @@
 import { Link } from "react-router";
 import candado from "../../../assets/comun/iconos/candado.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import "./PedirSesion.css";
 
 // Tarjeta única de «Inicia sesión» para las páginas que solo existen con cuenta (perfil, trámites, notificaciones,
@@ -15,7 +14,7 @@ export default function PedirSesion({ titulo, texto, nivel = "h1" }: { titulo: s
                 <Titulo id="pedir-sesion-titulo">{titulo}</Titulo>
                 <p className="pedir-sesion__texto">{texto}</p>
                 <div className="pedir-sesion__botones">
-                    <Link to="/iniciar-sesion" className="pedir-sesion__boton">Iniciar sesión <img src={flechaBlanca} alt="" /></Link>
+                    <Link to="/iniciar-sesion" className="pedir-sesion__boton">Iniciar sesión</Link>
                     <Link to="/crear-cuenta" className="pedir-sesion__boton pedir-sesion__boton--contorno">Crear una cuenta</Link>
                 </div>
             </div>

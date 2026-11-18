@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import iconoArchivo from "../../../assets/servicios/estado-archivo.svg";
 import iconoNube from "../../../assets/comun/iconos/estado-nube.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import iconoReintentar from "../../../assets/comun/iconos/reintentar-blanco.svg";
 
 import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
@@ -53,7 +52,6 @@ export function EstadoServicios({
                         <>
                             <Link to="/" className="boton-servicios boton-servicios--verde">
                                 Ir al inicio
-                                <img src={flechaBlanca} alt="" />
                             </Link>
                             <Link to="/noticias" className="boton-servicios boton-servicios--contorno">
                                 Ver noticias

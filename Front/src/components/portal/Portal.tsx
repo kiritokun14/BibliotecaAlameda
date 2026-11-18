@@ -23,6 +23,10 @@ export function EncabezadoPortal() {
                 <img src={logoMexico} alt="Gobierno de México" className="logo-mexico" />
                 <span className="encabezado-portal__separador" aria-hidden="true" />
                 <img src={logoNayarit} alt="Gobierno de Nayarit" className="logo-nayarit" />
+                <span className="encabezado-portal__separador" aria-hidden="true" />
+                <Link to="/" className="encabezado-portal__biblioteca" aria-label="Biblioteca Solón Argüello, ir al inicio">
+                    <span className="logo-solon logo-solon--blanco" />
+                </Link>
             </div>
         </header>
     );

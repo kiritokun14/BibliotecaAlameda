@@ -48,12 +48,12 @@ export default function Tramites() {
                             <span className="tramites-fila__textos"><strong>{s.tituloPropuesta || (s.tipoSolicitud === 'renovacion' ? 'Renovación de credencial' : 'Obtención de credencial')}</strong>
                                 <small>Enviada el {new Date(s.creadaEn).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}</small></span>
                             <ChipTramite estado={estadoTramite(s)} />
-                            <Link className="tramites-enlace" to={`${base}/${s.id}`}>Ver seguimiento →<span className="solo-lectores"> de {s.tituloPropuesta || 'la solicitud'}</span></Link>
+                            <Link className="tramites-enlace" to={`${base}/${s.id}`}>Ver seguimiento<span className="solo-lectores"> de {s.tituloPropuesta || 'la solicitud'}</span></Link>
                         </li>)}</ul>}
                     {actual.lista.total > 20 && <div className="tramites-paginas"><button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button><span> Página {pagina + 1} </span>
                     <button type="button" disabled={(pagina + 1) * 20 >= actual.lista.total} onClick={() => setPagina(x => x + 1)}>Siguiente</button></div>}
                 </>}
-                {actual?.solicitud && <section className="tramites-tarjeta tramites-ficha"><Link className="tramites-enlace" to={base}>← Volver a mis solicitudes</Link><FichaTramite solicitud={actual.solicitud} />
+                {actual?.solicitud && <section className="tramites-tarjeta tramites-ficha"><Link className="tramites-enlace" to={base}>Volver a mis solicitudes</Link><FichaTramite solicitud={actual.solicitud} />
                     {tipo === 'propuesta' && ['borrador', 'requiere_correccion'].includes(estadoTramite(actual.solicitud)) && <FormularioPropuesta key={actual.solicitud.actualizadoEn} anterior={actual.solicitud} alGuardar={() => recargar(x => x + 1)} />}
                 </section>}
             </>}
