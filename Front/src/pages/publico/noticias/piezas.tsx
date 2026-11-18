@@ -4,7 +4,6 @@ import { Link } from "react-router";
 import { MESES, fechaLarga, nombreCategoria, paginasVisibles, type Categoria, type Noticia } from "./datos";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
-import volverBlanca from "../../../assets/comun/iconos/volver-blanca.svg";
 import iconoNube from "../../../assets/comun/iconos/estado-nube.svg";
 import iconoReintentar from "../../../assets/comun/iconos/reintentar-blanco.svg";
 import iconoBuscarGrande from "../../../assets/noticias/vacio-buscar.svg";
@@ -50,7 +49,6 @@ export function EncabezadoNoticias({
 export function BotonRegreso({ texto, ruta }: { texto: string; ruta: string }) {
     return (
         <Link to={ruta} className="boton-regreso-noticias">
-            <img src={volverBlanca} alt="" />
             {texto}
         </Link>
     );

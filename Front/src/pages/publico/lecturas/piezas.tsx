@@ -5,8 +5,6 @@ import { mesAnio, type Memoria, type Resena } from "./datos";
 import { urlCatalogo } from "../../../servicios/catalogo";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
-import volverBlanca from "../../../assets/comun/iconos/volver-blanca.svg";
-import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
 import iconoCandado from "../../../assets/comun/iconos/candado.svg";
 import iconoLibro from "../../../assets/lecturas/libro-guinda.svg";
 import iconoExterno from "../../../assets/lecturas/externo-blanco.svg";
@@ -129,7 +127,6 @@ export function EncabezadoLecturas({
             {regreso && (
                 <div className="encabezado-lecturas__regreso">
                     <Link to={regreso.ruta} className="boton-regreso-lecturas">
-                        <img src={volverBlanca} alt="" />
                         {regreso.texto}
                     </Link>
                 </div>
@@ -195,7 +192,6 @@ export function EstadoLecturas({
                     <button type="button" className="boton-lectura" onClick={alLimpiar}>Quitar filtros</button>
                 ) : (
                     <Link to={regreso?.ruta ?? "/lecturas"} className="boton-lectura">
-                        <img src={volverBlanca} alt="" />
                         {regreso?.texto ?? "Volver a Lecturas"}
                     </Link>
                 )}
@@ -227,7 +223,6 @@ export function BotonCatalogo() {
 export function BotonVolverClaro({ texto, ruta }: { texto: string; ruta: string }) {
     return (
         <Link to={ruta} className="boton-lectura boton-lectura--contorno">
-            <img src={volverOscura} alt="" />
             {texto}
         </Link>
     );

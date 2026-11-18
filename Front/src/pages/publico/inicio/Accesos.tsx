@@ -29,10 +29,10 @@ function Accesos({ sesion = false }: { sesion?: boolean }) {
         <section className="seccion-inicio seccion-inicio--crema">
             <Bloque tema="guinda" circulos={[circulo1, circulo2]} textura={{ src: textura, ancho: 380, alto: 260 }}>
                 {/* Guías con flores dentro del bloque, en las cuatro esquinas (solo adorno) */}
-                <img className="bloque__textura accesos__flores accesos__flores--izquierda" src={flores} alt="" />
-                <img className="bloque__textura accesos__flores accesos__flores--derecha" src={flores} alt="" />
-                <img className="bloque__textura accesos__flores accesos__flores--arriba-izquierda" src={flores} alt="" />
-                <img className="bloque__textura accesos__flores accesos__flores--arriba-derecha" src={flores} alt="" />
+                <img className="bloque__textura guia-flores guia-flores--izquierda" src={flores} alt="" />
+                <img className="bloque__textura guia-flores guia-flores--derecha" src={flores} alt="" />
+                <img className="bloque__textura guia-flores guia-flores--arriba-izquierda" src={flores} alt="" />
+                <img className="bloque__textura guia-flores guia-flores--arriba-derecha" src={flores} alt="" />
                 <div className="encabezado-seccion__titular">
                     <Etiqueta icono={iconoEtiqueta}>Accesos</Etiqueta>
                     <h2 className="titulo-seccion">

@@ -7,7 +7,6 @@ import { BotonRegreso, EncabezadoNoticias, EstadoNoticias, ImagenNoticia, PuntoC
 import { EsqueletoArticulo } from "../../../components/portal/Esqueleto";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
-import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
 import iconoCalendario from "../../../assets/noticias/dato-calendario.svg";
 import iconoReloj from "../../../assets/noticias/dato-reloj.svg";
 import iconoPin from "../../../assets/noticias/dato-pin.svg";
@@ -140,13 +139,11 @@ function DetalleNoticia() {
                     <div className="seguir-leyendo__botones">
                         {origen.desde === "todas" ? (
                             <Link to={regreso.ruta} className="boton-noticias boton-noticias--contorno boton-noticias--chico">
-                                <img src={volverOscura} alt="" />
                                 Volver al listado
                             </Link>
                         ) : (
                             <>
                                 <Link to="/noticias" className="boton-noticias boton-noticias--contorno boton-noticias--chico">
-                                    <img src={volverOscura} alt="" />
                                     Volver a Noticias
                                 </Link>
                                 <Link to="/noticias/todas" className="boton-noticias boton-noticias--verde boton-noticias--chico">

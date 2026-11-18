@@ -17,7 +17,6 @@ import iconoPin from "../../../assets/eventos/destacada-pin.svg";
 import iconoCupo from "../../../assets/eventos/detalle-cupo.svg";
 import circuloGrande from "../../../assets/comun/iconos/circulo-grande.svg";
 import circuloChico from "../../../assets/comun/iconos/circulo-chico.svg";
-import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
 import modalCalendario from "../../../assets/perfil/fila-calendario-verde.svg";
 import infoVerde from "../../../assets/credencial/info-verde.svg";
 import checkEnviada from "../../../assets/credencial/enviada-check.svg";
@@ -128,7 +127,7 @@ export default function DetalleActividad({ actividad: a }: { actividad: Activida
                     <p>Hay más talleres, clubes y visitas.</p>
                 </div>
                 <div className="detalle-actividad__otra-botones">
-                    <Link to="/eventos" className="agenda-boton agenda-boton--negro">Volver a Eventos y actividades <img src={volverOscura} alt="" /></Link>
+                    <Link to="/eventos" className="agenda-boton agenda-boton--negro">Volver a Eventos y actividades</Link>
                     <Link to="/eventos/todas" className="agenda-boton agenda-boton--verde">Ver todas las actividades</Link>
                 </div>
             </section>

@@ -532,29 +532,31 @@
 .pagina-publica main > .seccion-inicio:nth-of-type(even)::after { right: auto; left: calc(var(--orilla-bloque) - 158px); scale: -1 1; transform: rotate(20deg); }
 @keyframes detalle-mecer { from { rotate: -2.5deg; } to { rotate: 2.5deg; } }
 
-/* ---------- «¿Qué quieres hacer hoy?»: guías con flores dentro del bloque ----------
+/* ---------- «¿Qué quieres hacer hoy?» y «Cómo encontrarnos»: guías con flores dentro del bloque ----------
    Una enredadera (adorno-guia-flores.svg, dibujada para la esquina superior izquierda) corre por la orilla
    y baja por el costado, con flores de pétalos, botones y hojas. Se voltea sobre su centro para las otras
    tres esquinas y se mece despacio; con «reducir animaciones», quieta. */
-.pagina-publica .bloque > .accesos__flores {
+.pagina-publica .bloque > .guia-flores {
   width: 330px; height: auto; opacity: 0.95; transform-origin: 50% 50%;
   animation: guia-mecer 9s ease-in-out infinite alternate;
 }
 /* Tarjetas un poco más grandes para llenar mejor el bloque (solo escritorio) */
 @media (min-width: 1025px) { .pagina-publica .tarjetas-acceso { zoom: 1.12; } }
-.pagina-publica .bloque > .accesos__flores--arriba-izquierda { top: 6px; left: 6px; }
-.pagina-publica .bloque > .accesos__flores--arriba-derecha { top: 6px; right: 6px; scale: -1 1; animation-delay: -3s; }
-.pagina-publica .bloque > .accesos__flores--izquierda { bottom: 6px; left: 6px; scale: 1 -1; animation-delay: -5s; }
-.pagina-publica .bloque > .accesos__flores--derecha { bottom: 6px; right: 6px; scale: -1 -1; animation-delay: -7s; }
+.pagina-publica .bloque > .guia-flores--arriba-izquierda { top: 6px; left: 6px; }
+.pagina-publica .bloque > .guia-flores--arriba-derecha { top: 6px; right: 6px; scale: -1 1; animation-delay: -3s; }
+.pagina-publica .bloque > .guia-flores--izquierda { bottom: 6px; left: 6px; scale: 1 -1; animation-delay: -5s; }
+.pagina-publica .bloque > .guia-flores--derecha { bottom: 6px; right: 6px; scale: -1 -1; animation-delay: -7s; }
 @keyframes guia-mecer { from { rotate: -1.5deg; } to { rotate: 1.5deg; } }
-@media (max-width: 600px) { .pagina-publica .bloque > .accesos__flores { width: 150px !important; } }
+/* En «Cómo encontrarnos» van más chicas para no tocar los datos ni el mapa */
+.pagina-publica .bloque > .guia-flores--chica { width: 250px; }
+@media (max-width: 600px) { .pagina-publica .bloque > .guia-flores { width: 150px !important; } }
 
 /* Foco visible dorado en todo el portal */
 .pagina-publica a:focus-visible, .pagina-publica button:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
 
 @keyframes detalle-entrada { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .pagina-publica :is(.encabezado-portal__logos > *, .encabezado-publico > *, .seccion-inicio::before, .seccion-inicio::after, .portada__etiqueta, .portada__estado-punto::after, .portada::before, .portada::after, .accesos__flores) { animation: none; }
+  .pagina-publica :is(.encabezado-portal__logos > *, .encabezado-publico > *, .seccion-inicio::before, .seccion-inicio::after, .portada__etiqueta, .portada__estado-punto::after, .portada::before, .portada::after, .guia-flores) { animation: none; }
   .pagina-publica .noticia-mini__miniatura { transition: none; }
   .pagina-publica .tarjeta-acceso::after { transition: none; }
   .pagina-publica :is(.tarjeta-acceso, .pie-portal__columnas a, .pie-portal .redes--grandes li) { transition: none; }
@@ -581,4 +583,54 @@
       radial-gradient(circle at 88% 92%, rgba(155, 34, 71, 0.38), transparent 44%),
       linear-gradient(151deg, #0b3b33 0%, #1f6b5c 71.429%);
   }
+}
+
+/* ---------- Páginas internas en tableta y teléfono (revisión 18 nov 2026) ----------
+   Medido a 390 × 844 y 820 × 1180: nada se sale de la pantalla y nada queda apretado. */
+/* Tableta: tarjetas de actividades a dos columnas y pie con los logos en fila arriba de las columnas */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .pagina-publica .agenda-tarjetas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Pie en tableta y teléfono: logos en fila arriba de las columnas, con la línea abajo (no a un lado) */
+@media (max-width: 1024px) {
+  .pagina-publica .pie-portal__contenido { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .pagina-publica .pie-portal__logos {
+    flex-direction: row; flex-wrap: wrap; gap: 20px 32px; padding: 0 0 24px;
+    border-right: none; border-bottom: 1px solid rgba(230, 209, 148, 0.25);
+  }
+}
+/* Teléfono: lo que iba en fila se apila y los botones van a todo lo ancho */
+@media (max-width: 600px) {
+  /* Aviso «Inicia sesión o crea una cuenta» (Credencial, Espacios…) */
+  .pagina-publica .aviso-cuenta__principal { flex-direction: column; align-items: flex-start; gap: 14px; padding: 22px 20px; }
+  .pagina-publica .aviso-cuenta__textos h2 { font-size: 20px; line-height: 26px; }
+  .pagina-publica .aviso-cuenta__puedes { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  /* Llamado final verde («¿Quieres tramitar tu credencial?») */
+  .pagina-publica .llamado-visitante { flex-direction: column; align-items: stretch; padding: 28px 22px; }
+  .pagina-publica .seccion-visitante .llamado-visitante h2 { font-size: 24px; line-height: 30px; }
+  /* Grupos de botones: uno debajo del otro, a todo lo ancho, con 44 px mínimos */
+  .pagina-publica :is(.aviso-cuenta__botones, .llamado-visitante__botones, .estado-lecturas__botones) {
+    flex-direction: column; align-self: stretch; width: 100%;
+  }
+  .pagina-publica :is(.aviso-cuenta__botones, .llamado-visitante__botones, .estado-lecturas__botones) > * {
+    width: 100%; min-height: 44px; flex-shrink: 1;
+  }
+  /* Títulos de Noticias: el botón y el resumen («Mostrando…», Lista | Cuadrícula) bajan debajo del título */
+  .pagina-publica .noticias-titulo { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .pagina-publica .noticias-titulo > .boton-noticias { margin-top: 0; }
+  .pagina-publica .noticias-titulo__resumen { flex-wrap: wrap; flex-shrink: 1; gap: 10px 14px; }
+  /* Barra de búsqueda y filtros: el buscador ocupa toda la fila para que el texto no se corte */
+  .pagina-publica .barra-filtros__fila { flex-wrap: wrap; }
+  .pagina-publica .barra-filtros__buscar { flex: 1 1 100%; }
+}
+
+/* ---------- Actividades y Noticias del inicio: más aire arriba del título ----------
+   La etiqueta quedaba a ~22 px del borde de arriba (Lecturas tiene ~45). Se baja el contenido y, para que
+   el bloque mida lo mismo, el aire sale de los espacios entre sus partes y del margen de abajo.
+   En pantallas altas el contenido ya va centrado con aire de sobra, así que solo aplica en las bajas (≤ 900 px). */
+@media (min-width: 1025px) and (max-height: 900px) {
+  .pagina-publica .seccion-inicio:is(:has(.tarjeta-actividad), :has(.noticia-destacada)) > .bloque { padding-top: 48px; padding-bottom: 20px; }
+  .pagina-publica .bloque:has(.tarjeta-actividad) { gap: 12px; }
+  .pagina-publica .bloque:has(.tarjeta-actividad) .filtros-actividad { margin-bottom: 2px; }
+  .pagina-publica .bloque:has(.noticia-destacada) { gap: 8px; }
 }

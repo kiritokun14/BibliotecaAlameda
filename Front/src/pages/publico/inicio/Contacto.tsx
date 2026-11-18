@@ -12,6 +12,7 @@ import iconoReloj from "../../../assets/inicio/contacto-reloj.svg";
 import iconoTelefono from "../../../assets/inicio/contacto-telefono.svg";
 import iconoCorreo from "../../../assets/inicio/contacto-correo.svg";
 import iconoNavegar from "../../../assets/inicio/mapa-google.svg";
+import flores from "../../../assets/inicio/adorno-guia-flores.svg";
 
 const telefono = datosBiblioteca.telefono;
 const correo = datosBiblioteca.correo;
@@ -58,6 +59,11 @@ function Contacto() {
     return (
         <section className="seccion-inicio seccion-inicio--verde-claro">
             <Bloque tema="guinda" className="contacto" circulos={[circulo1, circulo2]} textura={{ src: textura, ancho: 320, alto: 360 }}>
+                {/* Guías con flores en las cuatro esquinas, como en «¿Qué quieres hacer hoy?» (solo adorno) */}
+                <img className="bloque__textura guia-flores guia-flores--chica guia-flores--arriba-izquierda" src={flores} alt="" />
+                <img className="bloque__textura guia-flores guia-flores--chica guia-flores--arriba-derecha" src={flores} alt="" />
+                <img className="bloque__textura guia-flores guia-flores--chica guia-flores--izquierda" src={flores} alt="" />
+                <img className="bloque__textura guia-flores guia-flores--chica guia-flores--derecha" src={flores} alt="" />
                 <div className="contacto__datos">
                     <Etiqueta icono={iconoPinEtiqueta} className="etiqueta-inicio--dorada-fuerte">
                         Contacto y ubicación
