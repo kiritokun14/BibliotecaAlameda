@@ -48,14 +48,14 @@ function FormularioPublicacion({ propuesta }: { propuesta: Propuesta }) {
     return (
         <div className="contenidos-formulario">
             <div className="at-columna">
-                <Tarjeta icono={tarjetaEstrella} titulo="Así se verá en Eventos" subtitulo="Vista de ejemplo, no es la publicación final.">
+                <Tarjeta icono={tarjetaEstrella} titulo="Así se verá en Eventos" subtitulo="Vista previa, no es la publicación final.">
                     <div className="portada-evento">
                         {portada ? (
                             <img src={portada} alt="" className="portada-evento__imagen" />
                         ) : (
                             <>
                                 <img src={portadaEstrella} alt="" />
-                                <span>Portada del evento (ejemplo)</span>
+                                <span>Portada del evento</span>
                             </>
                         )}
                     </div>
@@ -184,7 +184,7 @@ function VistaPrevia() {
                 volver={{ texto: "Volver a la revisión", ruta: `${RUTA}/${propuesta.folio}` }}
                 etiqueta={`PROPUESTA ${propuesta.folio} · POR PUBLICAR`}
                 titulo="Vista previa de publicación"
-                texto="Así se publicará en Eventos al aprobar. Ajusta el texto antes de publicar. Datos de ejemplo."
+                texto="Así se publicará en Eventos al aprobar. Ajusta el texto antes de publicar."
             />
             <FormularioPublicacion propuesta={propuesta} />
         </PanelLayout>

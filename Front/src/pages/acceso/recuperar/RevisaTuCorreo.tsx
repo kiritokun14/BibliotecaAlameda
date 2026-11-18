@@ -25,9 +25,7 @@ function RevisaTuCorreo() {
 
     return (
         <AccesoLayout
-            etiqueta="RECUPERAR ACCESO"
             titulo={<>Revisa tu <span>correo</span></>}
-            texto="Te enviamos un enlace para crear una nueva contraseña."
         >
             <div className="tarjeta">
                 <div className="icono-circulo"><img src={iconoCorreo} alt="" /></div>
@@ -58,8 +56,8 @@ function RevisaTuCorreo() {
                     <img src={iconoReenviar} alt="" />
                 </button>
 
-                <Link to="/iniciar-sesion" className="enlace enlace--suelto">
-                    ← Volver a iniciar sesión
+                <Link to="/iniciar-sesion" className="enlace-volver">
+                    Volver a iniciar sesión
                 </Link>
 
                 <p className="tarjeta__ayuda">

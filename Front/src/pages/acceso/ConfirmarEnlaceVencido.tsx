@@ -6,7 +6,6 @@ import Aviso from "../../components/acceso/Aviso";
 import { Campo } from "../../components/acceso/Campo";
 import { reenviarConfirmacion } from "../../servicios/auth";
 import { esCorreoValido, MENSAJE_CORREO } from "../../servicios/validaciones";
-import iconoFlechaDer from "../../assets/comun/iconos/flecha-derecha.svg";
 
 // Se muestra cuando abren un enlace de verificación que ya venció o ya se usó
 function ConfirmarEnlaceVencido() {
@@ -32,9 +31,7 @@ function ConfirmarEnlaceVencido() {
 
     return (
         <AccesoLayout
-            etiqueta="CASI LISTO"
             titulo={<>No pudimos verificar tu <span>correo</span></>}
-            texto="El enlace ya no es válido."
         >
             <form className="tarjeta" onSubmit={enviar} noValidate>
                 <div className="tarjeta__encabezado">
@@ -52,11 +49,10 @@ function ConfirmarEnlaceVencido() {
 
                 <button type="submit" className="boton-principal" disabled={enviando}>
                     {enviando ? "Enviando…" : "Reenviar enlace de verificación"}
-                    <img src={iconoFlechaDer} alt="" />
                 </button>
 
-                <Link to="/iniciar-sesion" className="enlace enlace--suelto">
-                    ← Volver a iniciar sesión
+                <Link to="/iniciar-sesion" className="enlace-volver">
+                    Volver a iniciar sesión
                 </Link>
             </form>
         </AccesoLayout>

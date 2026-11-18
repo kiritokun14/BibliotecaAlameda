@@ -41,7 +41,7 @@ export default function Notificaciones() {
             <EncabezadoPagina
                 etiqueta="Panel · Notificaciones"
                 titulo="Notificaciones"
-                texto="Avisos del panel para el personal. Datos de ejemplo."
+                texto="Avisos del panel para el personal."
                 accion={
                     <div className="notificaciones-acciones">
                         <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={leerTodas} disabled={pendientes === 0}>
@@ -108,7 +108,7 @@ export default function Notificaciones() {
                     />
                 )}
 
-                <div className="contenidos-lista__pie"><p aria-live="polite">Mostrando {visibles.length} de {lista.length} (ejemplo)</p></div>
+                <div className="contenidos-lista__pie"><p aria-live="polite">Mostrando {visibles.length} de {lista.length}</p></div>
             </section>
 
             {confirmando && (

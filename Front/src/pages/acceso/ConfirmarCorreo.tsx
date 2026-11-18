@@ -25,9 +25,7 @@ function ConfirmarCorreo() {
 
     return (
         <AccesoLayout
-            etiqueta="CASI LISTO"
             titulo={<>Confirma tu <span>correo</span></>}
-            texto="Tu cuenta se activa al confirmar el correo. El teléfono es solo un dato de contacto."
         >
             <div className="tarjeta">
                 <div className="icono-circulo">

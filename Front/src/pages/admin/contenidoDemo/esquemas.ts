@@ -102,7 +102,7 @@ export const ESQUEMAS: Record<TipoContenido, Esquema> = {
         etiqueta: "RESEÑA",
         letra: "R",
         tituloNuevo: "Redactar reseña bibliográfica",
-        descripcion: "La reseña la firma el equipo de la biblioteca. Los datos del libro son de ejemplo.",
+        descripcion: "La reseña la firma el equipo de la biblioteca.",
         descripcionTipo: "Reseña de un libro escrita por el equipo. Aparece en Lecturas y reseñas.",
         grupos: [
             {
@@ -188,7 +188,7 @@ export const ESQUEMAS: Record<TipoContenido, Esquema> = {
         etiqueta: "MEMORIA PÚBLICA",
         letra: "M",
         tituloNuevo: "Redactar pieza de Memoria pública",
-        descripcion: "Fotografías y piezas del archivo de memoria de la biblioteca. Los datos son de ejemplo.",
+        descripcion: "Fotografías y piezas del archivo de memoria de la biblioteca.",
         descripcionTipo: "Fotografías y piezas del archivo de memoria de la biblioteca. Aparece en Memoria pública.",
         grupos: [
             {

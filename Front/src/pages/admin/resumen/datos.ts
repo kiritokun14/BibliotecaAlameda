@@ -71,8 +71,8 @@ export const prioridades: Prioridad[] = [
 ];
 
 export const actividadesHoy = [
-    { titulo: "Taller de lectura en voz alta", detalle: "Sala de actividades · lista por pasar (ejemplo)", chip: { texto: "Asistencia abierta", tono: "verde" as TonoEstado }, pasarLista: true },
-    { titulo: "Cine debate", detalle: "Sala de lectura · cupo lleno (ejemplo)", chip: { texto: "Confirmada", tono: "dorado" as TonoEstado }, pasarLista: false },
+    { titulo: "Taller de lectura en voz alta", detalle: "Sala de actividades · lista por pasar", chip: { texto: "Asistencia abierta", tono: "verde" as TonoEstado }, pasarLista: true },
+    { titulo: "Cine debate", detalle: "Sala de lectura · cupo lleno", chip: { texto: "Confirmada", tono: "dorado" as TonoEstado }, pasarLista: false },
 ];
 
 export const REGLAS = [

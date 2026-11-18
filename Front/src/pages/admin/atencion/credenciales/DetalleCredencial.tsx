@@ -19,12 +19,12 @@ const textos: TextosEstado = {
     pendiente: {
         etiqueta: "POR COTEJAR",
         titulo: "Cotejo de datos",
-        texto: "Revisa los datos que la persona dio al registrarse y decide. Datos de ejemplo.",
+        texto: "Revisa los datos que la persona dio al registrarse y decide.",
     },
     observaciones: {
         etiqueta: "CON OBSERVACIONES",
         titulo: "Esperando respuesta de la persona",
-        texto: "Pediste una corrección. Cuando la persona responda, la solicitud vuelve a Por cotejar. Datos de ejemplo.",
+        texto: "Pediste una corrección. Cuando la persona responda, la solicitud vuelve a Por cotejar.",
         aviso: {
             tono: "espera",
             titulo: "Corrección solicitada",
@@ -35,7 +35,7 @@ const textos: TextosEstado = {
     aprobada: {
         etiqueta: "APROBADA",
         titulo: "Solicitud aprobada",
-        texto: "La credencial quedó aprobada. Aquí puedes consultar los datos y el historial. Datos de ejemplo.",
+        texto: "La credencial quedó aprobada. Aquí puedes consultar los datos y el historial.",
         aviso: {
             tono: "exito",
             titulo: "Credencial aprobada",
@@ -46,7 +46,7 @@ const textos: TextosEstado = {
     rechazada: {
         etiqueta: "RECHAZADA",
         titulo: "Solicitud rechazada",
-        texto: "La credencial no se aprobó. Aquí puedes consultar el motivo y el historial. Datos de ejemplo.",
+        texto: "La credencial no se aprobó. Aquí puedes consultar el motivo y el historial.",
         aviso: {
             tono: "error",
             titulo: "Solicitud rechazada",
@@ -76,7 +76,7 @@ function historial(solicitud: Credencial): EventoHistorial[] {
         case "pendiente":
             return [
                 enviada,
-                { titulo: "Asignada para cotejo", detalle: "21 oct 2026 · Personal de atención (ejemplo)", tipo: "proceso" },
+                { titulo: "Asignada para cotejo", detalle: "21 oct 2026 · Personal de atención", tipo: "proceso" },
                 { titulo: "Sin decisión todavía", detalle: "En espera", tipo: "pendiente" },
             ];
         case "observaciones":
@@ -91,7 +91,7 @@ function historial(solicitud: Credencial): EventoHistorial[] {
                 { titulo: "Cotejo de datos", detalle: "22 oct 2026 · datos revisados", tipo: "proceso" },
                 {
                     titulo: solicitud.estado === "aprobada" ? "Credencial aprobada" : "Solicitud rechazada",
-                    detalle: `${fecha} · por el administrador (ejemplo)`,
+                    detalle: `${fecha} · por el administrador`,
                     tipo: "pendiente",
                 },
             ];
@@ -129,7 +129,7 @@ function DetalleCredencial() {
                 subtitulo="Datos que la persona dio al registrarse y al solicitar su credencial."
             >
                 <Datos>
-                    <Dato etiqueta="NOMBRE">{solicitud.persona} (ejemplo)</Dato>
+                    <Dato etiqueta="NOMBRE">{solicitud.persona}</Dato>
                     <Dato etiqueta="TIPO DE CUENTA">
                         {solicitud.tipoCuenta === "Adulta" ? "Persona adulta" : "Persona menor de edad"}
                     </Dato>

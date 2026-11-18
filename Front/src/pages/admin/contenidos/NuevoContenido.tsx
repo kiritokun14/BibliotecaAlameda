@@ -24,7 +24,6 @@ function NuevoContenido() {
                         <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
                         Volver a Mis contenidos
                     </Link>
-                    <p className="contenidos-etiqueta">Contenidos · Editor · Nuevo</p>
                     <h1>¿Qué quieres redactar?</h1>
                     <p className="contenidos-encabezado__texto">
                         Elige el tipo de contenido. Después podrás guardarlo como borrador o enviarlo a autorización.

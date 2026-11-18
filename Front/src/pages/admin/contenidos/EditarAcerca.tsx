@@ -65,7 +65,6 @@ function EditarAcerca({ inicial }: { inicial?: Contenido }) {
                         <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
                         Volver a Mis contenidos
                     </Link>
-                    <p className="contenidos-etiqueta">Contenidos · Editor · Acerca de{borrador.folio ? ` · ${borrador.folio}` : ""}</p>
                     <h1>Editar «Acerca de la biblioteca»</h1>
                     <p className="contenidos-encabezado__texto">Elige la sección que vas a modificar. Cada sección se autoriza por separado.</p>
                 </div>

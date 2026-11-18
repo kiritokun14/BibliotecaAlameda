@@ -62,7 +62,7 @@ function Asistencia() {
             <AccesosRapidos accesos={[
                 { clave: "hoy", icono: <IconoBandera />, cifra: deHoy.length, titulo: deHoy.length === 1 ? "Actividad hoy" : "Actividades hoy", texto: diaLargo(hoy), enlace: "Ver hoy", tono: "azul", activo: periodo === "hoy", alPresionar: () => elegir("hoy") },
                 { clave: "pendientes", icono: <IconoReloj />, cifra: porPasar.length, titulo: "Por pasar lista", texto: "Ya empezaron o terminaron.", enlace: "Ver anteriores", tono: "guinda", activo: periodo === "anteriores", alPresionar: () => elegir("anteriores") },
-                { clave: "promedio", icono: <IconoLista />, cifra: `${promedio}%`, titulo: "Asistencia promedio", texto: `${cerradas.length} ${cerradas.length === 1 ? "lista cerrada" : "listas cerradas"} (ejemplo)`, enlace: "Ver resumen", tono: "gris", alPresionar: () => navigate(RESUMEN) },
+                { clave: "promedio", icono: <IconoLista />, cifra: `${promedio}%`, titulo: "Asistencia promedio", texto: `${cerradas.length} ${cerradas.length === 1 ? "lista cerrada" : "listas cerradas"}`, enlace: "Ver resumen", tono: "gris", alPresionar: () => navigate(RESUMEN) },
             ]} />
 
             <ControlesLista
@@ -115,7 +115,7 @@ function Asistencia() {
                     />
                 )}
                 </CuerpoLista>
-                {filas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filas.length} actividades (ejemplo)`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
+                {filas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filas.length} actividades`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
             </SeccionLista>
         </PanelLayout>
     );
@@ -187,7 +187,7 @@ export function PasarLista() {
             />
 
             {error && <AvisoResultado tono="error" titulo="No se pudo guardar la asistencia" texto="Revisa tu conexión. Tus marcas siguen en pantalla; inténtalo de nuevo." chip="Sin guardar" />}
-            {guardado && <AvisoResultado tono="exito" titulo="Asistencia guardada" texto="Puedes seguir marcando o cerrar la lista cuando termines (ejemplo)." chip="Guardada" />}
+            {guardado && <AvisoResultado tono="exito" titulo="Asistencia guardada" texto="Puedes seguir marcando o cerrar la lista cuando termines." chip="Guardada" />}
 
             <section className="ac-cupo-sesion" aria-label="Conteo de la lista">
                 <div className="ac-cupo-sesion__cifras">
@@ -241,7 +241,7 @@ export function PasarLista() {
                         })}
                     </ul>
                 )}
-                {personas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${personas.length} personas (ejemplo)`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
+                {personas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${personas.length} personas`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
                 {cerrada && lista.correcciones.length > 0 && (
                     <div className="tr-datos__bloque">
                         <p className="at-subtitulo">Correcciones registradas</p>
@@ -339,7 +339,7 @@ export function ResumenAsistencia() {
         <PanelLayout titulo="Actividades" tema="contenidos">
             <Migas raiz="Actividades" pasos={[["Asistencia", BASE_ASISTENCIA], ["Resumen del mes"]]} />
             <EncabezadoPagina volver={{ texto: "Volver a Asistencia", ruta: BASE_ASISTENCIA }} etiqueta="Actividades · Asistencia"
-                titulo={`Resumen de ${nombreMes}`} texto="Cómo ha ido la asistencia en las actividades ya realizadas (ejemplo)." />
+                titulo={`Resumen de ${nombreMes}`} texto="Cómo ha ido la asistencia en las actividades ya realizadas." />
             <AccesosRapidos titulo="Cifras del mes" accesos={[
                 { clave: "promedio", icono: <IconoBandera />, cifra: `${porcentaje(asistentes, total)}%`, titulo: "Asistencia promedio", texto: "De las personas inscritas.", tono: "azul" },
                 { clave: "asistentes", icono: <IconoLista />, cifra: asistentes, titulo: "Asistentes", texto: `En ${cerradas.length} ${cerradas.length === 1 ? "lista cerrada" : "listas cerradas"}.`, tono: "gris" },

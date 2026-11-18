@@ -199,7 +199,7 @@ export function AvisoResumenParcial({ alReintentar }: { alReintentar: () => void
             <span className="aviso-sistema__icono" aria-hidden="true">{ICONOS.reloj}</span>
             <div>
                 <strong>Algunos datos no se pudieron actualizar</strong>
-                <p>Contactos e inscripciones muestran la última cifra guardada (08:40, ejemplo); los demás pendientes están al día.</p>
+                <p>Contactos e inscripciones muestran la última cifra guardada (08:40); los demás pendientes están al día.</p>
             </div>
             <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={alReintentar}>Reintentar</button>
         </div>

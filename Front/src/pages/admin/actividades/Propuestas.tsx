@@ -57,9 +57,9 @@ function Propuestas() {
                     insignia="Propuestas de actividades"
                     titulo="Resumen de"
                     resalte="actividades"
-                    subtitulo="Estado de las actividades propias · cifras de ejemplo"
+                    subtitulo="Estado de las actividades propias"
                     accesos={[
-                        { icono: iconoArchivo, numero: vigentes.length, titulo: "Total", texto: "En el año (ejemplo)", enlace: "Ver todas", tono: "verde", activo: filtro === "todas", alPresionar: () => elegir("todas") },
+                        { icono: iconoArchivo, numero: vigentes.length, titulo: "Total", texto: "En el año", enlace: "Ver todas", tono: "verde", activo: filtro === "todas", alPresionar: () => elegir("todas") },
                         { icono: iconoReloj, numero: cuenta("en-revision"), titulo: "En revisión", texto: "Esperan decisión", enlace: "Ver en revisión", tono: "dorado", activo: filtro === "en-revision", alPresionar: () => elegir("en-revision") },
                         { icono: iconoCheck, numero: cuenta("publicada"), titulo: "Publicadas", texto: "Visibles en el portal", enlace: "Ver publicadas", tono: "verde", activo: filtro === "publicada", alPresionar: () => elegir("publicada") },
                         { icono: iconoX, numero: cuenta("cancelada"), titulo: "Canceladas", texto: "Con aviso a inscritos", enlace: "Ver canceladas", tono: "guinda", activo: filtro === "cancelada", alPresionar: () => elegir("cancelada") },
@@ -102,7 +102,7 @@ function Propuestas() {
 
                     {filtradas.length > 0 && (
                         <div className="cn-pie-tabla">
-                            <p>Mostrando {visibles.length} de {filtradas.length} actividades (ejemplo)</p>
+                            <p>Mostrando {visibles.length} de {filtradas.length} actividades</p>
                             <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
                         </div>
                     )}

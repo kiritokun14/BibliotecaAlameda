@@ -3,6 +3,10 @@ import { mensajeError } from '../../../servicios/api';
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 import { cancelarInscripcionPropia, consultarInscripcionPropia, estadoInscripcionPropia,
     solicitarInscripcionPropia, type InscripcionPropia } from '../../../servicios/inscripciones';
+import flechaBlanca from '../../../assets/comun/iconos/flecha-blanca.svg';
+
+// Mi inscripción en una sesión (datos reales). Se usa en el detalle de la actividad y en Perfil › Mis eventos.
+const TONO: Record<string, 'verde' | 'dorado' | 'guinda' | 'gris'> = { confirmada: 'verde', pendiente: 'dorado', cancelada: 'guinda', rechazada: 'gris' };
 
 export default function InscripcionSesion({ sesion, desdePerfil = false }: { sesion: string; desdePerfil?: boolean }) {
     const [datos, setDatos] = useState<InscripcionPropia>();
@@ -33,23 +37,36 @@ export default function InscripcionSesion({ sesion, desdePerfil = false }: { ses
 
     const puedeSolicitar = !desdePerfil && datos?.registroAbierto && datos.hayCupo
         && (!datos.estado || datos.estado === 'cancelada');
-    return <div>
+    const aviso = !datos ? '' : datos.estado === 'pendiente' ? 'El personal revisará tu solicitud. Tu lugar queda apartado cuando la confirme.'
+        : datos.estado === 'confirmada' ? 'Tu lugar está apartado. Si no puedes asistir, cancela para que otra persona lo ocupe.'
+        : !datos.estado && !puedeSolicitar ? (datos.registroAbierto ? 'Cupo completo por ahora. Regresa después: si alguien cancela, se libera un lugar.' : 'El registro de esta sesión está cerrado.')
+        : !datos.estado ? 'Revisa los requisitos antes de solicitar tu lugar.' : '';
+
+    return <div className="insc-sesion">
         {!datos && !error && <EsqueletoLista filas={1} texto="Consultando tu inscripción…" />}
-        {datos?.estado && <p role="status"><strong>Tu inscripción:</strong> {estadoInscripcionPropia[datos.estado]}.</p>}
-        {datos?.estado === 'pendiente' && <p>El personal revisará tu solicitud. Tu lugar queda reservado cuando se confirme.</p>}
-        {datos && !datos.estado && !puedeSolicitar && <p>{datos.registroAbierto ? 'Cupo completo. Consulta más adelante.' : 'Registro cerrado.'}</p>}
-        {!accion && puedeSolicitar && <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => setAccion('solicitar')}>Solicitar inscripción</button>}
-        {!accion && datos?.puedeCancelar && <button type="button" className="agenda-boton agenda-boton--guinda" onClick={() => setAccion('cancelar')}>Cancelar mi inscripción</button>}
-        {accion && <div>
-            <p>{accion === 'cancelar' ? '¿Confirmas que quieres cancelar tu participación en esta sesión?' :
-                'Confirma que revisaste los requisitos publicados para esta sesión.'}</p>
-            <button type="button" className="agenda-boton agenda-boton--verde" disabled={ocupado} onClick={() => void guardar()}>
-                {ocupado ? 'Guardando…' : accion === 'cancelar' ? 'Sí, cancelar mi inscripción' : 'Enviar solicitud'}
-            </button>
-            <button type="button" className="agenda-boton" disabled={ocupado} onClick={() => setAccion(undefined)}>Volver</button>
+        {datos && <>
+            {datos.estado
+                ? <p className={`insc-sesion__estado insc-sesion__estado--${TONO[datos.estado] ?? 'gris'}`} role="status"><span aria-hidden="true" />Tu inscripción: <strong>{estadoInscripcionPropia[datos.estado]}</strong></p>
+                : <p className="insc-sesion__estado insc-sesion__estado--gris" role="status"><span aria-hidden="true" />Aún no estás inscrito en esta sesión</p>}
+            {aviso && <p className="insc-sesion__texto">{aviso}</p>}
+        </>}
+        {!accion && (puedeSolicitar || datos?.puedeCancelar) && <div className="insc-sesion__botones">
+            {puedeSolicitar && <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => setAccion('solicitar')}>Solicitar inscripción <img src={flechaBlanca} alt="" /></button>}
+            {datos?.puedeCancelar && <button type="button" className="agenda-boton agenda-boton--contorno-verde insc-sesion__cancelar" onClick={() => setAccion('cancelar')}>Cancelar mi inscripción</button>}
         </div>}
-        {error && <p role="alert">{error} <button type="button" onClick={() => {
-            setError(''); setDatos(undefined); recargar(i => i + 1);
-        }}>Consultar de nuevo</button></p>}
+        {accion && <div className={`insc-sesion__confirmar${accion === 'cancelar' ? ' insc-sesion__confirmar--cancelar' : ''}`}>
+            <p>{accion === 'cancelar' ? '¿Confirmas que quieres cancelar tu participación en esta sesión? Tu lugar quedará libre para otra persona.' :
+                'Confirma que revisaste los requisitos publicados para esta sesión. El personal confirmará tu lugar según el cupo.'}</p>
+            <div className="insc-sesion__botones">
+                <button type="button" className={`agenda-boton ${accion === 'cancelar' ? 'agenda-boton--guinda' : 'agenda-boton--verde'}`} disabled={ocupado} onClick={() => void guardar()}>
+                    {ocupado ? 'Guardando…' : accion === 'cancelar' ? 'Sí, cancelar mi inscripción' : 'Enviar solicitud'}
+                </button>
+                <button type="button" className="agenda-boton agenda-boton--contorno-verde" disabled={ocupado} onClick={() => setAccion(undefined)}>Volver</button>
+            </div>
+        </div>}
+        {error && <div className="insc-sesion__error" role="alert">
+            <p>{error}</p>
+            <button type="button" className="agenda-boton agenda-boton--contorno-verde" onClick={() => { setError(''); setDatos(undefined); recargar(i => i + 1); }}>Consultar de nuevo</button>
+        </div>}
     </div>;
 }

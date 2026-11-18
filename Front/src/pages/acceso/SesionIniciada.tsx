@@ -3,7 +3,6 @@ import { tienePanel } from "../../servicios/accesoPanel";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PantallaEstado, { IconoPalomita } from "../../components/portal/PantallaEstado";
-import iconoFlechaDer from "../../assets/comun/iconos/flecha-blanca.svg";
 
 const SEGUNDOS_PARA_REDIRIGIR = 3;
 
@@ -36,7 +35,6 @@ function SesionIniciada() {
             segundos={SEGUNDOS_PARA_REDIRIGIR}>
             <Link to={destino}>
                 {destino === "/admin" ? "Ir al panel ahora" : "Continuar al inicio"}
-                <img src={iconoFlechaDer} alt="" />
             </Link>
         </PantallaEstado>
     );

@@ -80,7 +80,6 @@ function RedactarNoticia({ inicial }: { inicial?: Contenido }) {
                         Volver a Mis contenidos
                     </Link>
                     {/* El folio (CN-0000) lo asigna la base al guardar el primer borrador */}
-                    <p className="contenidos-etiqueta">Contenidos · Editor · {borrador.folio ? `Noticia ${borrador.folio}` : "Noticia nueva"}</p>
                     <h1>Redactar noticia</h1>
                     <p className="contenidos-encabezado__texto">Los campos con * son obligatorios. Se guarda como borrador.</p>
                 </div>

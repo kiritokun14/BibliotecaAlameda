@@ -24,12 +24,12 @@ const textos: TextosEstado = {
     pendiente: {
         etiqueta: "POR REVISAR",
         titulo: "Revisión de la propuesta",
-        texto: "Evalúa espacio, fechas y material, y decide si se aprueba, se piden cambios o se rechaza. Datos de ejemplo.",
+        texto: "Evalúa espacio, fechas y material, y decide si se aprueba, se piden cambios o se rechaza.",
     },
     observaciones: {
         etiqueta: "CON OBSERVACIONES",
         titulo: "Esperando respuesta de la persona",
-        texto: "Dejaste observaciones. Cuando la persona corrija y reenvíe, la propuesta vuelve a Por revisar. Datos de ejemplo.",
+        texto: "Dejaste observaciones. Cuando la persona corrija y reenvíe, la propuesta vuelve a Por revisar.",
         aviso: {
             tono: "espera",
             titulo: "Observaciones enviadas",
@@ -40,7 +40,7 @@ const textos: TextosEstado = {
     aprobada: {
         etiqueta: "APROBADA",
         titulo: "Propuesta aprobada y publicada",
-        texto: "La propuesta ya aparece en Eventos. Aquí puedes consultar sus datos y el historial. Datos de ejemplo.",
+        texto: "La propuesta ya aparece en Eventos. Aquí puedes consultar sus datos y el historial.",
         aviso: {
             tono: "exito",
             titulo: "Propuesta aprobada",
@@ -51,7 +51,7 @@ const textos: TextosEstado = {
     rechazada: {
         etiqueta: "RECHAZADA",
         titulo: "Propuesta rechazada",
-        texto: "La propuesta no se aprobó. Aquí puedes consultar el motivo y el historial. Datos de ejemplo.",
+        texto: "La propuesta no se aprobó. Aquí puedes consultar el motivo y el historial.",
         aviso: {
             tono: "error",
             titulo: "Propuesta rechazada",
@@ -94,7 +94,7 @@ function historial(propuesta: Propuesta): EventoHistorial[] {
                 { titulo: "Revisión del personal", detalle: "19 oct 2026", tipo: "proceso" },
                 {
                     titulo: propuesta.estado === "aprobada" ? "Aprobada y publicada" : "Propuesta rechazada",
-                    detalle: `${fecha} · por el administrador (ejemplo)`,
+                    detalle: `${fecha} · por el administrador`,
                     tipo: "pendiente",
                 },
             ];
@@ -150,7 +150,7 @@ function DetallePropuesta() {
                     <Dato etiqueta="HORARIO PROPUESTO">{propuesta.horario || "Por confirmar"}</Dato>
                     <Dato etiqueta="ESPACIO SUGERIDO">{propuesta.espacio}</Dato>
                     <Dato etiqueta="MATERIAL">{propuesta.material}</Dato>
-                    <Dato etiqueta="RESPONSABLE">{propuesta.persona} (ejemplo)</Dato>
+                    <Dato etiqueta="RESPONSABLE">{propuesta.persona}</Dato>
                     <Dato etiqueta="CONTACTO">{propuesta.contacto}</Dato>
                 </Datos>
             </Tarjeta>
@@ -171,7 +171,7 @@ function DetallePropuesta() {
             >
                 <p className="texto-tarjeta">
                     {propuesta.fecha
-                        ? `El ${formatearFecha(propuesta.fecha)} el espacio sugerido no tiene otras actividades registradas (ejemplo).`
+                        ? `El ${formatearFecha(propuesta.fecha)} el espacio sugerido no tiene otras actividades registradas.`
                         : "Cuando la propuesta tenga fecha y horario, aquí se mostrará si el espacio ya está ocupado."}
                 </p>
                 <div className="fila-agenda">

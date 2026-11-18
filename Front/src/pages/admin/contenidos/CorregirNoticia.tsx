@@ -54,7 +54,6 @@ function Correccion({ contenido }: { contenido: Contenido }) {
                         <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
                         Volver a Mis contenidos
                     </Link>
-                    <p className="contenidos-etiqueta">Contenidos · Editor · Noticia {folio}</p>
                     <h1>Corregir noticia</h1>
                     <p className="contenidos-encabezado__texto">El Administrador dejó observaciones. Corrige y vuelve a enviar.</p>
                 </div>

@@ -9,7 +9,6 @@ import "../../../components/portal/Visitante.css";
 import "./Notificaciones.css";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import flechaVerde from "../../../assets/inicio/lecturas-flecha-verde.svg";
 import iconoArchivo from "../../../assets/admin/resumen/file-verde.svg";
 import iconoCalendario from "../../../assets/perfil/fila-calendario.svg";
@@ -21,6 +20,7 @@ import eliminarX from "../../../assets/notificaciones/eliminar-x.svg";
 import quitarX from "../../../assets/notificaciones/quitar-x.svg";
 import modalX from "../../../assets/notificaciones/modal-x.svg";
 import vacioCampana from "../../../assets/notificaciones/vacio-campana.svg";
+import PedirSesion from "../sesion/PedirSesion";
 
 // Notificaciones de la persona con sesión (Figma A-02, 476:13270): lista, vacío y confirmar eliminar leídas.
 const iconoArea: Record<Area, string> = {
@@ -46,11 +46,7 @@ export default function Notificaciones() {
     if (sesion === null) {
         return (
             <PaginaPublica>
-                <div className="notif-estado">
-                    <h1>Inicia sesión para ver tus notificaciones</h1>
-                    <p>Aquí verás los cambios en tus solicitudes, tus inscripciones y los avisos de la biblioteca.</p>
-                    <Link className="boton-visitante" to="/iniciar-sesion">Iniciar sesión <img src={flechaBlanca} alt="" /></Link>
-                </div>
+                <PedirSesion titulo="Inicia sesión para ver tus notificaciones" texto="Aquí verás los cambios en tus solicitudes, tus inscripciones y los avisos de la biblioteca." />
             </PaginaPublica>
         );
     }

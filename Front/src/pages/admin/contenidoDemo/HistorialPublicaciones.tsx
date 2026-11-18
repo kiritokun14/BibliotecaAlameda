@@ -6,7 +6,7 @@ import { fechaCorta, filtrarHistorial, nombreTipo, retirarContenido, useContenid
 import { tituloDe } from "./esquemas";
 import { Buscador, CampoTexto, ChipEstado, Datos, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta, Ventana, type Columna } from "./piezas";
 import { clasesBoton, paginar } from "./utiles";
-import iconoReloj from "../../../assets/admin/contenidos/tarjeta-reloj.svg";
+import iconoReloj from "../../../assets/comun/iconos/reloj-blanco.svg";
 import vacioCheck from "../../../assets/admin/contenidos/vacio-check.svg";
 import vacioBuscar from "../../../assets/admin/contenidos/vacio-buscar.svg";
 
@@ -98,7 +98,7 @@ function HistorialPublicaciones() {
 
                     {filtrados.length > 0 && (
                         <div className="cn-pie-tabla">
-                            <p>Mostrando {visibles.length} de {filtrados.length} publicados (ejemplo)</p>
+                            <p>Mostrando {visibles.length} de {filtrados.length} publicados</p>
                             <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
                         </div>
                     )}

@@ -1,7 +1,7 @@
 # Reparto de trabajo entre agentes (frontend)
 
 Este archivo dice qué hace cada terminal que trabaja en `Front/` al mismo tiempo, para no pisarse.
-**Léelo completo antes de cambiar algo**, y después `Front/README.md` (estructura y convenciones).
+**Léelo completo antes de cambiar algo**, y después `Front/AVANCES_ALDAHIR.md` (estado, estructura y convenciones).
 El orquestador (T1) mantiene este archivo; las demás terminales no lo editan: si necesitan un cambio, se lo piden a Aldahir.
 
 ## Reglas para todas las terminales
@@ -20,12 +20,16 @@ El orquestador (T1) mantiene este archivo; las demás terminales no lo editan: s
 - Antes de agregar una imagen, revisa con md5 que no exista. Compartidas en `src/assets/comun/`, exclusivas en `src/assets/<pantalla>/`.
 - Al terminar una tarea: `npm run lint`, `npm test` y `npm run build` sin errores **en tus archivos**, y un resumen con los pasos para probar.
 - Procesos: usa solo tus puertos, apaga solo tus procesos confirmando el PID. Nunca `taskkill /T` con filtros amplios.
-- Backend local: `.\.venv\Scripts\python.exe -m uvicorn Back.main:app --reload` desde la raíz (puerto 8000). Para entrar al panel con cualquier cuenta en desarrollo: `VITE_PANEL_COMPLETO=true` en `Front/.env.development.local`.
+- Backend local: `.\.venv\Scripts\python.exe -m uvicorn Back.main:app --reload` desde la raíz (puerto 8000). Para entrar al panel hay que iniciar sesión con una cuenta del personal y usar sus permisos reales; `VITE_PANEL_COMPLETO` ya no existe.
 
 ## Guía de diseño (obligatoria)
 
 - Antes de diseñar o cambiar cualquier pantalla, lee y sigue **`docs/guia-diseno.md`**: colores, escala, piezas que se reutilizan,
   carga/vacío/error y lo prohibido. Su prompt sirve para cualquier terminal. Si una pantalla se ve distinta, se ajusta a la guía.
+- **Botones y enlaces solo con texto, sin íconos** (decisión de Aldahir, 17 nov 2026): botones principales y secundarios,
+  pastillas («Crear cuenta») y enlaces («Volver a iniciar sesión», «¿Olvidaste tu contraseña?») no llevan íconos de ningún tipo,
+  ni flechas de texto (→ ←, «Ver todas →», «← Volver»). La única excepción es el ícono de carga que gira mientras se envía.
+  Los íconos van fuera de los botones (encabezados de tarjeta, recuadros de ayuda, estados vacíos).
 
 ## Diseño del panel de administración
 
@@ -54,14 +58,14 @@ El orquestador (T1) mantiene este archivo; las demás terminales no lo editan: s
 ### T2 · Panel (Claude Code)
 - Carpetas: `src/pages/admin/contenidos/`, `actividades/`, `participantes/` y la nueva `src/pages/admin/administracion/`; sus carpetas en `src/assets/admin/` y sus pruebas (`tests/contenidos.test.ts`, `tests/actividades.test.ts`, `tests/participantes.test.ts`, `tests/administracion.test.ts`).
 - Ya hecho: Contenidos (`591:48349`), Actividades (`602:49977`) y Participantes (`629:50564`). Sigue cuidando esas carpetas si hay correcciones.
-- Tarea actual: **Admin · Administración** (`632:58445`), en este orden:
-  1. Cuentas y permisos (`580:39283`) → `/admin/administracion/cuentas`.
-  2. Fuentes del asistente (`580:45266`) → `/admin/administracion/fuentes`. Ya existe una versión conectada al backend en `src/pages/admin/comunidad/Fuentes.tsx` (la integró Roberto): rediseñarla según Figma **sin romper la conexión**, y avisar antes de mover el archivo.
+- **Admin · Administración** (`632:58445`) terminada y revisada por T3:
+  1. Cuentas y permisos (`580:39283`) → `/admin/administracion/cuentas`, conectada al backend.
+  2. Fuentes del asistente (`580:45266`) → `/admin/administracion/fuentes`; conserva la conexión de `src/pages/admin/comunidad/Fuentes.tsx`.
   3. Estadísticas (`580:49970`) → `/admin/administracion/estadisticas`.
   4. Bitácora de cambios (`580:53590`) → `/admin/administracion/bitacora`.
   5. Configuración del portal (`580:56315`) → `/admin/administracion/configuracion`.
   6. Estados del sistema (`583:45547`) → `/admin/administracion/estados`.
-- Cuando el armazón normalizado de T1 esté listo, ajusta tus pantallas a esa escala.
+- Las pantallas ya usan la escala común del armazón normalizado. Estadísticas, Bitácora y Configuración siguen con los datos de ejemplo y `TODO backend` documentados en `administracion/datos.ts`.
 
 ### T3 · Integración y calidad (opencode, sin Figma)
 - **No inventes diseño.** Si una tarea necesita cómo se ve algo, usa la ficha de `docs/figma/` o pregunta.
@@ -95,10 +99,16 @@ Los íconos de la ficha ya vienen descargados en `src/assets/`. Si algo no está
   - Simulaciones en desarrollo: `?simular=error-entrega`, `?simular=sin-sistema` y `?simular=error-decision`. Pruebas en `tests/participantes.test.ts`.
   - El archivo de datos del foro se llama `moderacion.ts` (no `foro.ts`), porque en Windows chocaba con `Foro.tsx`; lo mismo con `cotejos.ts`.
 - Hecho (T2, 3 nov 2026, a pedido de Aldahir): estado «Sin información publicada» en Acerca (`src/pages/publico/acerca/`). T1: revisar que coincida con Figma.
-- En curso: T2 · Administración (`632:58445`) y T4 · Actor 2 (`476:9982`).
-- Pendientes para T1 (los reportó T2):
-  - `tienePanel()` en `accesoPanel.ts` no incluye `registrar_recompensas` ni `moderar_foro`.
-  - El pie sale dos veces en las pantallas de T2: el de `PanelLayout` y el de `<PieDatos />`. Decidir cuál se queda.
-  - `VITE_PANEL_COMPLETO` ya no tiene efecto (ningún archivo lo lee): para entrar al panel hay que levantar el backend y entrar con una cuenta del personal. Actualizar la línea de «Backend local».
-  - Íconos repetidos: `contenidos/buscar.svg` = `comun/iconos/buscar-gris.svg` y `contenidos/tarjeta-reloj.svg` = `comun/iconos/reloj-blanco.svg`.
+- Hecho (T1, en código): Notificaciones y Atención, incluidas Credenciales, Espacios, Propuestas, Contactos y sugerencias, Altas asistidas, Recuperación asistida, Consulta de cuentas y Avisos.
+- Hecho (T2): las seis pantallas de Administración tienen rutas, permisos y pruebas. Cuentas y Fuentes conservan su conexión al backend; Estados del sistema incluye su catálogo y vistas previas.
+- Hecho (T3, 17 nov 2026 · relevo e integración de T1/T2):
+  - Revisó las rutas y permisos del panel y agregó cobertura para Resumen, Notificaciones, Administración, Progreso y Moderación. `tienePanel()` ya acepta `registrar_recompensas` y `moderar_foro`.
+  - El acceso a la cuenta de la cabecera abre el perfil conectado ya existente en `/mi-perfil`; no se duplicó la pantalla de perfil.
+  - El pie institucional y la nota del panel los renderiza una sola vez `PanelLayout`; el antiguo `<PieDatos />` quedó sin salida para no repetirlos en pantallas heredadas.
+  - Eliminó la referencia obsoleta a `VITE_PANEL_COMPLETO` de la documentación y de los tipos de entorno.
+  - Unificó los íconos repetidos en `assets/comun/iconos/`, después de comprobar sus MD5, y eliminó las dos copias sin referencias.
+  - Agregó «Reintentar» a los estados de error de Estadísticas y Bitácora sin alterar sus datos ni servicios.
+  - Verificación: `npm run lint` sin errores, **340 pruebas aprobadas y 1 omitida**, y `npm run build` exitoso.
+- En curso: T4 · Actor 2 (`476:9982`).
+- Pendientes que dependen del backend, no de nuevas pantallas frontend: Estadísticas, Bitácora y Configuración (`administracion/datos.ts`), Resumen y Notificaciones del panel, y Recuperación asistida conservan datos de ejemplo señalados con `TODO backend`.
 - 3 nov 2026: `main` y `Aldahir` ya tienen la organización de carpetas corregida después del merge.

@@ -573,8 +573,8 @@
 .perfil-modal p { margin: 0; color: #4d4d4d; font-size: 16px; line-height: 25px; }
 .perfil-modal .perfil-error { color: #9b2247; }
 
-/* ---------- Sin sesión, cargando o error ---------- */
-.perfil-estado {
+/* ---------- Cargando o error del perfil (antes «perfil-estado», que chocaba con la tarjeta del Resumen) ---------- */
+.perfil-pantalla {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -585,8 +585,8 @@
   text-align: center;
 }
 
-.perfil-estado h1 { margin: 0; color: #161a1d; font-size: 32px; line-height: 38px; }
-.perfil-estado p { margin: 0; color: #4d4d4d; font-size: 17px; }
+.perfil-pantalla h1 { margin: 0; color: #161a1d; font-size: 32px; line-height: 38px; }
+.perfil-pantalla p { margin: 0; color: #4d4d4d; font-size: 17px; }
 
 /* ---------- Filtros y chips de las secciones ---------- */
 .perfil-filtros { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -1083,3 +1083,10 @@
 .perfil-aviso-error strong { color: #9b2247; }
 .perfil-aviso-error p { margin: 0; color: #4d4d4d; }
 @media (max-width: 800px) { .perfil-esqueleto__cuerpo { grid-template-columns: minmax(0, 1fr); } .perfil-esqueleto__menu { display: none; } }
+
+
+/* ---------- Mis eventos: fila con panel para gestionar la inscripción ---------- */
+.perfil-solicitud--con-panel { flex-wrap: wrap; }
+.perfil-solicitud__acciones { display: flex; flex: none; flex-wrap: wrap; gap: 8px; }
+.perfil-solicitud__panel { flex-basis: 100%; }
+.perfil-mayuscula::first-letter { text-transform: uppercase; }

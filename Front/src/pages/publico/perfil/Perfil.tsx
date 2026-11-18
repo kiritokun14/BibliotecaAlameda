@@ -14,6 +14,7 @@ import { Avisos, MiCredencialPerfil, MisEspacios, MisPropuestas, Progreso, Segur
 import { useTramite } from "../credencial/datos";
 import { chipCredencial, esMenorDeEdad, nombreCompleto, perfilSimulado, seccionDeRuta, tipoDeCuenta } from "./datos";
 import "./Perfil.css";
+import PedirSesion from "../sesion/PedirSesion";
 
 // Mi perfil · persona con sesión iniciada (Figma 476:22959 adulta y 476:26155 menor de edad).
 // vista: subpantallas de «Mis datos» que no son una sección del menú.
@@ -75,11 +76,7 @@ export default function Perfil({ vista }: { vista?: Vista }) {
     if (usuario === null) {
         return (
             <PaginaPublica>
-                <div className="perfil-estado">
-                    <h1>Inicia sesión para ver tu perfil</h1>
-                    <p>Tu perfil reúne tus datos, tu credencial, tus eventos y tus avisos.</p>
-                    <Link className="perfil-boton" to="/iniciar-sesion">Iniciar sesión</Link>
-                </div>
+                <PedirSesion titulo="Inicia sesión para ver tu perfil" texto="Tu perfil reúne tus datos, tu credencial, tus eventos y tus avisos." />
             </PaginaPublica>
         );
     }
@@ -88,7 +85,7 @@ export default function Perfil({ vista }: { vista?: Vista }) {
     if (!perfil) {
         return (
             <PaginaPublica>
-                <div className="perfil-estado">
+                <div className="perfil-pantalla">
                     {carga && "error" in carga ? <>
                         <h1>No se pudo cargar tu perfil</h1>
                         <p role="alert">{carga.error}</p>

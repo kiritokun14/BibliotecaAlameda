@@ -47,22 +47,22 @@ export type UsoEspacio = {
     registro?: string; // quién registró
 };
 
-export const GUIAS = ["Personal de Servicios (ejemplo)", "Personal de Fomento a la lectura (ejemplo)", "Coordinación (ejemplo)"];
+export const GUIAS = ["Personal de Servicios", "Personal de Fomento a la lectura", "Coordinación"];
 export const DURACIONES = ["1 hora", "1 hora 30 min", "2 horas", "3 horas"];
 
 const visitasIniciales: Visita[] = [
-    { folio: "VS-0041", grupo: "Primaria Amado Nervo (ejemplo)", descripcion: "Solicitud de visita guiada de un grupo escolar.", personas: 28, detallePersonas: "26 estudiantes y 2 docentes", fecha: "2026-11-05", hora: "10:00", espacio: "Sala de cómputo", contacto: "Docente responsable (ejemplo) · Tel. por confirmar", comentarios: "Primera visita del grupo; piden recorrido y taller breve.", recibida: "2026-10-24", responderAntes: "2026-10-30", estado: "por-confirmar" },
-    { folio: "VS-0040", grupo: "Secundaria Técnica 12 (ejemplo)", descripcion: "Solicitud de recorrido por la biblioteca.", personas: 35, detallePersonas: "32 estudiantes y 3 docentes", fecha: "2026-11-04", hora: "09:00", espacio: "Toda la biblioteca", contacto: "Orientación escolar (ejemplo)", comentarios: "Quieren conocer la hemeroteca.", recibida: "2026-10-22", responderAntes: "2026-10-29", estado: "por-confirmar" },
-    { folio: "VS-0039", grupo: "Preescolar Jardín Tepic (ejemplo)", descripcion: "Visita con cuentacuentos.", personas: 18, detallePersonas: "15 niñas y niños y 3 educadoras", fecha: "2026-10-29", hora: "10:30", espacio: "Sala infantil", contacto: "Dirección del jardín (ejemplo)", comentarios: "Necesitan sillas pequeñas.", recibida: "2026-10-15", responderAntes: "2026-10-20", estado: "confirmada", confirmacion: { fecha: "2026-10-29", hora: "10:30", duracion: "1 hora", espacio: "Sala infantil", guia: GUIAS[1], mensaje: "Los esperamos 10 minutos antes." } },
-    { folio: "VS-0038", grupo: "Grupo de adultos mayores (ejemplo)", descripcion: "Visita y taller de lectura.", personas: 12, detallePersonas: "12 personas mayores", fecha: "2026-10-22", hora: "11:00", espacio: "Sala de lectura", contacto: "Casa de día (ejemplo)", comentarios: "Acceso con elevador.", recibida: "2026-10-08", responderAntes: "2026-10-12", estado: "realizada" },
-    { folio: "VS-0037", grupo: "Bachillerato CBTIS (ejemplo)", descripcion: "Visita al auditorio.", personas: 40, detallePersonas: "38 estudiantes y 2 docentes", fecha: "2026-10-20", hora: "12:00", espacio: "Auditorio", contacto: "Docente responsable (ejemplo)", comentarios: "La escuela canceló por un evento interno.", recibida: "2026-10-05", responderAntes: "2026-10-10", estado: "cancelada" },
+    { folio: "VS-0041", grupo: "Primaria Amado Nervo", descripcion: "Solicitud de visita guiada de un grupo escolar.", personas: 28, detallePersonas: "26 estudiantes y 2 docentes", fecha: "2026-11-05", hora: "10:00", espacio: "Sala de cómputo", contacto: "Docente responsable · Tel. por confirmar", comentarios: "Primera visita del grupo; piden recorrido y taller breve.", recibida: "2026-10-24", responderAntes: "2026-10-30", estado: "por-confirmar" },
+    { folio: "VS-0040", grupo: "Secundaria Técnica 12", descripcion: "Solicitud de recorrido por la biblioteca.", personas: 35, detallePersonas: "32 estudiantes y 3 docentes", fecha: "2026-11-04", hora: "09:00", espacio: "Toda la biblioteca", contacto: "Orientación escolar", comentarios: "Quieren conocer la hemeroteca.", recibida: "2026-10-22", responderAntes: "2026-10-29", estado: "por-confirmar" },
+    { folio: "VS-0039", grupo: "Preescolar Jardín Tepic", descripcion: "Visita con cuentacuentos.", personas: 18, detallePersonas: "15 niñas y niños y 3 educadoras", fecha: "2026-10-29", hora: "10:30", espacio: "Sala infantil", contacto: "Dirección del jardín", comentarios: "Necesitan sillas pequeñas.", recibida: "2026-10-15", responderAntes: "2026-10-20", estado: "confirmada", confirmacion: { fecha: "2026-10-29", hora: "10:30", duracion: "1 hora", espacio: "Sala infantil", guia: GUIAS[1], mensaje: "Los esperamos 10 minutos antes." } },
+    { folio: "VS-0038", grupo: "Grupo de adultos mayores", descripcion: "Visita y taller de lectura.", personas: 12, detallePersonas: "12 personas mayores", fecha: "2026-10-22", hora: "11:00", espacio: "Sala de lectura", contacto: "Casa de día", comentarios: "Acceso con elevador.", recibida: "2026-10-08", responderAntes: "2026-10-12", estado: "realizada" },
+    { folio: "VS-0037", grupo: "Bachillerato CBTIS", descripcion: "Visita al auditorio.", personas: 40, detallePersonas: "38 estudiantes y 2 docentes", fecha: "2026-10-20", hora: "12:00", espacio: "Auditorio", contacto: "Docente responsable", comentarios: "La escuela canceló por un evento interno.", recibida: "2026-10-05", responderAntes: "2026-10-10", estado: "cancelada" },
 ];
 
 const usosIniciales: UsoEspacio[] = [
-    { id: "US-0012", sala: "Sala infantil", fecha: "2026-10-27", actividad: "Taller de lectura", personas: "18", horas: "1.5", incidencias: "", estado: "registrado", registro: "Personal de Servicios (ejemplo)" },
-    { id: "US-0011", sala: "Sala de lectura", fecha: "2026-10-27", actividad: "Club de lectura", personas: "12", horas: "2", incidencias: "", estado: "registrado", registro: "Personal de Servicios (ejemplo)" },
-    { id: "US-0010", sala: "Auditorio", fecha: "2026-10-26", actividad: "Charla (ejemplo)", personas: "54", horas: "2", incidencias: "", estado: "por-registrar" },
-    { id: "US-0009", sala: "Sala de cómputo", fecha: "2026-10-26", actividad: "Visita escolar", personas: "28", horas: "2", incidencias: "Falla del proyector 10 minutos (ejemplo).", estado: "registrado", registro: "Personal de Servicios (ejemplo)" },
+    { id: "US-0012", sala: "Sala infantil", fecha: "2026-10-27", actividad: "Taller de lectura", personas: "18", horas: "1.5", incidencias: "", estado: "registrado", registro: "Personal de Servicios" },
+    { id: "US-0011", sala: "Sala de lectura", fecha: "2026-10-27", actividad: "Club de lectura", personas: "12", horas: "2", incidencias: "", estado: "registrado", registro: "Personal de Servicios" },
+    { id: "US-0010", sala: "Auditorio", fecha: "2026-10-26", actividad: "Charla", personas: "54", horas: "2", incidencias: "", estado: "por-registrar" },
+    { id: "US-0009", sala: "Sala de cómputo", fecha: "2026-10-26", actividad: "Visita escolar", personas: "28", horas: "2", incidencias: "Falla del proyector 10 minutos.", estado: "registrado", registro: "Personal de Servicios" },
 ];
 
 type Estado = { visitas: Visita[]; usos: UsoEspacio[] };

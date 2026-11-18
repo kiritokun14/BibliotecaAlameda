@@ -185,13 +185,13 @@ function Cabecera({ titulo }: { titulo: string }) {
                 <img src={iconoCampana} alt="" />
                 {pendientes > 0 && <span className="panel-campana__insignia" aria-hidden="true">{pendientes > 9 ? "9+" : pendientes}</span>}
             </Link>
-            <span className="panel-cuenta">
+            <Link to="/mi-perfil" className="panel-cuenta" aria-label="Abrir mi perfil">
                 <span className="panel-cuenta__avatar"><img src={iconoUsuario} alt="" /></span>
                 <span>
                     <span className="panel-cuenta__nombre">{identidad?.correo ?? "Personal de la biblioteca"}</span>
                     <span className="panel-cuenta__rol">{identidad ? nombresRoles(identidad.acceso) : "Personal de la biblioteca"}</span>
                 </span>
-            </span>
+            </Link>
         </header>
     );
 }
@@ -200,10 +200,10 @@ type PanelLayoutProps = {
     titulo: string; // el de la cabecera blanca, p. ej. "Atención"
     children: ReactNode;
     tema?: string;
-    sinDemo?: boolean; // pantallas que nunca usan datos de ejemplo (estados del sistema): sin la franja «Datos de ejemplo»
+    sinDemo?: boolean; // ya sin efecto: la franja «Datos de ejemplo» se quitó del panel
 };
 
-function PanelLayout({ titulo, children, tema, sinDemo = false }: PanelLayoutProps) {
+function PanelLayout({ titulo, children, tema }: PanelLayoutProps) {
     const { pathname } = useLocation();
     return (
         <div className={`panel${tema ? ` panel--${tema}` : ""}`}>
@@ -215,7 +215,6 @@ function PanelLayout({ titulo, children, tema, sinDemo = false }: PanelLayoutPro
                     <div className="panel-desplazamiento" key={pathname}>
                         <main className="panel-contenido">
                             <AvisosSistema />
-                            {!sinDemo && (pathname.includes("/demostracion") || ( !(["/admin/actividades/calendario", "/admin/actividades/visitas"].includes(pathname)) && !/^\/admin\/actividades\/inscripciones(?:\/[\da-f-]{36}(?:\/[\da-f-]{36})?)?$/i.test(pathname) && !pathname.startsWith("/admin/participantes/foro") && !pathname.startsWith("/admin/atencion/avisos") && !pathname.startsWith("/admin/actividades/propuestas") && !pathname.startsWith("/admin/atencion/credenciales") && !pathname.startsWith("/admin/atencion/espacios") && !pathname.startsWith("/admin/atencion/propuestas") && !pathname.startsWith("/admin/atencion/bibliocomunidad") && !pathname.startsWith("/admin/contenidos/editor") && !pathname.startsWith("/admin/contenidos/revision") && !pathname.startsWith("/admin/atencion/contactos") && !pathname.startsWith("/admin/administracion/fuentes") && !pathname.startsWith("/personal/alta-asistida") && !pathname.startsWith("/admin/atencion/cuentas") && !pathname.startsWith("/admin/administracion/cuentas") )) && <p role="status" className="panel-nota panel-nota--demo"><strong>Datos de ejemplo</strong> Estas acciones son una demostración y no se guardan en la base de datos.</p>}
                             <LimiteErrorPanel key={pathname}>{children}</LimiteErrorPanel>
                             <p className="panel-nota">Biblioteca Solón Argüello · Panel del personal</p>
                         </main>

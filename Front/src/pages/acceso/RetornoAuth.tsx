@@ -23,7 +23,7 @@ export default function RetornoAuth() {
         });
         return () => { activo = false; };
     }, [navigate]);
-    return <AccesoLayout titulo="Verificando tu correo" texto="Espera un momento.">
+    return <AccesoLayout titulo="Verificando tu correo">
         <div className="tarjeta" role="status">{mensaje}</div>
     </AccesoLayout>;
 }

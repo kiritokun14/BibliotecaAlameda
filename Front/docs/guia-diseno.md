@@ -52,7 +52,7 @@ Antes de escribir CSS, busca una pantalla parecida ya hecha y copia su estructur
 - Cargando: esqueletos con <Bloque> (components/portal/Esqueleto) con la forma de lo que viene. NUNCA un <p>Cargando…</p> suelto.
   Atajos: <EsqueletoLista /> para listas y <EsqueletoDetalle /> para detalles (components/portal/Esqueleto).
 - Error: <EstadoVacio> (panel) o <EstadoPagina> (portal) con botón «Reintentar». Vacío: <EstadoVacio> con texto que diga qué aparecerá.
-- Datos de ejemplo: deja que PanelLayout muestre la franja «Datos de ejemplo»; marca lo pendiente con «TODO backend» en datos.ts.
+- Datos de ejemplo: no se anuncian en pantalla (sin franja ni «(ejemplo)» en los textos); marca lo pendiente con «TODO backend» en datos.ts.
 
 7. MOVIMIENTO Y ACCESIBILIDAD
 - Solo anima transform y opacity (entradas de 0.3–0.5 s, hover que eleva 2 px). Respeta prefers-reduced-motion.
@@ -62,6 +62,8 @@ Antes de escribir CSS, busca una pantalla parecida ya hecha y copia su estructur
 - Clases viejas cn-*, boton-panel, cn-enlace, tablas <table> sueltas o selects sin estilo en pantallas nuevas.
 - Estilos en línea (style={{…}}) para diseño, tamaños fuera de la escala, colores nuevos, botones grises por defecto del navegador.
 - Cambiar la lógica, permisos o llamadas al backend cuando la tarea es solo de diseño. No tocar Back/ ni Supabase/.
+- Íconos dentro de botones, pastillas o enlaces (flechas de texto → ←, ::after { content: "→" } o SVG de cualquier tipo):
+  solo texto. Única excepción: el ícono de carga que gira mientras se envía. Los íconos van fuera de los botones.
 
 9. AL TERMINAR
 - npm run lint, npm test y npm run build sin errores.

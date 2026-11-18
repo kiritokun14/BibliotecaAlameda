@@ -7,15 +7,8 @@ import { VistaMenor } from "./CrearCuentaMenor";
 import { crearCuenta, type SolicitudRegistro } from "../../servicios/auth";
 import { calcularEdad, esCorreoValido, tieneDigitos, MENSAJE_CORREO, MENSAJE_OBLIGATORIO } from "../../servicios/validaciones";
 import { mensajeError } from "../../servicios/api";
-import iconoFlechaDer from "../../assets/comun/iconos/flecha-derecha.svg";
 import iconoCargando from "../../assets/comun/iconos/cargando.svg";
 import iconoErrorCampo from "../../assets/comun/iconos/error-campo.svg";
-
-const beneficiosCrearCuenta = [
-    "Completa tus datos",
-    "Confirma tu correo",
-    "Inicia sesión y continúa",
-];
 
 // Un solo objeto con todos los campos; cada <input> usa su id como "name"
 const datosIniciales = {
@@ -182,12 +175,14 @@ function CrearCuenta() {
 
     return (
         <AccesoLayout
+            ancho
             titulo={<>Crea tu <span>cuenta</span></>}
-            texto="Regístrate para usar los servicios de la biblioteca."
-            beneficios={beneficiosCrearCuenta}
         >
             <form className="tarjeta tarjeta--ancha" onSubmit={enviar} noValidate>
                 <div className="tarjeta__encabezado">
+                    <span className="acceso__insignia" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="4" /><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6" /></svg>
+                    </span>
                     <h2>Crear cuenta</h2>
                     <p>Completa tus datos. Los campos obligatorios están marcados.</p>
                 </div>
@@ -317,7 +312,7 @@ function CrearCuenta() {
 
                 <button type="submit" className="boton-principal" disabled={enviando}>
                     {enviando ? "Creando tu cuenta…" : "Crear cuenta"}
-                    <img src={enviando ? iconoCargando : iconoFlechaDer} className={enviando ? "girando" : undefined} alt="" />
+                    {enviando && <img src={iconoCargando} className="girando" alt="" />}
                 </button>
                 {enviando && (
                     <p className="nota-enviando" role="status">

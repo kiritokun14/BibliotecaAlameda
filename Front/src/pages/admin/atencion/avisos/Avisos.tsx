@@ -65,7 +65,7 @@ export default function Avisos() {
             <EncabezadoPagina
                 etiqueta="Atención · Avisos"
                 titulo="Avisos"
-                texto="Mensajes breves que se muestran en el portal: cierres, cambios de horario o mantenimiento. Datos de ejemplo."
+                texto="Mensajes breves que se muestran en el portal: cierres, cambios de horario o mantenimiento."
                 accion={<Link to={`${RUTA}/nuevo`} className="contenidos-boton contenidos-boton--principal">Nuevo aviso</Link>}
             />
 
@@ -134,7 +134,7 @@ export default function Avisos() {
 
                 {filtrados.length > 0 && (
                     <div className="contenidos-lista__pie">
-                        <p>Mostrando {visibles.length} de {filtrados.length} avisos (ejemplo)</p>
+                        <p>Mostrando {visibles.length} de {filtrados.length} avisos</p>
                         <span />
                         <div className="contenidos-paginas" role="group" aria-label="Páginas">
                             <button type="button" disabled={actual === 0} onClick={() => setPagina(actual - 1)}>‹ Anterior</button>

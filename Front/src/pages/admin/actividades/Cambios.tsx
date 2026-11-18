@@ -72,7 +72,7 @@ function Cambios() {
                 id="cambios-lista"
                 icono={<IconoLista />}
                 titulo="Cambios solicitados"
-                texto={`${cambios.reduce((s, c) => s + c.avisados, 0)} personas avisadas en total (ejemplo).`}
+                texto={`${cambios.reduce((s, c) => s + c.avisados, 0)} personas avisadas en total.`}
                 extra={<Link className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" to={HISTORIAL}>Ver historial</Link>}
             >
                 <CuerpoLista>
@@ -97,7 +97,7 @@ function Cambios() {
                         />
                     )}
                 </CuerpoLista>
-                {filtrados.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filtrados.length} cambios (ejemplo)`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
+                {filtrados.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filtrados.length} cambios`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
                 {import.meta.env.DEV && (
                     <p className="contenidos-campo__ayuda ac-solo-desarrollo">
                         <IconoInfo /> Solo en desarrollo: <Link to={`${BASE_CAMBIOS}/cancelar`}>simular una cancelación</Link> · <Link to={`${BASE_CAMBIOS}/reprogramar`}>simular una reprogramación</Link>
@@ -134,7 +134,7 @@ function Historial({ cambios }: { cambios: Cambio[] }) {
                 id="historial-cambios"
                 icono={<IconoReloj />}
                 titulo="Línea de tiempo"
-                texto="Lo más reciente primero (ejemplo)."
+                texto="Lo más reciente primero."
                 herramientas={<div className="contenidos-filtros" role="group" aria-label="Filtrar historial">
                     {([["todos", `Todos (${decididos.length})`], ["aplicado", `Aplicados (${aplicados.length})`], ["rechazado", `Rechazados (${decididos.length - aplicados.length})`]] as const).map(([v, t]) => (
                         <button key={v} type="button" aria-pressed={estado === v} className={`contenidos-filtro${estado === v ? " contenidos-filtro--activo" : ""}`} onClick={() => { setEstado(v); setPagina(0); }}>{t}</button>
@@ -167,7 +167,7 @@ function Historial({ cambios }: { cambios: Cambio[] }) {
                         </ol>
                     )}
                 </CuerpoLista>
-                {visibles.length > 0 && <PieLista texto={`Mostrando ${pagina5.length} de ${visibles.length} registros (ejemplo)`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
+                {visibles.length > 0 && <PieLista texto={`Mostrando ${pagina5.length} de ${visibles.length} registros`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
             </SeccionLista>
         </PanelLayout>
     );

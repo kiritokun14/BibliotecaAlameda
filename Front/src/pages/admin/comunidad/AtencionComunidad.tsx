@@ -63,7 +63,6 @@ export default function AtencionComunidad({ bibliocomunidad = false }: { biblioc
 
             <div className="contenidos-encabezado">
                 <div>
-                    <p className="contenidos-etiqueta">Atención · {titulo}</p>
                     <h1>{titulo}</h1>
                     <p className="contenidos-encabezado__texto">Los casos y sus cambios se guardan en la base de datos.</p>
                 </div>

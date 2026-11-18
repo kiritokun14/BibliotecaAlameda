@@ -113,7 +113,7 @@ export function DetallePublicacion() {
         <PanelLayout titulo="Participantes" tema="contenidos">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], [miga]]} />
-                <EncabezadoTarjeta volver={{ texto: "Volver a Bibliocomunidad", ruta: BASE_FORO }} etiqueta={`Publicación ${p.folio}`} titulo={p.estado === "reportada" ? "Publicación reportada" : p.estado === "pendiente" ? "Publicación por aprobar" : "Publicación"} texto={`Hilo: «${p.hilo}» · ${fechaHora(p.fecha)} (ejemplo).`} />
+                <EncabezadoTarjeta volver={{ texto: "Volver a Bibliocomunidad", ruta: BASE_FORO }} etiqueta={`Publicación ${p.folio}`} titulo={p.estado === "reportada" ? "Publicación reportada" : p.estado === "pendiente" ? "Publicación por aprobar" : "Publicación"} texto={`Hilo: «${p.hilo}» · ${fechaHora(p.fecha)}.`} />
                 <Resultado tono={banda.tono} icono={iconoBanderaResultado} titulo={banda.titulo} linea={banda.linea} chip={<Chip tono={TONO_PUBLICACION[p.estado]}>{NOMBRE_ESTADO_PUBLICACION[p.estado]}</Chip>} />
                 <Tarjeta icono={iconoCita} titulo="Contenido">
                     <blockquote className="cn-previa cn-parrafo" style={{ margin: 0 }}>{p.texto}</blockquote>

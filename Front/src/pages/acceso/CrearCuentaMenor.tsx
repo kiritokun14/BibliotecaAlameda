@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import AccesoLayout from "../../components/acceso/AccesoLayout";
 import iconoUsuarios from "../../assets/login/icono-usuarios.svg";
-import iconoFlechaDerVerde from "../../assets/login/icono-flecha-der-verde.svg";
 
 // Vistas de Crear cuenta para menores de 18 años.
 // Viven dentro de CrearCuenta (no son rutas aparte) para no perder lo que ya escribió.
@@ -16,9 +15,7 @@ export function VistaMenor({
 }) {
     return (
         <AccesoLayout
-            etiqueta="MENOR DE 18 AÑOS"
             titulo="Necesitamos a tu madre, padre o tutor"
-            texto="Si eres menor de 18 años, necesitamos los datos de contacto de una persona adulta responsable."
         >
             <div className="tarjeta">
                 <div className="icono-circulo">
@@ -35,7 +32,6 @@ export function VistaMenor({
 
                 <button type="button" className="boton-secundario" onClick={onContinuar}>
                     Continuar con datos del tutor
-                    <img src={iconoFlechaDerVerde} alt="" />
                 </button>
 
                 <div className="enlaces">

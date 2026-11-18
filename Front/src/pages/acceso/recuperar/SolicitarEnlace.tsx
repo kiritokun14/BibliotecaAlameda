@@ -2,10 +2,10 @@ import { mensajeError } from "../../../servicios/api";
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import AccesoLayout from "../../../components/acceso/AccesoLayout";
+import iconoUsuarios from "../../../assets/login/icono-usuarios.svg";
 import { Campo } from "../../../components/acceso/Campo";
 import { enviarEnlaceRecuperacion } from "../../../servicios/auth";
 import { esCorreoValido, MENSAJE_CORREO } from "../../../servicios/validaciones";
-import iconoFlechaDer from "../../../assets/comun/iconos/flecha-derecha.svg";
 
 // Paso 1: escribir el correo para recibir el enlace
 function SolicitarEnlace() {
@@ -31,9 +31,7 @@ function SolicitarEnlace() {
 
     return (
         <AccesoLayout
-            etiqueta="RECUPERAR ACCESO"
             titulo={<>¿Olvidaste tu <span>contraseña</span>?</>}
-            texto="Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva contraseña."
         >
             <form className="tarjeta" onSubmit={enviar} noValidate>
                 <div className="tarjeta__encabezado">
@@ -47,21 +45,26 @@ function SolicitarEnlace() {
 
                 <button type="submit" className="boton-principal" disabled={enviando}>
                     {enviando ? "Enviando…" : "Enviar enlace"}
-                    <img src={iconoFlechaDer} alt="" />
                 </button>
 
-                <Link to="/iniciar-sesion" className="enlace enlace--suelto">
-                    ← Volver a iniciar sesión
+                <Link to="/iniciar-sesion" className="enlace-volver">
+                    Volver a iniciar sesión
                 </Link>
 
                 <div className="asistida">
-                    <p>
-                        ¿No tienes acceso a ese correo? Servicios Digitales puede ayudarte con una recuperación
-                        asistida en la biblioteca.
-                    </p>
-                    <Link to="/recuperar/asistida" className="enlace enlace--suelto">
-                        Ver recuperación asistida
-                    </Link>
+                    <div className="asistida__cabecera">
+                        <span className="asistida__icono" aria-hidden="true"><img src={iconoUsuarios} alt="" /></span>
+                        <div>
+                            <strong>¿No tienes acceso a ese correo?</strong>
+                            <p>Te ayudamos en persona a recuperar tu cuenta.</p>
+                        </div>
+                    </div>
+                    <ol className="asistida__pasos">
+                        <li>Acude a la biblioteca con una identificación oficial.</li>
+                        <li>Servicios Digitales verifica que eres tú.</li>
+                        <li>Te ayudan a actualizar tu correo. Nunca te piden tu contraseña.</li>
+                    </ol>
+                    <Link to="/recuperar/asistida" className="boton-secundario asistida__boton">Ver recuperación asistida</Link>
                 </div>
             </form>
         </AccesoLayout>

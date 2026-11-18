@@ -12,7 +12,7 @@ const configPropuestas: ConfigArea = {
     titulo: "Propuestas de eventos",
     tituloTodas: "Todas las propuestas de eventos",
     descripcion:
-        "Revisa los eventos y clubes que propone la gente usuaria. Aprobar una propuesta la publica en Eventos. Datos de ejemplo.",
+        "Revisa los eventos y clubes que propone la gente usuaria. Aprobar una propuesta la publica en Eventos.",
     etiquetaBloque: "Propuestas",
     pregunta: "¿Cómo van las propuestas de eventos?",
     sustantivo: "propuestas",
@@ -35,7 +35,7 @@ const configPropuestas: ConfigArea = {
 };
 
 const columnas: Columna<Propuesta>[] = [
-    { titulo: "PROPUESTA", celda: (p) => <CeldaDoble arriba={p.titulo} abajo={`${p.persona} (ejemplo)`} /> },
+    { titulo: "PROPUESTA", celda: (p) => <CeldaDoble arriba={p.titulo} abajo={`${p.persona}`} /> },
     { titulo: "TIPO", ancho: 120, celda: (p) => p.tipo },
     { titulo: "FECHA PROPUESTA", ancho: 170, celda: (p) => fechaPropuesta(p) },
     { titulo: "PARTICIPANTES", ancho: 130, celda: (p) => p.participantes },

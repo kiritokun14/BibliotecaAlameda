@@ -38,7 +38,8 @@ export default function Avisos() {
         </div>}
         {actual?.preferencias && <Formulario key={intento} inicial={actual.preferencias} recargar={recargar} />}
         <TarjetaPerfil color="blanca" icono={tarjetaCampana} titulo="Mis notificaciones">
-            <Link to="/notificaciones" className="perfil-boton perfil-boton--contorno perfil-boton--chico">Ver mis notificaciones</Link>
+            <p className="perfil-tarjeta__texto perfil-tarjeta__texto--suave">Aquí eliges qué avisos recibir. Los que ya te llegaron están en tus notificaciones.</p>
+            <div className="perfil-acciones"><Link to="/notificaciones" className="perfil-boton perfil-boton--contorno perfil-boton--chico">Ver mis notificaciones</Link></div>
         </TarjetaPerfil>
     </>;
 }

@@ -155,9 +155,10 @@ function CeldaCupo({ cupo }: { cupo?: CuposInscripciones | 'error' }) {
     if (cupo === 'error') return <small className="ac-sin-accion">Sin datos</small>;
     const p = cupo.capacidad ? Math.min(100, Math.round((cupo.confirmados / cupo.capacidad) * 100)) : 0;
     const lleno = cupo.disponibles <= 0;
-    return <span className="ac-cupo ac-cupo--celda">
+    // Dos renglones, como el resto de la tabla: cifra arriba y barra corta abajo
+    return <span className="ac-cupo-celda">
+        <span className="ac-cupo-celda__cifra"><strong>{cupo.confirmados}</strong> de {cupo.capacidad}<small>{lleno ? 'Lleno' : `${cupo.disponibles} libres`}</small></span>
         <span className="ac-cupo__barra" aria-hidden="true"><span className={`ac-cupo__relleno ac-cupo__relleno--${lleno ? 'guinda' : p >= 80 ? 'dorado' : 'verde'}`} style={{ width: `${p}%` }} /></span>
-        <span>{cupo.confirmados}/{cupo.capacidad}</span>
     </span>;
 }
 

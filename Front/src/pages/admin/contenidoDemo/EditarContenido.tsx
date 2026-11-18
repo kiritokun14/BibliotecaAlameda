@@ -13,7 +13,7 @@ import iconoArchivo from "../../../assets/admin/contenidos/tarjeta-archivo.svg";
 import iconoLista from "../../../assets/admin/contenidos/tarjeta-lista.svg";
 import iconoBandera from "../../../assets/admin/contenidos/tarjeta-bandera.svg";
 import iconoAlerta from "../../../assets/admin/contenidos/tarjeta-alerta.svg";
-import iconoReloj from "../../../assets/admin/contenidos/tarjeta-reloj.svg";
+import iconoReloj from "../../../assets/comun/iconos/reloj-blanco.svg";
 import vacioBuscar from "../../../assets/admin/contenidos/vacio-buscar.svg";
 
 const ICONOS_GRUPO: Record<Grupo["icono"], string> = { lapiz: iconoLapiz, archivo: iconoArchivo, lista: iconoLista };
@@ -125,7 +125,7 @@ function Formulario({ contenido }: { contenido: Contenido }) {
                 />
 
                 {conObservaciones && contenido.observaciones && (
-                    <Tarjeta icono={iconoAlerta} titulo="Observaciones del Administrador" subtitulo={`Dejadas el ${fechaLarga(contenido.observaciones.fecha)} (ejemplo).`} tono="alerta">
+                    <Tarjeta icono={iconoAlerta} titulo="Observaciones del Administrador" subtitulo={`Dejadas el ${fechaLarga(contenido.observaciones.fecha)}.`} tono="alerta">
                         <ol className="cn-observaciones">
                             {contenido.observaciones.puntos.map((p) => <li key={p}>{p}</li>)}
                         </ol>
@@ -174,7 +174,7 @@ function Formulario({ contenido }: { contenido: Contenido }) {
                             <Tarjeta icono={iconoReloj} titulo="Estado" tono="crema" lateral>
                                 <p className="cn-estado-linea" role="status">
                                     <ChipEstado estado={contenido.estado} />
-                                    <span>{ocupado ? "Guardando…" : sinGuardar ? "Cambios sin guardar" : `Guardado ${cuandoSeActualizo(contenido.actualizado).toLowerCase()} (ejemplo)`}</span>
+                                    <span>{ocupado ? "Guardando…" : sinGuardar ? "Cambios sin guardar" : `Guardado ${cuandoSeActualizo(contenido.actualizado).toLowerCase()}`}</span>
                                 </p>
                                 <div className="cn-botones-columna">
                                     <button type="button" className={clasesBoton("verde", "cn-boton--ancho")} onClick={intentarEnviar} disabled={ocupado || faltantes.length > 0}>

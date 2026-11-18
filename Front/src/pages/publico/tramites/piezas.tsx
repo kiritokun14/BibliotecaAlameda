@@ -1,29 +1,51 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
 import { enviarPropuesta, ESTADOS_CREDENCIAL, ESTADOS_PROPUESTA, estadoTramite, type DatosPropuesta, type SolicitudAtencion } from '../../../servicios/tramites';
 import { mensajeError } from '../../../servicios/api';
+import PedirSesion from '../sesion/PedirSesion';
+
+// Color del estado: verde = resuelto bien, dorado = en curso, guinda = necesita algo o se rechazó, gris = cerrado
+const TONO_TRAMITE: Record<string, 'verde' | 'dorado' | 'guinda' | 'gris'> = {
+    recibida: 'dorado', en_atencion: 'dorado', cita_programada: 'dorado', atendida: 'verde', rechazada: 'guinda', cancelada: 'gris',
+    borrador: 'gris', en_revision: 'dorado', requiere_correccion: 'guinda', aprobada: 'verde',
+};
+const nombreEstado = (e: string) => (ESTADOS_CREDENCIAL[e] ?? ESTADOS_PROPUESTA[e]) || e;
+const fechaHora = (iso: string) => new Date(iso).toLocaleString('es-MX', { timeZone: 'America/Mazatlan', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+export function ChipTramite({ estado }: { estado: string }) {
+    return <span className={`tramites-chip tramites-chip--${TONO_TRAMITE[estado] ?? 'gris'}`}>{nombreEstado(estado)}</span>;
+}
 
 export function HistorialTramite({ solicitud: s }: { solicitud: SolicitudAtencion }) {
-    return <section><h3>Seguimiento</h3><p>Solicitud registrada: {new Date(s.creadaEn).toLocaleString('es-MX')}</p>
-        {s.historial.length ? <ol>{s.historial.map((h, i) => <li key={i}>
-            {new Date(h.fecha).toLocaleString('es-MX')} · {(ESTADOS_CREDENCIAL[h.estadoNuevo] ?? ESTADOS_PROPUESTA[h.estadoNuevo]) || h.estadoNuevo}
-            {h.nota && <p>{h.nota}</p>}
-            {h.acuerdoDireccion && <p>Acuerdo de dirección: {h.acuerdoDireccion.responsable} · {h.acuerdoDireccion.fecha} · Referencia: {h.acuerdoDireccion.referencia}. Registrado por la cuenta de coordinación: {h.registradoPor}.</p>}
-        </li>)}</ol> : <p>No hay decisiones posteriores registradas.</p>}
+    return <section className="tramites-seguimiento"><h3>Seguimiento</h3>
+        <ol className="tramites-linea">
+            <li><strong>Solicitud registrada</strong><small>{fechaHora(s.creadaEn)}</small></li>
+            {s.historial.map((h, i) => <li key={i} className={i === s.historial.length - 1 ? 'tramites-linea__ultimo' : undefined}>
+                <strong>{nombreEstado(h.estadoNuevo)}</strong><small>{fechaHora(h.fecha)}</small>
+                {h.nota && <p>{h.nota}</p>}
+                {h.acuerdoDireccion && <p>Acuerdo de dirección: {h.acuerdoDireccion.responsable} · {h.acuerdoDireccion.fecha} · Referencia: {h.acuerdoDireccion.referencia}. Registrado por la cuenta de coordinación: {h.registradoPor}.</p>}
+            </li>)}
+        </ol>
+        {!s.historial.length && <p className="tramites-nota">Todavía no hay decisiones del personal. Te avisaremos en tus notificaciones.</p>}
     </section>;
 }
 export function FichaTramite({ solicitud: s }: { solicitud: SolicitudAtencion }) {
     return <>
-        <h2>{s.tituloPropuesta || (s.tipoSolicitud === 'renovacion' ? 'Renovación de credencial' : 'Obtención de credencial')}</h2>
-        <p>Folio: {s.id}</p><p>Estado: {(s.estadoSolicitud ? ESTADOS_CREDENCIAL : ESTADOS_PROPUESTA)[estadoTramite(s)]}</p>
-        {s.perfil && <p>Solicitante: {s.perfil.nombres} {s.perfil.primerApellido} {s.perfil.segundoApellido} · Teléfono: {s.perfil.telefono}{s.perfil.municipio && ` · ${s.perfil.municipio}`}</p>}
-        {s.descripcion && <><p style={{ whiteSpace: 'pre-wrap' }}>{s.descripcion}</p><dl>
-            {([['Tipo', s.tipoPropuesta], ['Público', s.publicoDirigido], ['Espacio solicitado', s.necesidadEspacio], ['Frecuencia', s.frecuenciaReunion], ['Días solicitados', s.diasSolicitados], ['Horario solicitado', s.horarioSolicitado]]).map(([campo, valor]) => <div key={campo}><dt>{campo}</dt><dd>{valor}</dd></div>)}
-        </dl></>}
-        {s.fechaCita && <p>Cita: {new Date(s.fechaCita).toLocaleString('es-MX', { timeZone: 'America/Mazatlan' })} · hora de Tepic</p>}
-        {(s.observacionesInstitucionales || s.observaciones) && <p>Observaciones: {s.observacionesInstitucionales ?? s.observaciones}</p>}
-        {s.estadoRevision === 'aprobada' && <p>La propuesta fue aprobada. La biblioteca debe programar y publicar la actividad por separado.</p>}
-        {s.estadoSolicitud === 'atendida' && <p>Se registró la atención del trámite; este estado no emite ni valida una credencial automáticamente.</p>}
+        <div className="tramites-ficha__cabecera">
+            <div><h2>{s.tituloPropuesta || (s.tipoSolicitud === 'renovacion' ? 'Renovación de credencial' : 'Obtención de credencial')}</h2>
+                <p className="tramites-nota">Folio <span className="tramites-folio">{s.id.slice(0, 8)}</span> · enviada el {fechaHora(s.creadaEn)}</p></div>
+            <ChipTramite estado={estadoTramite(s)} />
+        </div>
+        {(s.observacionesInstitucionales || s.observaciones) && <p className="tramites-aviso">Observaciones del personal: {s.observacionesInstitucionales ?? s.observaciones}</p>}
+        {s.fechaCita && <p className="tramites-aviso tramites-aviso--verde">Tu cita: {new Date(s.fechaCita).toLocaleString('es-MX', { timeZone: 'America/Mazatlan', dateStyle: 'full', timeStyle: 'short' })} · hora de Tepic</p>}
+        {s.estadoRevision === 'aprobada' && <p className="tramites-aviso tramites-aviso--verde">La propuesta fue aprobada. La biblioteca la programará y publicará en la agenda por separado.</p>}
+        {s.estadoSolicitud === 'atendida' && <p className="tramites-aviso tramites-aviso--verde">Se registró la atención del trámite; este estado no emite ni valida una credencial automáticamente.</p>}
+        {s.descripcion && <p className="tramites-descripcion">{s.descripcion}</p>}
+        <dl className="tramites-datos">
+            {s.perfil && <div><dt>Solicitante</dt><dd>{s.perfil.nombres} {s.perfil.primerApellido} {s.perfil.segundoApellido}</dd></div>}
+            {s.perfil && <div><dt>Teléfono</dt><dd>{s.perfil.telefono}{s.perfil.municipio && ` · ${s.perfil.municipio}`}</dd></div>}
+            {([['Tipo', s.tipoPropuesta], ['Público', s.publicoDirigido], ['Espacio solicitado', s.necesidadEspacio], ['Frecuencia', s.frecuenciaReunion], ['Días solicitados', s.diasSolicitados], ['Horario solicitado', s.horarioSolicitado]] as const)
+                .filter(([, valor]) => valor).map(([campo, valor]) => <div key={campo}><dt>{campo}</dt><dd>{valor}</dd></div>)}
+        </dl>
         <HistorialTramite solicitud={s} />
     </>;
 }
@@ -44,7 +66,7 @@ export function FormularioPropuesta({ anterior, alGuardar }: { anterior?: Solici
         catch (error) { setError(mensajeError(error)); }
         finally { bloqueo.current = false; setGuardando(false); }
     }
-    return <form onSubmit={enviar}><h2>{anterior ? 'Corregir y reenviar propuesta' : 'Proponer un evento o club'}</h2>
+    return <form className="tramites-formulario" onSubmit={enviar}><h2>{anterior ? 'Corregir y reenviar propuesta' : 'Proponer un evento o club'}</h2>
         <p>Las fechas y los espacios solicitados quedan sujetos a revisión; enviar esta propuesta no reserva ni publica una actividad.</p>
         <fieldset disabled={guardando} className="tramites-campos">
             {campos.map(([campo, etiqueta, maximo]) => <label key={campo}>{etiqueta}
@@ -53,12 +75,10 @@ export function FormularioPropuesta({ anterior, alGuardar }: { anterior?: Solici
             </label>)}
             <label><input type="checkbox" name="abiertaAlPublico" required /> Confirmo que la actividad será abierta al público.</label>
             <label><input type="checkbox" name="sinFinesDeLucro" required /> Confirmo que será sin fines de lucro.</label>
-            <button className="boton-panel">{guardando ? 'Enviando…' : anterior ? 'Guardar corrección y reenviar' : 'Enviar a revisión'}</button>
-        </fieldset>{error && <p role="alert">{error}</p>}
+            <button className="tramites-boton">{guardando ? 'Enviando…' : anterior ? 'Guardar corrección y reenviar' : 'Enviar a revisión'}</button>
+        </fieldset>{error && <p className="tramites-aviso-error" role="alert">{error}</p>}
     </form>;
 }
 export function AccesoTramites() {
-    return <div className="tramites-tarjeta tramites-acceso"><h2>Inicia sesión para ver tus trámites</h2>
-        <p>Con tu cuenta consultas y envías solicitudes, y sigues su avance.</p>
-        <Link to="/iniciar-sesion" className="tramites-boton">Iniciar sesión</Link></div>;
+    return <PedirSesion nivel="h2" titulo="Inicia sesión para ver tus trámites" texto="Con tu cuenta consultas y envías solicitudes, y sigues su avance." />;
 }

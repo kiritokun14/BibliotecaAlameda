@@ -25,6 +25,7 @@ import alertaGuinda from "../../../assets/credencial/alerta-guinda.svg";
 import alertaDorada from "../../../assets/credencial/alerta-dorada.svg";
 
 import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
+import PedirSesion from "../sesion/PedirSesion";
 // Credencial con sesión iniciada (Figma A-02, 476:9983): solicitud, solicitud enviada y seguimiento.
 type Vista = "solicitud" | "enviada" | "seguimiento";
 
@@ -36,11 +37,7 @@ export default function Tramite({ vista }: { vista: Vista }) {
     if (usuario === null) {
         return (
             <PaginaPublica>
-                <div className="cred-estado">
-                    <h1>Inicia sesión para continuar con tu credencial</h1>
-                    <p>Solicitarla, dar seguimiento a tu solicitud y renovarla se hace con tu cuenta.</p>
-                    <Link className="boton-visitante" to="/iniciar-sesion">Iniciar sesión <img src={flechaBlanca} alt="" /></Link>
-                </div>
+                <PedirSesion titulo="Inicia sesión para continuar con tu credencial" texto="Solicitarla, dar seguimiento a tu solicitud y renovarla se hace con tu cuenta." />
             </PaginaPublica>
         );
     }
