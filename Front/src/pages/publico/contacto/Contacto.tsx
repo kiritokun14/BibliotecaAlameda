@@ -15,6 +15,7 @@ import {
 } from "./datos";
 import { CampoContacto, CanalesContacto, Confirmacion, PreguntasFrecuentes, TarjetaDatos } from "./piezas";
 import { useSesion } from "../perfil/usarSesion";
+import { guardarFolio } from "../perfil/mensajesGuardados";
 import iconoCandado from "../../../assets/contacto/privacidad-candado.svg";
 import iconoEnviar from "../../../assets/contacto/boton-enviar.svg";
 import iconoAviso from "../../../assets/contacto/aviso-alerta.svg";
@@ -94,6 +95,7 @@ function Contacto() {
             const acuse = await enviarMensaje(prepararEnvio(datos));
             if (!montado.current) return;
             setFolio(acuse.folio);
+            if (sesion && acuse.folio) guardarFolio(acuse.folio, sesion); // aparece solo en Mi perfil › Mis mensajes
             setEnvio("enviado");
         } catch {
             // Lo escrito se conserva para poder reintentar

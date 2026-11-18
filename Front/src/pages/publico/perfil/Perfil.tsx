@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { Bloque } from "../../../components/portal/Esqueleto";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
@@ -7,6 +7,7 @@ import { cerrarSesion } from "../../../servicios/auth";
 import { ErrorServicio, mensajeError, obtenerSupabase } from "../../../servicios/api";
 import { simulacion } from "../../../servicios/simulacion";
 import { EncabezadoPerfil, MenuPerfil, ModalCerrarSesion } from "./piezas";
+import { iconosSeccion } from "./iconos";
 import { CorreoPendiente, EditarDatos, MisDatos, Resumen } from "./secciones";
 import { MisMensajes } from "./MisMensajes";
 import MisEventos from "./MisEventos";
@@ -120,7 +121,8 @@ export default function Perfil({ vista }: { vista?: Vista }) {
             <div className="perfil-cuerpo">
                 <MenuPerfil activa={seccion} menor={menor} alCerrarSesion={abrirCierre} />
                 {/* key: al cambiar de sección el contenido entra con su animación */}
-                <div className="perfil-seccion" key={vista ?? seccion}>{contenido}</div>
+                <div className="perfil-seccion" key={vista ?? seccion}
+                    style={{ "--icono-seccion": `url("${iconosSeccion[seccion]}")` } as CSSProperties}>{contenido}</div>
             </div>
             {modal && <ModalCerrarSesion cerrando={cerrando} error={errorCierre} alConfirmar={salir} alCancelar={cancelarModal} />}
         </PaginaPublica>

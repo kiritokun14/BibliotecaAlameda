@@ -53,8 +53,8 @@ export function AvisosActividad() {
             </div>
         </li>)}</ul>}
         {(pagina > 0 || (actual?.avisos?.length ?? 0) > 20) && <div className="notif-acciones">
-            <button type="button" className="notif-tarjeta__ver" disabled={!actual || pagina === 0} onClick={() => setPagina(i => i - 1)}>‹ Anteriores</button>
-            <button type="button" className="notif-tarjeta__ver" disabled={(actual?.avisos?.length ?? 0) <= 20 || pagina >= 5000} onClick={() => setPagina(i => i + 1)}>Siguientes ›</button>
+            <button type="button" className="notif-tarjeta__ver" disabled={!actual || pagina === 0} onClick={() => setPagina(i => i - 1)}>Anteriores</button>
+            <button type="button" className="notif-tarjeta__ver" disabled={(actual?.avisos?.length ?? 0) <= 20 || pagina >= 5000} onClick={() => setPagina(i => i + 1)}>Siguientes</button>
         </div>}
     </section>;
 }

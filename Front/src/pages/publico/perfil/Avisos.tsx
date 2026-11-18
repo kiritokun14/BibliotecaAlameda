@@ -6,11 +6,22 @@ import { EncabezadoSeccion, TarjetaPerfil } from './piezas';
 import { Bloque } from '../../../components/portal/Esqueleto';
 import tarjetaEnviar from '../../../assets/perfil/tarjeta-enviar.svg';
 import tarjetaCampana from '../../../assets/perfil/tarjeta-campana.svg';
+import { sesionSimulada } from './usarSesion';
+
+// Con la sesión de ejemplo (?simular=sesion, solo en desarrollo) se muestran preferencias de ejemplo en vez de pedirlas al servidor.
+const preferenciasEjemplo: PreferenciasAvisos = { canalPreferido: 'portal', recibirAvisosComunidad: true, recibirAvisosActividades: true, actualizadoEn: null };
 
 const campos = [
-    ['recibirAvisosComunidad', 'Difusión de comunidad'],
-    ['recibirAvisosActividades', 'Difusión de actividades'],
+    ['recibirAvisosComunidad', 'Difusión de comunidad', 'Noticias, convocatorias y avisos generales de la biblioteca.'],
+    ['recibirAvisosActividades', 'Difusión de actividades', 'Talleres, clubes y eventos nuevos con inscripción abierta.'],
 ] as const;
+// Canales como tarjetas de opción (una sola elegida)
+const canales: { valor: PreferenciasAvisos['canalPreferido']; titulo: string; texto: string }[] = [
+    { valor: 'portal', titulo: 'Portal', texto: 'Los ves en tus notificaciones.' },
+    { valor: 'correo', titulo: 'Correo', texto: 'Te escribimos a tu correo.' },
+    { valor: 'telefono', titulo: 'Teléfono', texto: 'El personal te llama.' },
+    { valor: 'whatsapp_manual', titulo: 'WhatsApp', texto: 'El personal te envía un mensaje.' },
+];
 
 export default function Avisos() {
     const [consulta, setConsulta] = useState({ intento: 0 });
@@ -18,7 +29,7 @@ export default function Avisos() {
     const { intento } = consulta;
     useEffect(() => {
         let vigente = true;
-        consultarPreferenciasAvisos().then(preferencias => {
+        (sesionSimulada ? Promise.resolve(preferenciasEjemplo) : consultarPreferenciasAvisos()).then(preferencias => {
             if (vigente) setCarga({ intento, preferencias });
         }).catch(error => {
             if (vigente) setCarga({ intento, error: mensajeError(error) });
@@ -28,7 +39,8 @@ export default function Avisos() {
     const actual = carga?.intento === intento ? carga : undefined;
     const recargar = () => setConsulta(c => ({ intento: c.intento + 1 }));
     return <>
-        <EncabezadoSeccion sobretitulo="AVISOS" titulo="Preferencias de avisos" texto="Elige qué avisos de difusión quieres recibir y tu canal preferido." />
+        <EncabezadoSeccion titulo="Preferencias de avisos" texto="Elige qué avisos de difusión quieres recibir y por dónde."
+            accion={<Link to="/notificaciones" className="perfil-boton perfil-boton--contorno">Ver mis notificaciones</Link>} />
         {!actual && <div className="perfil-esqueleto__avisos" role="status" aria-label="Cargando preferencias">
             <Bloque clase="perfil-esqueleto__tarjeta perfil-esqueleto__tarjeta--baja" /><Bloque clase="perfil-esqueleto__tarjeta" />
         </div>}
@@ -37,10 +49,7 @@ export default function Avisos() {
             <button type="button" className="perfil-boton perfil-boton--contorno perfil-boton--chico" onClick={recargar}>Reintentar</button>
         </div>}
         {actual?.preferencias && <Formulario key={intento} inicial={actual.preferencias} recargar={recargar} />}
-        <TarjetaPerfil color="blanca" icono={tarjetaCampana} titulo="Mis notificaciones">
-            <p className="perfil-tarjeta__texto perfil-tarjeta__texto--suave">Aquí eliges qué avisos recibir. Los que ya te llegaron están en tus notificaciones.</p>
-            <div className="perfil-acciones"><Link to="/notificaciones" className="perfil-boton perfil-boton--contorno perfil-boton--chico">Ver mis notificaciones</Link></div>
-        </TarjetaPerfil>
+
     </>;
 }
 
@@ -77,32 +86,43 @@ function Formulario({ inicial, recargar }: { inicial: PreferenciasAvisos; recarg
             setGuardando(false);
         }
     }
-    return <form onSubmit={guardar}>
-        <TarjetaPerfil color="verde" icono={tarjetaEnviar} titulo="Canal">
-            <label>Canal preferido <select value={datos.canalPreferido} disabled={guardando || conflicto}
-                onChange={e => cambiar({ canalPreferido: e.target.value as PreferenciasAvisos['canalPreferido'] })}>
-                <option value="portal">Portal</option>
-                <option value="correo">Correo</option>
-                <option value="telefono">Teléfono</option>
-                <option value="whatsapp_manual">WhatsApp</option>
-            </select></label>
-            <p>El personal puede preparar difusión por WhatsApp si eliges ese canal y activas el tipo de aviso.</p>
+    return <form className="perfil-formulario" onSubmit={guardar}>
+        <TarjetaPerfil color="verde" icono={tarjetaEnviar} titulo="Canal preferido" texto="Por dónde quieres que te lleguen los avisos de difusión.">
+            <div className="perfil-opciones" role="radiogroup" aria-label="Canal preferido">
+                {canales.map(c => <label key={c.valor} className={`perfil-opcion${datos.canalPreferido === c.valor ? ' perfil-opcion--activa' : ''}`}>
+                    <input type="radio" name="canal" value={c.valor} checked={datos.canalPreferido === c.valor} disabled={guardando || conflicto}
+                        onChange={() => cambiar({ canalPreferido: c.valor })} />
+                    <strong>{c.titulo}</strong>
+                    <span>{c.texto}</span>
+                </label>)}
+            </div>
         </TarjetaPerfil>
-        <TarjetaPerfil color="dorada" icono={tarjetaCampana} titulo="Tipos de difusión">
+        <TarjetaPerfil color="dorada" icono={tarjetaCampana} titulo="Tipos de difusión" texto="Activa solo lo que te interesa; puedes cambiarlo cuando quieras.">
             <ul className="perfil-preferencias">
-                {campos.map(([campo, etiqueta]) => <li className="perfil-preferencia" key={campo}>
-                    <label><input type="checkbox" checked={datos[campo]} disabled={guardando || conflicto}
-                        onChange={e => cambiar({ [campo]: e.target.checked })} /> {etiqueta}</label>
+                {campos.map(([campo, etiqueta, descripcion]) => <li className="perfil-preferencia" key={campo}>
+                    <label className="perfil-interruptor">
+                        <span className="perfil-interruptor__textos"><strong>{etiqueta}</strong><span>{descripcion}</span></span>
+                        <input type="checkbox" role="switch" checked={datos[campo]} disabled={guardando || conflicto}
+                            onChange={e => cambiar({ [campo]: e.target.checked })} />
+                    </label>
                 </li>)}
             </ul>
         </TarjetaPerfil>
         {guardado && <p className="perfil-exito" role="status">Tus preferencias se guardaron.</p>}
-        {error && <p role="alert">{error}</p>}
-        <div className="perfil-acciones">
-            <button className="perfil-boton" disabled={!hayCambios || guardando || conflicto}>{guardando ? 'Guardando…' : 'Guardar preferencias'}</button>
-            <button type="button" className="perfil-boton perfil-boton--contorno" disabled={!hayCambios || guardando || conflicto}
-                onClick={() => cambiar(original)}>Cancelar</button>
-            {conflicto && <button type="button" onClick={recargar}>Cargar las preferencias actuales</button>}
+        {error && <p className="perfil-error" role="alert">{error}</p>}
+        {/* Barra de guardar del catálogo: hasta abajo y acompaña al bajar */}
+        <div className={`perfil-acciones perfil-guardar${hayCambios ? ' perfil-guardar--pendiente' : ''}`}>
+            <p className="perfil-guardar__estado" role="status">
+                <strong>{guardando ? 'Guardando tus preferencias…' : hayCambios ? 'Tienes cambios sin guardar' : 'Sin cambios por ahora'}</strong>
+                <span>{hayCambios ? 'Guarda para que el personal use tus nuevas preferencias.' : 'Elige un canal o activa un tipo de aviso.'}</span>
+            </p>
+            <div className="perfil-guardar__botones">
+                <button type="button" className="perfil-boton perfil-boton--contorno" disabled={!hayCambios || guardando || conflicto}
+                    onClick={() => cambiar(original)}>Cancelar</button>
+                {conflicto
+                    ? <button type="button" className="perfil-boton perfil-boton--guardar" onClick={recargar}>Cargar las preferencias actuales</button>
+                    : <button className="perfil-boton perfil-boton--guardar" disabled={!hayCambios || guardando}>{guardando ? 'Guardando…' : 'Guardar preferencias'}</button>}
+            </div>
         </div>
     </form>;
 }

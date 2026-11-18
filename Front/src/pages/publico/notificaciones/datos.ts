@@ -5,6 +5,7 @@
 //   - DELETE /notificaciones/{id}          y  DELETE /notificaciones/leidas (eliminar las leídas)
 // Mientras, viven en esta pestaña con los ejemplos de Figma; la campana, el panel y la página comparten el mismo estado.
 import { useSyncExternalStore } from "react";
+import { simulacion } from "../../../servicios/simulacion";
 
 export type Area = "propuesta" | "espacios" | "credencial" | "actividades" | "avisos";
 export type Notificacion = {
@@ -13,7 +14,7 @@ export type Notificacion = {
 };
 
 export const nombreArea: Record<Area, string> = {
-    propuesta: "PROPUESTA", espacios: "ESPACIOS", credencial: "CREDENCIAL", actividades: "ACTIVIDADES", avisos: "AVISOS",
+    propuesta: "Propuesta", espacios: "Espacios", credencial: "Credencial", actividades: "Actividades", avisos: "Avisos",
 };
 
 export type Filtro = "todas" | "no-leidas" | "credencial" | "actividades" | "avisos";
@@ -54,7 +55,9 @@ export const quitarLeidas = (lista: Notificacion[]) => lista.filter((n) => !n.le
 
 // ---------- Estado compartido de la pestaña ----------
 // Los ejemplos no son avisos de una cuenta real. El servicio de lectura aún está pendiente.
-let actual: Notificacion[] = [];
+// Con la sesión de ejemplo (?simular=sesion, solo en desarrollo) se cargan los ejemplos para revisar el diseño.
+const conEjemplos = typeof window !== "undefined" && (simulacion() ?? "").startsWith("sesion");
+let actual: Notificacion[] = conEjemplos ? EJEMPLO : [];
 const oyentes = new Set<() => void>();
 function cambiar(nueva: Notificacion[]) { actual = nueva; oyentes.forEach((o) => o()); }
 function suscribir(oyente: () => void) { oyentes.add(oyente); return () => { oyentes.delete(oyente); }; }

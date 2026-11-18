@@ -1,23 +1,16 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { NavLink } from "react-router";
 import { seccionesDe, type ClaveSeccion } from "./datos";
+import { iconosSeccion } from "./iconos";
 import circulo1 from "../../../assets/perfil/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/perfil/encabezado-circulo-2.svg";
 import iconoUsuarioGrande from "../../../assets/perfil/encabezado-usuario.svg";
 import chipCheck from "../../../assets/perfil/chip-check.svg";
 import chipUsuario from "../../../assets/perfil/chip-usuario.svg";
 import chipArchivo from "../../../assets/perfil/chip-archivo.svg";
-import iconoLista from "../../../assets/perfil/menu-lista.svg";
-import iconoUsuario from "../../../assets/perfil/menu-usuario.svg";
-import iconoArchivo from "../../../assets/perfil/menu-archivo.svg";
-import iconoCalendario from "../../../assets/perfil/menu-calendario.svg";
-import iconoPin from "../../../assets/perfil/menu-pin.svg";
-import iconoEstrella from "../../../assets/perfil/menu-estrella.svg";
-import iconoCampana from "../../../assets/perfil/menu-campana.svg";
-import iconoCorreo from "../../../assets/perfil/menu-correo.svg";
-import iconoCandado from "../../../assets/perfil/menu-candado.svg";
-import iconoSalir from "../../../assets/perfil/menu-salir.svg";
 import iconoSalirGrande from "../../../assets/perfil/modal-salir.svg";
+import iconoSalir from "../../../assets/perfil/menu-salir.svg";
+import iconoSecciones from "../../../assets/inicio/etiqueta-accesos.svg";
 
 // ---------- Encabezado verde con avatar, nombre, correo y etiquetas ----------
 export function EncabezadoPerfil({ nombre, correo, tipoCuenta, credencial }: {
@@ -30,7 +23,7 @@ export function EncabezadoPerfil({ nombre, correo, tipoCuenta, credencial }: {
             <div className="perfil-encabezado__contenido">
                 <span className="perfil-encabezado__avatar"><img src={iconoUsuarioGrande} alt="" /></span>
                 <div className="perfil-encabezado__textos">
-                    <p className="perfil-sobretitulo perfil-sobretitulo--claro">MI PERFIL</p>
+                    <EtiquetaPerfil icono={iconosSeccion.datos} claro>Mi perfil</EtiquetaPerfil>
                     <h1>{nombre}</h1>
                     <p className="perfil-encabezado__correo">{correo}</p>
                     <ul className="perfil-encabezado__chips">
@@ -45,26 +38,30 @@ export function EncabezadoPerfil({ nombre, correo, tipoCuenta, credencial }: {
 }
 
 // ---------- Menú lateral «Secciones del perfil» ----------
-const iconosSeccion: Record<ClaveSeccion, string> = {
-    resumen: iconoLista, datos: iconoUsuario, credencial: iconoArchivo, eventos: iconoCalendario,
-    propuestas: iconoArchivo, espacios: iconoPin, progreso: iconoEstrella, mensajes: iconoCorreo, avisos: iconoCampana, seguridad: iconoCandado,
-};
 
 export function MenuPerfil({ activa, menor, alCerrarSesion }: { activa: ClaveSeccion; menor: boolean; alCerrarSesion: () => void }) {
+    // En teléfono el menú es una fila que se desliza de lado: se centra la sección activa (sin mover la página)
+    const lista = useRef<HTMLUListElement>(null);
+    useEffect(() => {
+        const ul = lista.current;
+        const li = ul?.querySelector<HTMLElement>(".perfil-menu__opcion--activa")?.parentElement;
+        if (ul && li && ul.scrollWidth > ul.clientWidth) ul.scrollLeft = li.offsetLeft - (ul.clientWidth - li.clientWidth) / 2;
+    }, [activa]);
     return (
         <nav className="perfil-menu" aria-label="Secciones del perfil">
-            <p className="perfil-sobretitulo">SECCIONES DEL PERFIL</p>
-            <ul>
+            <EtiquetaPerfil icono={iconoSecciones}>Secciones del perfil</EtiquetaPerfil>
+            <ul ref={lista}>
                 {seccionesDe(menor).map((s) => (
                     <li key={s.clave}>
                         <NavLink to={s.ruta} className={`perfil-menu__opcion${s.clave === activa ? " perfil-menu__opcion--activa" : ""}`}
                             aria-current={s.clave === activa ? "page" : undefined}>
-                            <img src={iconosSeccion[s.clave]} alt="" />{s.texto}
+                            <img src={iconosSeccion[s.clave]} alt="" /><span className="perfil-menu__texto">{s.texto}</span>
                         </NavLink>
                     </li>
                 ))}
             </ul>
             <hr className="perfil-divisor" />
+            {/* Excepción pedida por Aldahir (18 nov): «Cerrar sesión» lleva su ícono */}
             <button type="button" className="perfil-menu__opcion perfil-menu__salir" onClick={alCerrarSesion}>
                 <img src={iconoSalir} alt="" />Cerrar sesión
             </button>
@@ -72,13 +69,25 @@ export function MenuPerfil({ activa, menor, alCerrarSesion }: { activa: ClaveSec
     );
 }
 
-// ---------- Encabezado de cada sección: «MIS DATOS / Mis datos / texto» ----------
-export function EncabezadoSeccion({ sobretitulo, titulo, texto }: { sobretitulo: string; titulo: string; texto: string }) {
+// ---------- Etiqueta del perfil: pastilla dorada con su ícono en un círculo verde ----------
+// La misma en todo el perfil y en notificaciones («Secciones del perfil», «Resumen de mi cuenta», «Mi progreso»…).
+export function EtiquetaPerfil({ icono, id, claro = false, children }: { icono: string; id?: string; claro?: boolean; children: ReactNode }) {
     return (
-        <header className="perfil-seccion__encabezado">
-            <p className="perfil-sobretitulo">{sobretitulo}</p>
+        <p id={id} className={`perfil-etiqueta${claro ? " perfil-etiqueta--claro" : ""}`}>
+            <span className="perfil-etiqueta__icono" style={{ "--icono": `url("${icono}")` } as CSSProperties} aria-hidden="true" />
+            {children}
+        </p>
+    );
+}
+
+// ---------- Encabezado de cada sección: insignia, título, texto y acción opcional a la derecha ----------
+// «sobretitulo» se sigue aceptando, pero ya no se muestra: repetía el título y el menú ya marca la sección.
+export function EncabezadoSeccion({ titulo, texto, accion }: { sobretitulo?: string; titulo: string; texto: string; accion?: ReactNode }) {
+    return (
+        <header className={`perfil-seccion__encabezado${accion ? " perfil-seccion__encabezado--con-accion" : ""}`}>
             <h2>{titulo}</h2>
             <p>{texto}</p>
+            {accion && <div className="perfil-seccion__accion">{accion}</div>}
         </header>
     );
 }
@@ -101,10 +110,11 @@ export function TarjetaPerfil({ color, icono, titulo, texto, children }: {
     );
 }
 
-// Dato de solo lectura: «NOMBRE(S) / Ana / nota»
-export function Dato({ etiqueta, valor, nota }: { etiqueta: string; valor: string; nota?: string }) {
+// Dato de solo lectura: «Nombre(s) / Ana / nota». icono: se ve junto a la etiqueta; ancho: fichas que ocupan 2 o 4 columnas.
+export function Dato({ etiqueta, valor, nota, icono, ancho }: { etiqueta: string; valor: string; nota?: string; icono?: string; ancho?: 2 | 4 }) {
     return (
-        <div className="perfil-dato">
+        <div className={`perfil-dato${icono ? " perfil-dato--icono" : ""}${ancho ? ` perfil-dato--ancho-${ancho}` : ""}`}
+            style={icono ? { "--icono": `url("${icono}")` } as CSSProperties : undefined}>
             <dt>{etiqueta}</dt>
             <dd>{valor || "Sin dato"}</dd>
             {nota && <dd className="perfil-dato__nota">{nota}</dd>}

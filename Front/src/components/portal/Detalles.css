@@ -634,3 +634,563 @@
   .pagina-publica .bloque:has(.tarjeta-actividad) .filtros-actividad { margin-bottom: 2px; }
   .pagina-publica .bloque:has(.noticia-destacada) { gap: 8px; }
 }
+
+/* ---------- Mi perfil y Notificaciones: misma familia que el login y el inicio (18 nov 2026) ----------
+   Franja verde con las mismas luces y entrada suave, franja guinda → dorado arriba de las tarjetas principales,
+   una sola animación por elemento y solo las tarjetas que se pueden tocar se elevan. */
+.pagina-publica .perfil-encabezado {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(201, 162, 74, 0.26), transparent 40%),
+    radial-gradient(circle at 85% 100%, rgba(155, 34, 71, 0.32), transparent 44%),
+    linear-gradient(166deg, #0b3b33 0%, #1f6b5c 71%);
+}
+.pagina-publica .perfil-encabezado__avatar { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .perfil-encabezado__textos > * { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .perfil-encabezado__textos > :nth-child(n+3) { animation-delay: 0.08s; }
+/* Avatar como las insignias: aro dorado claro y sombra suave */
+.pagina-publica .perfil-encabezado__avatar { border-color: #f2e3b8; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18); }
+.pagina-publica .perfil-encabezado .etiqueta-inicio { align-self: flex-start; }
+
+/* Franja guinda → dorado arriba de las tarjetas principales (en el bloque verde va guinda → dorado igual que las franjas) */
+.pagina-publica :is(.perfil-menu, .perfil-bienvenida, .perfil-progreso, .notif-como, .notif-vacio) { position: relative; overflow: hidden; }
+.pagina-publica .perfil-menu { position: sticky; }
+.pagina-publica :is(.perfil-menu, .perfil-bienvenida, .perfil-progreso, .notif-como, .notif-vacio)::before {
+  content: ""; position: absolute; inset: 0 0 auto; z-index: 1; height: 5px;
+  background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); pointer-events: none;
+}
+.pagina-publica .perfil-progreso {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(201, 162, 74, 0.22), transparent 40%),
+    radial-gradient(circle at 92% 100%, rgba(155, 34, 71, 0.3), transparent 44%),
+    linear-gradient(169deg, #0b3b33 0%, #1f6b5c 71%);
+}
+
+/* Botones del perfil a la medida común (46 px) */
+.pagina-publica .perfil-boton:not(.perfil-boton--chico) { height: 46px; font-size: 15px; }
+
+/* Solo lo que se puede tocar se eleva (4 px); las tarjetas de solo lectura se quedan quietas */
+.pagina-publica .perfil-tarjeta:hover { transform: none; box-shadow: none; }
+.pagina-publica :is(.perfil-estado, .perfil-rapido):hover { transform: translateY(-4px); }
+.pagina-publica .perfil-rapido:hover .perfil-rapido__icono { transform: none; } /* una sola animación por elemento */
+
+/* Notificaciones: las no leídas llevan el borde dorado a la izquierda, como los recuadros de ayuda */
+.pagina-publica .notif-tarjeta:not(.notif-tarjeta--leida) { box-shadow: inset 4px 0 0 #c9a24a, 0 6px 16px rgba(22, 79, 68, 0.06); }
+.pagina-publica .notif-tarjeta { animation: detalle-entrada 0.45s ease-out both; }
+.pagina-publica .notif-tarjeta:nth-child(2) { animation-delay: 0.05s; }
+.pagina-publica .notif-tarjeta:nth-child(3) { animation-delay: 0.1s; }
+.pagina-publica .notif-tarjeta:nth-child(n+4) { animation-delay: 0.15s; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica :is(.perfil-encabezado__avatar, .perfil-encabezado__textos > *, .notif-tarjeta) { animation: none; }
+  .pagina-publica :is(.perfil-estado, .perfil-rapido):hover { transform: none; }
+}
+
+/* ---------- Submódulos de Mi perfil: misma estructura en todas las secciones (18 nov 2026) ----------
+   1. Encabezado con insignia (ícono de la sección en círculo verde con aro dorado), título y texto.
+   2. Tarjetas con la misma sombra y el mismo radio; recuadros de ayuda crema con borde dorado a la izquierda.
+   3. Estados vacíos centrados con el ícono de la sección; errores en rosa con borde guinda a la izquierda.
+   El ícono llega en la variable --icono-seccion (Perfil.tsx). */
+
+/* Menú lateral: sigue al scroll justo debajo de la barra y su etiqueta es una pastilla como las del inicio */
+.pagina-publica .perfil-menu { top: 84px; padding-top: 22px; box-shadow: 0 10px 24px rgba(22, 79, 68, 0.06); }
+.pagina-publica .perfil-menu__titulo {
+  display: inline-flex; align-self: flex-start; align-items: center; gap: 6px; margin: 0 0 8px 4px;
+  padding: 5px 12px 5px 10px; border-radius: 999px; background: #f6eeda; box-shadow: inset 0 0 0 1px #ecdcb0;
+  color: #6b4f12; font-size: 12px; font-weight: 700; letter-spacing: 0.2px;
+}
+.pagina-publica .perfil-menu__titulo img { width: 14px; height: 14px; }
+.pagina-publica .perfil-menu__opcion { transition: background-color 0.2s ease, color 0.2s ease; }
+.pagina-publica .perfil-menu__opcion--activa { box-shadow: 0 8px 18px rgba(22, 79, 68, 0.22); }
+.pagina-publica .perfil-menu__opcion--activa::after { content: ""; width: 6px; height: 6px; margin-left: auto; border-radius: 50%; background: #e6d194; }
+
+/* 1. Encabezado de sección con insignia */
+.pagina-publica .perfil-seccion__encabezado {
+  display: grid; grid-template-columns: 56px minmax(0, 1fr); column-gap: 16px; row-gap: 4px; align-content: start;
+  padding-bottom: 18px; border-bottom: 1px solid #e9e4d8;
+}
+.pagina-publica .perfil-seccion__encabezado::before {
+  content: ""; grid-row: 1 / span 2; align-self: start; width: 52px; height: 52px; border-radius: 50%; /* arriba, para que el ícono (::after) siempre coincida */
+  background: #164f44; box-shadow: 0 0 0 4px #f2e3b8, 0 8px 18px rgba(22, 79, 68, 0.2);
+}
+.pagina-publica .perfil-seccion__encabezado::after {
+  content: ""; position: absolute; width: 24px; height: 24px; margin: 14px; background: #fff;
+  -webkit-mask: var(--icono-seccion) center / contain no-repeat; mask: var(--icono-seccion) center / contain no-repeat;
+}
+.pagina-publica .perfil-seccion__encabezado { position: relative; }
+.pagina-publica .perfil-seccion__encabezado::after { top: 0; left: 0; }
+.pagina-publica .perfil-seccion__encabezado h2 { font-size: 28px; line-height: 34px; }
+.pagina-publica .perfil-seccion__encabezado p:last-child { font-size: 15px; line-height: 22px; }
+
+/* 2. Tarjetas y recuadros */
+.pagina-publica .perfil-tarjeta { border-radius: 24px; box-shadow: 0 6px 16px rgba(22, 79, 68, 0.05); }
+.pagina-publica .perfil-tarjeta__icono { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85); }
+.pagina-publica .perfil-tarjeta h3 { font-size: 19px; }
+.pagina-publica .perfil-nota { border-color: #e2ded5; border-left: 4px solid #c9a24a; border-radius: 16px; background: #f7f5f0; }
+.pagina-publica .perfil-nota strong { color: #6b4f12; }
+.pagina-publica .perfil-nota a { color: #164f44; font-weight: 700; text-decoration: underline; text-decoration-color: #c9a24a; text-underline-offset: 3px; }
+.pagina-publica .perfil-nota--dorada { border-color: #e6d194; border-left-color: #c9a24a; background: #f6eeda; }
+.pagina-publica .perfil-nota--guinda { border-color: #e8c3cf; border-left-color: #9b2247; background: #f6eaee; }
+.pagina-publica .perfil-nota--guinda strong { color: #9b2247; }
+.pagina-publica :is(.perfil-aviso-error, .perfil-error) { border: 1px solid #e8c3cf; border-left: 4px solid #9b2247; border-radius: 16px; background: #f6eaee; }
+.pagina-publica .perfil-aviso { border-left: 4px solid #c9a24a; border-radius: 16px; }
+
+/* 3. Estados vacíos: centrados, con el ícono de la sección */
+.pagina-publica .perfil-vacio {
+  align-items: center; gap: 14px; padding: 36px 32px; border-radius: 24px; text-align: center;
+  box-shadow: 0 6px 16px rgba(22, 79, 68, 0.05); line-height: 23px;
+}
+.pagina-publica .perfil-vacio::before {
+  content: ""; width: 60px; height: 60px; border-radius: 50%;
+  background: #e4efeb var(--icono-seccion) center / 26px no-repeat; box-shadow: 0 0 0 4px #f7f5f0, 0 0 0 5px #e2ded5;
+}
+.pagina-publica .perfil-vacio p { max-width: 460px; }
+.pagina-publica .perfil-vacio strong { display: block; margin-bottom: 4px; color: #161a1d; font-size: 17px; }
+
+/* Filtros del perfil como los chips del portal */
+.pagina-publica .perfil-filtro { transition: background-color 0.2s ease, border-color 0.2s ease; }
+.pagina-publica .perfil-filtro--activo { box-shadow: 0 6px 14px rgba(22, 79, 68, 0.18); }
+
+@media (max-width: 800px) {
+  .pagina-publica .perfil-seccion__encabezado { grid-template-columns: 48px minmax(0, 1fr); }
+  .pagina-publica .perfil-seccion__encabezado::before { width: 44px; height: 44px; }
+  .pagina-publica .perfil-seccion__encabezado::after { width: 20px; height: 20px; margin: 12px; }
+  .pagina-publica .perfil-seccion__encabezado h2 { font-size: 24px; line-height: 30px; }
+}
+/* Formularios del perfil (Avisos): tarjetas separadas, select del mismo tamaño que los campos y casillas grandes */
+.pagina-publica .perfil-formulario { display: flex; flex-direction: column; gap: 18px; }
+.pagina-publica .perfil-campo select {
+  height: 44px; padding: 0 40px 0 14px; box-sizing: border-box; border: 1px solid #b9b3a5; border-radius: 12px;
+  background: #fffdf8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23164f44' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 14px center no-repeat;
+  appearance: none; color: #161a1d; font-family: inherit; font-size: 15px; max-width: 320px;
+}
+.pagina-publica .perfil-campo select:focus-visible { outline: 3px solid #c9a24a; outline-offset: 1px; border-color: #164f44; }
+.pagina-publica .perfil-preferencia label { display: flex; align-items: center; gap: 12px; width: 100%; color: #161a1d; font-size: 15px; font-weight: 600; cursor: pointer; }
+.pagina-publica .perfil-preferencia input[type="checkbox"] { width: 22px; height: 22px; flex-shrink: 0; margin: 0; accent-color: #164f44; cursor: pointer; }
+@media (max-width: 1024px) { .pagina-publica .perfil-campo select { height: 48px; font-size: 16px; max-width: none; } }
+/* Etiquetas del perfil y de notificaciones: pastillas en minúsculas, como las etiquetas de sección del portal (no texto en mayúsculas suelto) */
+.pagina-publica :is(.perfil-sobretitulo, .notif-como__titulo) {
+  display: inline-flex; align-items: center; width: fit-content; padding: 4px 12px; border-radius: 999px;
+  background: #f6eeda; box-shadow: inset 0 0 0 1px #ecdcb0; color: #6b4f12; font-size: 12px; font-weight: 700; letter-spacing: 0.2px;
+}
+.pagina-publica .notif-como .notif-como__titulo { background: #fff; box-shadow: inset 0 0 0 1px #bfd9d0; color: #164f44; }
+.pagina-publica .perfil-sobretitulo--claro { background: rgba(255, 255, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(230, 209, 148, 0.45); color: #f2e3b8; }
+.pagina-publica .notif-tarjeta__area {
+  width: fit-content; gap: 7px; padding: 3px 10px; border-radius: 999px; background: #e4efeb; letter-spacing: 0.2px;
+}
+.pagina-publica .notif-tarjeta--aviso .notif-tarjeta__area { background: #f6eeda; }
+/* Teléfono: el menú del perfil es una fila de pastillas que se desliza de lado (antes ocupaba toda la pantalla) */
+@media (max-width: 600px) {
+  .pagina-publica .perfil-menu { padding: 16px 0 14px; gap: 10px; }
+  .pagina-publica .perfil-menu__titulo { margin: 0 0 0 16px; }
+  .pagina-publica .perfil-menu ul {
+    flex-direction: row; gap: 8px; padding: 2px 16px 6px; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
+    -webkit-mask: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
+            mask: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
+  }
+  .pagina-publica .perfil-menu ul::-webkit-scrollbar { display: none; }
+  .pagina-publica .perfil-menu li { flex: none; scroll-snap-align: center; }
+  .pagina-publica .perfil-menu .perfil-menu__opcion { width: auto; height: 44px; padding: 0 16px; gap: 8px; border: 1px solid #e2ded5; border-radius: 999px; white-space: nowrap; }
+  .pagina-publica .perfil-menu .perfil-menu__opcion--activa { border-color: #164f44; }
+  .pagina-publica .perfil-menu .perfil-menu__opcion--activa::after { display: none; }
+  .pagina-publica .perfil-menu .perfil-divisor { display: none; }
+  .pagina-publica .perfil-menu .perfil-menu__salir { width: auto; height: 40px; margin: 0 16px; align-self: flex-start; border-radius: 999px; }
+}
+
+/* ---------- Mi perfil, segunda vuelta (18 nov 2026): franja más baja, etiquetas iguales, tarjetas, datos, credencial y eventos ---------- */
+/* Franja verde más baja */
+.pagina-publica .perfil-encabezado { padding: 26px 24px 28px; }
+.pagina-publica .perfil-encabezado__avatar { width: 76px; height: 76px; border-width: 3px; }
+.pagina-publica .perfil-encabezado__avatar img { width: 38px; height: 38px; }
+.pagina-publica .perfil-encabezado h1 { font-size: 34px; line-height: 40px; }
+.pagina-publica .perfil-encabezado__textos { gap: 4px; }
+
+/* Etiqueta única del perfil (EtiquetaPerfil): pastilla dorada con su ícono en un círculo verde.
+   «Secciones del perfil», «Resumen de mi cuenta», «Accesos rápidos», «Cómo te avisamos»… se ven exactamente igual. */
+.pagina-publica .perfil-etiqueta {
+  display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin: 0; padding: 4px 13px 4px 4px;
+  border-radius: 999px; background: linear-gradient(90deg, #f6eeda, #f2e3b8); box-shadow: inset 0 0 0 1px #e6d194;
+  color: #6b4f12; font-size: 12.5px; font-weight: 700; line-height: 18px; letter-spacing: 0.2px;
+}
+.pagina-publica .perfil-etiqueta__icono { position: relative; flex: none; width: 22px; height: 22px; border-radius: 50%; background: #164f44; }
+.pagina-publica .perfil-etiqueta__icono::after {
+  content: ""; position: absolute; inset: 5px; background: #fff;
+  -webkit-mask: var(--icono) center / contain no-repeat; mask: var(--icono) center / contain no-repeat;
+}
+/* Sobre fondo verde: la misma pastilla en versión clara */
+.pagina-publica .perfil-etiqueta--claro { background: rgba(255, 255, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(230, 209, 148, 0.55); color: #f2e3b8; }
+.pagina-publica .perfil-etiqueta--claro .perfil-etiqueta__icono { background: #e6d194; }
+.pagina-publica .perfil-etiqueta--claro .perfil-etiqueta__icono::after { background: #164f44; }
+.pagina-publica .perfil-menu .perfil-etiqueta { margin: 0 0 8px 4px; }
+.pagina-publica .notif-como .perfil-etiqueta { margin-bottom: 2px; }
+@media (max-width: 600px) { .pagina-publica .perfil-menu .perfil-etiqueta { margin: 0 0 0 16px; } }
+
+/* Encabezado de sección con acción a la derecha («Editar mis datos») */
+.pagina-publica .perfil-seccion__encabezado--con-accion { grid-template-columns: 56px minmax(0, 1fr) auto; }
+.pagina-publica .perfil-seccion__accion { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+@media (max-width: 800px) {
+  .pagina-publica .perfil-seccion__encabezado--con-accion { grid-template-columns: 48px minmax(0, 1fr); }
+  .pagina-publica .perfil-seccion__accion { grid-column: 1 / -1; grid-row: auto; margin-top: 8px; }
+}
+
+/* Tarjetas: todas blancas, con una franja de color arriba según su tipo y la cabecera separada por una línea */
+.pagina-publica .perfil-tarjeta { position: relative; overflow: hidden; background: #fff; border-color: #e2ded5; }
+.pagina-publica .perfil-tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .perfil-tarjeta--verde::before { background: linear-gradient(90deg, #164f44, #2a7d6b); }
+.pagina-publica .perfil-tarjeta--dorada::before { background: linear-gradient(90deg, #c9a24a, #e6d194); }
+.pagina-publica .perfil-tarjeta--rosa::before { background: linear-gradient(90deg, #9b2247, #c75b7a); }
+.pagina-publica .perfil-tarjeta__cabecera { padding-bottom: 14px; border-bottom: 1px solid #efebe2; }
+/* Lo que antes iba blanco sobre la tarjeta de color ahora va en crema, con borde */
+.pagina-publica .perfil-tarjeta :is(.perfil-preferencia, .perfil-recompensa, .perfil-sesion) { border: 1px solid #efebe2; background: #f7f5f0; }
+
+/* Datos de solo lectura en fichas: la etiqueta arriba, el valor y su nota; nada se desborda */
+.pagina-publica .perfil-datos { grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 10px; }
+.pagina-publica .perfil-datos--dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pagina-publica .perfil-dato { gap: 2px; min-width: 0; padding: 12px 14px; border: 1px solid #efebe2; border-radius: 14px; background: #f7f5f0; }
+.pagina-publica .perfil-dato dt { color: #6b675e; font-size: 12px; letter-spacing: 0; }
+.pagina-publica .perfil-dato dd { font-size: 15px; line-height: 22px; overflow-wrap: anywhere; }
+.pagina-publica .perfil-dato dd.perfil-dato__nota { margin-top: 4px; color: #6b675e; font-size: 12px; line-height: 17px; }
+
+/* «Tus datos están protegidos»: nota positiva en verde claro con insignia */
+.pagina-publica .perfil-protegidos {
+  display: flex; align-items: center; gap: 16px; padding: 18px 22px; border: 1px solid #bfd9d0; border-left: 4px solid #1f6b5c;
+  border-radius: 18px; background: linear-gradient(135deg, #e4efeb, #f1f7f4);
+}
+.pagina-publica .perfil-protegidos__icono {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%;
+  background: #164f44; box-shadow: 0 0 0 3px #f2e3b8;
+}
+.pagina-publica .perfil-protegidos__icono img { width: 22px; height: 22px; filter: brightness(0) invert(1); }
+.pagina-publica .perfil-protegidos strong { display: block; margin-bottom: 2px; color: #164f44; font-size: 16px; }
+.pagina-publica .perfil-protegidos p { margin: 0; color: #4d4d4d; font-size: 14px; line-height: 21px; }
+
+/* Editar mis datos: campos con la medida común (44 px, radio 12) y barra de acciones que acompaña al bajar */
+.pagina-publica .perfil-campo input { height: 44px; border-color: #b9b3a5; border-radius: 12px; font-size: 15px; }
+.pagina-publica .perfil-campo label span { color: #6b675e; font-weight: 600; }
+.pagina-publica .perfil-formulario > .perfil-acciones {
+  position: sticky; bottom: 16px; z-index: 3; padding: 14px 18px; border: 1px solid #e2ded5; border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96); box-shadow: 0 12px 28px rgba(22, 79, 68, 0.12);
+}
+@media (max-width: 1024px) { .pagina-publica .perfil-campo input { height: 48px; font-size: 16px; } }
+
+/* Mi credencial: la credencial (o su lugar) a la izquierda y el estado a la derecha */
+.pagina-publica .perfil-credencial-estado {
+  position: relative; display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 28px; align-items: center;
+  padding: 28px; overflow: hidden; border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 6px 16px rgba(22, 79, 68, 0.05);
+}
+.pagina-publica .perfil-credencial-estado::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #b9b3a5, #e2ded5); }
+.pagina-publica .perfil-credencial-estado--dorado::before { background: linear-gradient(90deg, #c9a24a, #e6d194); }
+.pagina-publica .perfil-credencial-estado--guinda::before { background: linear-gradient(90deg, #9b2247, #c75b7a); }
+.pagina-publica .perfil-credencial-estado--verde::before { background: linear-gradient(90deg, #164f44, #2a7d6b); }
+.pagina-publica .perfil-credencial-estado__textos { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0; }
+.pagina-publica .perfil-credencial-estado__textos h3 { margin: 0; color: #161a1d; font-size: 22px; line-height: 28px; }
+.pagina-publica .perfil-credencial-estado__textos > p { margin: 0; color: #4d4d4d; font-size: 15px; line-height: 23px; }
+.pagina-publica .perfil-credencial-estado__textos .perfil-datos { width: 100%; }
+.pagina-publica .perfil-credencial-estado .cred-credencial { padding: 22px 24px; border-radius: 22px; }
+.pagina-publica .perfil-credencial-vacia {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; aspect-ratio: 1.586; padding: 20px;
+  box-sizing: border-box; border: 2px dashed #cfc9bb; border-radius: 22px; text-align: center;
+  background: repeating-linear-gradient(135deg, #f7f5f0 0 14px, #f2efe7 14px 28px);
+}
+.pagina-publica .perfil-credencial-vacia__icono {
+  display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin-bottom: 4px; border-radius: 50%;
+  background: #164f44; box-shadow: 0 0 0 4px #f2e3b8;
+}
+.pagina-publica .perfil-credencial-vacia__icono img { width: 24px; height: 24px; filter: brightness(0) invert(1); }
+.pagina-publica .perfil-credencial-vacia strong { color: #161a1d; font-size: 16px; overflow-wrap: anywhere; }
+.pagina-publica .perfil-credencial-vacia span:last-child { max-width: 240px; color: #6b675e; font-size: 13px; line-height: 19px; }
+@media (max-width: 900px) { .pagina-publica .perfil-credencial-estado { grid-template-columns: minmax(0, 1fr); padding: 22px; } }
+
+/* Mis eventos: cada inscripción con su bloque de fecha, como las tarjetas de la agenda */
+.pagina-publica .perfil-evento__fecha {
+  display: flex; flex: none; flex-direction: column; align-items: center; justify-content: center; width: 58px; height: 62px;
+  border-radius: 16px; background: #f6eeda; box-shadow: inset 0 0 0 1px #ecdcb0; color: #8a6414;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
+}
+.pagina-publica .perfil-evento__fecha strong { color: #161a1d; font-size: 22px; line-height: 24px; letter-spacing: 0; }
+.pagina-publica .perfil-evento--confirmada .perfil-evento__fecha { background: #e4efeb; box-shadow: inset 0 0 0 1px #bfd9d0; color: #164f44; }
+.pagina-publica :is(.perfil-evento--cancelada, .perfil-evento--rechazada) .perfil-evento__fecha { background: #f1efea; box-shadow: inset 0 0 0 1px #e2ded5; color: #6b675e; }
+.pagina-publica :is(.perfil-evento--cancelada, .perfil-evento--rechazada) .perfil-solicitud__textos strong { color: #6b675e; }
+@media (max-width: 600px) {
+  .pagina-publica .perfil-solicitud { flex-wrap: wrap; gap: 12px 14px; padding: 16px; }
+  .pagina-publica .perfil-solicitud__textos { flex-basis: calc(100% - 80px); }
+}
+/* Mis eventos: cada inscripción es su propia tarjeta (sin marco alrededor de la lista) */
+.pagina-publica .perfil-solicitudes:has(.perfil-evento) { display: grid; gap: 10px; padding: 0; border: 0; background: none; }
+.pagina-publica .perfil-solicitud.perfil-evento { border: 1px solid #e2ded5; border-radius: 20px; background: #fff; box-shadow: 0 6px 16px rgba(22, 79, 68, 0.05); }
+.pagina-publica .perfil-solicitud.perfil-evento + .perfil-evento { border-top: 1px solid #e2ded5; }
+/* Selector de estados de ejemplo (solo en desarrollo) dentro del perfil: que no se salga de la columna */
+.pagina-publica .perfil-seccion .cred-ejemplos { width: auto; max-width: 100%; margin: 0; box-sizing: border-box; }
+.pagina-publica .perfil-seccion .cred-ejemplos > div { flex-wrap: wrap; }
+/* Pasos del trámite en teléfono: el estado (En curso, Pendiente…) baja debajo del texto para que no lo apriete */
+@media (max-width: 600px) {
+  .pagina-publica .perfil-seccion .cred-etapa { flex-wrap: wrap; align-items: flex-start; gap: 8px 12px; }
+  .pagina-publica .perfil-seccion .cred-etapa__textos { flex: 1 1 calc(100% - 52px); min-width: 0; }
+  .pagina-publica .perfil-seccion .cred-etapa .cred-chip { margin-left: 46px; }
+}
+
+/* ---------- Mi perfil, tercera vuelta (18 nov 2026) ---------- */
+/* El menú lateral acompaña al scroll: se queda visible justo debajo de la barra de arriba mientras bajas por el contenido.
+   Si la pantalla es baja, el menú se desplaza por dentro en vez de cortarse. En teléfono vuelve a ser la fila deslizable. */
+.pagina-publica .perfil-menu {
+  position: sticky; top: 84px; align-self: start;
+  max-height: calc(100vh / 0.9 - 100px); overflow-y: auto; scrollbar-width: thin;
+}
+@media (max-width: 1024px) { .pagina-publica .perfil-menu { max-height: calc(100vh - 100px); } }
+@media (max-width: 800px) { .pagina-publica .perfil-menu { position: static; max-height: none; overflow: hidden; } }
+/* La columna de contenido mide al menos lo que el menú: así un estado vacío no se ve chiquito */
+.pagina-publica .perfil-cuerpo { align-items: stretch; }
+.pagina-publica .perfil-seccion > .perfil-vacio:last-child { flex: 1; justify-content: center; min-height: 260px; }
+
+/* Datos en 4 columnas: el correo y el teléfono van en fichas anchas para que no se partan */
+.pagina-publica .perfil-datos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pagina-publica .perfil-dato--ancho-2 { grid-column: span 2; }
+.pagina-publica .perfil-dato--ancho-4 { grid-column: 1 / -1; }
+.pagina-publica .perfil-dato dd { overflow-wrap: normal; word-break: normal; }
+.pagina-publica .perfil-dato:is(.perfil-dato--ancho-2, .perfil-dato--ancho-4) dd { overflow-wrap: anywhere; }
+@media (max-width: 1100px) { .pagina-publica .perfil-datos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .pagina-publica .perfil-datos { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica :is(.perfil-dato--ancho-2, .perfil-dato--ancho-4) { grid-column: auto; }
+}
+.pagina-publica .perfil-datos--dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Fichas de datos con color: fondo y etiqueta del color de su tarjeta, y el ícono del dato junto a la etiqueta */
+.pagina-publica .perfil-dato { --color-dato: #1f6b5c; --fondo-dato: #f1f7f4; --borde-dato: #d6e8e1; border-color: var(--borde-dato); background: var(--fondo-dato); }
+.pagina-publica .perfil-tarjeta--dorada .perfil-dato { --color-dato: #8a6414; --fondo-dato: #fbf6ea; --borde-dato: #efe2bf; }
+.pagina-publica .perfil-tarjeta--rosa .perfil-dato { --color-dato: #9b2247; --fondo-dato: #fbf1f4; --borde-dato: #efd3dc; }
+.pagina-publica .perfil-tarjeta--blanca .perfil-dato,
+.pagina-publica .perfil-credencial-estado .perfil-dato { --color-dato: #6b4f12; --fondo-dato: #f7f5f0; --borde-dato: #efebe2; }
+.pagina-publica .perfil-dato { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.pagina-publica .perfil-dato:hover { border-color: var(--color-dato); box-shadow: 0 6px 14px rgba(22, 79, 68, 0.07); }
+.pagina-publica .perfil-dato dt { display: flex; align-items: center; gap: 6px; color: var(--color-dato); font-weight: 700; }
+.pagina-publica :is(.perfil-dato--icono dt, .perfil-campo__etiqueta--icono)::before {
+  content: ""; flex: none; width: 15px; height: 15px; background: currentColor;
+  -webkit-mask: var(--icono) center / contain no-repeat; mask: var(--icono) center / contain no-repeat;
+}
+
+/* Editar mis datos: misma etiqueta con ícono y color que en Mis datos */
+.pagina-publica .perfil-campo__etiqueta--icono { align-items: center !important; color: #1f6b5c !important; }
+.pagina-publica .perfil-tarjeta--dorada .perfil-campo__etiqueta--icono { color: #8a6414 !important; }
+.pagina-publica .perfil-tarjeta--rosa .perfil-campo__etiqueta--icono { color: #9b2247 !important; }
+.pagina-publica .perfil-tarjeta--blanca .perfil-campo__etiqueta--icono { color: #6b4f12 !important; }
+.pagina-publica .perfil-campo input:focus-visible { box-shadow: 0 0 0 4px rgba(201, 162, 74, 0.18); }
+
+/* Editar mis datos: tarjeta de inicio con iniciales, qué se puede cambiar y qué no */
+.pagina-publica .perfil-editar-intro {
+  position: relative; display: flex; align-items: center; gap: 18px; padding: 20px 24px; overflow: hidden; border-radius: 22px; color: #fff;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(201, 162, 74, 0.3), transparent 45%),
+    radial-gradient(circle at 92% 100%, rgba(155, 34, 71, 0.35), transparent 45%),
+    linear-gradient(150deg, #0b3b33, #1f6b5c);
+  box-shadow: 0 12px 26px rgba(22, 79, 68, 0.18);
+}
+.pagina-publica .perfil-editar-intro__avatar {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 58px; height: 58px; border-radius: 50%;
+  background: #e6d194; box-shadow: 0 0 0 3px #f2e3b8; color: #164f44; font-size: 20px; font-weight: 800; letter-spacing: 0.5px;
+}
+.pagina-publica .perfil-editar-intro__textos { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pagina-publica .perfil-editar-intro strong { font-size: 17px; line-height: 23px; overflow-wrap: anywhere; }
+.pagina-publica .perfil-editar-intro p { margin: 0; color: #e4efeb; font-size: 14px; line-height: 20px; }
+.pagina-publica .perfil-editar-intro ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
+.pagina-publica .perfil-editar-intro li { display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; }
+.pagina-publica .perfil-editar-intro li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pagina-publica .perfil-editar-intro__si { background: rgba(127, 224, 176, 0.16); box-shadow: inset 0 0 0 1px rgba(127, 224, 176, 0.45); color: #a8ecc9; }
+.pagina-publica .perfil-editar-intro__no { background: rgba(230, 209, 148, 0.14); box-shadow: inset 0 0 0 1px rgba(230, 209, 148, 0.5); color: #f2e3b8; }
+@media (max-width: 600px) { .pagina-publica .perfil-editar-intro { align-items: flex-start; padding: 18px; } .pagina-publica .perfil-editar-intro__avatar { width: 46px; height: 46px; font-size: 16px; } }
+
+/* ---------- Mi perfil, cuarta vuelta (18 nov 2026) ---------- */
+/* Barra de guardar al editar: estado de los cambios a la izquierda, Cancelar y Guardar a la derecha; acompaña al bajar */
+.pagina-publica .perfil-formulario > .perfil-guardar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 14px 14px 22px;
+  border: 1px solid #e2ded5; border-left: 4px solid #b9b3a5; border-radius: 20px; background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 14px 30px rgba(22, 79, 68, 0.14); transition: border-color 0.2s ease;
+}
+.pagina-publica .perfil-formulario > .perfil-guardar--pendiente { border-left-color: #c9a24a; }
+.pagina-publica .perfil-guardar__estado { display: flex; flex-direction: column; gap: 2px; margin: 0; min-width: 0; }
+.pagina-publica .perfil-guardar__estado strong { display: flex; align-items: center; gap: 8px; color: #161a1d; font-size: 15px; }
+.pagina-publica .perfil-guardar__estado strong::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: #b9b3a5; }
+.pagina-publica .perfil-guardar--pendiente .perfil-guardar__estado strong::before { background: #c9a24a; box-shadow: 0 0 0 4px rgba(201, 162, 74, 0.2); animation: detalle-pulso 1.8s ease-in-out infinite; }
+.pagina-publica .perfil-guardar__estado span { color: #6b675e; font-size: 13px; line-height: 18px; }
+.pagina-publica .perfil-guardar__botones { display: flex; flex: none; gap: 10px; }
+/* Guardar: el botón principal de formulario del portal (degradado verde con sombra verde) */
+.pagina-publica .perfil-boton--guardar {
+  min-width: 190px; border: 0; background: linear-gradient(180deg, #1d6354, #123f37); box-shadow: 0 8px 18px rgba(18, 63, 55, 0.28);
+}
+.pagina-publica .perfil-guardar .perfil-boton--contorno { min-width: 120px; border-color: #b9b3a5; background: #fff; color: #164f44; }
+@keyframes detalle-pulso { 0%, 100% { box-shadow: 0 0 0 3px rgba(201, 162, 74, 0.25); } 50% { box-shadow: 0 0 0 7px rgba(201, 162, 74, 0.08); } }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .perfil-guardar--pendiente .perfil-guardar__estado strong::before { animation: none; } }
+@media (max-width: 600px) {
+  .pagina-publica .perfil-formulario > .perfil-guardar { flex-direction: column; align-items: stretch; padding: 14px; }
+  .pagina-publica .perfil-guardar__botones { flex-direction: column-reverse; }
+  .pagina-publica .perfil-guardar__botones > * { width: 100%; min-width: 0; }
+}
+
+/* Mis eventos vacío: luces dorada y verde, franja de color arriba, ícono grande y tipos de actividad sugeridos */
+.pagina-publica .perfil-vacio--eventos {
+  position: relative; overflow: hidden; border-color: #e6d194;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(201, 162, 74, 0.2), transparent 42%),
+    radial-gradient(circle at 92% 100%, rgba(31, 107, 92, 0.16), transparent 46%),
+    linear-gradient(160deg, #fffdf8, #f6f1e4);
+}
+.pagina-publica .perfil-vacio--eventos::after {
+  content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
+}
+/* Insignia grande: círculo verde con aro dorado y el ícono de la sección en blanco (sustituye al círculo de los demás vacíos) */
+.pagina-publica .perfil-vacio--eventos::before { content: none; }
+.pagina-publica .perfil-vacio__insignia {
+  position: relative; width: 76px; height: 76px; border-radius: 50%; background: #164f44;
+  box-shadow: 0 0 0 5px #f2e3b8, 0 14px 28px rgba(22, 79, 68, 0.25);
+}
+.pagina-publica .perfil-vacio__insignia::after {
+  content: ""; position: absolute; inset: 21px; background: #fff;
+  -webkit-mask: var(--icono-seccion) center / contain no-repeat; mask: var(--icono-seccion) center / contain no-repeat;
+}
+.pagina-publica .perfil-vacio--eventos strong { font-size: 20px; }
+.pagina-publica .perfil-vacio__sugerencias { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 2px 0 6px; padding: 0; list-style: none; }
+.pagina-publica .perfil-vacio__sugerencias li {
+  padding: 5px 14px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px #e2ded5; color: #164f44; font-size: 13px; font-weight: 700;
+}
+.pagina-publica .perfil-vacio__sugerencias li:nth-child(2) { background: #f6eeda; box-shadow: inset 0 0 0 1px #e6d194; color: #6b4f12; }
+.pagina-publica .perfil-vacio__sugerencias li:nth-child(3) { background: #e4efeb; box-shadow: inset 0 0 0 1px #bfd9d0; }
+.pagina-publica .perfil-vacio__sugerencias li:nth-child(4) { background: #f6eaee; box-shadow: inset 0 0 0 1px #e8c3cf; color: #9b2247; }
+
+/* Tarjetas de Mis eventos con datos: borde de color a la izquierda según su estado */
+.pagina-publica .perfil-solicitud.perfil-evento { border-left: 4px solid #c9a24a; }
+.pagina-publica .perfil-solicitud.perfil-evento--confirmada { border-left-color: #1f6b5c; }
+.pagina-publica .perfil-solicitud:is(.perfil-evento--cancelada, .perfil-evento--rechazada) { border-left-color: #b9b3a5; background: #fbfaf7; }
+/* La barra de guardar lleva los botones a la izquierda (Guardar primero) para que el botón del asistente, abajo a la derecha, no los tape */
+.pagina-publica .perfil-formulario > .perfil-guardar { justify-content: flex-start; padding: 14px 22px 14px 14px; }
+.pagina-publica .perfil-guardar__botones { order: -1; flex-direction: row-reverse; }
+.pagina-publica .perfil-guardar__estado { flex: 1; padding-left: 6px; }
+/* En teléfono la barra no se queda fija (taparía el formulario): va al final, con los botones a todo lo ancho */
+@media (max-width: 600px) {
+  .pagina-publica .perfil-formulario > .perfil-guardar { position: static; padding: 14px; }
+  .pagina-publica .perfil-guardar__botones { order: 0; flex-direction: column-reverse; } /* Guardar arriba */
+  .pagina-publica .perfil-guardar__estado { padding-left: 0; }
+}
+
+/* ---------- Listas del perfil (Mis eventos, Mis propuestas, Mis espacios): la misma tarjeta para todas ----------
+   Cada elemento es su propia tarjeta blanca con borde de color a la izquierda según su estado:
+   verde = confirmado/aprobado · dorado = en curso/por confirmar · guinda = requiere acción/no aprobado · gris = cancelado o borrador. */
+.pagina-publica .perfil-solicitudes { display: grid; gap: 10px; padding: 0; border: 0; background: none; }
+.pagina-publica .perfil-solicitud {
+  border: 1px solid #e2ded5; border-left: 4px solid #c9a24a; border-radius: 20px; background: #fff;
+  box-shadow: 0 6px 16px rgba(22, 79, 68, 0.05); transition: box-shadow 0.2s ease;
+}
+.pagina-publica .perfil-solicitud + .perfil-solicitud { border-top: 1px solid #e2ded5; }
+.pagina-publica .perfil-solicitud:hover { box-shadow: 0 10px 22px rgba(22, 79, 68, 0.09); }
+.pagina-publica .perfil-solicitud--verde { border-left-color: #1f6b5c; }
+.pagina-publica .perfil-solicitud--guinda { border-left-color: #9b2247; }
+.pagina-publica .perfil-solicitud--gris { border-left-color: #b9b3a5; background: #fbfaf7; }
+
+/* ---------- Mi perfil, quinta vuelta (18 nov 2026): catálogo aplicado a todas las secciones (solo escritorio) ---------- */
+/* Menú lateral más angosto: «Progreso y recompensas» siempre en dos renglones */
+.pagina-publica .perfil-cuerpo { grid-template-columns: 212px minmax(0, 1fr); }
+
+/* Panel de lista: tarjeta crema con franja que llega hasta el alto del menú y reúne filtros, lista o vacío */
+.pagina-publica .perfil-panel {
+  position: relative; display: flex; flex: 1; flex-direction: column; gap: 14px; padding: 22px 20px 20px; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: linear-gradient(180deg, #fffdf8, #f7f3ea);
+  box-shadow: 0 6px 16px rgba(22, 79, 68, 0.05);
+}
+.pagina-publica .perfil-panel::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .perfil-panel .perfil-vacio--panel { flex: 1; border: 0; background: transparent; box-shadow: none; }
+.pagina-publica .perfil-panel .perfil-vacio--panel::after { content: none; }
+
+/* Filtros segmentados: una sola pastilla blanca con las opciones; el número va en un círculo */
+.pagina-publica .perfil-filtros { display: inline-flex; flex-wrap: wrap; gap: 4px; width: fit-content; padding: 4px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px #e2ded5; }
+.pagina-publica .perfil-filtro { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px 8px 16px; border: 0; background: transparent; box-shadow: none; }
+.pagina-publica .perfil-filtro:hover { background: #f7f5f0; }
+.pagina-publica .perfil-filtro--activo, .pagina-publica .perfil-filtro--activo:hover { background: #164f44; color: #fff; box-shadow: 0 6px 14px rgba(22, 79, 68, 0.2); }
+.pagina-publica .perfil-filtro__cuenta {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box;
+  border-radius: 999px; background: #e4efeb; color: #164f44; font-size: 12px; font-weight: 800;
+}
+.pagina-publica .perfil-filtro--activo .perfil-filtro__cuenta { background: #e6d194; color: #164f44; }
+
+/* Ícono de cada tarjeta de lista sin fecha: círculo verde claro */
+.pagina-publica .perfil-lista__icono { display: flex; flex: none; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 14px; background: #e4efeb; }
+.pagina-publica .perfil-solicitud--gris .perfil-lista__icono { background: #f1efea; }
+.pagina-publica .perfil-lista__icono img { width: 22px; height: 22px; }
+
+/* Progreso: niveles como ruta (círculos unidos por una línea) */
+.pagina-publica .perfil-niveles--ruta { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .perfil-niveles--ruta::before { content: ""; position: absolute; top: 40px; left: 17%; right: 17%; height: 3px; border-radius: 3px; background: #efe2bf; }
+.pagina-publica .perfil-niveles--ruta .perfil-nivel {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 18px 14px; text-align: center;
+  border: 1px solid #efebe2; border-radius: 18px; background: #fbf9f4;
+}
+.pagina-publica .perfil-nivel__numero {
+  display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-bottom: 4px; border-radius: 50%;
+  background: #e2ded5; box-shadow: 0 0 0 4px #fbf9f4; color: #6b675e; font-size: 18px; font-weight: 800;
+}
+.pagina-publica .perfil-nivel--verde .perfil-nivel__numero { background: #1f6b5c; color: #fff; }
+.pagina-publica .perfil-nivel--dorado .perfil-nivel__numero { background: #c9a24a; color: #fff; }
+.pagina-publica .perfil-niveles--ruta .perfil-nivel p { margin: 0; color: #6b4f12; font-size: 12px; font-weight: 700; letter-spacing: 0.2px; }
+.pagina-publica .perfil-niveles--ruta .perfil-nivel strong { color: #161a1d; font-size: 18px; }
+
+/* Avisos: canal como tarjetas de opción y tipos como interruptores */
+.pagina-publica .perfil-opciones { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.pagina-publica .perfil-opcion {
+  position: relative; display: flex; flex-direction: column; gap: 4px; padding: 14px 14px 14px 42px; border: 1.5px solid #e2ded5; border-radius: 16px;
+  background: #fff; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-publica .perfil-opcion:hover { border-color: #bfd9d0; }
+.pagina-publica .perfil-opcion input { position: absolute; top: 16px; left: 14px; width: 18px; height: 18px; margin: 0; accent-color: #164f44; cursor: pointer; }
+.pagina-publica .perfil-opcion strong { color: #161a1d; font-size: 15px; }
+.pagina-publica .perfil-opcion span { color: #6b675e; font-size: 13px; line-height: 18px; }
+.pagina-publica .perfil-opcion--activa { border-color: #1f6b5c; background: #f1f7f4; box-shadow: 0 0 0 3px rgba(31, 107, 92, 0.12); }
+.pagina-publica .perfil-interruptor { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; cursor: pointer; }
+.pagina-publica .perfil-interruptor__textos { display: flex; flex-direction: column; gap: 2px; }
+.pagina-publica .perfil-interruptor__textos strong { color: #161a1d; font-size: 15px; }
+.pagina-publica .perfil-interruptor__textos span { color: #6b675e; font-size: 13px; font-weight: 400; }
+.pagina-publica .perfil-interruptor input[type="checkbox"] {
+  position: relative; flex: none; width: 46px; height: 26px; margin: 0; border-radius: 999px; background: #cfc9bb;
+  appearance: none; cursor: pointer; transition: background-color 0.2s ease;
+}
+.pagina-publica .perfil-interruptor input[type="checkbox"]::before {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.2s ease;
+}
+.pagina-publica .perfil-interruptor input[type="checkbox"]:checked { background: #1f6b5c; }
+.pagina-publica .perfil-interruptor input[type="checkbox"]:checked::before { transform: translateX(20px); }
+.pagina-publica .perfil-interruptor input[type="checkbox"]:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+
+/* Seguridad: requisitos de la contraseña en pastillas que se ponen verdes al cumplirse */
+.pagina-publica .perfil-seguridad__formulario { display: flex; flex-direction: column; gap: 16px; }
+.pagina-publica .perfil-seguridad__formulario fieldset { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.pagina-publica .perfil-requisitos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .perfil-requisitos li {
+  display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px; border-radius: 999px;
+  background: #f1efea; box-shadow: inset 0 0 0 1px #e2ded5; color: #6b675e; font-size: 12.5px; font-weight: 700; transition: background-color 0.2s ease, color 0.2s ease;
+}
+.pagina-publica .perfil-requisitos li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pagina-publica .perfil-requisitos__ok { background: #e4efeb !important; box-shadow: inset 0 0 0 1px #bfd9d0 !important; color: #164f44 !important; }
+
+/* ---------- Menú lateral del perfil como la barra de navegación principal (18 nov 2026) ----------
+   Opciones alineadas a la izquierda (como estaban) y sin relleno de color: al pasar el mouse se dibuja una rayita dorada fina y la sección
+   activa queda en verde con la rayita dorada más gruesa, que entra dibujándose al elegirla. */
+.pagina-publica .perfil-menu .perfil-etiqueta { align-self: flex-start; margin: 0 0 8px 4px; }
+.pagina-publica .perfil-menu__opcion { position: relative; justify-content: flex-start; text-align: left; color: #1f2a28; font-weight: 600; transition: color 0.2s ease; }
+.pagina-publica .perfil-menu__opcion:hover { background: none; color: #164f44; }
+.pagina-publica .perfil-menu__opcion--activa,
+.pagina-publica .perfil-menu__opcion--activa:hover { background: none; box-shadow: none; color: #164f44; font-weight: 800; }
+.pagina-publica .perfil-menu__opcion--activa img { filter: none; }
+.pagina-publica .perfil-menu ul .perfil-menu__opcion::after {
+  content: ""; position: absolute; right: 16px; bottom: 5px; left: 16px; width: auto; height: 2px; margin: 0; border-radius: 2px;
+  background: #e6d194; transform: scaleX(0); transition: transform 0.2s ease;
+}
+.pagina-publica .perfil-menu ul .perfil-menu__opcion:hover::after { transform: scaleX(1); }
+.pagina-publica .perfil-menu ul .perfil-menu__opcion--activa::after {
+  height: 3px; bottom: 4px; background: linear-gradient(90deg, #c9a24a, #e6d194); transform: scaleX(1); animation: menu-raya 0.35s ease-out;
+}
+@keyframes menu-raya { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* «Cerrar sesión» con su ícono, alineado como las demás opciones */
+.pagina-publica .perfil-menu .perfil-menu__salir { justify-content: flex-start; color: #9b2247; font-weight: 700; }
+.pagina-publica .perfil-menu .perfil-menu__salir img { width: 18px; height: 18px; }
+.pagina-publica .perfil-menu .perfil-menu__salir:hover { background: #f1dce3; color: #7d1a39; }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .perfil-menu ul .perfil-menu__opcion::after { transition: none; animation: none; } }
+.pagina-publica .perfil-menu__texto { max-width: 126px; text-align: left; } /* «Progreso y recompensas» en dos renglones con el ícono pegado */
+.pagina-publica .perfil-panel--ajustado { flex: none; } /* panel que mide lo que su contenido (no se estira al alto del menú) */
+/* Las opciones de dos renglones («Progreso y recompensas») crecen para que la rayita dorada no quede pegada al texto */
+.pagina-publica .perfil-menu ul .perfil-menu__opcion { height: auto; min-height: 48px; padding-top: 10px; padding-bottom: 14px; }

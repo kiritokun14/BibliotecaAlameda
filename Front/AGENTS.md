@@ -66,7 +66,18 @@ Si una pantalla se ve distinta a esas dos, se ajusta a ellas, no al revés. Los 
 - **Ilustraciones** (`assets/inicio/adorno-*.svg`): plantas y troncos propios en los colores de la institución, detrás del contenido o en esquinas vacías, nunca tapando texto; se quitan si estorban en teléfono.
   - **Guías con flores** dentro de los bloques de color: `adorno-guia-flores.svg` con las clases `guia-flores` + `guia-flores--arriba-izquierda | arriba-derecha | izquierda | derecha` (y `guia-flores--chica` si el bloque tiene contenido cerca de las esquinas). Se usan en «¿Qué quieres hacer hoy?» y «Cómo encontrarnos»; para otro bloque, reutiliza las mismas clases, no dibujes otras flores.
   - Afuera de los bloques (en el fondo de la sección) van las plantas de los costados; en la portada, los troncos.
-- **Sin flechas ni íconos dentro de botones o enlaces** (excepciones: el ícono de carga y el ojo de «Mostrar»). Los íconos van en encabezados, insignias, recuadros y estados.
+- **Sin flechas ni íconos dentro de botones o enlaces** (excepciones: el ícono de carga, el ojo de «Mostrar» y el ícono de «Cerrar sesión» del menú del perfil, pedido por Aldahir el 18 nov). Los íconos van en encabezados, insignias, recuadros y estados.
+- **Etiquetas de bloque (pastilla con ícono):** pastilla dorada (`#f6eeda → #f2e3b8`, aro `#e6d194`, texto `#6b4f12`, 12.5 px, negrita) con su ícono blanco dentro de un círculo verde `#164f44` de 22 px; sobre fondo verde, la versión clara. **Nunca texto en mayúsculas suelto** como etiqueta. En el perfil y notificaciones es el componente `EtiquetaPerfil` (`perfil/piezas.tsx`); todas las etiquetas de una pantalla son iguales.
+- **Tarjetas de contenido:** blancas, borde `#e2ded5`, radio 24 px, sombra suave y **franja de color de 4 px arriba** según su tipo (verde, dorada, guinda o la franja guinda → dorado); la cabecera (ícono en círculo + título) separada del contenido por una línea.
+- **Datos de solo lectura en fichas:** cada dato en una ficha con el color de su tarjeta (verde claro, dorado claro o rosa claro, radio 14 px); la etiqueta arriba en minúsculas, en negrita y del color de la tarjeta, **con el ícono del dato** (persona, fecha, correo, teléfono, lugar); el valor en negrita (15 px) y su nota (12 px). Cuadrícula de 4 columnas en escritorio, 2 en tableta y 1 en teléfono; **correo, teléfono, calle y colonia en fichas anchas** (`ancho={2}`) para que no se partan. En los formularios de edición, las etiquetas de los campos llevan el mismo ícono y color que en la vista.
+- **Antes de un formulario de edición:** tarjeta verde con luces que dice qué se edita (iniciales y nombre), cómo se guarda y, en pastillas, qué se puede cambiar y qué se hace con el personal.
+- **Encabezado de sección:** insignia (ícono en círculo verde con aro dorado), título y texto; la acción principal de la sección («Editar mis datos») va a la derecha del encabezado, no suelta al final.
+- **Notas:** de ayuda en crema con borde dorado a la izquierda; **positivas o de privacidad** en verde claro con borde verde a la izquierda e insignia; de error o corrección en rosa con borde guinda a la izquierda.
+- **Formularios largos:** barra de guardar que acompaña al bajar (`position: sticky`, abajo) en una tarjeta blanca con borde izquierdo gris, que pasa a dorado con un punto que late cuando hay cambios. Dice el estado («Tienes cambios sin guardar» / «Sin cambios por ahora»). **Botones a la izquierda, «Guardar» primero** (degradado verde `#1d6354 → #123f37` con sombra verde) y «Cancelar» con contorno, para que el botón del asistente no los tape. En teléfono la barra va al final del formulario (no fija), con «Guardar» arriba y ambos a todo lo ancho.
+- **Vistas de solo lectura sin ayudas grises:** las notas («Para cambiarla, acude con el personal», «Es el que usas para iniciar sesión») van solo en los formularios de edición; en la vista inflan las fichas.
+- **Estados vacíos importantes** (p. ej. Mis eventos): fondo con luces dorada y verde, franja guinda → dorado arriba, insignia grande (círculo verde con aro dorado), sugerencias en pastillas de colores y el botón principal.
+- **Trámites por estados:** a la izquierda el objeto (la credencial o su lugar punteado mientras no existe) y a la derecha el estado (chip), qué pasa y la acción; debajo, los pasos del trámite con el actual marcado.
+- **Listas de actividades o fechas:** cada elemento con su bloque de fecha (día grande y mes), como en la agenda.
 - **Sin etiquetas pequeñas sobre los títulos** que repitan las migas o el título. Las etiquetas de sección del portal (pastilla con ícono arriba del título del bloque) sí se usan.
 
 ### 3. Animaciones (solo `transform` y `opacity`)
@@ -90,6 +101,76 @@ Todo se apaga con `@media (prefers-reduced-motion: reduce)`, salvo el ícono de 
 - **En teléfono y tableta**, lo que va en fila se apila: avisos con botones, llamados finales, títulos con botón a un lado y barras de búsqueda + filtros. Los grupos de botones van uno debajo del otro a todo lo ancho (44 px mínimo). Revisa que `document.documentElement.scrollWidth` sea igual al ancho de la pantalla (390 y 820).
 - **Botones «Volver a …»** también van solo con texto (sin flecha), igual que los demás.
 
+### 5. Catálogo de piezas (reutilizar, no inventar)
+
+**Regla (Aldahir, 18 nov 2026): el diseño ya está definido. No se crean estilos ni piezas nuevas:** toda pantalla nueva o que se rehaga se arma con estas piezas.
+Si algo no encaja, usa la más parecida y pregunta antes de inventar otra. Los retoques van en `src/components/portal/Detalles.css`.
+**Lo responsivo se hace después**, en una pasada aparte: por ahora diseña y revisa solo en escritorio (1366 × 768), sin agregar ni ajustar `@media`.
+
+| Pieza | Dónde | Para qué |
+|---|---|---|
+| `EncabezadoPublico` | `components/portal/PaginaPublica.tsx` | Franja verde de título de cada página: centrada, con luces y etiqueta |
+| `Bloque` + `Etiqueta` | `pages/publico/inicio/Bloque.tsx` | Bloques de color del inicio con su etiqueta de sección; adornos `guia-flores` en las esquinas |
+| `EtiquetaPerfil` | `pages/publico/perfil/piezas.tsx` | Etiqueta en pastilla dorada con ícono blanco en círculo verde (`claro` sobre verde) |
+| `EncabezadoSeccion` | `pages/publico/perfil/piezas.tsx` | Encabezado de sección: insignia con el ícono (`--icono-seccion`), título, texto y `accion` a la derecha |
+| `TarjetaPerfil` | `pages/publico/perfil/piezas.tsx` | Tarjeta blanca con franja de color arriba (`verde`, `dorada`, `rosa`, `blanca`) y cabecera con ícono |
+| `Dato` en `dl.perfil-datos` | `pages/publico/perfil/piezas.tsx` | Datos de solo lectura en fichas de color, con `icono` y `ancho={2 \| 4}`; sin notas grises |
+| `Campo` en `.perfil-fila` | `pages/publico/perfil/secciones.tsx` | Campo de 44 px con etiqueta con ícono y color; ayudas solo aquí |
+| `.perfil-editar-intro` | `Detalles.css` | Tarjeta verde antes de un formulario de edición: quién, cómo se guarda, qué se puede cambiar |
+| `.perfil-guardar` | `Detalles.css` | Barra de guardar fija abajo: estado de cambios, «Guardar» (degradado verde) primero, «Cancelar» con contorno |
+| `.perfil-nota` · `--dorada` · `--guinda` | `Perfil.css` + `Detalles.css` | Recuadros de ayuda (crema, borde dorado), aviso (dorado) y error o corrección (rosa, borde guinda) |
+| `.perfil-protegidos` | `Detalles.css` | Nota positiva o de privacidad: verde claro, borde verde e insignia |
+| `.perfil-vacio` | `Detalles.css` | Estado vacío centrado con el ícono de la sección |
+| `.perfil-vacio--eventos` | `Detalles.css` | Estado vacío importante: luces, franja, insignia grande (`.perfil-vacio__insignia`) y sugerencias (`.perfil-vacio__sugerencias`) |
+| `.perfil-solicitudes` + `.perfil-solicitud--{color}` | `Detalles.css` | **Lista de tarjetas** (eventos, propuestas, espacios, solicitudes): ver «Tarjetas de lista» abajo |
+| `.perfil-evento__fecha` | `Detalles.css` | Bloque de fecha (día y mes) a la izquierda de un elemento con fecha |
+| `.perfil-panel` | `Detalles.css` | **Panel de lista**: tarjeta crema con franja que llega hasta el alto del menú; reúne filtros, lista de tarjetas o el vacío |
+| `.perfil-panel--ajustado` | `Detalles.css` | El mismo panel cuando va arriba de otra tarjeta: mide lo que su contenido |
+| `Filtros` segmentados (`.perfil-filtros` + `.perfil-filtro__cuenta`) | `perfil/seccionesCuenta.tsx` | Una pastilla blanca con las opciones; el activo en verde y el número en un círculo («Todas 5») |
+| `.perfil-opciones` + `.perfil-opcion` | `Detalles.css` | Elegir una opción entre pocas (canal de avisos): tarjetas con radio, título y descripción; la elegida en verde claro |
+| `.perfil-interruptor` | `Detalles.css` | Activar o desactivar algo (tipos de aviso): fila con título, descripción e interruptor verde |
+| `.perfil-requisitos` | `Detalles.css` | Requisitos en vivo (contraseña): pastillas grises que se ponen verdes al cumplirse |
+| `.perfil-niveles--ruta` | `Detalles.css` | Niveles o etapas numeradas en fila, unidas por una línea, con su chip de estado |
+| `Chip` | `pages/publico/credencial/piezas.tsx` | Estado en pastilla con punto (`verde`, `dorado`, `guinda`, `gris`) |
+| `.perfil-filtro` | `Perfil.css` | Filtros en pastilla con contador; el activo en verde |
+| `.perfil-credencial-estado` + `EtapasTramite` | `Detalles.css` · `credencial/piezas.tsx` | Trámite por estados: objeto a la izquierda, estado y acción a la derecha; pasos debajo |
+| `.perfil-boton` (`--contorno`, `--chico`, `--guardar`) | `Perfil.css` + `Detalles.css` | Botones del perfil (46 px, solo texto) |
+| Panel: `EncabezadoPagina`, tablas, chips | `pages/admin/componentes.tsx` | Todo el panel; ver `docs/guia-diseno.md` |
+
+**Estructura de una sección del perfil** (todas la siguen): `EncabezadoSeccion` con la acción principal a la derecha → contenido (tarjetas, o un `perfil-panel` con filtros y lista que llega al alto del menú) → nota de ayuda al final. Formularios: la barra `perfil-guardar` siempre hasta abajo. El menú lateral mide 212 px, con la etiqueta «Secciones del perfil» y las opciones **alineadas a la izquierda** (Aldahir probó centrado y prefiere así); «Progreso y recompensas» va en dos renglones. **Se comporta como la barra de navegación principal:** sin relleno de color, al pasar el mouse se dibuja una rayita dorada fina y la sección activa queda en verde con la rayita dorada gruesa, que entra dibujándose al elegirla. «Cerrar sesión» va en guinda y con su ícono.
+
+**Tarjetas de lista** (las de Mis eventos; Aldahir las aprobó, 18 nov): úsalas para **cualquier lista de elementos con estado**.
+- Cada elemento es **su propia tarjeta**: blanca, borde `#e2ded5`, radio 20 px, sombra suave que crece al pasar el mouse; 10 px entre tarjetas y sin marco alrededor de la lista.
+- **Borde izquierdo de 4 px según el estado:** verde `#1f6b5c` = confirmado o aprobado · dorado `#c9a24a` = en curso o por confirmar · guinda `#9b2247` = requiere acción o no aprobado · gris `#b9b3a5` = cancelado o borrador (fondo `#fbfaf7` y título gris).
+- A la izquierda, el **bloque de fecha** (58 × 62 px, día en 22 px y mes en mayúsculas pequeñas): verde claro si está confirmado, dorado claro si está pendiente, gris si se canceló. Si el elemento no tiene fecha, un ícono en círculo verde claro.
+- En medio, el título (17 px, negrita) y el detalle (14 px, gris). A la derecha, el `Chip` de estado y las acciones como `perfil-boton--chico` (la principal llena, la secundaria con contorno).
+- Arriba de la lista, los filtros (`perfil-filtro`) con contador. Si la lista está vacía, `perfil-vacio` (o `perfil-vacio--eventos` si es la lista principal de la sección, con sugerencias y su botón).
+
+### 6. Recursos reutilizables (Mi perfil terminado, 18 nov 2026)
+
+**Mi perfil quedó oficialmente terminado** (Aldahir, 18 nov 2026). Sus piezas son la base para las demás pantallas con sesión (Notificaciones, Mis trámites…): úsalas tal cual.
+
+**Colores con significado** (los mismos en chips, bordes de tarjetas, fichas y franjas):
+| Color | Hex | Significa |
+|---|---|---|
+| Verde | `#164f44` · `#1f6b5c` (claro `#e4efeb`) | confirmado, aprobado, vigente, activo; insignias y botones principales |
+| Dorado | `#c9a24a` · `#e6d194` (claro `#f6eeda`) | en curso, por confirmar, pendiente; etiquetas y rayitas |
+| Guinda | `#9b2247` · `#611232` (claro `#f6eaee`) | requiere acción, no aprobado, vencido, cerrar sesión |
+| Gris | `#b9b3a5` (claro `#f1efea`) | cancelado, borrador, bloqueado |
+
+**Íconos** (verdes de trazo; se pintan de otro color con `mask` y la variable `--icono`):
+- `perfil/iconos.ts` → `iconosSeccion`: `resumen` (lista), `datos` (persona), `credencial` y `propuestas` (archivo), `eventos` (calendario), `espacios` (pin), `progreso` (estrella), `mensajes` (correo), `avisos` (campana), `seguridad` (candado).
+- Otros: `assets/inicio/etiqueta-accesos.svg` (brújula, para etiquetas de navegación), `assets/inicio/contacto-telefono.svg` (teléfono), `assets/perfil/menu-salir.svg` (cerrar sesión), `assets/perfil/tarjeta-*.svg` (íconos blancos para los círculos de color de `TarjetaPerfil`).
+- Un ícono en un círculo de color claro va en verde (`iconosSeccion`); en un círculo verde o guinda, blanco (`tarjeta-*.svg` o `mask` con fondo blanco).
+
+**Variables de CSS:** `--icono-seccion` (la pone `Perfil.tsx` en `.perfil-seccion`; la usan la insignia del encabezado y los vacíos) y `--icono` (la ponen `EtiquetaPerfil`, `Dato` y las etiquetas de `Campo`).
+
+**Componentes y funciones:** `EtiquetaPerfil`, `EncabezadoSeccion` (con `accion`), `TarjetaPerfil`, `Dato` (`icono`, `ancho`) y `MenuPerfil` en `perfil/piezas.tsx`; `Filtros` y `ListaSolicitudes` (`vacio`, `vacioTexto`, `vacioAccion`) en `perfil/seccionesCuenta.tsx`; `Chip`, `EtapasTramite`, `TarjetaCredencial` y `SelectorEstados` en `credencial/piezas.tsx`; `useSesion` y `sesionSimulada` en `perfil/usarSesion.ts`; `useTramite` y `verEjemplo` en `credencial/datos.ts`; `useNotificaciones` en `notificaciones/datos.ts`; folios de mensajes en `perfil/mensajesGuardados.ts`.
+
+**Para revisar sin backend (solo en desarrollo):** `?simular=sesion` (persona adulta) y `?simular=sesion-menor` muestran el perfil, notificaciones, inscripciones, preferencias de avisos y mensajes de ejemplo; en Mi credencial, el selector «Vista de ejemplo de estados» cambia el estado del trámite.
+
+**Al hacer una pantalla nueva con sesión:** encabezado de sección con insignia y acción → tarjetas o panel de lista → nota al final; estados con `Chip` y borde de color; vacío con `perfil-vacio--eventos`; formularios con `Campo`, interruptores u opciones y la barra `perfil-guardar`. Todo en escritorio; lo responsivo, después.
+
 ## Diseño responsivo
 
 Puntos de corte comunes: **teléfono ≤ 600 px**, **tableta 601–1024 px**, **escritorio ≥ 1025 px** (laptop de referencia 1366 × 768; pantalla grande 1920 × 1080).
@@ -104,6 +185,7 @@ Puntos de corte comunes: **teléfono ≤ 600 px**, **tableta 601–1024 px**, **
   - El `zoom: 0.9` del portal y el ajuste de secciones a la pantalla son **solo de escritorio**; en táctil la página fluye normal.
   - Ilustraciones y adornos se ocultan o encogen si quedarían detrás del texto.
   - Revisa siempre a **390 × 844** (teléfono), **820 × 1180** (tableta) y **1366 × 768** (escritorio).
+- **Por ahora no se ajusta lo responsivo** (Aldahir, 18 nov): se diseña y revisa en escritorio; teléfono y tableta se harán en una pasada aparte con estas reglas.
 - **Pendiente:** el panel de administración sigue siendo solo de escritorio (1280–1920 px). Las pantallas con sesión (perfil, mis trámites, notificaciones) se revisan con estas reglas cuando se toquen.
 - **Pendiente (Aldahir lo pidió para después):** a **1280 × 720** los bloques del inicio no miden lo mismo (Accesos ≈ 735 px, Lecturas 595, Actividades ≈ 635, Noticias ≈ 980 porque su lista se apila debajo de la destacada). Ya pasaba antes del 18 nov. Arreglo esperado: que a ese tamaño todos midan el alto visible menos 64 px, como a 1366 × 768 (Noticias con la destacada y la lista lado a lado, o más compacta), sin encoger Lecturas, Actividades ni Noticias por debajo del 84 %.
 
@@ -185,6 +267,7 @@ Los íconos de la ficha ya vienen descargados en `src/assets/`. Si algo no está
   - Unificó los íconos repetidos en `assets/comun/iconos/`, después de comprobar sus MD5, y eliminó las dos copias sin referencias.
   - Agregó «Reintentar» a los estados de error de Estadísticas y Bitácora sin alterar sus datos ni servicios.
   - Verificación: `npm run lint` sin errores, **340 pruebas aprobadas y 1 omitida**, y `npm run build` exitoso.
+- **Terminado (T1, 18 nov 2026): Mi perfil completo** (todas sus secciones, con el catálogo de piezas). Sigue: Notificaciones con sesión.
 - En curso: T4 · Actor 2 (`476:9982`).
 - Pendientes que dependen del backend, no de nuevas pantallas frontend: Estadísticas, Bitácora y Configuración (`administracion/datos.ts`), Resumen y Notificaciones del panel, y Recuperación asistida conservan datos de ejemplo señalados con `TODO backend`.
 - 3 nov 2026: `main` y `Aldahir` ya tienen la organización de carpetas corregida después del merge.
@@ -233,4 +316,20 @@ Lo que ya se decidió y está hecho. **No lo deshagas**; si algo no te cuadra, p
 - **Plantas a los costados del inicio:** dos ilustraciones propias (`assets/inicio/adorno-planta-verde.svg` y `adorno-planta-dorada.svg`): rama verde con bayas doradas en una esquina superior del bloque y ramita dorada con flores, inclinada 20°, en la inferior opuesta, alternando lado en cada sección. Salen de la orilla de la pantalla y montan unos 60 px sobre la esquina del bloque (vacía), para que se vean también en laptops. El espejo se hace sobre su centro (`transform-origin: 50% …`) o se sale de la pantalla.
 - **Bloques de color del inicio** y franjas verdes de título de cada página: luces dorada y guinda; los bloques llevan franja de color en el borde de arriba.
 - **Botones:** una sola animación en todo el portal (se elevan 2 px con sombra y regresan al presionar). Botones principales del inicio de 46 px y «Ver todas…» de 36 px. No agregues otras animaciones a un botón (brillos, rellenos): pierde la coherencia.
+- **Mi perfil y Notificaciones** (retoque en `Detalles.css`, secciones «Mi perfil y Notificaciones» y «Submódulos de Mi perfil»):
+  - Franja verde con luces y entrada suave; «Mi perfil» y «Notificaciones» como pastilla. Notificaciones usa `EncabezadoPublico` (centrado), igual que las demás páginas.
+  - **Todos los submódulos con la misma estructura:** encabezado con insignia (ícono de la sección en círculo verde con aro dorado, tomado de `perfil/iconos.ts` por la variable `--icono-seccion`), título y texto, sin etiqueta que repita el título; tarjetas con el mismo radio y sombra; recuadros de ayuda crema con borde dorado a la izquierda; errores en rosa con borde guinda; estados vacíos centrados con el ícono de la sección.
+  - **Etiquetas en pastilla y sin mayúsculas** («Secciones del perfil», «Resumen de mi cuenta», «Mi progreso», «Accesos rápidos», «Cómo te avisamos» y la categoría de cada notificación).
+  - **El menú lateral acompaña al scroll** (decisión final de Aldahir, 18 nov): se queda visible justo debajo de la barra de arriba (`position: sticky; top: 84px`) mientras se baja por el contenido; si la pantalla es baja, se desplaza por dentro. La barra de navegación de arriba también es fija. La columna del contenido mide al menos lo que el menú, así los estados vacíos no se ven chiquitos. En teléfono el menú es una fila de pastillas que se desliza de lado, con la sección activa centrada.
+  - Solo se elevan las tarjetas que se pueden tocar; botones de 46 px y sin íconos («Editar mis datos», «Cerrar sesión», «Marcar todas como leídas», paginación sin ‹ ›).
+  - Formulario de Avisos con los campos comunes (select de 44 px, casillas de 22 px). Las notificaciones no leídas llevan borde dorado a la izquierda.
+  - En desarrollo, `?simular=sesion` muestra notificaciones y preferencias de avisos de ejemplo.
+  - **Segunda vuelta (18 nov):** franja verde más baja (avatar de 76 px, nombre de 34 px). «Mi perfil», «Secciones del perfil», «Resumen de mi cuenta», «Mi progreso», «Accesos rápidos» y «Cómo te avisamos» usan la misma `EtiquetaPerfil`.
+  - **Mis datos:** tarjetas blancas con franja de color, datos en fichas sin desbordes, «Editar mis datos» en el encabezado y recuadro «Tus datos están protegidos». **Editar mis datos** usa las mismas tarjetas, campos de 44 px y la barra de guardar que acompaña al bajar.
+  - **Mi credencial:** un bloque por estado (sin solicitud, en revisión, corrección, vigente, vencida) con la credencial o su lugar punteado, el chip de estado, la observación del personal si la hay y la acción; debajo, «Cómo avanza tu trámite» con los cuatro pasos. En desarrollo, el selector «Vista de ejemplo de estados» permite verlos todos.
+  - **Tercera vuelta (18 nov):** datos en 4 columnas con íconos y color (el correo ya no se parte), «Editar mis datos» con tarjeta de inicio y las mismas etiquetas con ícono, menú lateral que se desplaza con el contenido y estado vacío de Mis eventos al alto del menú.
+  - **Cuarta vuelta (18 nov):** barra de guardar rediseñada en Editar mis datos, Mis datos sin notas grises y Mis eventos vacío con luces, insignia y sugerencias; las tarjetas de inscripción llevan borde de color a la izquierda según su estado.
+  - **Quinta vuelta (18 nov, catálogo aplicado):** menú de 236 px; Mis propuestas, Mis espacios y Mis eventos con acción en el encabezado y `perfil-panel` (filtros segmentados con contador en círculo, tarjetas de lista o vacío con insignia); Progreso con niveles en ruta y recompensas como tarjetas de lista; Mis mensajes con vacío de pasos (Recibido · En revisión · Atendido); Avisos con canales en tarjetas de opción, tipos con interruptores y la barra de guardar hasta abajo; Seguridad con requisitos en vivo, sesión como tarjeta de lista y consejos en nota positiva.
+  - **Mis mensajes (18 nov):** al enviar un mensaje de contacto con sesión, su folio se guarda en este navegador para esa cuenta (`perfil/mensajesGuardados.ts`, pruebas en `tests/mensajesGuardados.test.ts`); también al consultar un folio válido. Mis mensajes los lista solos como tarjetas de lista con su estado y «Ver seguimiento»; el buscador por folio queda para mensajes enviados desde otro equipo. `TODO backend`: cuando `GET /mis-solicitudes` incluya los mensajes de contacto, la lista sale de ahí.
+  - **Mis eventos:** cada inscripción es una tarjeta con su bloque de fecha (verde si está confirmada, gris si se canceló); el estado vacío trae «Explorar actividades». Con `?simular=sesion` hay inscripciones de ejemplo.
 - **Sin flechas** en botones, pastillas ni enlaces (se quitaron unas 70 en 38 archivos, y el 18 nov las que quedaban en los botones «Volver a …» de Noticias, Lecturas, Servicios, Eventos y el encabezado de visitante, y en las acciones de las tarjetas de Servicios). Solo conservan flecha los controles ‹ › de los carruseles y el globo del asistente.

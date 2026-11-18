@@ -1,24 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import PaginaPublica from "../../../components/portal/PaginaPublica";
+import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import { SeccionVisitante } from "../../../components/portal/Visitante";
 import { AvisosActividad } from "./AvisosActividad";
 import { useSesion } from "../perfil/usarSesion";
 import { filtrar, nombreArea, notificaciones, sinLeer, useNotificaciones, type Area, type Filtro } from "./datos";
 import "../../../components/portal/Visitante.css";
 import "./Notificaciones.css";
-import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
-import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import iconoArchivo from "../../../assets/admin/resumen/file-verde.svg";
 import iconoCalendario from "../../../assets/perfil/fila-calendario.svg";
 import iconoInfo from "../../../assets/notificaciones/tipo-info.svg";
 import puntoSinLeer from "../../../assets/notificaciones/punto-sin-leer.svg";
-import marcarCheck from "../../../assets/notificaciones/marcar-check.svg";
-import eliminarX from "../../../assets/notificaciones/eliminar-x.svg";
 import quitarX from "../../../assets/notificaciones/quitar-x.svg";
 import modalX from "../../../assets/notificaciones/modal-x.svg";
 import vacioCampana from "../../../assets/notificaciones/vacio-campana.svg";
 import PedirSesion from "../sesion/PedirSesion";
+import { EtiquetaPerfil } from "../perfil/piezas";
+import { iconosSeccion } from "../perfil/iconos";
 
 // Notificaciones de la persona con sesión (Figma A-02, 476:13270): lista, vacío y confirmar eliminar leídas.
 const iconoArea: Record<Area, string> = {
@@ -51,15 +49,8 @@ export default function Notificaciones() {
 
     return (
         <PaginaPublica>
-            <section className="encabezado-visitante">
-                <img className="encabezado-visitante__circulo encabezado-visitante__circulo--1" src={circulo1} alt="" />
-                <img className="encabezado-visitante__circulo encabezado-visitante__circulo--2" src={circulo2} alt="" />
-                <div className="encabezado-visitante__contenido">
-                    <span className="etiqueta-inicio"><span className="punto-dorado" />NOTIFICACIONES</span>
-                    <h1>Tus <span>notificaciones</span></h1>
-                    <p>Aquí ves los cambios en tus solicitudes, las actividades nuevas y los avisos de la biblioteca.</p>
-                </div>
-            </section>
+            <EncabezadoPublico etiqueta="Notificaciones" titulo={<>Tus <span>notificaciones</span></>}
+                texto="Aquí ves los cambios en tus solicitudes, las actividades nuevas y los avisos de la biblioteca." />
 
             <SeccionVisitante fondo="crema">
                 <div className="notif-columnas">
@@ -76,10 +67,10 @@ export default function Notificaciones() {
                             <div className="notif-acciones">
                                 <button type="button" className="notif-accion" disabled={!pendientes}
                                     onClick={() => { notificaciones.marcarTodas(); setAviso("Marcaste todas como leídas."); }}>
-                                    Marcar todas como leídas <img src={marcarCheck} alt="" />
+                                    Marcar todas como leídas
                                 </button>
                                 <button type="button" className="notif-accion notif-accion--guinda" disabled={!hayLeidas} onClick={() => setConfirmar(true)}>
-                                    Eliminar las leídas <img src={eliminarX} alt="" />
+                                    Eliminar las leídas
                                 </button>
                             </div>
                         )}
@@ -123,7 +114,7 @@ export default function Notificaciones() {
 
                     <aside className="notif-lateral">
                         <div className="notif-como">
-                            <p className="notif-como__titulo">CÓMO TE AVISAMOS</p>
+                            <EtiquetaPerfil icono={iconosSeccion.avisos}>Cómo te avisamos</EtiquetaPerfil>
                             <p>Aquí aparecen los cambios y cancelaciones de las sesiones en las que tienes una inscripción.</p>
                             <Link to="/mi-perfil/avisos" className="boton-visitante notif-boton-contorno">
                                 Configurar mis avisos

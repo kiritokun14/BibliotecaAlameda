@@ -1,8 +1,14 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { guardarPerfil, type PerfilPropio } from "../../../servicios/perfil";
 import { ErrorServicio, mensajeError } from "../../../servicios/api";
-import { Dato, EncabezadoSeccion, TarjetaPerfil } from "./piezas";
+import { Dato, EncabezadoSeccion, EtiquetaPerfil, TarjetaPerfil } from "./piezas";
+import { iconosSeccion } from "./iconos";
+import iconoAccesos from "../../../assets/inicio/etiqueta-accesos.svg";
+import iconoTelefono from "../../../assets/inicio/contacto-telefono.svg";
+
+// Íconos de cada dato (los mismos en «Mis datos» y en «Editar mis datos»)
+const ic = { persona: iconosSeccion.datos, fecha: iconosSeccion.eventos, correo: iconosSeccion.mensajes, lugar: iconosSeccion.espacios, telefono: iconoTelefono };
 import {
     cancelarCambioCorreo, consultarCorreoPendiente, consultarDomicilio, formatearFecha, guardarDomicilio,
     nombreCompleto, porcentajeProgreso, resumenCredencial, resumenEjemplo, consultarResponsable, guardarResponsable, validarResponsable, solicitarCambioCorreo, validarCorreo, validarDatos,
@@ -21,7 +27,6 @@ import filaPin from "../../../assets/perfil/fila-pin.svg";
 import tarjetaUsuario from "../../../assets/perfil/tarjeta-usuario.svg";
 import tarjetaPin from "../../../assets/perfil/tarjeta-pin.svg";
 import tarjetaCorreo from "../../../assets/perfil/tarjeta-correo.svg";
-import iconoEditar from "../../../assets/perfil/boton-editar.svg";
 import notaCandado from "../../../assets/perfil/nota-candado.svg";
 import notaInfoDorada from "../../../assets/perfil/nota-info-dorada.svg";
 import tarjetaUsuarios from "../../../assets/perfil/tarjeta-usuarios.svg";
@@ -65,7 +70,7 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
     return (
         <>
             <section className="perfil-bienvenida" aria-labelledby="titulo-bienvenida">
-                <p className="perfil-sobretitulo">RESUMEN DE MI CUENTA</p>
+                <EtiquetaPerfil icono={iconosSeccion.resumen}>Resumen de mi cuenta</EtiquetaPerfil>
                 <h2 id="titulo-bienvenida">{saludo()}{primerNombre ? `, ${primerNombre}` : ""}</h2>
                 <p className="perfil-bienvenida__texto">
                     {menor ? "Cuenta de persona menor de edad: algunos trámites los realiza la persona responsable."
@@ -110,7 +115,7 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
                 <img className="perfil-progreso__circulo" src={circuloProgreso} alt="" />
                 <div className="perfil-progreso__cabecera">
                     <div>
-                        <p id="titulo-mi-progreso" className="perfil-sobretitulo perfil-sobretitulo--claro">MI PROGRESO</p>
+                        <EtiquetaPerfil id="titulo-mi-progreso" icono={iconosSeccion.progreso} claro>Mi progreso</EtiquetaPerfil>
                         <p className="perfil-progreso__cifra"><strong>{r.progreso.actuales}</strong> de {r.progreso.meta} asistencias para el siguiente nivel</p>
                     </div>
                     <Link to="/mi-perfil/progreso" className="perfil-boton perfil-boton--dorado">
@@ -124,7 +129,7 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
             </section>
             {menor && <TarjetaResponsable compacta />}
             <section className="perfil-rapidos" aria-labelledby="titulo-rapidos">
-                <p id="titulo-rapidos" className="perfil-sobretitulo">ACCESOS RÁPIDOS</p>
+                <EtiquetaPerfil id="titulo-rapidos" icono={iconoAccesos}>Accesos rápidos</EtiquetaPerfil>
                 <ul>
                     {rapidos.map((q) => (
                         <li key={q.texto}>
@@ -147,9 +152,9 @@ export function MisDatos({ perfil, menor = false }: { perfil: PerfilPropio; meno
     const guardado = (useLocation().state as { guardado?: boolean } | null)?.guardado;
     return (
         <>
-            {menor
-                ? <EncabezadoSeccion sobretitulo="MIS DATOS" titulo="Mis datos y persona responsable" texto="Consulta los datos de la cuenta y de la persona responsable." />
-                : <EncabezadoSeccion sobretitulo="MIS DATOS" titulo="Mis datos" texto="Consulta tus datos personales y de contacto." />}
+            <EncabezadoSeccion titulo={menor ? "Mis datos y persona responsable" : "Mis datos"}
+                texto={menor ? "Consulta los datos de la cuenta y de la persona responsable." : "Consulta tus datos personales y de contacto."}
+                accion={<Link to="/mi-perfil/datos/editar" className="perfil-boton">Editar mis datos</Link>} />
             {guardado && <p className="perfil-exito" role="status">Tus datos se guardaron correctamente.</p>}
             {pendiente && (
                 <p className="perfil-aviso" role="status">
@@ -160,9 +165,9 @@ export function MisDatos({ perfil, menor = false }: { perfil: PerfilPropio; meno
             {menor ? <>
                 <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="Datos de la persona usuaria">
                     <dl className="perfil-datos">
-                        <Dato etiqueta="NOMBRE COMPLETO" valor={nombreCompleto(perfil)} />
-                        <Dato etiqueta="FECHA DE NACIMIENTO" valor={formatearFecha(perfil.fechaNacimiento)} nota="Para cambiarla, acude con el personal." />
-                        <Dato etiqueta="CORREO DE LA CUENTA" valor={perfil.correo} nota="Es el que se usa para iniciar sesión." />
+                        <Dato etiqueta="Nombre completo" valor={nombreCompleto(perfil)} icono={ic.persona} ancho={2} />
+                        <Dato etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} icono={ic.fecha} ancho={2} />
+                        <Dato etiqueta="Correo de la cuenta" valor={perfil.correo} icono={ic.correo} ancho={4} />
                     </dl>
                 </TarjetaPerfil>
                 <TarjetaResponsable />
@@ -170,27 +175,24 @@ export function MisDatos({ perfil, menor = false }: { perfil: PerfilPropio; meno
             </> : <>
                 <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="Datos personales">
                     <dl className="perfil-datos">
-                        <Dato etiqueta="NOMBRE(S)" valor={perfil.nombres} />
-                        <Dato etiqueta="PRIMER APELLIDO" valor={perfil.primerApellido} />
-                        <Dato etiqueta="SEGUNDO APELLIDO" valor={perfil.segundoApellido ?? ""} />
-                        <Dato etiqueta="FECHA DE NACIMIENTO" valor={formatearFecha(perfil.fechaNacimiento)} nota="Para cambiarla, acude con el personal." />
-                        <Dato etiqueta="TELÉFONO" valor={perfil.telefono} nota="Dato de contacto; no sustituye al correo." />
-                        <Dato etiqueta="CORREO ELECTRÓNICO" valor={perfil.correo} nota="Es el que usas para iniciar sesión." />
+                        <Dato etiqueta="Nombre(s)" valor={perfil.nombres} icono={ic.persona} />
+                        <Dato etiqueta="Primer apellido" valor={perfil.primerApellido} icono={ic.persona} />
+                        <Dato etiqueta="Segundo apellido" valor={perfil.segundoApellido ?? ""} icono={ic.persona} />
+                        <Dato etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} icono={ic.fecha} />
+                        <Dato etiqueta="Correo electrónico" valor={perfil.correo} icono={ic.correo} ancho={2} />
+                        <Dato etiqueta="Teléfono" valor={perfil.telefono} icono={ic.telefono} ancho={2} />
                     </dl>
                 </TarjetaPerfil>
                 <TarjetaPerfil color="dorada" icono={tarjetaPin} titulo="Domicilio">
                     <dl className="perfil-datos">
-                        <Dato etiqueta="CALLE" valor={[domicilio.calle, domicilio.numeroExterior, domicilio.numeroInterior && `int. ${domicilio.numeroInterior}`].filter(Boolean).join(" ")} />
-                        <Dato etiqueta="COLONIA O LOCALIDAD" valor={domicilio.colonia} />
-                        <Dato etiqueta="CÓDIGO POSTAL" valor={domicilio.codigoPostal} />
-                        <Dato etiqueta="MUNICIPIO" valor={domicilio.municipio} />
-                        <Dato etiqueta="ESTADO" valor={domicilio.estado} />
+                        <Dato etiqueta="Calle" icono={ic.lugar} ancho={2} valor={[domicilio.calle, domicilio.numeroExterior, domicilio.numeroInterior && `int. ${domicilio.numeroInterior}`].filter(Boolean).join(" ")} />
+                        <Dato etiqueta="Colonia o localidad" valor={domicilio.colonia} icono={ic.lugar} ancho={2} />
+                        <Dato etiqueta="Código postal" valor={domicilio.codigoPostal} icono={ic.lugar} />
+                        <Dato etiqueta="Municipio" valor={domicilio.municipio} icono={ic.lugar} />
+                        <Dato etiqueta="Estado" valor={domicilio.estado} icono={ic.lugar} ancho={2} />
                     </dl>
                 </TarjetaPerfil>
             </>}
-            <div className="perfil-acciones">
-                <Link to="/mi-perfil/datos/editar" className="perfil-boton">Editar mis datos <img src={iconoEditar} alt="" /></Link>
-            </div>
             <NotaDatos />
         </>
     );
@@ -198,24 +200,29 @@ export function MisDatos({ perfil, menor = false }: { perfil: PerfilPropio; meno
 
 function NotaDatos() {
     return (
-        <div className="perfil-nota">
-            <img src={notaCandado} alt="" />
-            <p><strong>Tus datos</strong>Solo el personal autorizado de la biblioteca puede verlos. Consulta el aviso de privacidad.</p>
+        <div className="perfil-protegidos">
+            <span className="perfil-protegidos__icono"><img src={notaCandado} alt="" /></span>
+            <div>
+                <strong>Tus datos están protegidos</strong>
+                <p>Solo el personal autorizado de la biblioteca puede consultarlos y se usan únicamente para tus trámites y actividades, conforme al aviso de privacidad.</p>
+            </div>
         </div>
     );
 }
 
 // ---------- Editar mis datos ----------
+const iniciales = (p: PerfilPropio) => [p.nombres, p.primerApellido].map((x) => (x ?? "").trim()[0] ?? "").join("").toUpperCase();
 type CampoProps = {
     id: string; etiqueta: string; valor: string; alCambiar: (v: string) => void; error?: string;
     obligatorio?: boolean; ayuda?: string; marcador?: string; deshabilitado?: boolean;
-    tipo?: string; maximo?: number; autocompletar?: string; modoTeclado?: "numeric" | "email" | "text";
+    tipo?: string; maximo?: number; autocompletar?: string; modoTeclado?: "numeric" | "email" | "text"; icono?: string;
 };
-function Campo({ id, etiqueta, valor, alCambiar, error, obligatorio = true, ayuda, marcador, deshabilitado, tipo = "text", maximo, autocompletar, modoTeclado }: CampoProps) {
+function Campo({ id, etiqueta, valor, alCambiar, error, obligatorio = true, ayuda, marcador, deshabilitado, tipo = "text", maximo, autocompletar, modoTeclado, icono }: CampoProps) {
     const descripcion = [error && `${id}-error`, ayuda && `${id}-ayuda`].filter(Boolean).join(" ") || undefined;
     return (
         <div className="perfil-campo">
-            <label htmlFor={id}>{etiqueta}{obligatorio && <span>(obligatorio)</span>}</label>
+            <label htmlFor={id} className={icono ? "perfil-campo__etiqueta--icono" : undefined}
+                style={icono ? { "--icono": `url("${icono}")` } as CSSProperties : undefined}>{etiqueta}{obligatorio && <span>(obligatorio)</span>}</label>
             <input id={id} name={id} type={tipo} value={valor} placeholder={marcador} disabled={deshabilitado}
                 onChange={(e) => alCambiar(e.target.value)} maxLength={maximo} autoComplete={autocompletar} inputMode={modoTeclado}
                 required={obligatorio && !deshabilitado} aria-invalid={error ? true : undefined} aria-describedby={descripcion} />
@@ -233,6 +240,7 @@ export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
     const [nombres, setNombres] = useState(perfil.nombres);
     const [telefono, setTelefono] = useState(perfil.telefono);
     const [domicilio, setDomicilio] = useState<Domicilio>(consultarDomicilio);
+    const [inicial] = useState(() => ({ domicilio: consultarDomicilio(), responsable: consultarResponsable() }));
     const [correo, setCorreo] = useState(perfil.correo);
     const [errores, setErrores] = useState<ErroresDatos & Record<string, string | undefined>>({});
     const [error, setError] = useState("");
@@ -240,6 +248,9 @@ export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
     const [guardando, setGuardando] = useState(false);
     const bloqueo = useRef(false);
     const cambiarDomicilio = (campo: keyof Domicilio) => (v: string) => setDomicilio((d) => ({ ...d, [campo]: v }));
+
+    const hayCambios = nombres !== perfil.nombres || (!menor && (telefono !== perfil.telefono || correo !== perfil.correo))
+        || JSON.stringify(menor ? responsable : domicilio) !== JSON.stringify(menor ? inicial.responsable : inicial.domicilio);
 
     async function guardar(e: FormEvent) {
         e.preventDefault();
@@ -280,71 +291,83 @@ export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
         <form className="perfil-formulario" onSubmit={guardar} noValidate>
             <EncabezadoSeccion sobretitulo="MIS DATOS" titulo="Editar mis datos"
                 texto={menor ? "Mantén actualizados los datos de la cuenta y de la persona responsable." : "Mantén tu información actualizada."} />
+            {/* Qué se edita y qué no, antes de empezar */}
+            <section className="perfil-editar-intro" aria-label="Antes de editar">
+                <span className="perfil-editar-intro__avatar" aria-hidden="true">{iniciales(perfil)}</span>
+                <div className="perfil-editar-intro__textos">
+                    <strong>Estás editando los datos de {nombreCompleto(perfil)}</strong>
+                    <p>Los cambios se guardan hasta que presionas «Guardar cambios». Puedes cancelar en cualquier momento.</p>
+                    <ul>
+                        <li className="perfil-editar-intro__si">Puedes cambiar: {menor ? "nombre y datos de la persona responsable" : "nombre, teléfono, domicilio y correo"}</li>
+                        <li className="perfil-editar-intro__no">Con el personal: apellidos y fecha de nacimiento</li>
+                    </ul>
+                </div>
+            </section>
             <fieldset disabled={guardando || conflicto}>
                 {menor ? <>
                     <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="Datos de la persona usuaria">
                         <div className="perfil-fila">
-                            <Campo id="nombres" etiqueta="Nombre(s)" valor={nombres} alCambiar={setNombres} error={errores.nombres}
+                            <Campo id="nombres" icono={ic.persona} etiqueta="Nombre(s)" valor={nombres} alCambiar={setNombres} error={errores.nombres}
                                 marcador="Ejemplo: Mateo" maximo={150} autocompletar="given-name" />
-                            <Campo id="fecha" etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} alCambiar={() => {}}
-                                deshabilitado ayuda="Para cambiarla, acude con el personal." />
+                            <Campo id="fecha" icono={ic.fecha} etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} alCambiar={() => {}}
+                                obligatorio={false} deshabilitado ayuda="Para cambiarla, acude con el personal." />
                         </div>
                     </TarjetaPerfil>
                     <TarjetaPerfil color="rosa" icono={tarjetaUsuarios} titulo="Persona responsable">
                         <div className="perfil-fila perfil-fila--tres">
-                            <Campo id="responsableNombre" etiqueta="Nombre del responsable" valor={responsable.nombre}
+                            <Campo id="responsableNombre" icono={ic.persona} etiqueta="Nombre del responsable" valor={responsable.nombre}
                                 alCambiar={(v) => setResponsable((r) => ({ ...r, nombre: v }))} error={errores.responsableNombre}
                                 marcador="Ejemplo: Ana López" maximo={200} />
-                            <Campo id="responsableTelefono" etiqueta="Teléfono del responsable" valor={responsable.telefono}
+                            <Campo id="responsableTelefono" icono={ic.telefono} etiqueta="Teléfono del responsable" valor={responsable.telefono}
                                 alCambiar={(v) => setResponsable((r) => ({ ...r, telefono: v.replace(/\D/g, "") }))} error={errores.responsableTelefono}
                                 marcador="10 dígitos" tipo="tel" maximo={10} modoTeclado="numeric" ayuda="Obligatorio para menores." />
-                            <Campo id="responsableRelacion" etiqueta="Parentesco o relación" valor={responsable.relacion}
+                            <Campo id="responsableRelacion" icono={ic.persona} etiqueta="Parentesco o relación" valor={responsable.relacion}
                                 alCambiar={(v) => setResponsable((r) => ({ ...r, relacion: v }))} error={errores.responsableRelacion}
                                 marcador="Madre, padre, tutor…" maximo={60} />
                         </div>
                     </TarjetaPerfil>
                     <NotaConsentimiento />
                 </> : <>
-                    <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="Datos personales" texto="Mantén tu información actualizada.">
+                    <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="Datos personales">
                         <div className="perfil-fila">
-                            <Campo id="nombres" etiqueta="Nombre(s)" valor={nombres} alCambiar={setNombres} error={errores.nombres}
+                            <Campo id="nombres" icono={ic.persona} etiqueta="Nombre(s)" valor={nombres} alCambiar={setNombres} error={errores.nombres}
                                 marcador="Ejemplo: Ana" maximo={150} autocompletar="given-name" />
-                            <Campo id="telefono" etiqueta="Teléfono de contacto" valor={telefono} alCambiar={(v) => setTelefono(v.replace(/\D/g, ""))}
+                            <Campo id="telefono" icono={ic.telefono} etiqueta="Teléfono de contacto" valor={telefono} alCambiar={(v) => setTelefono(v.replace(/\D/g, ""))}
                                 error={errores.telefono} marcador="10 dígitos" tipo="tel" maximo={10} autocompletar="tel-national" modoTeclado="numeric"
                                 ayuda="Obligatorio. El personal lo usa para localizarte." />
                         </div>
                         <div className="perfil-fila">
-                            <Campo id="fecha" etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} alCambiar={() => {}}
-                                deshabilitado ayuda="Para cambiarla, acude con el personal." />
+                            <Campo id="fecha" icono={ic.fecha} etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} alCambiar={() => {}}
+                                obligatorio={false} deshabilitado ayuda="Para cambiarla, acude con el personal." />
                         </div>
                     </TarjetaPerfil>
                     <TarjetaPerfil color="dorada" icono={tarjetaPin} titulo="Domicilio">
                         <div className="perfil-fila perfil-fila--tres">
-                            <Campo id="calle" etiqueta="Calle" valor={domicilio.calle} alCambiar={cambiarDomicilio("calle")} error={errores.calle}
+                            <Campo id="calle" icono={ic.lugar} etiqueta="Calle" valor={domicilio.calle} alCambiar={cambiarDomicilio("calle")} error={errores.calle}
                                 marcador="Nombre de la calle" maximo={150} autocompletar="address-line1" />
-                            <Campo id="numeroExterior" etiqueta="Número exterior" valor={domicilio.numeroExterior} alCambiar={cambiarDomicilio("numeroExterior")}
+                            <Campo id="numeroExterior" icono={ic.lugar} etiqueta="Número exterior" valor={domicilio.numeroExterior} alCambiar={cambiarDomicilio("numeroExterior")}
                                 error={errores.numeroExterior} marcador="Número o «sin número»" maximo={20} />
-                            <Campo id="numeroInterior" etiqueta="Número interior" valor={domicilio.numeroInterior} alCambiar={cambiarDomicilio("numeroInterior")}
+                            <Campo id="numeroInterior" icono={ic.lugar} etiqueta="Número interior" valor={domicilio.numeroInterior} alCambiar={cambiarDomicilio("numeroInterior")}
                                 obligatorio={false} marcador="Si existe" maximo={20} />
                         </div>
                         <div className="perfil-fila">
-                            <Campo id="colonia" etiqueta="Colonia o localidad" valor={domicilio.colonia} alCambiar={cambiarDomicilio("colonia")}
+                            <Campo id="colonia" icono={ic.lugar} etiqueta="Colonia o localidad" valor={domicilio.colonia} alCambiar={cambiarDomicilio("colonia")}
                                 error={errores.colonia} marcador="Escribe la colonia o localidad" maximo={150} />
-                            <Campo id="codigoPostal" etiqueta="Código postal" valor={domicilio.codigoPostal}
+                            <Campo id="codigoPostal" icono={ic.lugar} etiqueta="Código postal" valor={domicilio.codigoPostal}
                                 alCambiar={(v) => cambiarDomicilio("codigoPostal")(v.replace(/\D/g, ""))} error={errores.codigoPostal}
                                 marcador="5 dígitos" maximo={5} autocompletar="postal-code" modoTeclado="numeric" />
                         </div>
                         <div className="perfil-fila">
-                            <Campo id="municipio" etiqueta="Municipio" valor={domicilio.municipio} alCambiar={cambiarDomicilio("municipio")}
+                            <Campo id="municipio" icono={ic.lugar} etiqueta="Municipio" valor={domicilio.municipio} alCambiar={cambiarDomicilio("municipio")}
                                 error={errores.municipio} marcador="Escribe el municipio" maximo={100} />
-                            <Campo id="estado" etiqueta="Estado" valor={domicilio.estado} alCambiar={cambiarDomicilio("estado")}
+                            <Campo id="estado" icono={ic.lugar} etiqueta="Estado" valor={domicilio.estado} alCambiar={cambiarDomicilio("estado")}
                                 error={errores.estado} marcador="Nayarit" maximo={100} />
                         </div>
                     </TarjetaPerfil>
                     <TarjetaPerfil color="blanca" icono={tarjetaCorreo} titulo="Correo de la cuenta"
                         texto="Si lo cambias, te enviaremos un enlace para verificar el nuevo correo.">
                         <div className="perfil-fila perfil-fila--boton">
-                            <Campo id="correo" etiqueta="Correo electrónico" valor={correo} alCambiar={setCorreo} error={errores.correo}
+                            <Campo id="correo" icono={ic.correo} etiqueta="Correo electrónico" valor={correo} alCambiar={setCorreo} error={errores.correo}
                                 tipo="email" marcador="nombre@ejemplo.mx" maximo={254} autocompletar="email" modoTeclado="email" />
                             <button type="button" className="perfil-boton perfil-boton--contorno" onClick={cambiarCorreo}>Cambiar correo</button>
                         </div>
@@ -352,11 +375,18 @@ export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
                 </>}
             </fieldset>
             {error && <p className="perfil-error" role="alert">{error}</p>}
-            <div className="perfil-acciones">
-                {conflicto
-                    ? <button type="button" className="perfil-boton" onClick={alRecargar}>Volver a cargar mis datos</button>
-                    : <button type="submit" className="perfil-boton" disabled={guardando}>{guardando ? "Guardando…" : "Guardar cambios"}</button>}
-                <Link to="/mi-perfil/datos" className="perfil-boton perfil-boton--contorno">Cancelar</Link>
+            {/* Barra de guardar: dice si hay cambios pendientes y acompaña al bajar */}
+            <div className={`perfil-acciones perfil-guardar${hayCambios ? " perfil-guardar--pendiente" : ""}`}>
+                <p className="perfil-guardar__estado" role="status">
+                    <strong>{guardando ? "Guardando tus datos…" : hayCambios ? "Tienes cambios sin guardar" : "Sin cambios por ahora"}</strong>
+                    <span>{hayCambios ? "Revisa que todo esté correcto y guarda." : "Modifica un campo para actualizar tus datos."}</span>
+                </p>
+                <div className="perfil-guardar__botones">
+                    <Link to="/mi-perfil/datos" className="perfil-boton perfil-boton--contorno">Cancelar</Link>
+                    {conflicto
+                        ? <button type="button" className="perfil-boton perfil-boton--guardar" onClick={alRecargar}>Volver a cargar mis datos</button>
+                        : <button type="submit" className="perfil-boton perfil-boton--guardar" disabled={guardando}>{guardando ? "Guardando…" : "Guardar cambios"}</button>}
+                </div>
             </div>
         </form>
     );
@@ -397,13 +427,13 @@ function TarjetaResponsable({ compacta = false }: { compacta?: boolean }) {
         <TarjetaPerfil color="rosa" icono={tarjetaUsuarios} titulo="Persona responsable"
             texto={compacta ? "Algunos trámites los realiza ella o él." : "Se requiere para menores de edad."}>
             <dl className="perfil-datos">
-                <Dato etiqueta={compacta ? "NOMBRE" : "NOMBRE DEL RESPONSABLE"} valor={r.nombre} />
+                <Dato etiqueta={compacta ? "NOMBRE" : "Nombre del responsable"} valor={r.nombre} />
                 {compacta ? <>
-                    <Dato etiqueta="PARENTESCO" valor={r.relacion} />
-                    <Dato etiqueta="TELÉFONO" valor={r.telefono} />
+                    <Dato etiqueta="Parentesco" valor={r.relacion} />
+                    <Dato etiqueta="Teléfono" valor={r.telefono} />
                 </> : <>
-                    <Dato etiqueta="TELÉFONO DEL RESPONSABLE" valor={r.telefono} nota="Obligatorio para menores." />
-                    <Dato etiqueta="PARENTESCO O RELACIÓN" valor={r.relacion} />
+                    <Dato etiqueta="Teléfono del responsable" valor={r.telefono} />
+                    <Dato etiqueta="Parentesco o relación" valor={r.relacion} />
                 </>}
             </dl>
         </TarjetaPerfil>
