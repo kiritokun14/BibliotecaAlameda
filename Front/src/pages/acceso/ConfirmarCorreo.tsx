@@ -5,7 +5,6 @@ import { Link, useLocation } from "react-router";
 import AccesoLayout from "../../components/acceso/AccesoLayout";
 import { reenviarConfirmacion } from "../../servicios/auth";
 import iconoCorreo from "../../assets/login/icono-correo.svg";
-import iconoReenviar from "../../assets/login/icono-reenviar.svg";
 
 function ConfirmarCorreo() {
     // Crear cuenta nos manda el correo al navegar aquí (ver navigate() en CrearCuenta)
@@ -43,7 +42,6 @@ function ConfirmarCorreo() {
 
                 <button type="button" className="boton-secundario" onClick={reenviar} disabled={enviando || correo === "tu correo"}>
                     {enviando ? "Reenviando…" : "Reenviar correo"}
-                    <img src={iconoReenviar} alt="" />
                 </button>
 
                 <div className="enlaces">

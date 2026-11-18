@@ -63,7 +63,7 @@ Antes de escribir CSS, busca una pantalla parecida ya hecha y copia su estructur
 - Estilos en línea (style={{…}}) para diseño, tamaños fuera de la escala, colores nuevos, botones grises por defecto del navegador.
 - Cambiar la lógica, permisos o llamadas al backend cuando la tarea es solo de diseño. No tocar Back/ ni Supabase/.
 - Íconos dentro de botones, pastillas o enlaces (flechas de texto → ←, ::after { content: "→" } o SVG de cualquier tipo):
-  solo texto. Única excepción: el ícono de carga que gira mientras se envía. Los íconos van fuera de los botones.
+  solo texto. Excepciones: el ícono de carga mientras se envía y el ojo de «Mostrar» en contraseñas. Los íconos van fuera de los botones.
 
 9. AL TERMINAR
 - npm run lint, npm test y npm run build sin errores.

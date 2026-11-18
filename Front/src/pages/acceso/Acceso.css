@@ -581,7 +581,7 @@
         linear-gradient(rgba(11, 59, 51, .80), rgba(11, 59, 51, .90)),
         url('../../assets/comun/fotos/foto-biblioteca.webp') center / cover;
 }
-.acceso__columna { width: 430px; max-width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.acceso__columna { width: 470px; max-width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .acceso__columna--ancha { width: 680px; }
 .acceso__logos { display: flex; align-items: center; justify-content: center; gap: 14px; animation: acceso-entrada .5s ease-out both; }
 .acceso__logo { height: 32px; width: auto; object-fit: contain; }
@@ -615,7 +615,7 @@
 .acceso .campo__ayuda, .acceso .campo__error { font-size: 12px; }
 .acceso .boton-mostrar { padding: 5px 10px 5px 8px; font-size: 12.5px; }
 .acceso .boton-mostrar img { width: 15px; height: 15px; }
-.acceso .opciones { gap: 12px; font-size: 13.5px; }
+.acceso .opciones { gap: 32px; font-size: 13.5px; margin-top: 2px; }
 .acceso .opciones > * { white-space: nowrap; }
 .acceso .casilla { font-size: 13.5px; gap: 8px; }
 .acceso .casilla input { width: 18px; height: 18px; border-radius: 5px; }
@@ -636,13 +636,6 @@
 @media (prefers-reduced-motion: reduce) {
     .acceso .tarjeta, .acceso__logos { animation: none; }
     .acceso .boton-principal { transition: none; }
-}
-@media (max-width: 600px) {
-    .acceso { padding: 24px 16px; }
-    .acceso__logos { gap: 10px; flex-wrap: wrap; }
-    .acceso .tarjeta { padding: 24px 18px 18px; }
-    .acceso .fila { grid-template-columns: minmax(0, 1fr); }
-    .acceso .opciones { flex-wrap: wrap; }
 }
 .acceso .icono-circulo { align-self: center; }
 .acceso .icono-circulo img { width: 24px; height: 24px; }
@@ -691,3 +684,101 @@
 }
 .acceso .asistida__boton { height: 40px; font-size: 14px; text-decoration: none; }
 .acceso .asistida__boton:hover { background: #e4efeb; }
+
+/* Crear cuenta: los tres nombres en una sola fila */
+.acceso .fila.fila--tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Crear cuenta: aviso de privacidad en un recuadro con casilla grande */
+.acceso .privacidad-con-error { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.acceso .privacidad {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer;
+    border: 1.5px solid #e2ded5; border-left: 4px solid #c9a24a; border-radius: 14px; background: #f7f5f0;
+    transition: border-color .15s ease, background .15s ease;
+}
+.acceso .privacidad:hover { border-color: #b9b3a5; border-left-color: #c9a24a; }
+.acceso .privacidad input {
+    flex: none; appearance: none; margin: 0; width: 22px; height: 22px; cursor: pointer;
+    border: 1.5px solid #b9b3a5; border-radius: 6px; background: #fff;
+}
+.acceso .privacidad input:checked { border-color: #164f44; background: #164f44 url("../../assets/login/icono-palomita.svg") center / 14px no-repeat; }
+.acceso .privacidad input:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.acceso .privacidad__textos { display: flex; flex-direction: column; gap: 2px; }
+.acceso .privacidad__textos strong { color: #161a1d; font-size: 14px; }
+.acceso .privacidad__textos span { color: #4d4d4d; font-size: 12.5px; line-height: 17px; }
+.acceso .privacidad--aceptada { border-color: #bfd9d0; border-left-color: #164f44; background: #e4efeb; }
+.acceso .privacidad--error { border-color: #e7b9c6; border-left-color: #9b2247; background: #fbf1f4; }
+@media (prefers-reduced-motion: reduce) { .acceso .privacidad { transition: none; } }
+/* Crear cuenta: «¿Ya tienes cuenta?» más pegado al botón */
+.acceso .tarjeta__pie--sin-linea { margin-top: -4px; padding-top: 0; }
+
+/* Crear cuenta · eres menor de 18 años */
+.acceso__insignia img { width: 22px; height: 22px; filter: brightness(0) invert(1); }
+.acceso .menor-pedimos {
+    display: flex; flex-direction: column; gap: 8px; padding: 14px 16px;
+    border: 1px solid #e2ded5; border-left: 4px solid #c9a24a; border-radius: 14px; background: #f7f5f0;
+}
+.acceso .menor-pedimos strong { color: #161a1d; font-size: 14px; }
+.acceso .menor-pedimos ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.acceso .menor-pedimos li { display: flex; align-items: center; gap: 10px; color: #161a1d; font-size: 13.5px; line-height: 19px; }
+.acceso .menor-pedimos li::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: #164f44; }
+.acceso .menor-nota { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 14px; background: #e4efeb; }
+.acceso .menor-nota p { margin: 0; color: #164f44; font-size: 13px; line-height: 19px; }
+.acceso .menor-nota b { font-weight: 700; }
+.acceso .enlaces { align-items: center; }
+
+/* Pantalla de menor: acciones en orden de importancia */
+.acceso .menor-acciones { display: flex; flex-direction: column; gap: 10px; }
+.acceso .menor-acciones__ayuda { margin: 0; color: #6b675e; font-size: 12.5px; line-height: 17px; text-align: center; }
+
+/* Botones de acceso: estados de interacción claros */
+.acceso .boton-secundario { transition: background .15s ease, border-color .15s ease, transform .15s ease; }
+.acceso .boton-secundario:hover:not(:disabled) { background: #e4efeb; }
+.acceso .boton-principal:active:not(:disabled), .acceso .boton-secundario:active:not(:disabled) { transform: translateY(1px) scale(.99); }
+.acceso .boton-principal:focus-visible, .acceso .boton-secundario:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .acceso .boton-secundario { transition: none; } }
+
+/* ================= Responsivo ================= */
+/* Táctil (teléfono y tableta): textos de 16 px en los campos para que iOS no haga zoom, casillas más grandes */
+@media (max-width: 1024px) {
+    .acceso .campo__entrada input, .acceso .campo__entrada select { font-size: 16px; }
+    .acceso .casilla input { width: 22px; height: 22px; }
+    .acceso .campo__entrada { height: 48px; }
+    .acceso .boton-principal { height: 50px; }
+}
+
+/* Tableta (601–1024 px): la tarjeta un poco más grande, centrada */
+@media (min-width: 601px) and (max-width: 1024px) {
+    .acceso { padding: 40px 32px; }
+    .acceso__columna { width: 520px; }
+    .acceso__columna--ancha { width: 720px; }
+    .acceso .tarjeta { padding: 32px 34px 26px; }
+    .acceso__logo { height: 36px; }
+    .acceso__logo--mexico { width: 104px; }
+    .acceso__logo--nayarit { width: 108px; }
+    .acceso__logo--solon { height: 42px; }
+}
+
+/* Teléfono (hasta 600 px): una columna, márgenes de 16 px y la tarjeta casi a lo ancho */
+@media (max-width: 600px) {
+    .acceso { align-items: flex-start; padding: 24px 16px 32px; }
+    .acceso__columna, .acceso__columna--ancha { width: 100%; gap: 14px; margin-block: auto; } /* centrada si cabe; arriba si es larga */
+    .acceso__logos { gap: 10px; }
+    .acceso__logo { height: 28px; }
+    .acceso__logo--mexico { width: 82px; }
+    .acceso__logo--nayarit { width: 86px; }
+    .acceso__logo--solon { height: 34px; }
+    .acceso__separador { height: 24px; }
+    .acceso .tarjeta { gap: 14px; padding: 24px 18px 20px; border-radius: 20px; }
+    .acceso .tarjeta__encabezado h2 { font-size: 22px; line-height: 28px; }
+    .acceso__insignia { width: 42px; height: 42px; box-shadow: 0 0 0 4px #f2e3b8; }
+    .acceso .fila, .acceso .fila.fila--tres { grid-template-columns: minmax(0, 1fr); }
+    /* «Recordarme» y «¿Olvidaste tu contraseña?»: si no caben juntos, el enlace baja alineado a la derecha */
+    .acceso .opciones { flex-wrap: wrap; gap: 10px 12px; }
+    .acceso .opciones > a { margin-left: auto; }
+    .acceso .tarjeta__pie > p:not(.tarjeta__ayuda) { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; }
+    .acceso .tarjeta__pie > p:not(.tarjeta__ayuda) .enlace { margin-left: 0; }
+    .acceso .asistida { padding: 14px; }
+    .acceso .privacidad { padding: 12px 14px; gap: 12px; }
+    .acceso .enlaces { flex-direction: column-reverse; gap: 12px; }
+    .acceso .enlaces .enlace { white-space: nowrap; }
+}

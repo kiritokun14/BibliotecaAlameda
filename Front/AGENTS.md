@@ -28,7 +28,7 @@ El orquestador (T1) mantiene este archivo; las demás terminales no lo editan: s
   carga/vacío/error y lo prohibido. Su prompt sirve para cualquier terminal. Si una pantalla se ve distinta, se ajusta a la guía.
 - **Botones y enlaces solo con texto, sin íconos** (decisión de Aldahir, 17 nov 2026): botones principales y secundarios,
   pastillas («Crear cuenta») y enlaces («Volver a iniciar sesión», «¿Olvidaste tu contraseña?») no llevan íconos de ningún tipo,
-  ni flechas de texto (→ ←, «Ver todas →», «← Volver»). La única excepción es el ícono de carga que gira mientras se envía.
+  ni flechas de texto (→ ←, «Ver todas →», «← Volver»). Excepciones: el ícono de carga que gira mientras se envía y el ojo de «Mostrar» en los campos de contraseña.
   Los íconos van fuera de los botones (encabezados de tarjeta, recuadros de ayuda, estados vacíos).
 
 ## Diseño del panel de administración

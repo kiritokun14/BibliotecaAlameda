@@ -5,7 +5,6 @@ import { Link, useLocation } from "react-router";
 import AccesoLayout from "../../../components/acceso/AccesoLayout";
 import { enviarEnlaceRecuperacion } from "../../../servicios/auth";
 import iconoCorreo from "../../../assets/login/icono-correo.svg";
-import iconoReenviar from "../../../assets/login/icono-reenviar.svg";
 
 // Paso 2: avisar que mandamos el enlace (y permitir reenviarlo)
 function RevisaTuCorreo() {
@@ -53,7 +52,6 @@ function RevisaTuCorreo() {
 
                 <button type="button" className="boton-secundario" onClick={reenviar} disabled={enviando || correo === "tu correo"}>
                     {enviando ? "Reenviando…" : "Reenviar enlace"}
-                    <img src={iconoReenviar} alt="" />
                 </button>
 
                 <Link to="/iniciar-sesion" className="enlace-volver">
