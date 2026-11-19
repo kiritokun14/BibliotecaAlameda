@@ -2144,3 +2144,203 @@
 @media (prefers-reduced-motion: reduce) {
   .pagina-publica .detalle-noticia__columnas::before, .pagina-publica .detalle-noticia__columnas::after, .pagina-publica .detalle-noticia__cuerpo::after { animation: none; }
 }
+
+/* ==========================================================================
+   CONTACTO (versión final, 18 nov 2026 · plantilla C)
+   Estructura: franja compacta con ícono → fila de 4 tarjetas de datos (enlaces) →
+   dos columnas del mismo alto: formulario | preguntas frecuentes + «¿Ya nos escribiste?».
+   Todo lo de Contacto vive en este bloque, en este orden: 1. franja · 2. datos · 3. columnas y formulario ·
+   4. preguntas · 5. «¿Ya nos escribiste?» · 6. confirmación · 7. animaciones · 8. plantas.
+   ========================================================================== */
+
+/* 1. Franja verde compacta (≈ 150 px) */
+.pagina-publica:has(.contacto-pagina) .encabezado-publico { gap: 10px; padding: 26px 24px 30px; }
+.pagina-publica:has(.contacto-pagina) .encabezado-publico h1 { font-size: 36px; line-height: 42px; letter-spacing: -0.5px; }
+.pagina-publica:has(.contacto-pagina) .encabezado-publico p { max-width: 640px; font-size: 15px; line-height: 22px; }
+
+/* 2. Datos: fila de 4 tarjetas blancas con franja verde; las que son enlace se elevan 4 px y subrayan su valor */
+.pagina-publica .contacto-pila { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 1100px; }
+.pagina-publica .contacto-datos .tarjeta-datos__lista { display: grid; grid-template-columns: 1.2fr 1.3fr 0.9fr 1fr; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .contacto-datos .tarjeta-datos__lista > li { display: block; padding: 0; border: 0; }
+.pagina-publica .contacto-datos .tarjeta-datos__fila {
+  position: relative; display: flex; flex-direction: row; align-items: center; gap: 12px; height: 100%; padding: 16px; box-sizing: border-box; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 20px; background: #fff; box-shadow: 0 6px 16px rgba(22, 79, 68, 0.06); color: #161a1d; text-align: left; text-decoration: none;
+}
+.pagina-publica .contacto-datos .tarjeta-datos__fila::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #164f44, #2a7d6b); }
+.pagina-publica .contacto-datos .tarjeta-datos__textos { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pagina-publica .contacto-datos .tarjeta-datos__icono { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #164f44; box-shadow: 0 0 0 3px #f2e3b8; }
+.pagina-publica .contacto-datos .tarjeta-datos__icono img { filter: brightness(0) invert(1); }
+.pagina-publica .contacto-datos .tarjeta-datos__titulo { color: #8a6414; font-size: 12.5px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+.pagina-publica .contacto-datos .tarjeta-datos__valor { color: #161a1d; font-size: 13.5px; font-weight: 700; line-height: 18px; overflow-wrap: anywhere; }
+.pagina-publica .contacto-datos .tarjeta-datos__fila--enlace { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.pagina-publica .contacto-datos .tarjeta-datos__fila--enlace:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(22, 79, 68, 0.14); }
+.pagina-publica .contacto-datos .tarjeta-datos__fila--enlace .tarjeta-datos__valor {
+  text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 2px; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease;
+}
+.pagina-publica .contacto-datos .tarjeta-datos__fila--enlace:hover .tarjeta-datos__valor { text-decoration-color: #c9a24a; }
+
+/* 3. Columnas del mismo alto y formulario (tarjeta blanca con franja guinda → dorado) */
+.pagina-publica .contacto-columnas.contacto-columnas--nuevo {
+  position: relative; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: stretch; max-width: none;
+  overflow: visible; border-radius: 0; background: none; box-shadow: none;
+}
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto {
+  position: relative; height: 100%; box-sizing: border-box; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 26px rgba(22, 79, 68, 0.08);
+}
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .formulario-contacto__titulo { margin: 0; color: #161a1d; font-size: 22px; line-height: 28px; }
+.pagina-publica .campo-contacto__etiqueta { color: #164f44; }
+.pagina-publica .campo-contacto__entrada { min-height: 44px; border-color: #b9b3a5; border-radius: 12px; font-size: 15px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.pagina-publica .campo-contacto__entrada:focus { border-color: #1f6b5c; box-shadow: 0 0 0 4px rgba(201, 162, 74, 0.2); outline: none; }
+.pagina-publica .contacto-columnas--nuevo textarea.campo-contacto__entrada { height: 110px; min-height: 0; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto__privacidad { margin-top: auto; }
+.pagina-publica .formulario-contacto .boton-contacto--grande {
+  height: 46px; padding: 0 30px; border: 0; background: linear-gradient(180deg, #1d6354, #123f37); box-shadow: 0 8px 18px rgba(18, 63, 55, 0.28);
+}
+.pagina-publica .selector-contacto__opcion { transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
+.pagina-publica .selector-contacto__opcion--activa { box-shadow: 0 6px 14px rgba(22, 79, 68, 0.22); }
+.pagina-publica .selector-contacto__opcion:not(.selector-contacto__opcion--activa):hover { background: #e4efeb; color: #164f44; }
+.pagina-publica .contacto-lateral { display: flex; flex-direction: column; gap: 16px; align-self: stretch; }
+
+/* 4. Preguntas frecuentes: tarjeta con franja dorada; una sola abierta a la vez; sin color al pasar el mouse */
+.pagina-publica .preguntas-tarjeta {
+  position: relative; display: flex; flex: none; flex-direction: column; gap: 12px; padding: 22px 16px 16px; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 6px 16px rgba(22, 79, 68, 0.05);
+}
+.pagina-publica .preguntas-tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #c9a24a, #e6d194); }
+.pagina-publica .preguntas-tarjeta .preguntas-contacto { gap: 8px; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto {
+  border: 1px solid transparent; border-radius: 14px; background: #fbf9f4; box-shadow: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-publica .preguntas-tarjeta .pregunta-contacto[open] { border-color: #e6d194; background: #fff; box-shadow: 0 12px 26px rgba(138, 100, 20, 0.12); }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto summary { padding: 12px 14px; font-size: 14px; transition: color 0.2s ease; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto[open] summary { color: #164f44; }
+.pagina-publica .pregunta-contacto summary::after { transition: transform 0.3s ease, background-color 0.2s ease, color 0.2s ease; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto__respuesta { padding: 0 14px 12px; font-size: 13.5px; }
+.pagina-publica .pregunta-contacto__respuesta a { text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 2px; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease; }
+.pagina-publica .pregunta-contacto__respuesta a:hover { text-decoration-color: #c9a24a; }
+
+/* 5. «¿Ya nos escribiste?»: tarjeta verde con luces que toma el alto restante de la columna */
+.pagina-publica .contacto-seguimiento {
+  position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 22px 20px; overflow: hidden;
+  border-radius: 24px; text-align: center; color: #fff;
+  background: radial-gradient(circle at 15% 0%, rgba(201, 162, 74, 0.3), transparent 45%), radial-gradient(circle at 90% 100%, rgba(155, 34, 71, 0.35), transparent 45%), linear-gradient(150deg, #0b3b33, #1f6b5c);
+  box-shadow: 0 12px 26px rgba(22, 79, 68, 0.18);
+}
+.pagina-publica .contacto-seguimiento::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .contacto-seguimiento__insignia { position: relative; width: 48px; height: 48px; border-radius: 50%; background: #e6d194; box-shadow: 0 0 0 4px rgba(242, 227, 184, 0.4); }
+.pagina-publica .contacto-seguimiento__insignia::after {
+  content: ""; position: absolute; inset: 13px; background: #164f44;
+  -webkit-mask: url("../../assets/perfil/menu-correo.svg") center / contain no-repeat; mask: url("../../assets/perfil/menu-correo.svg") center / contain no-repeat;
+}
+.pagina-publica .contacto-seguimiento h2 { margin: 2px 0 0; color: #fff; font-size: 18px; }
+.pagina-publica .contacto-seguimiento p { margin: 0; color: #e4efeb; font-size: 13.5px; line-height: 20px; }
+.pagina-publica .contacto-seguimiento .perfil-boton { width: 100%; margin-top: 6px; background: #e6d194; color: #164f44; }
+.pagina-publica .contacto-seguimiento .perfil-boton:hover { background: #f2e3b8; }
+
+/* 6. Confirmación de envío */
+.pagina-publica .confirmacion-contacto__anillo { border-radius: 50%; }
+
+/* 7. Animaciones (solo las de §3 en AGENTS.md)
+   Entrada escalonada: datos (0–180 ms) → formulario y sus partes (200–540 ms) → preguntas (260–460 ms) →
+   «¿Ya nos escribiste?» (320 ms, su insignia late una vez). Botones suben 2 px; errores y avisos bajan;
+   al abrir una pregunta la caja se alarga suave, la respuesta baja y aparece y el «+» gira; al cerrar, se recoge. */
+.pagina-publica .contacto-datos .tarjeta-datos__fila { animation: acerca-entra 0.5s ease-out both; }
+.pagina-publica .contacto-datos li:nth-child(2) .tarjeta-datos__fila { animation-delay: 60ms; }
+.pagina-publica .contacto-datos li:nth-child(3) .tarjeta-datos__fila { animation-delay: 120ms; }
+.pagina-publica .contacto-datos li:nth-child(4) .tarjeta-datos__fila { animation-delay: 180ms; }
+
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto { animation: acerca-entra 0.5s ease-out 0.2s both; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto > :not(.formulario-contacto__campos),
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto__campos > * { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto > :nth-child(1) { animation-delay: 0.26s; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto > :nth-child(2) { animation-delay: 0.3s; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto > :nth-child(3) { animation-delay: 0.34s; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto > :nth-child(n+5) { animation-delay: 0.54s; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto__campos > :nth-child(1) { animation-delay: 0.38s; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto__campos > :nth-child(2) { animation-delay: 0.42s; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto__campos > :nth-child(3) { animation-delay: 0.46s; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto__campos > :nth-child(n+4) { animation-delay: 0.5s; }
+.pagina-publica .selector-contacto__opcion--activa { animation: noticias-pulso 0.25s ease-out; }
+
+.pagina-publica .contacto-lateral > .preguntas-tarjeta { animation: acerca-entra 0.5s ease-out 0.26s both; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto:nth-child(1) { animation-delay: 0.34s; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto:nth-child(2) { animation-delay: 0.38s; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto:nth-child(3) { animation-delay: 0.42s; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto:nth-child(4) { animation-delay: 0.46s; }
+@supports selector(::details-content) {
+  .pagina-publica .preguntas-tarjeta { interpolate-size: allow-keywords; }
+  .pagina-publica .preguntas-tarjeta .pregunta-contacto::details-content {
+    block-size: 0; overflow: hidden; opacity: 0;
+    transition: block-size 0.35s ease, opacity 0.3s ease, content-visibility 0.35s allow-discrete;
+  }
+  .pagina-publica .preguntas-tarjeta .pregunta-contacto[open]::details-content { block-size: auto; opacity: 1; }
+}
+.pagina-publica .preguntas-tarjeta .pregunta-contacto[open] .pregunta-contacto__respuesta { animation: acerca-despliega 0.35s ease-out both; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto[open] .pregunta-contacto__respuesta > * { animation: detalle-entrada 0.4s ease-out both; }
+.pagina-publica .preguntas-tarjeta .pregunta-contacto[open] .pregunta-contacto__respuesta > :nth-child(2) { animation-delay: 0.08s; }
+
+.pagina-publica .contacto-lateral > .contacto-seguimiento { animation: acerca-entra 0.5s ease-out 0.32s both; }
+.pagina-publica .contacto-seguimiento > :not(.contacto-seguimiento__insignia) { animation: detalle-entrada 0.5s ease-out 0.5s both; }
+.pagina-publica .contacto-seguimiento__insignia { animation: acerca-aro 0.9s ease-out 0.8s 1 both; }
+
+.pagina-publica .formulario-contacto .boton-contacto--grande,
+.pagina-publica .contacto-seguimiento .perfil-boton,
+.pagina-publica .confirmacion-contacto .boton-contacto { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
+.pagina-publica .formulario-contacto .boton-contacto--grande:hover:not(:disabled),
+.pagina-publica .contacto-seguimiento .perfil-boton:hover,
+.pagina-publica .confirmacion-contacto .boton-contacto:hover { transform: translateY(-2px); box-shadow: 0 12px 22px rgba(18, 63, 55, 0.26); }
+.pagina-publica .formulario-contacto .boton-contacto--grande:active:not(:disabled),
+.pagina-publica .contacto-seguimiento .perfil-boton:active,
+.pagina-publica .confirmacion-contacto .boton-contacto:active { transform: none; }
+
+.pagina-publica .campo-contacto__error,
+.pagina-publica .aviso-contacto { animation: acerca-despliega 0.3s ease-out both; }
+.pagina-publica .confirmacion-contacto { animation: acerca-entra 0.5s ease-out both; }
+.pagina-publica .confirmacion-contacto__anillo { animation: acerca-aro 0.9s ease-out 0.4s 1 both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .contacto-datos .tarjeta-datos__fila,
+  .pagina-publica .contacto-columnas--nuevo .formulario-contacto,
+  .pagina-publica .contacto-columnas--nuevo .formulario-contacto *:not(.boton-contacto__girando),
+  .pagina-publica .contacto-lateral *,
+  .pagina-publica .selector-contacto__opcion--activa,
+  .pagina-publica .campo-contacto__error, .pagina-publica .aviso-contacto,
+  .pagina-publica .confirmacion-contacto, .pagina-publica .confirmacion-contacto__anillo { animation: none; }
+  .pagina-publica .preguntas-tarjeta .pregunta-contacto::details-content { transition: none; }
+  .pagina-publica .contacto-datos .tarjeta-datos__fila--enlace:hover,
+  .pagina-publica .formulario-contacto .boton-contacto--grande:hover:not(:disabled),
+  .pagina-publica .contacto-seguimiento .perfil-boton:hover,
+  .pagina-publica .confirmacion-contacto .boton-contacto:hover { transform: none; }
+}
+
+/* 8. Plantas propias de Contacto (en los márgenes, se mecen a destiempo):
+   enredadera de corazones arriba a la izquierda, girasol arriba a la derecha y lavanda abajo a la izquierda */
+@media (min-width: 1025px) {
+  .pagina-publica .contacto-pagina { position: relative; }
+  .pagina-publica .contacto-pagina > * { position: relative; z-index: 1; }
+  .pagina-publica .contacto-pagina::before,
+  .pagina-publica .contacto-pagina::after,
+  .pagina-publica .contacto-columnas--nuevo::after {
+    content: ""; position: absolute; z-index: 0; pointer-events: none; background-repeat: no-repeat; background-size: contain;
+    filter: drop-shadow(0 8px 12px rgba(11, 59, 51, 0.16)); animation: detalle-mecer 9s ease-in-out infinite alternate;
+  }
+  .pagina-publica .contacto-pagina::before {
+    top: 24px; left: calc(50% - 500px - 170px); width: 132px; height: 217px;
+    background-image: url("../../assets/inicio/adorno-corazones.svg"); background-position: left top; transform-origin: 8% 0%;
+  }
+  .pagina-publica .contacto-pagina::after {
+    top: 24px; right: calc(50% - 500px - 170px); width: 140px; height: 215px;
+    background-image: url("../../assets/inicio/adorno-girasol.svg"); background-position: right top; transform-origin: 53% 100%; animation-delay: -3s;
+  }
+  .pagina-publica .contacto-columnas--nuevo::after {
+    bottom: 0; left: -170px; width: 120px; height: 222px;
+    background-image: url("../../assets/inicio/adorno-lavanda.svg"); background-position: left bottom; transform-origin: 50% 100%; animation-delay: -5s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .contacto-pagina::before, .pagina-publica .contacto-pagina::after, .pagina-publica .contacto-columnas--nuevo::after { animation: none; }
+}

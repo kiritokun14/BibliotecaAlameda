@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import "./Contacto.css";
 import {
@@ -13,11 +13,12 @@ import {
     type MensajeContacto,
     type TipoMensaje,
 } from "./datos";
-import { CampoContacto, CanalesContacto, Confirmacion, PreguntasFrecuentes, TarjetaDatos } from "./piezas";
+import { CampoContacto, Confirmacion, PreguntasFrecuentes, TarjetaDatos } from "./piezas";
 import { useSesion } from "../perfil/usarSesion";
+import { iconosSeccion } from "../perfil/iconos";
+import "../perfil/Perfil.css";
 import { guardarFolio } from "../perfil/mensajesGuardados";
 import iconoCandado from "../../../assets/contacto/privacidad-candado.svg";
-import iconoEnviar from "../../../assets/contacto/boton-enviar.svg";
 import iconoAviso from "../../../assets/contacto/aviso-alerta.svg";
 import iconoReintentar from "../../../assets/comun/iconos/reintentar-blanco.svg";
 
@@ -113,6 +114,7 @@ function Contacto() {
     return (
         <PaginaPublica>
             <EncabezadoPublico
+                icono={iconosSeccion.mensajes}
                 etiqueta="Contacto y sugerencias"
                 titulo={<>Escríbenos, <span>te leemos</span></>}
                 texto="Cuéntanos tu duda, comentario o idea para mejorar la biblioteca."
@@ -128,12 +130,13 @@ function Contacto() {
                     alEnviarOtro={enviarOtro}
                 />
             ) : (
-                <section className="contacto-seccion contacto-seccion--crema">
-                    <div className="contacto-columnas">
-                        <TarjetaDatos />
+                <section className="contacto-seccion contacto-seccion--crema contacto-pagina">
+                    <div className="contacto-pila">
+                    <TarjetaDatos />
+                    <div className="contacto-columnas contacto-columnas--nuevo">
 
                         <form className="formulario-contacto" onSubmit={enviar} noValidate aria-labelledby="titulo-formulario" aria-busy={enviando}>
-                            <h2 id="titulo-formulario" className="formulario-contacto__etiqueta">ENVÍANOS UN MENSAJE</h2>
+                            <h2 id="titulo-formulario" className="formulario-contacto__titulo">Envíanos un mensaje</h2>
 
                             <div className="formulario-contacto__tipo">
                                 <div className="selector-contacto" role="group" aria-label="Tipo de mensaje">
@@ -233,21 +236,25 @@ function Contacto() {
 
                             <button type="submit" className="boton-contacto boton-contacto--verde boton-contacto--grande" disabled={enviando}>
                                 {enviando ? "Enviando…" : envio === "error" ? "Reintentar envío" : textos.boton}
-                                <img
-                                    className={enviando ? "boton-contacto__girando" : undefined}
-                                    src={enviando || envio === "error" ? iconoReintentar : iconoEnviar}
-                                    alt=""
-                                />
+                                {enviando && <img className="boton-contacto__girando" src={iconoReintentar} alt="" />}
                             </button>
                             {/* Anuncio para lectores de pantalla mientras se envía */}
                             <p className="solo-lectores" role="status">{enviando ? "Enviando, espera un momento." : ""}</p>
                         </form>
+                        <div className="contacto-lateral">
+                            <PreguntasFrecuentes />
+                            {/* Seguimiento: dónde ver en qué va un mensaje ya enviado */}
+                            <section className="contacto-seguimiento" aria-labelledby="titulo-seguimiento">
+                                <span className="contacto-seguimiento__insignia" aria-hidden="true" />
+                                <h2 id="titulo-seguimiento">¿Ya nos escribiste?</h2>
+                                <p>{sesion ? "Consulta en qué va tu mensaje desde tu perfil." : "Con tu sesión iniciada recibes un folio y puedes seguir tu mensaje desde tu perfil."}</p>
+                                <Link to={sesion ? "/mi-perfil/mensajes" : "/iniciar-sesion"} className="perfil-boton perfil-boton--guardar">{sesion ? "Ver mis mensajes" : "Iniciar sesión"}</Link>
+                            </section>
+                        </div>
+                    </div>
                     </div>
                 </section>
             )}
-
-            <CanalesContacto />
-            <PreguntasFrecuentes />
         </PaginaPublica>
     );
 }
