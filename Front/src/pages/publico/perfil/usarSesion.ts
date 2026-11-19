@@ -5,9 +5,11 @@ import { perfilSimulado } from "./datos";
 import { simulacion } from "../../../servicios/simulacion";
 
 // ¿Hay sesión iniciada? undefined = todavía no se sabe; null = visitante; texto = id de la persona.
-// En desarrollo, ?simular=sesion (o sesion-menor) finge una sesión para revisar pantallas sin backend.
+// En desarrollo, ?simular=sesion (o sesion-menor) finge una sesión para revisar pantallas sin backend;
+// ?simular=sesion-limite, además, finge que la cuenta ya tiene 3 mensajes de contacto en proceso.
 const modo = typeof window === "undefined" ? null : simulacion(); // en pruebas no hay navegador
-export const sesionSimulada = modo === "sesion" || modo === "sesion-menor";
+export const sesionSimulada = modo === "sesion" || modo === "sesion-menor" || modo === "sesion-limite";
+export const limiteSimulado = modo === "sesion-limite";
 export const menorSimulado = modo === "sesion-menor";
 
 export function useSesion(): string | null | undefined {

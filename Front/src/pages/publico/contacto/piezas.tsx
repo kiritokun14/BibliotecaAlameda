@@ -142,7 +142,7 @@ export const Confirmacion = forwardRef<HTMLHeadingElement, {
                         <img src={iconoCheck} alt="" />
                     </span>
                 </span>
-                <EtiquetaPerfil icono={iconosSeccion.mensajes} claro>{etiqueta}</EtiquetaPerfil>
+                <EtiquetaPerfil icono={iconosSeccion.mensajes}>{etiqueta}</EtiquetaPerfil>
                 {/* tabIndex -1: recibe el foco al terminar para que el lector anuncie el resultado */}
                 <h2 ref={ref} tabIndex={-1}>{titulo}</h2>
                 {conSesion ? (

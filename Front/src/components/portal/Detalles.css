@@ -2243,6 +2243,35 @@
 /* 6. Confirmación de envío */
 .pagina-publica .confirmacion-contacto__anillo { border-radius: 50%; }
 
+/* 6b. Límite de mensajes (solo con sesión; máximo 3 en proceso a la vez): aviso en el lugar del formulario y nota de cupo */
+.pagina-publica .contacto-columnas--nuevo .contacto-aviso {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; height: 100%; min-height: 420px; box-sizing: border-box;
+  margin: 0; padding: 40px 48px; border-radius: 24px; text-align: center;
+}
+.pagina-publica .contacto-aviso p { display: flex; flex-direction: column; gap: 6px; max-width: 460px; margin: 0; color: #4d4d4d; font-size: 15px; line-height: 22px; }
+.pagina-publica .contacto-aviso p strong { color: #161a1d; font-size: 22px; line-height: 28px; }
+.pagina-publica .contacto-aviso--cargando p strong { color: #4d4d4d; font-size: 16px; }
+/* Nota de cupo: número en círculo verde con aro dorado, título en negrita, explicación y tres puntos (llenos = en proceso) */
+.pagina-publica .formulario-contacto__cupo {
+  display: flex; align-items: center; gap: 12px; margin: 0; padding: 12px 16px;
+  border: 1px solid #bfd9d0; border-radius: 16px; background: #e4efeb;
+}
+.pagina-publica .formulario-contacto__cupo-numero {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%;
+  background: #164f44; box-shadow: 0 0 0 3px #f2e3b8; color: #fff; font-size: 16px; font-weight: 800;
+}
+.pagina-publica .formulario-contacto__cupo-textos { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.pagina-publica .formulario-contacto__cupo-textos strong { color: #164f44; font-size: 14.5px; line-height: 19px; }
+.pagina-publica .formulario-contacto__cupo-textos span { color: #2b2f31; font-size: 13px; line-height: 18px; }
+.pagina-publica .formulario-contacto__cupo-puntos { display: flex; flex: none; gap: 6px; }
+.pagina-publica .formulario-contacto__cupo-puntos > span { width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 2px #1f6b5c; }
+.pagina-publica .formulario-contacto__cupo-puntos > .formulario-contacto__cupo-punto--usado { background: #c9a24a; box-shadow: inset 0 0 0 2px #c9a24a; }
+
+/* Selector Contacto / Sugerencia y su descripción siempre en la misma fila: el texto no salta abajo al cambiar */
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto__tipo { flex-wrap: nowrap; gap: 16px; min-height: 44px; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto__tipo .selector-contacto { flex: none; }
+.pagina-publica .contacto-columnas--nuevo .formulario-contacto__descripcion { flex: 1; min-width: 0; margin: 0; font-size: 14px; line-height: 20px; }
+
 /* 7. Animaciones (solo las de §3 en AGENTS.md)
    Entrada escalonada: datos (0–180 ms) → formulario y sus partes (200–540 ms) → preguntas (260–460 ms) →
    «¿Ya nos escribiste?» (320 ms, su insignia late una vez). Botones suben 2 px; errores y avisos bajan;
@@ -2265,6 +2294,7 @@
 .pagina-publica .contacto-columnas--nuevo .formulario-contacto__campos > :nth-child(n+4) { animation-delay: 0.5s; }
 .pagina-publica .selector-contacto__opcion--activa { animation: noticias-pulso 0.25s ease-out; }
 
+.pagina-publica .contacto-columnas--nuevo .contacto-aviso { animation: acerca-entra 0.5s ease-out 0.2s both; }
 .pagina-publica .contacto-lateral > .preguntas-tarjeta { animation: acerca-entra 0.5s ease-out 0.26s both; }
 .pagina-publica .preguntas-tarjeta .pregunta-contacto { animation: detalle-entrada 0.5s ease-out both; }
 .pagina-publica .preguntas-tarjeta .pregunta-contacto:nth-child(1) { animation-delay: 0.34s; }
@@ -2304,7 +2334,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pagina-publica .contacto-datos .tarjeta-datos__fila,
-  .pagina-publica .contacto-columnas--nuevo .formulario-contacto,
+  .pagina-publica .contacto-columnas--nuevo .formulario-contacto, .pagina-publica .contacto-columnas--nuevo .contacto-aviso,
   .pagina-publica .contacto-columnas--nuevo .formulario-contacto *:not(.boton-contacto__girando),
   .pagina-publica .contacto-lateral *,
   .pagina-publica .selector-contacto__opcion--activa,
@@ -2344,3 +2374,42 @@
 @media (prefers-reduced-motion: reduce) {
   .pagina-publica .contacto-pagina::before, .pagina-publica .contacto-pagina::after, .pagina-publica .contacto-columnas--nuevo::after { animation: none; }
 }
+
+/* ==========================================================================
+   MI PERFIL · MIS MENSAJES (18 nov 2026, rehecho con el patrón de Mis eventos)
+   Una sola lista con filtros (Todos · En proceso · Atendidos); cada mensaje es una tarjeta de lista con su
+   bloque de fecha, folio corto y chip; «Ver seguimiento» abre los pasos, la respuesta y el folio completo
+   dentro de la misma tarjeta (uno a la vez). Al pie del panel, «¿Falta un mensaje?» para agregar uno con su folio.
+   ========================================================================== */
+.pagina-publica .perfil-mensaje__fecha--verde { background: #e4efeb; box-shadow: inset 0 0 0 1px #bfd9d0; color: #164f44; }
+.pagina-publica .perfil-mensaje__fecha--gris { background: #f1efea; box-shadow: inset 0 0 0 1px #e2ded5; color: #6b675e; }
+.pagina-publica .perfil-mensaje__folio { padding: 1px 8px; border-radius: 999px; background: #f6eeda; color: #6b4f12; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
+.pagina-publica .perfil-mensaje--abierto { border-color: #e6d194; box-shadow: 0 12px 26px rgba(138, 100, 20, 0.12); }
+.pagina-publica .perfil-mensaje__detalle {
+  display: flex; flex-direction: column; gap: 14px; margin-top: 6px; padding-top: 16px; border-top: 1px solid #e2ded5;
+  animation: acerca-despliega 0.3s ease-out both;
+}
+.pagina-publica .perfil-mensaje__nota { margin: 0; padding: 10px 14px; border: 1px solid #e2ded5; border-radius: 12px; background: #f7f5f0; color: #2b2f31; font-size: 13.5px; }
+.pagina-publica .perfil-mensaje__folio-completo { margin: 0; color: #4d4d4d; font-size: 12.5px; }
+.pagina-publica .perfil-mensaje__folio-completo code { padding: 2px 8px; border-radius: 8px; background: #f1efea; color: #161a1d; font-size: 12.5px; user-select: all; }
+.pagina-publica .perfil-mensajes__cargando { margin: 0; padding: 32px 0; color: #4d4d4d; text-align: center; }
+.pagina-publica .perfil-mensajes__agregar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-top: auto; padding: 14px 16px;
+  border: 1px dashed #d8d2c4; border-radius: 16px; background: #fff;
+}
+.pagina-publica .perfil-mensajes__agregar-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pagina-publica .perfil-mensajes__agregar-texto strong { color: #164f44; font-size: 14.5px; }
+.pagina-publica .perfil-mensajes__agregar-texto span { color: #4d4d4d; font-size: 13px; }
+.pagina-publica .perfil-mensajes__agregar .perfil-mensajes__buscar { flex: 1 1 100%; flex-wrap: wrap; align-items: flex-end; gap: 10px; animation: acerca-despliega 0.3s ease-out both; }
+.pagina-publica .perfil-mensajes__agregar .perfil-campo__error { flex-basis: 100%; margin: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .perfil-mensaje__detalle, .pagina-publica .perfil-mensajes__agregar .perfil-mensajes__buscar { animation: none; }
+}
+/* «¿Falta un mensaje?»: texto y botón a la izquierda (el botón del asistente no lo tapa) */
+.pagina-publica .perfil-mensajes__agregar { justify-content: flex-start; }
+.pagina-publica .perfil-mensajes__agregar { flex-direction: column; align-items: flex-start; }
+.pagina-publica .perfil-mensajes__agregar .perfil-mensajes__buscar { width: 100%; }
+/* Mis mensajes SIN franjas al costado (Aldahir, 18 nov): borde parejo; el estado lo dicen el bloque de fecha y el chip. */
+.pagina-publica .perfil-solicitud.perfil-mensaje { border-left: 1px solid #e2ded5; }
+.pagina-publica .perfil-solicitud.perfil-mensaje.perfil-solicitud--gris { background: #fff; }
+.pagina-publica .perfil-solicitud.perfil-mensaje--abierto { border-color: #e6d194; border-left-color: #e6d194; }

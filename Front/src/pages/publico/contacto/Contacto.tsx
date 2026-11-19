@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import "./Contacto.css";
@@ -18,6 +18,8 @@ import { useSesion } from "../perfil/usarSesion";
 import { iconosSeccion } from "../perfil/iconos";
 import "../perfil/Perfil.css";
 import { guardarFolio } from "../perfil/mensajesGuardados";
+import { LIMITE_EN_PROCESO, lugaresLibres, useMensajesEnProceso } from "./limite";
+import { ErrorServicio } from "../../../servicios/api";
 import iconoCandado from "../../../assets/contacto/privacidad-candado.svg";
 import iconoAviso from "../../../assets/contacto/aviso-alerta.svg";
 import iconoReintentar from "../../../assets/comun/iconos/reintentar-blanco.svg";
@@ -32,7 +34,9 @@ function tipoInicial(valor: string | null): TipoMensaje {
     return valor === "sugerencia" ? "sugerencia" : "contacto";
 }
 
-// T-053: formulario de contacto y buzón de sugerencias, sin iniciar sesión
+// T-053: formulario de contacto y buzón de sugerencias.
+// Solo con sesión y hasta 3 mensajes en proceso a la vez (limite.ts); sin sesión o con el cupo lleno, la columna
+// del formulario muestra cómo seguir (iniciar sesión o ver Mis mensajes).
 function Contacto() {
     const [parametros] = useSearchParams();
     const sesion = useSesion(); // con sesión, la confirmación lleva al seguimiento en Mi perfil
@@ -41,6 +45,8 @@ function Contacto() {
     const [errores, setErrores] = useState<ErroresMensaje>({});
     const [intentoEnviar, setIntentoEnviar] = useState(false); // tras el primer intento se valida al escribir
     const [envio, setEnvio] = useState<Envio>("editando");
+    const [enProceso, sumarEnProceso, fijarEnProceso] = useMensajesEnProceso(sesion);
+    const libres = enProceso === undefined ? undefined : lugaresLibres(enProceso);
 
     const campos = useRef<Partial<Record<CampoMensaje, HTMLInputElement & HTMLTextAreaElement | null>>>({});
     const ocupado = useRef(false);
@@ -96,11 +102,15 @@ function Contacto() {
             const acuse = await enviarMensaje(prepararEnvio(datos));
             if (!montado.current) return;
             setFolio(acuse.folio);
-            if (sesion && acuse.folio) guardarFolio(acuse.folio, sesion); // aparece solo en Mi perfil › Mis mensajes
+            if (sesion && sesion !== "simulado" && acuse.folio) guardarFolio(acuse.folio, sesion); // aparece solo en Mi perfil › Mis mensajes
+            sumarEnProceso();
             setEnvio("enviado");
-        } catch {
+        } catch (e) {
+            if (!montado.current) return;
+            // El backend rechaza si ya hay 3 en proceso (429): se muestra el aviso de cupo lleno
+            if (e instanceof ErrorServicio && e.estado === 429) { fijarEnProceso(LIMITE_EN_PROCESO); setEnvio("editando"); return; }
             // Lo escrito se conserva para poder reintentar
-            if (montado.current) setEnvio("error");
+            setEnvio("error");
         } finally { ocupado.current = false; }
     }
 
@@ -135,6 +145,19 @@ function Contacto() {
                     <TarjetaDatos />
                     <div className="contacto-columnas contacto-columnas--nuevo">
 
+                        {sesion === null ? (
+                            <AvisoFormulario titulo="Inicia sesión para escribirnos"
+                                texto="Así cada mensaje queda en tu perfil con su folio y puedes ver en qué va y la respuesta de la biblioteca.">
+                                <Link to="/iniciar-sesion" className="perfil-boton">Iniciar sesión</Link>
+                            </AvisoFormulario>
+                        ) : sesion === undefined || (libres === undefined) ? (
+                            <AvisoFormulario titulo="Cargando…" texto="Revisando tu cuenta." cargando />
+                        ) : libres === 0 ? (
+                            <AvisoFormulario titulo={`Tienes ${LIMITE_EN_PROCESO} mensajes en proceso`}
+                                texto={`Para que el personal pueda atender a todas las personas, puedes tener hasta ${LIMITE_EN_PROCESO} mensajes en proceso a la vez. Cuando atiendan alguno, podrás escribir de nuevo.`}>
+                                <Link to="/mi-perfil/mensajes" className="perfil-boton">Ver mis mensajes</Link>
+                            </AvisoFormulario>
+                        ) : (
                         <form className="formulario-contacto" onSubmit={enviar} noValidate aria-labelledby="titulo-formulario" aria-busy={enviando}>
                             <h2 id="titulo-formulario" className="formulario-contacto__titulo">Envíanos un mensaje</h2>
 
@@ -229,6 +252,20 @@ function Contacto() {
                                 />
                             </fieldset>
 
+                            {/* Cupo: cuántos mensajes puede enviar todavía (puntos llenos = en proceso) */}
+                            <div className="formulario-contacto__cupo" role="note">
+                                <span className="formulario-contacto__cupo-numero" aria-hidden="true">{libres}</span>
+                                <span className="formulario-contacto__cupo-textos">
+                                    <strong>{libres === 1 ? "Te queda 1 mensaje disponible" : `Te quedan ${libres} mensajes disponibles`}</strong>
+                                    <span>Puedes tener hasta {LIMITE_EN_PROCESO} mensajes en proceso a la vez; cuando atendamos uno, se libera un lugar.</span>
+                                </span>
+                                <span className="formulario-contacto__cupo-puntos" aria-hidden="true">
+                                    {Array.from({ length: LIMITE_EN_PROCESO }, (_, i) => (
+                                        <span key={i} className={i < LIMITE_EN_PROCESO - (libres ?? 0) ? "formulario-contacto__cupo-punto--usado" : undefined} />
+                                    ))}
+                                </span>
+                            </div>
+
                             <p className="formulario-contacto__privacidad">
                                 <img src={iconoCandado} alt="" />
                                 Usaremos tus datos solo para atender tu mensaje. * Campo obligatorio.
@@ -241,14 +278,15 @@ function Contacto() {
                             {/* Anuncio para lectores de pantalla mientras se envía */}
                             <p className="solo-lectores" role="status">{enviando ? "Enviando, espera un momento." : ""}</p>
                         </form>
+                        )}
                         <div className="contacto-lateral">
                             <PreguntasFrecuentes />
                             {/* Seguimiento: dónde ver en qué va un mensaje ya enviado */}
                             <section className="contacto-seguimiento" aria-labelledby="titulo-seguimiento">
                                 <span className="contacto-seguimiento__insignia" aria-hidden="true" />
-                                <h2 id="titulo-seguimiento">¿Ya nos escribiste?</h2>
-                                <p>{sesion ? "Consulta en qué va tu mensaje desde tu perfil." : "Con tu sesión iniciada recibes un folio y puedes seguir tu mensaje desde tu perfil."}</p>
-                                <Link to={sesion ? "/mi-perfil/mensajes" : "/iniciar-sesion"} className="perfil-boton perfil-boton--guardar">{sesion ? "Ver mis mensajes" : "Iniciar sesión"}</Link>
+                                <h2 id="titulo-seguimiento">{sesion ? "¿Ya nos escribiste?" : "¿Aún no tienes cuenta?"}</h2>
+                                <p>{sesion ? "Consulta en qué va cada mensaje desde tu perfil." : "Crea tu cuenta gratis para escribirnos y seguir cada mensaje desde tu perfil."}</p>
+                                <Link to={sesion ? "/mi-perfil/mensajes" : "/crear-cuenta"} className="perfil-boton perfil-boton--guardar">{sesion ? "Ver mis mensajes" : "Crear cuenta"}</Link>
                             </section>
                         </div>
                     </div>
@@ -256,6 +294,18 @@ function Contacto() {
                 </section>
             )}
         </PaginaPublica>
+    );
+}
+
+// Lo que ocupa el lugar del formulario cuando no se puede escribir (sin sesión o con el cupo lleno)
+function AvisoFormulario({ titulo, texto, cargando, children }: { titulo: string; texto: string; cargando?: boolean; children?: ReactNode }) {
+    return (
+        <div className={`perfil-vacio perfil-vacio--eventos contacto-aviso${cargando ? " contacto-aviso--cargando" : ""}`}
+            role="status" style={{ "--icono-seccion": `url("${iconosSeccion.mensajes}")` } as CSSProperties}>
+            {!cargando && <span className="perfil-vacio__insignia" aria-hidden="true" />}
+            <p><strong>{titulo}</strong>{texto}</p>
+            {children}
+        </div>
     );
 }
 

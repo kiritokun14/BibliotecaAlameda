@@ -1,5 +1,7 @@
 # Pendientes de backend del panel de administración
 
+> **Resumen para el equipo de backend (y sus agentes): `PARA_BACKEND.md` en la raíz del repositorio.** Junta lo del portal (Mis mensajes, reacciones) y apunta a esta tabla.
+
 El **diseño del panel está terminado**: todas las pantallas usan la misma estructura (ver `docs/guia-diseno.md`).
 Las marcadas como «Ejemplo» en la tabla todavía usan datos locales (ya no se anuncia en pantalla) y tienen su **esqueleto de datos** en el frontend:
 los tipos y las funciones viven en el `datos.ts` (o `.ts` del módulo) que se indica abajo, con un comentario
@@ -72,3 +74,7 @@ Tabla sugerida: `reacciones_noticia (noticia_id, usuario_id, tipo ∈ {me_gusta,
 - `{id}` es el mismo identificador del detalle (`/noticias/CN-0045`). `{tipo}` es `me_gusta` o `me_sirvio`.
 - 401 si no hay sesión en PUT/DELETE; 404 si la noticia no existe o no está publicada.
 - Una persona solo cuenta una vez por tipo; puede tener las dos marcadas.
+
+## Mis mensajes (Mi perfil) — 18 nov 2026
+
+`POST /v1/public/contacto` ya guarda `usuario_id` con sesión; falta **listar los mensajes de la cuenta** (`GET /v1/me/contacto`) y **ligar** uno enviado sin sesión (`POST /v1/me/contacto/{folio}`). Contrato completo en **`PARA_BACKEND.md`** (raíz del repositorio), punto 1.
