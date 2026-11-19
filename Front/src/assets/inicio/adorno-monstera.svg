@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="170" height="220" viewBox="0 0 170 220" fill="none">
+  <!-- Hojas largas en abanico que salen de la orilla (Acerca de, arriba izquierda), con nervadura y bayas doradas. -->
+  <g>
+    <path d="M0 200 C 40 170, 96 140, 166 132 C 120 160, 60 186, 0 210 Z" fill="#2a7d6b"/>
+    <path d="M0 196 C 30 150, 80 100, 150 66 C 112 108, 60 156, 0 206 Z" fill="#1f6b5c"/>
+    <path d="M0 192 C 20 136, 54 76, 108 22 C 84 82, 48 140, 0 202 Z" fill="#164f44"/>
+    <path d="M0 190 C 8 130, 22 70, 52 4 C 44 72, 28 132, 0 200 Z" fill="#2a7d6b"/>
+  </g>
+  <g stroke="#7fae9e" stroke-opacity=".7" stroke-width="1.4" stroke-linecap="round">
+    <path d="M4 202 C 50 178, 104 156, 158 134"/><path d="M4 200 C 44 160, 92 112, 144 72"/>
+    <path d="M4 198 C 30 146, 62 90, 102 30"/><path d="M4 196 C 14 136, 28 76, 48 12"/>
+  </g>
+  <g fill="#c9a24a"><circle cx="166" cy="132" r="4"/><circle cx="150" cy="66" r="4"/><circle cx="108" cy="22" r="3.5"/><circle cx="52" cy="4" r="3"/></g>
+</svg>

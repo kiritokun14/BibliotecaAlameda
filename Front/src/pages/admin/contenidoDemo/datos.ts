@@ -169,9 +169,9 @@ const iniciales: Contenido[] = [
         texto: "Una selección de poemas breves.",
     }, { ...deOtro, ...pub("2026-09-28T13:00:00") }),
     ejemplo("CN-0015", "noticia", "publicado", "2026-09-28T12:00:00", {
-        titulo: "Nuevo horario de la hemeroteca",
-        resumen: "La hemeroteca amplía su horario por las tardes.",
-        texto: "A partir de octubre, la hemeroteca abrirá hasta las 19:00.",
+        titulo: "Nuevo horario de la sala de lectura",
+        resumen: "La sala de lectura amplía su horario por las tardes.",
+        texto: "A partir de octubre, la sala de lectura abrirá hasta las 19:00.",
         fecha: "2026-09-28",
     }, pub("2026-09-28T12:00:00")),
     ejemplo("CN-0012", "acerca", "publicado", "2026-09-12T12:00:00", {

@@ -25,7 +25,6 @@ Nodo `476:28196` · «Agenda de espacios · sesión iniciada» · captura `../ca
 - SE PUEDEN SOLICITAR
 - Sala de lectura general
 - Disponible
-- Hemeroteca regional
 - Sala de consulta
 - Área de actividades y usos múltiples
 - Seleccionada
@@ -73,7 +72,6 @@ Nodo `476:28399` · «Agenda de espacios · credencial sin validar» · captura 
 - SE PUEDEN SOLICITAR
 - Sala de lectura general
 - Disponible
-- Hemeroteca regional
 - Sala de consulta
 - Área de actividades y usos múltiples
 - Seleccionada

@@ -1,82 +1,47 @@
-import { EncabezadoSeccion } from "../inicio/Bloque";
-import { FotoConMarco, NotaAcerca, SeccionAcerca } from "./piezas";
+import { TarjetaPerfil } from "../perfil/piezas";
 import { fotosEnAccion, valores } from "./datos";
-import fotoEstudio from "../../../assets/acerca/foto-sala-estudio.webp";
-import iconoEstrellaEtiqueta from "../../../assets/acerca/etiqueta-estrella.svg";
-import iconoPersonasEtiqueta from "../../../assets/acerca/etiqueta-personas.svg";
-import iconoLibro from "../../../assets/acerca/valor-libro.svg";
-import iconoEstrella from "../../../assets/acerca/valor-estrella.svg";
+import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
+import tarjetaEstrella from "../../../assets/perfil/tarjeta-estrella.svg";
+import tarjetaUsuarios from "../../../assets/perfil/tarjeta-usuarios.svg";
 
+// Misión y visión (contenido del diseño de Figma), con el catálogo de piezas.
+// TODO backend (HU-01): cuando la biblioteca publique «Misión y visión» desde el panel, se muestra lo publicado en su lugar.
 function MisionVision() {
     return (
         <>
-            {/* Para qué existimos */}
-            <SeccionAcerca textura="libros">
-                <EncabezadoSeccion
-                    etiqueta="Misión y visión"
-                    iconoEtiqueta={iconoEstrellaEtiqueta}
-                    titulo={<>Para qué <span>existimos</span></>}
-                    texto="Lo que nos mueve y hacia dónde queremos llegar."
-                />
-                <div className="mision-vision">
-                    <article className="tarjeta-blanca tarjeta-mision">
-                        <span className="icono-dorado icono-dorado--grande">
-                            <img src={iconoLibro} alt="" />
-                        </span>
-                        <h3>Misión</h3>
-                        <span className="acento-dorado" aria-hidden="true" />
-                        <p>
-                            Ofrecer a la población de Nayarit{" "}
-                            <strong>acceso libre a la lectura, la información y la cultura</strong>, con servicios
-                            cercanos, claros y respetuosos para todas las personas.
-                        </p>
-                        <span className="pastilla-por-confirmar">Texto por confirmar</span>
-                    </article>
-                    <article className="tarjeta-blanca tarjeta-mision">
-                        <span className="icono-dorado icono-dorado--grande">
-                            <img src={iconoEstrella} alt="" />
-                        </span>
-                        <h3>Visión</h3>
-                        <span className="acento-dorado" aria-hidden="true" />
-                        <p>
-                            Ser un espacio de referencia en el estado: <strong>abierto, actualizado y vivo</strong>, donde
-                            la comunidad lee, aprende, crea y se encuentra.
-                        </p>
-                        <span className="pastilla-por-confirmar">Texto por confirmar</span>
-                    </article>
-                </div>
-                <FotoConMarco src={fotoEstudio} pie="Sala de estudio · imagen ilustrativa" alto={220} className="foto-marco--ancha" />
-            </SeccionAcerca>
+            <div className="acerca-dos">
+                <TarjetaPerfil color="verde" icono={tarjetaLista} titulo="Misión">
+                    <p className="acerca-parrafo">Ofrecer a la población de Nayarit <strong>acceso libre a la lectura, la información y la cultura</strong>, con
+                        servicios cercanos, claros y respetuosos para todas las personas.</p>
+                </TarjetaPerfil>
+                <TarjetaPerfil color="dorada" icono={tarjetaEstrella} titulo="Visión">
+                    <p className="acerca-parrafo">Ser un espacio de referencia en el estado: <strong>abierto, actualizado y vivo</strong>, donde la
+                        comunidad lee, aprende, crea y se encuentra.</p>
+                </TarjetaPerfil>
+            </div>
 
-            {/* Lo que nos guía */}
-            <SeccionAcerca fondo="blanca" textura="rama">
-                <EncabezadoSeccion
-                    etiqueta="Valores"
-                    iconoEtiqueta={iconoPersonasEtiqueta}
-                    titulo={<>Lo que nos <span>guía</span></>}
-                    texto="Principios con los que atendemos a la comunidad."
-                />
-                <ul className="tres-columnas">
-                    {valores.map((valor) => (
-                        <li key={valor.titulo} className="tarjeta-blanca tarjeta-valor">
-                            <span className="icono-dorado">
-                                <img src={valor.icono} alt="" />
-                            </span>
-                            <h3>{valor.titulo}</h3>
-                            <p>{valor.texto}</p>
+            <TarjetaPerfil color="blanca" icono={tarjetaUsuarios} titulo="Lo que nos guía" texto="Principios con los que atendemos a la comunidad.">
+                <ul className="acerca-valores">
+                    {valores.map((v) => (
+                        <li key={v.titulo}>
+                            <span className="perfil-lista__icono"><img src={v.icono} alt="" /></span>
+                            <div><strong>{v.titulo}</strong><span>{v.texto}</span></div>
                         </li>
                     ))}
                 </ul>
+            </TarjetaPerfil>
 
-                <h3 className="subtitulo-bloque">La biblioteca en acción</h3>
-                <div className="tres-columnas">
-                    {fotosEnAccion.map((foto) => (
-                        <FotoConMarco key={foto.pie} src={foto.imagen} pie={foto.pie} alto={190} />
+            <TarjetaPerfil color="rosa" icono={tarjetaEstrella} titulo="La biblioteca en acción">
+                <div className="historia-galeria">
+                    {fotosEnAccion.map((f) => (
+                        <figure key={f.pie} className="historia-foto">
+                            <img loading="lazy" decoding="async" src={f.imagen} alt={f.pie} />
+                            <figcaption>{f.pie}</figcaption>
+                        </figure>
                     ))}
                 </div>
-            </SeccionAcerca>
+            </TarjetaPerfil>
 
-            <NotaAcerca>Textos de ejemplo; la biblioteca los confirmará.</NotaAcerca>
         </>
     );
 }

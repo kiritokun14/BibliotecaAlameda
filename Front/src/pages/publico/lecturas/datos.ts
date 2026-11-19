@@ -143,7 +143,7 @@ export const memorias: Memoria[] = [
     {
         id: "visita-escolar-al-archivo", titulo: "Visita escolar al archivo", resaltado: "al archivo", anio: 2024,
         imagen: fotoPasillo, temas: ["historia-regional", "infantil"], estado: "publicado",
-        entrada: "Estudiantes de primaria conocieron el archivo histórico y los periódicos antiguos de la hemeroteca.",
+        entrada: "Estudiantes de primaria conocieron el archivo histórico y el fondo regional de la biblioteca.",
         cuerpo: ["Registro autorizado para difusión. Datos de ejemplo."],
     },
     {

@@ -140,6 +140,10 @@ export default function BarraFiltros({
 
                 {abierto && (
                     <div className="barra-filtros__panel" id={`${id}-panel`} role="group" aria-label="Filtros">
+                        <div className="barra-filtros__cabecera">
+                            <strong>Filtrar resultados</strong>
+                            <span>Elige una o varias opciones; la lista se actualiza al momento.</span>
+                        </div>
                         {grupos.map((g) => (
                             <fieldset key={g.etiqueta} className="barra-filtros__grupo">
                                 <legend>{g.etiqueta}</legend>

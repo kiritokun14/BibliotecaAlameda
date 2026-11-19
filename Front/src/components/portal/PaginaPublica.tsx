@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useLocation } from "react-router";
 import "../../pages/publico/inicio/Inicio.css"; // fuentes, colores y botones del portal
 import "./PaginaPublica.css";
@@ -58,10 +58,11 @@ type EncabezadoPublicoProps = {
     etiqueta: string;
     titulo: ReactNode; // ReactNode permite pintar una parte en dorado con <span>
     texto: string;
+    icono?: string; // ícono verde de la sección: se dibuja en una insignia dorada al costado del título
 };
 
 // Franja verde con el título de cada página
-export function EncabezadoPublico({ etiqueta, titulo, texto }: EncabezadoPublicoProps) {
+export function EncabezadoPublico({ etiqueta, titulo, texto, icono }: EncabezadoPublicoProps) {
     return (
         <section className="encabezado-publico">
             <img className="encabezado-publico__circulo encabezado-publico__circulo--1" src={circulo1} alt="" />
@@ -70,7 +71,12 @@ export function EncabezadoPublico({ etiqueta, titulo, texto }: EncabezadoPublico
                 <span className="punto-dorado" />
                 {etiqueta}
             </span>
-            <h1>{titulo}</h1>
+            {icono ? (
+                <div className="encabezado-publico__titular">
+                    <span className="encabezado-publico__insignia" style={{ "--icono": `url("${icono}")` } as CSSProperties} aria-hidden="true" />
+                    <h1>{titulo}</h1>
+                </div>
+            ) : <h1>{titulo}</h1>}
             <p>{texto}</p>
         </section>
     );

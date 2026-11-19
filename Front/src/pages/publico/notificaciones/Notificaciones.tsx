@@ -49,7 +49,7 @@ export default function Notificaciones() {
 
     return (
         <PaginaPublica>
-            <EncabezadoPublico etiqueta="Notificaciones" titulo={<>Tus <span>notificaciones</span></>}
+            <EncabezadoPublico etiqueta="Notificaciones" titulo={<>Tus <span>notificaciones</span></>} icono={iconosSeccion.avisos}
                 texto="Aquí ves los cambios en tus solicitudes, las actividades nuevas y los avisos de la biblioteca." />
 
             <div className="notif-cuerpo" style={{ "--icono-seccion": `url("${iconosSeccion.avisos}")` } as CSSProperties}>

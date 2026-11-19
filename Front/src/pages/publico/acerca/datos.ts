@@ -26,7 +26,7 @@ export type SeccionAcerca = "historia" | "mision-vision" | "solon-arguello" | "r
 // ---------- Historia ----------
 export const datosHistoria = [
     { titulo: "Biblioteca pública central del estado", texto: "Un lugar abierto a toda la comunidad de Tepic y de Nayarit." },
-    { titulo: "Acervo general, regional y hemeroteca", texto: "Libros, prensa y revistas de Nayarit para consulta." },
+    { titulo: "Acervo general y regional", texto: "Libros y colecciones de Nayarit para consulta." },
     { titulo: "Entrada libre", texto: "Servicios abiertos al público general." },
 ];
 
@@ -44,36 +44,36 @@ export type Etapa = {
 export const etapas: Etapa[] = [
     {
         titulo: "Primera biblioteca pública de Tepic",
-        resumen: "Se inaugura como «General Manuel González». Manuel Calderón es su primer bibliotecario y reúne 660 volúmenes.",
+        resumen: "Se inaugura como General Manuel González. Manuel Calderón es su primer bibliotecario y reúne 660 volúmenes.",
         fecha: "16 sep 1878",
-        detalle: "El 16 de septiembre de 1878 fue inaugurada la primera biblioteca pública de Tepic y se nombró «General Manuel González». A Manuel Calderón se le considera el primer bibliotecario. Contaba con 660 volúmenes y funcionaba en el Palacio Municipal de Tepic (calle México y Lerdo), edificio que fue demolido.",
+        detalle: "El 16 de septiembre de 1878 fue inaugurada la primera biblioteca pública de Tepic y se nombró General Manuel González. A Manuel Calderón se le considera el primer bibliotecario. Contaba con 660 volúmenes y funcionaba en el Palacio Municipal de Tepic (calle México y Lerdo), edificio que fue demolido.",
         imagen: etapa1,
     },
     {
-        titulo: "Biblioteca «Francisco I. Madero»",
+        titulo: "Biblioteca Francisco I. Madero",
         resumen: "En 1919 el gobernador José Santos Godínez la reubica en un espacio más accesible del mismo edificio; se reinaugura en 1925 y en 1930 reporta 1,991 volúmenes.",
         fecha: "1919–1930",
-        detalle: "En 1919 el gobernador José Santos Godínez la reubica en un espacio más accesible del mismo edificio y se le da el nombre de Biblioteca Pública «Francisco I. Madero». Se remoza y reinaugura el 16 de septiembre de 1925. La encargada, Isabel Corona, reporta 1,991 volúmenes en 1930.",
+        detalle: "En 1919 el gobernador José Santos Godínez la reubica en un espacio más accesible del mismo edificio y se le da el nombre de Biblioteca Pública Francisco I. Madero. Se remoza y reinaugura el 16 de septiembre de 1925. La encargada, Isabel Corona, reporta 1,991 volúmenes en 1930.",
         imagen: etapa1,
     },
     {
         titulo: "Años de abandono",
         resumen: "Con la ampliación de la Avenida México se demuele el Palacio Municipal. La biblioteca decae hasta 1963, cuando recupera su sentido.",
         fecha: "1949–1963",
-        detalle: "Con la ampliación de la Avenida México fue demolido el Palacio Municipal de Tepic, en 1949. La biblioteca «Francisco I. Madero» decae y se convierte en un almacén de libros viejos. Será hasta 1963 que se recupera su sentido.",
+        detalle: "Con la ampliación de la Avenida México fue demolido el Palacio Municipal de Tepic, en 1949. La biblioteca Francisco I. Madero decae y se convierte en un almacén de libros viejos. Será hasta 1963 que se recupera su sentido.",
     },
     {
-        titulo: "Biblioteca «Amado Nervo»",
+        titulo: "Biblioteca Amado Nervo",
         resumen: "Con el gobernador Rogelio Flores Curiel, el acervo pasa a esta biblioteca, anexa al Museo Regional de Nayarit, inaugurada un 28 de agosto.",
         fecha: "1976–1981",
-        detalle: "Durante la gubernatura del coronel Rogelio Flores Curiel (1976-1981), el acervo de la biblioteca «Francisco I. Madero» se traslada a lo que será la Biblioteca Pública «Amado Nervo», inaugurada un 28 de agosto en el marco de los festejos en honor del poeta. Estaba anexa al Museo Regional de Nayarit, en la calle Zapata esquina Allende, colonia Centro, Tepic.",
+        detalle: "Durante la gubernatura del coronel Rogelio Flores Curiel (1976-1981), el acervo de la biblioteca Francisco I. Madero se traslada a lo que será la Biblioteca Pública Amado Nervo, inaugurada un 28 de agosto en el marco de los festejos en honor del poeta. Estaba anexa al Museo Regional de Nayarit, en la calle Zapata esquina Allende, colonia Centro, Tepic.",
         imagen: etapa4,
     },
     {
         titulo: "La Alameda, escenario cultural",
-        resumen: "Se remodela el parque, se construye una biblioteca infantil y el Polifórum «José López Portillo», que después albergará la Biblioteca Central Estatal.",
+        resumen: "Se remodela el parque, se construye una biblioteca infantil y el Polifórum José López Portillo, que después albergará la Biblioteca Central Estatal.",
         fecha: "1976–1981",
-        detalle: "En el mismo periodo del coronel Rogelio Flores Curiel (1976-1981) se remodela el parque de la Alameda. En él se construye una biblioteca infantil y el Polifórum «José López Portillo», que años después albergaría la Biblioteca Central Estatal «Everardo Peña Navarro».",
+        detalle: "En el mismo periodo del coronel Rogelio Flores Curiel (1976-1981) se remodela el parque de la Alameda. En él se construye una biblioteca infantil y el Polifórum José López Portillo, que años después albergaría la Biblioteca Central Estatal Everardo Peña Navarro.",
         imagen: etapa5,
     },
     {
@@ -83,16 +83,16 @@ export const etapas: Etapa[] = [
         detalle: "La Red Nacional de Bibliotecas se consolida mediante decreto presidencial el 8 de enero de 1983 y se reafirma con la Ley General de Bibliotecas del 21 de enero de 1988, hoy sustituida por la publicada en el DOF el 1 de junio de 2021. En 1989 se crea CONACULTA, a quien corresponde organizar las bibliotecas del país. En Nayarit, el gobernador Celso Humberto Delgado Ramírez (1987-1993) crea el Instituto Cultural y Artístico de Nayarit, ICANAY.",
     },
     {
-        titulo: "Biblioteca Central Estatal «Everardo Peña Navarro»",
+        titulo: "Biblioteca Central Estatal Everardo Peña Navarro",
         resumen: "El gobernador Emilio González Parra la inaugura y arranca en Nayarit el programa de la Red Nacional de Bibliotecas.",
         fecha: "24 jul 1985",
-        detalle: "El 24 de julio de 1985, el gobernador constitucional don Emilio González Parra inauguró la Biblioteca Central Estatal «Everardo Peña Navarro». Con este acto inicia oficialmente el funcionamiento del programa de la Red Nacional de Bibliotecas en el estado de Nayarit.",
+        detalle: "El 24 de julio de 1985, el gobernador constitucional don Emilio González Parra inauguró la Biblioteca Central Estatal Everardo Peña Navarro. Con este acto inicia oficialmente el funcionamiento del programa de la Red Nacional de Bibliotecas en el estado de Nayarit.",
     },
     {
         titulo: "Nueva sede, ludoteca y bebeteca",
         resumen: "En 1993 se reubica e inaugura con el gobernador Rigoberto Ochoa Zaragoza; en 2011 se remodela y abre la ludoteca y la bebeteca.",
         fecha: "1993–2011",
-        detalle: "La Biblioteca Pública Central Estatal «Everardo Peña Navarro» fue reubicada e inaugurada en 1993 por el gobernador constitucional C. Rigoberto Ochoa Zaragoza. En 2011 se remodeló y se abrieron la ludoteca y la bebeteca. El arte y la cultura se conjugan con la naturaleza y brindan serenidad a los espacios bibliotecarios.",
+        detalle: "La Biblioteca Pública Central Estatal Everardo Peña Navarro fue reubicada e inaugurada en 1993 por el gobernador constitucional C. Rigoberto Ochoa Zaragoza. En 2011 se remodeló y se abrieron la ludoteca y la bebeteca. El arte y la cultura se conjugan con la naturaleza y brindan serenidad a los espacios bibliotecarios.",
         imagen: etapa8,
         imagenPorConfirmar: true,
     },
@@ -103,10 +103,10 @@ export const etapas: Etapa[] = [
         detalle: "Entre junio y septiembre de 2018 sucedieron 8 robos en la biblioteca. Fue el primero de cuatro traslados de acervo y personal, que se extendieron de 2019 a 2022.",
     },
     {
-        titulo: "Biblioteca «José Solón Argüello»",
+        titulo: "Biblioteca José Solón Argüello",
         resumen: "Tras la reconstrucción impulsada por el gobierno de Antonio Echevarría García, se inaugura la biblioteca actual.",
         fecha: "23 jun 2021",
-        detalle: "La reconstrucción de la Biblioteca Pública Central (2020-2021) fue realizada por el gobierno de Antonio Echevarría García. La Biblioteca Pública «José Solón Argüello» se inauguró el 23 de junio de 2021.",
+        detalle: "La reconstrucción de la Biblioteca Pública Central (2020-2021) fue realizada por el gobierno de Antonio Echevarría García. La Biblioteca Pública José Solón Argüello se inauguró el 23 de junio de 2021.",
     },
     {
         titulo: "Cierre y reapertura",
@@ -117,9 +117,9 @@ export const etapas: Etapa[] = [
     },
     {
         titulo: "La biblioteca actualmente",
-        resumen: "Reabierta en 2024, hoy es un centro de lectura, servicios y actividades culturales para toda la comunidad. (ejemplo · por confirmar)",
+        resumen: "Reabierta en 2024, hoy es un centro de lectura, servicios y actividades culturales para toda la comunidad.",
         fecha: "2024–actualidad",
-        detalle: "Hoy la Biblioteca Pública Central «José Solón Argüello» ofrece préstamo de libros, salas de lectura, ludoteca, bebeteca y Aula de Braille, además de talleres y actividades culturales para todas las edades. (Texto de ejemplo · por confirmar con la biblioteca)",
+        detalle: "Hoy la Biblioteca Pública Central José Solón Argüello ofrece préstamo de libros, salas de lectura, ludoteca, bebeteca y Aula de Braille, además de talleres y actividades culturales para todas las edades.",
         imagen: etapa11, // en Figma usa la misma foto que la etapa 11
     },
 ];
@@ -237,7 +237,7 @@ export const perspectivas = [
     {
         titulo: "Académica",
         texto: "Recursos para estudiar, investigar y aprender durante toda la vida.",
-        puntos: ["Consulta de acervo y hemeroteca", "Catálogo en línea", "Apoyo a la investigación"],
+        puntos: ["Consulta del acervo general y regional", "Catálogo en línea", "Apoyo a la investigación"],
         icono: iconoLibro,
         foto: fotoSalaEstudio,
     },

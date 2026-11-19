@@ -59,6 +59,7 @@ Si una pantalla se ve distinta a esas dos, se ajusta a ellas, no al revés. Los 
 - **Carruseles:** elementos del mismo tamaño en carruseles hermanos (libro = tarjeta de actividad: 360 px de ancho, 24 px entre ellos); flechas ‹ › a media altura de la pista, 64 px hacia dentro de la orilla.
 
 ### 2. Elementos de identidad (los «detalles del login»)
+- **Franja verde de título (`EncabezadoPublico`)** (normalización, 18 nov 2026): etiqueta en pastilla, **título con su ícono al costado** (prop `icono`: insignia dorada de 46 px con el ícono verde de la sección, a la izquierda del título) y texto. En pantallas de uso o de consulta (Notificaciones, Acerca de y lo que siga) va **compacta** (≈ 150 px: título de 36 px, texto de 15 px). Debajo de la franja **no se repite el título** con otro encabezado: el contenido empieza directo.
 - **Franja guinda → dorado** (`linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194)`): arriba de las tarjetas de acceso y de los bloques de color, y bajo la franja superior. En bloques guinda o dorados va verde → dorado.
 - **Luces:** degradados radiales tenues, dorado arriba a la izquierda y verde o guinda abajo a la derecha (franja superior, pie, portada, encabezados verdes, pantallas de acceso). Nunca fondos de color en los enlaces del menú.
 - **Logos:** México | Nayarit | Solón Argüello juntos, separados por una línea fina (franja superior del portal y pantallas de acceso). **Los logos institucionales nunca se animan** (ni entrada ni desvanecido al cambiar de pantalla).
@@ -67,6 +68,14 @@ Si una pantalla se ve distinta a esas dos, se ajusta a ellas, no al revés. Los 
 - **Ilustraciones** (`assets/inicio/adorno-*.svg`): plantas y troncos propios en los colores de la institución, detrás del contenido o en esquinas vacías, nunca tapando texto; se quitan si estorban en teléfono.
   - **Guías con flores** dentro de los bloques de color: `adorno-guia-flores.svg` con las clases `guia-flores` + `guia-flores--arriba-izquierda | arriba-derecha | izquierda | derecha` (y `guia-flores--chica` si el bloque tiene contenido cerca de las esquinas). Se usan en «¿Qué quieres hacer hoy?» y «Cómo encontrarnos»; para otro bloque, reutiliza las mismas clases, no dibujes otras flores.
   - Afuera de los bloques (en el fondo de la sección) van las plantas de los costados; en la portada, los troncos.
+  - **Plantas de los costados: cada página tiene SUS propias plantas** (Aldahir, 18 nov 2026; no las mismas reacomodadas). Diseños propios en `assets/inicio/`:
+    - Mi perfil: helecho (`adorno-helecho.svg`) · tallo con flores (`adorno-flor-tallo.svg`) · rama verde (`adorno-planta-verde.svg`) · ramita dorada (`adorno-planta-dorada.svg`).
+    - Acerca de: hojas largas en abanico (`adorno-monstera.svg`) · espigas doradas (`adorno-espigas.svg`) · rama con bayas guinda (`adorno-bayas.svg`) · ramita dorada.
+    - Notificaciones: eucalipto (`adorno-eucalipto.svg`) · margaritas (`adorno-margaritas.svg`) · ginkgo (`adorno-ginkgo.svg`).
+    - Noticias (portada, «Todas las noticias» y el detalle de cada noticia): olivo (`adorno-olivo.svg`) arriba izquierda · hiedra que cuelga (`adorno-hiedra.svg`) arriba derecha · campanillas (`adorno-campanillas.svg`) abajo derecha.
+    - **Páginas largas** (Solón Argüello, Historia): las plantas siguen por los márgenes hasta abajo, alternando diseños cada ~320 px, con tiras `adorno-*-tira.svg` (la planta con aire debajo, repetida con `repeat-y`; las tiras no se mecen).
+    - **Siempre en los márgenes, a 16 px o más del menú y del contenido; nunca encima de campos, tarjetas ni menús.** Para una página nueva, **dibuja plantas nuevas** en los colores de la institución (verde, dorado, guinda, crema), revisa a 1366 × 768 que no tapen nada y anótalas aquí (`Detalles.css`, «Plantas propias por página»).
+  - **Mi perfil también lleva plantas a los costados** (18 nov): rama verde arriba a la izquierda, junto al menú, y ramita dorada inclinada abajo a la derecha, como seudoelementos de `.perfil-cuerpo` (`Detalles.css`, «Mi perfil: plantas a los costados»). Salen del margen de la página, quedan detrás del menú y del contenido y se mecen. Para otra pantalla con sesión, reutiliza las mismas imágenes y medidas.
 - **Sin flechas ni íconos dentro de botones o enlaces** (excepciones: el ícono de carga, el ojo de «Mostrar» y el ícono de «Cerrar sesión» del menú del perfil, pedido por Aldahir el 18 nov). Los íconos van en encabezados, insignias, recuadros y estados.
 - **Etiquetas de bloque (pastilla con ícono):** pastilla dorada (`#f6eeda → #f2e3b8`, aro `#e6d194`, texto `#6b4f12`, 12.5 px, negrita) con su ícono blanco dentro de un círculo verde `#164f44` de 22 px; sobre fondo verde, la versión clara. **Nunca texto en mayúsculas suelto** como etiqueta. En el perfil y notificaciones es el componente `EtiquetaPerfil` (`perfil/piezas.tsx`); todas las etiquetas de una pantalla son iguales.
 - **Tarjetas de contenido:** blancas, borde `#e2ded5`, radio 24 px, sombra suave y **franja de color de 4 px arriba** según su tipo (verde, dorada, guinda o la franja guinda → dorado); la cabecera (ícono en círculo + título) separada del contenido por una línea.
@@ -83,6 +92,10 @@ Si una pantalla se ve distinta a esas dos, se ajusta a ellas, no al revés. Los 
   - **Sin leer o pendiente:** borde parejo y un **punto dorado** sobre el ícono (`::after`, 10–11 px, con aro blanco).
   - **Elemento activo o seleccionado** (la noticia que se está viendo): tarjeta blanca con **borde dorado fino alrededor** (`#e6d194`, 2 px), brillo dorado suave y, si señala a otro elemento, una **muesca** dorada que apunta hacia él.
   - **Recuadros de ayuda** (`perfil-nota`) conservan su borde dorado a la izquierda: son notas, no tarjetas.
+- **La biblioteca no tiene hemeroteca** (Aldahir, 18 nov 2026): no la menciones en textos, datos de ejemplo, espacios ni imágenes.
+- **Sin comillas «» decorativas en los textos ni avisos de relleno** («imagen ilustrativa», «texto por confirmar», «(ejemplo)») en las páginas públicas (Aldahir, 18 nov). Los nombres propios que antes iban entre comillas se **resaltan en verde y negrita** (p. ej. los nombres de las bibliotecas en Historia).
+- **Paneles que se abren (filtros, menús desplegables) van por encima de todo lo que está debajo** (`z-index` mayor que las tarjetas, que suben de capa al animarse).
+- **Franja de color arriba de una tarjeta redondeada:** la tarjeta lleva `overflow: hidden` (o recorte) para que la franja siga las esquinas y no se vean puntas flotando.
 - **Sin etiquetas pequeñas sobre los títulos** que repitan las migas o el título. Las etiquetas de sección del portal (pastilla con ícono arriba del título del bloque) sí se usan.
 
 ### 3. Animaciones (solo `transform` y `opacity`)
@@ -94,9 +107,23 @@ Si una pantalla se ve distinta a esas dos, se ajusta a ellas, no al revés. Los 
 | Enlaces | subrayado dorado que aparece o se engrosa |
 | Elementos vivos (abierto, «ahora») | punto que late; 1.8 s |
 | Ilustraciones | se mecen ±2–3° en 8–9 s desde su punto de apoyo, cada una a destiempo |
+| Contenido largo al bajar (tarjetas, fotos, etapas) | cada elemento aparece subiendo 14 px al entrar en pantalla (`animation-timeline: view()`, 0.5 s `ease-out`); sin soporte, se ve quieto |
+| Línea del tiempo | línea vertical dorado → verde que une los números y se dibuja de arriba abajo al aparecer |
+| Elemento que se abre (etapa, detalle) | su número pasa a dorado con un aro que late **una vez** (0.9 s); el detalle baja 8 px y aparece (0.3 s); la flecha gira 180° |
+| Fotos | acercamiento de 3 % y aro dorado más intenso al pasar el mouse (0.3 s) |
+| Desplegables de la barra | aparecen bajando 6 px (0.22 s) |
+| Opción activa de un menú lateral | rayita dorada que se dibuja de izquierda a derecha (0.35 s) |
+| Entrada de una página de consulta | barra, destacada y tarjetas aparecen subiendo 14 px **una tras otra** (0.5 s, 60 ms de diferencia, máximo 180 ms) |
+| Botones de reacción (Me gusta, Me sirvió, Compartir) | **ninguna** al pasar el mouse ni al marcar: solo cambia el color (0.15 s). Sin marcar, al pasar el mouse: fondo verde claro y letras verdes. Marcado: fondo verde y letras blancas, y al pasar el mouse un verde más oscuro (**nunca fondo blanco con letras blancas**) |
+| Chips y opciones de filtro | al pasar el mouse: borde verde, fondo verde claro y se elevan 2 px (0.2 s); al elegir, la pastilla pasa a verde con un pulso corto (escala 0.96 → 1, 0.25 s) |
+| Panel de filtros | entra bajando 6 px (0.22 s) y sus grupos aparecen escalonados (40 ms) |
+| Buscador y campos | al enfocar: borde verde y aro dorado suave (0.2 s) |
+| Selector Cuadrícula / Lista | la opción activa cambia de color con sombra (0.2 s); al cambiar, las tarjetas vuelven a aparecer |
+| «Leer más» dentro de una tarjeta | subrayado dorado que aparece al pasar por la tarjeta (0.2 s) |
+| Plantas en tiras (páginas largas) | no se mecen; solo las plantas sueltas se mecen |
 | Foco con teclado | contorno dorado `#c9a24a` de 3 px |
 
-Todo se apaga con `@media (prefers-reduced-motion: reduce)`, salvo el ícono de carga.
+Todo se apaga con `@media (prefers-reduced-motion: reduce)`, salvo el ícono de carga. **Coherencia:** solo estas animaciones, con estas duraciones; un elemento tiene **una** animación al pasar el mouse (no se suman brillos, rellenos ni giros extra). Ejemplos completos: Noticias y su panel de filtros (`Detalles.css`, «Animaciones de Noticias y filtros») y Acerca de · Historia y Solón Argüello (`Detalles.css`, «Acerca de · Historia y trayectoria con animaciones»).
 
 ### 4. Cómo aplicarlo en otras partes
 - Antes de diseñar, abre el login y el inicio a 1366 × 768 y compara: encabezado, tarjetas, botones, chips, espacios y animaciones.
@@ -135,6 +162,7 @@ Si algo no encaja, usa la más parecida y pregunta antes de inventar otra. Los r
 | `.perfil-opciones` + `.perfil-opcion` | `Detalles.css` | Elegir una opción entre pocas (canal de avisos): tarjetas con radio, título y descripción; la elegida en verde claro |
 | `.perfil-interruptor` | `Detalles.css` | Activar o desactivar algo (tipos de aviso): fila con título, descripción e interruptor verde |
 | `.perfil-requisitos` | `Detalles.css` | Requisitos en vivo (contraseña): pastillas grises que se ponen verdes al cumplirse |
+| Panel de «Filtros» (`BarraFiltros`) | `components/portal/BarraFiltros.tsx` · `Detalles.css` | Tarjeta crema con franja guinda → dorado y entrada suave; cabecera «Filtrar resultados» con ayuda; grupos separados por línea con título dorado (sin mayúsculas); opciones en pastillas blancas (la elegida verde con sombra); fecha de 44 px; pie fijo con «Quitar todo» (guinda) y «Listo» (degradado verde); mide hasta el borde de la ventana y se desplaza por dentro |
 | `.perfil-niveles--ruta` | `Detalles.css` | Niveles o etapas numeradas en fila, unidas por una línea, con su chip de estado |
 | Desplegables de la barra (campana `PanelNotificaciones` y «Mi perfil» `MenuCuenta`) | `notificaciones/PanelNotificaciones.tsx` · `perfil/MenuCuenta.tsx` · `Detalles.css` | Con las **tarjetas de lista de Mis eventos**: fondo crema con franja guinda → dorado, entrada suave, cada aviso u opción como tarjeta blanca **sin franja al costado** (Aldahir las quitó en la campana, en «Mi perfil» y en la página de Notificaciones): borde parejo, y un punto dorado sobre el ícono marca «sin leer»; «Cerrar sesión» en rosa claro con texto guinda, ícono en recuadro verde claro y elevación al pasar el mouse; contador «N sin leer» en pastilla; vacío «Estás al día» con insignia; botón principal a todo lo ancho |
 | `.notif-resumen` | `Detalles.css` | Tarjeta de resumen: cifra grande («5 sin leer de 6»), barra de avance y conteo por categoría con su punto de color |
@@ -183,12 +211,15 @@ Si algo no encaja, usa la más parecida y pregunta antes de inventar otra. Los r
 
 ### 7. Plantillas de pantalla (normalización final, 18 nov 2026)
 
-Toda pantalla con sesión usa **una de estas dos plantillas**, ya probadas en Mi perfil y en Notificaciones. No se inventan otras.
+Toda pantalla usa **una de estas tres plantillas**, ya probadas en Mi perfil y en Notificaciones. No se inventan otras.
 
 **A. Sección con menú lateral** (Mi perfil y sus submódulos; `perfil-cuerpo`):
 - Columna izquierda: menú de 212 px que acompaña al scroll (`sticky`), etiqueta «Secciones del perfil», opciones a la izquierda con la rayita dorada de la barra principal, «Cerrar sesión» en guinda con ícono.
 - Columna derecha (la sección), en este orden: `EncabezadoSeccion` (insignia + título + texto + acción principal a la derecha) → contenido → nota de ayuda al final.
 - Contenido según el caso: **datos** en `TarjetaPerfil` + fichas `Dato`; **listas** en `perfil-panel` (filtros segmentados + tarjetas de lista o vacío) que llega al alto del menú; **formularios** con `perfil-editar-intro` (si editan datos personales), `Campo`, opciones o interruptores y la barra `perfil-guardar` hasta abajo; **trámites** con `perfil-credencial-estado` + pasos.
+
+- **Acerca de** (`/acerca/:seccion`, 18 nov) ya usa esta plantilla: franja verde compacta con el ícono de la sección junto al título y **sin encabezado repetido** debajo; menú «Secciones» (Historia, Misión y visión, Solón Argüello, Rol de la biblioteca) **al mismo alto que el contenido**, con el recuadro «¿Tienes dudas? · Contáctanos» al pie. **El menú mide lo que sus opciones y el contacto** (sin hueco en medio, `height: auto`) y acompaña al bajar (`sticky`); no se estira con el contenido largo (Aldahir, 18 nov). Contenido: lo publicado en `TarjetaPerfil`; si no hay nada publicado, **cada sección muestra su contenido de Figma** (Misión y visión: misión y visión en dos tarjetas, valores y «La biblioteca en acción»; Solón Argüello: ficha en `Dato`, semblanza con «Leer biografía completa», trayectoria como tarjetas de lista con fecha y obras con portada; Rol: las cuatro perspectivas en tarjetas con foto y puntos). **Historia** (`acerca/Historia.tsx` + `datos.ts`: intro con datos y fachada, galería, las 12 etapas como tarjetas de lista sin franja —número verde, fecha en pastilla dorada y detalle desplegable con foto o «por confirmar»— y las fuentes) y las demás secciones el vacío con insignia. Las plantas de los costados vienen con `perfil-cuerpo`.
+- **Menú lateral simétrico:** en la plantilla A el menú mide lo que el área de trabajo al entrar (alto visible bajo la barra menos 64 px) y la acompaña al bajar; si el contenido es corto, termina a la par de él. Lo que va al pie del menú (contacto, cerrar sesión) se queda abajo.
 
 **B. Herramienta de dos columnas** (Notificaciones; `notif-cuerpo`, máximo 1120 px):
 - Arriba, la **franja verde compacta** (≈ 150 px) para que destaque la funcionalidad.
@@ -196,7 +227,16 @@ Toda pantalla con sesión usa **una de estas dos plantillas**, ya probadas en Mi
 - Columna derecha de 360 px: `notif-resumen` (si hay datos) → `notif-como-tarjeta` (lo más importante de configurar) → `notif-atajos` → nota.
 - **El bloque de las dos columnas es el área de trabajo ajustada a la pantalla** (ver §1): mide el alto visible bajo la barra, el scroll lo encuadra, las dos columnas miden lo mismo y la lista se desplaza dentro de su panel. La columna derecha va compacta (resumen en chips) para caber a 1366 × 768 y **siempre termina a la par de la lista**: el resumen no se encoge y el espacio que sobre se reparte entre «Cómo te avisamos» (contenido centrado) y los atajos (sus filas crecen hasta 64 px); la nota «Eliminar no cancela nada» va al pie del panel.
 
-**Reglas comunes a las dos:**
+**C. Página pública de consulta** (Noticias, Acerca de y lo que siga del portal sin sesión):
+- Franja verde **compacta con ícono** (`EncabezadoPublico` o `EncabezadoNoticias` con `icono` y `compacto`), sin botón «Volver» y **sin repetir el título** debajo.
+- Debajo, directo la herramienta: barra con filtros (chips o `BarraFiltros`) a la izquierda y la acción principal a la derecha; luego las tarjetas.
+- Tarjetas con franja de color arriba; al pasar el mouse se elevan 4 px y su foto se acerca 3 %; aparecen al bajar.
+- Etiquetas de grupo con `EtiquetaPerfil` («Más noticias», «Noticias publicadas»); nada de contadores visibles tipo «Mostrando N de N» (solo para lectores de pantalla).
+- **Estados** (sin resultados, error, no disponible): siempre el vacío importante (`perfil-vacio perfil-vacio--eventos`) con insignia grande (verde; **guinda si es error**), título, texto, sugerencias en pastillas cuando ayudan y botones `perfil-boton` sin íconos. La página debe importar `perfil/Perfil.css` para tener la base de estas piezas.
+- Plantas propias de la página en los márgenes (ver «Ilustraciones»).
+- **Página de detalle** (una noticia y lo que siga): franja compacta con la información del elemento (categoría, fecha) en pastilla y su título; foto montada sobre la franja con aro dorado; el texto a 780 px de ancho; nada repetido entre franja e introducción; a un lado (columna de 320 px que acompaña al bajar) los datos del elemento, sus relacionados en lista compacta con miniatura y los botones; la página termina con el texto, sin franjas extra.
+
+**Reglas comunes a todas:**
 - Colores con significado (verde = listo, dorado = en curso o sin leer, guinda = requiere acción, gris = terminado o leído), los mismos en bordes, chips, fichas y franjas.
 - Etiquetas siempre con `EtiquetaPerfil`; títulos sin mayúsculas sostenidas; nada de etiquetas que repitan el título.
 - Toda tarjeta lleva su franja de color arriba; las tarjetas de lista, su borde de color a la izquierda.
@@ -302,7 +342,7 @@ Los íconos de la ficha ya vienen descargados en `src/assets/`. Si algo no está
   - Unificó los íconos repetidos en `assets/comun/iconos/`, después de comprobar sus MD5, y eliminó las dos copias sin referencias.
   - Agregó «Reintentar» a los estados de error de Estadísticas y Bitácora sin alterar sus datos ni servicios.
   - Verificación: `npm run lint` sin errores, **340 pruebas aprobadas y 1 omitida**, y `npm run build` exitoso.
-- **Terminado (T1, 18 nov 2026): Mi perfil completo** (todas sus secciones) y **Notificaciones**, con el catálogo de piezas (§5), los recursos (§6) y las plantillas de pantalla (§7). Lo que sigue se arma con esas tres secciones.
+- **Terminado (T1, 18 nov 2026): Mi perfil completo** (todas sus secciones), **Notificaciones**, **Acerca de** y **Noticias** (portada, archivo con filtros y detalle con reacciones), con el catálogo de piezas (§5), los recursos (§6) y las plantillas de pantalla (§7). Lo que sigue se arma con esas tres secciones.
 - En curso: T4 · Actor 2 (`476:9982`).
 - Pendientes que dependen del backend, no de nuevas pantallas frontend: Estadísticas, Bitácora y Configuración (`administracion/datos.ts`), Resumen y Notificaciones del panel, y Recuperación asistida conservan datos de ejemplo señalados con `TODO backend`.
 - 3 nov 2026: `main` y `Aldahir` ya tienen la organización de carpetas corregida después del merge.
@@ -345,6 +385,7 @@ Lo que ya se decidió y está hecho. **No lo deshagas**; si algo no te cuadra, p
 - **«Cómo encontrarnos»:** datos en tarjetas de vidrio (horario y dirección a todo lo ancho; el horario va en **una sola línea** y el estado «Abierto/Cerrado ahora» junto a la palabra «Horario», con `useEstadoBiblioteca`); etiqueta, título y botón «Contacto y sugerencias» centrados, teléfono y correo como enlaces `tel:` y `mailto:`, y el mapa de Google con marco dorado y una placa con el nombre arriba a la derecha (a la izquierda Google pone su ficha).
 - **Pie de bloque igual en Lecturas, Actividades y Noticias:** nota o aviso a la izquierda y el botón dorado «Ver todas las …» a la derecha, los tres del mismo tamaño (los tres bloques al 95 %). Ningún «Ver todas…» va bajo el título.
 - **Carruseles parejos:** los libros de Lecturas miden lo mismo que las tarjetas de Actividades (360 px de ancho, mismo espacio entre ellos, mismo alto) y los dos bloques se dibujan a la misma escala (95 %); las flechas de ambos carruseles van a media altura de la pista, en la misma posición.
+- **Página de Noticias** (18 nov, con el catálogo): franja compacta con el ícono del periódico (`EncabezadoNoticias` acepta `icono` y `compacto`, igual que `EncabezadoPublico`); sin el título repetido debajo: una barra con los filtros por categoría a la izquierda y «Ver todas las noticias» a la derecha; destacada y tarjetas con franja de color arriba, se elevan 4 px y su foto se acerca 3 % al pasar el mouse, y aparecen al bajar; «Más noticias» y «Noticias publicadas» con `EtiquetaPerfil`; sin «Imagen ilustrativa». «Todas las noticias» sin el texto «Mostrando N de N noticias» (queda solo para lectores de pantalla) y sin botón «Volver a Noticias» (el menú ya lleva ahí); el panel de «Filtros» se abre por encima de las tarjetas. Tarjeta destacada con textos contenidos y centrados a la altura de la foto (título 30 px, resumen 16 px, botón de 44 px). **Detalle de una noticia:** franja verde compacta sin «Volver» ni pastilla «Noticia»: la categoría · fecha · minutos de lectura van en una pastilla y el título a 36 px; el resumen solo si es distinto de la introducción (no se repite). La foto monta sobre la franja con aro dorado; la introducción es una nota verde clara; subtítulos en verde; «Cuándo», «Horario» y «Dónde» sin mayúsculas; la categoría (`PuntoCategoria`) se escribe normal, no en mayúsculas. **Reacciones** (`servicios/reacciones.ts`): con sesión, «Me gusta» y «Me sirvió» se marcan y desmarcan (la marcada en verde; **sin animación al marcar**: ni pulso ni elevación, solo cambia el color — decisión de Aldahir) y «Inicia sesión para reaccionar» **solo aparece sin sesión**; «Compartir» suma al compartir. `TODO backend`: contrato en `docs/pendientes-backend.md` («Reacciones de noticias»); sin backend, las marcas (por cuenta) y las veces compartida se guardan en el navegador y sobreviven a recargar. Las reacciones van **al final del texto**, en una tarjeta con franja: la pregunta y su ayuda en un renglón y los tres botones iguales en una fila; ningún texto se parte en dos renglones. **Dos columnas** (sin franjas largas al final) que **empiezan a la misma altura**, montadas sobre la franja verde: foto + texto a la izquierda y una columna lateral de 320 px que acompaña al bajar con «Sobre esta noticia» (categoría, fecha y lectura), «Otras noticias» en lista compacta con miniatura y los botones «Ver más noticias» y «Volver». Encabezado, foto y texto entran escalonados.
 - **Noticias:** «Ver todas las noticias» va al pie del bloque, junto a la nota, igual que en Actividades. La lista de la derecha muestra cada noticia con miniatura, categoría y fecha, título (2 líneas) y **su descripción** (2 líneas). La noticia activa ya **no lleva franja al costado**: borde dorado fino alrededor, brillo suave, pastilla «Viendo» y una muesca dorada a la izquierda que apunta a la destacada.
 - **Campana de notificaciones:** blanca con borde claro (no verde).
 - **Actividades del inicio:** «Ver todas las actividades» va abajo a la derecha, junto a la nota de programación (no bajo el título). El bloque es más bajo (menos aire, foto de 170 px) y por eso se dibuja al 95 %, con tarjetas más grandes.

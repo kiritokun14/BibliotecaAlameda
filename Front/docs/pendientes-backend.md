@@ -55,3 +55,20 @@ Cada petición tarda ~2 s aunque sea sencilla, porque en cada una se crea el cli
 Ninguna de las cuentas de prueba actuales tiene **administración total**; con una cuenta así se pueden revisar en vivo
 Cuentas y permisos, Bitácora, Configuración, Recuperación, Consulta de cuentas, Contactos, Altas asistidas y el catálogo
 de Estados del sistema (su diseño ya está terminado y revisado en el código).
+
+## Reacciones de noticias («Me gusta», «Me sirvió», «Compartir») — 18 nov 2026
+
+El frontend ya está listo y conectado (`src/servicios/reacciones.ts`, `noticias/DetalleNoticia.tsx`). Mientras no existan estos endpoints, la pantalla usa los conteos que trae la noticia y guarda la marca de la persona en su navegador.
+
+Tabla sugerida: `reacciones_noticia (noticia_id, usuario_id, tipo ∈ {me_gusta, me_sirvio}, creado_en)` con llave única `(noticia_id, usuario_id, tipo)`; y un contador `compartidos` por noticia.
+
+| Método y ruta | Sesión | Respuesta |
+|---|---|---|
+| `GET /noticias/{id}/reacciones` | opcional | `{ meGusta, meSirvio, compartir, mias: ["me_gusta" \| "me_sirvio"] }` (`mias` vacío sin sesión) |
+| `PUT /noticias/{id}/reacciones/{tipo}` | obligatoria | igual que el GET, ya con la marca puesta (idempotente) |
+| `DELETE /noticias/{id}/reacciones/{tipo}` | obligatoria | igual que el GET, ya sin la marca (idempotente) |
+| `POST /noticias/{id}/compartidos` | no | igual que el GET, con `compartir` + 1 |
+
+- `{id}` es el mismo identificador del detalle (`/noticias/CN-0045`). `{tipo}` es `me_gusta` o `me_sirvio`.
+- 401 si no hay sesión en PUT/DELETE; 404 si la noticia no existe o no está publicada.
+- Una persona solo cuenta una vez por tipo; puede tener las dos marcadas.
