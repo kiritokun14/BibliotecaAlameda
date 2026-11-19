@@ -1,10 +1,11 @@
-// Reacciones a noticias: «Me gusta», «Me sirvió» y «Compartir».
-// TODO backend (contrato en docs/pendientes-backend.md, «Reacciones de noticias»):
-//   GET  /noticias/{id}/reacciones            → ReaccionesNoticia (público; con sesión incluye «mias»)
-//   PUT  /noticias/{id}/reacciones/{tipo}     → ReaccionesNoticia (con sesión; marca me_gusta | me_sirvio)
-//   DELETE /noticias/{id}/reacciones/{tipo}   → ReaccionesNoticia (con sesión; quita la marca)
-//   POST /noticias/{id}/compartidos           → ReaccionesNoticia (público; suma 1 al compartir)
-// Mientras no existan, la pantalla funciona con los conteos que trae la noticia y guarda la marca de la
+// Reacciones a un contenido publicado (noticia, reseña o registro de memoria): «Me gusta», «Me sirvió» y «Compartir».
+// Todos comparten folio (CN-0045), así que la ruta es una sola para los tres.
+// TODO backend (contrato en PARA_BACKEND.md, «Reacciones»):
+//   GET    /contenidos/publicos/{folio}/reacciones          → ReaccionesNoticia (público; con sesión incluye «mias»)
+//   PUT    /contenidos/publicos/{folio}/reacciones/{tipo}   → ReaccionesNoticia (con sesión; marca me_gusta | me_sirvio)
+//   DELETE /contenidos/publicos/{folio}/reacciones/{tipo}   → ReaccionesNoticia (con sesión; quita la marca)
+//   POST   /contenidos/publicos/{folio}/compartidos         → ReaccionesNoticia (público; suma 1 al compartir)
+// Mientras no existan, la pantalla funciona con los conteos que trae el contenido y guarda la marca de la
 // persona en este navegador (`reaccionesLocales`), para que el botón responda.
 import { ErrorServicio, obtenerSupabase, pedirApi } from './api';
 
@@ -20,12 +21,13 @@ async function conSesion<T>(ruta: string, opciones: RequestInit = {}): Promise<T
     return pedirApi<T>(ruta, { ...opciones, headers: { Authorization: `Bearer ${data.session.access_token}` } });
 }
 
-const ruta = (id: string) => `/noticias/${encodeURIComponent(id)}/reacciones`;
+const base = (id: string) => `/contenidos/publicos/${encodeURIComponent(id)}`;
+const ruta = (id: string) => `${base(id)}/reacciones`;
 export const consultarReacciones = (id: string) => conSesion<ReaccionesNoticia>(ruta(id)).catch(() => pedirApi<ReaccionesNoticia>(ruta(id)));
 export const marcarReaccion = (id: string, tipo: TipoReaccion, activa: boolean) =>
     conSesion<ReaccionesNoticia>(`${ruta(id)}/${tipo}`, { method: activa ? 'PUT' : 'DELETE' });
 export const registrarCompartido = (id: string) =>
-    pedirApi<ReaccionesNoticia>(`/noticias/${encodeURIComponent(id)}/compartidos`, { method: 'POST' });
+    pedirApi<ReaccionesNoticia>(`${base(id)}/compartidos`, { method: 'POST' });
 
 // ---------- Respaldo local mientras no hay backend ----------
 // Marcas por cuenta y noticia, y veces compartida por noticia (en este navegador). Sobreviven a recargar la página.

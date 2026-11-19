@@ -5,19 +5,40 @@ import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 import { useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import "./Lecturas.css";
-import { aniosDeMemoria, coincideBusqueda, memoriaPorAnio } from "./datos";
-import { EncabezadoLecturas, PestanasLecturas, TarjetaMemoria } from "./piezas";
+import "../perfil/Perfil.css";
+import { GENEROS, ORDENES_MEMORIA, aniosDeMemoria, buscaEnMemoria, memoriaPorAnio, ordenarMemoria, temasDeMemoria, type Genero, type Memoria, type OrdenMemoria } from "./datos";
+import { EncabezadoLecturas, EstadoLecturas, MemoriaDestacada, PestanasLecturas, TarjetaMemoria } from "./piezas";
+import { EtiquetaPerfil } from "../perfil/piezas";
+import { iconoLibro } from "./iconos";
 
-// Memoria pública: fotos y registros autorizados. ?anio=2024&q=feria
-// Mismo filtro compacto que Por autor: buscador y «Filtros» con el año.
+// Memoria pública (?anio=2024&tema=infantil&orden=antiguos&q=feria), con el mismo panel de «Filtros» que Por autor:
+//   Año (Todos los años · 2025 1 · 2024 2 …), Tema (Todos los temas · Novela 2 …) y Ordenar por (Más recientes · Más antiguos).
+// Cada opción dice cuántos registros tiene, ya con lo elegido en los demás grupos, para no llevar a una lista vacía.
+// Sin filtros, el registro más reciente va destacado y debajo «Más registros» en rejilla de 3.
 function MemoriaPublica() {
     const { datos, error, memorias } = useLecturasPublicadas();
     const [parametros, setParametros] = useSearchParams();
-    const anios = aniosDeMemoria(memorias);
+    const todas = memoriaPorAnio(null, memorias);
     const anioUrl = Number(parametros.get("anio"));
-    const anio = anios.includes(anioUrl) ? anioUrl : null;
+    const anio = aniosDeMemoria(memorias).includes(anioUrl) ? anioUrl : null;
+    const temaUrl = parametros.get("tema") ?? "";
+    const tema = (temaUrl in GENEROS ? temaUrl : "") as Genero | "";
+    const orden: OrdenMemoria = parametros.get("orden") === "antiguos" ? "antiguos" : "recientes";
     const q = parametros.get("q") ?? "";
-    const registros = memoriaPorAnio(anio, memorias).filter((m) => coincideBusqueda(q, m.titulo, m.entrada));
+
+    // Registros que cumplen la búsqueda y los filtros dados (para los conteos de cada fila)
+    const filtrar = (a: number | null, t: Genero | "") =>
+        todas.filter((m) => (a === null || m.anio === a) && (!t || m.temas.includes(t)) && buscaEnMemoria(q, m));
+    const registros = ordenarMemoria(filtrar(anio, tema), orden);
+    const hayFiltros = Boolean(anio || tema || q || orden !== "recientes");
+    const destacado = !hayFiltros ? registros[0] : undefined;
+    const resto = destacado ? registros.slice(1) : registros;
+
+    // Opciones con registros (o la elegida), con cuántos hay en cada una
+    const porAnio = (a: number) => filtrar(a, tema).length;
+    const porTema = (t: Genero) => filtrar(anio, t).length;
+    const anios = aniosDeMemoria(memorias).filter((a) => porAnio(a) > 0 || a === anio);
+    const temas = temasDeMemoria(todas).filter((t) => porTema(t) > 0 || t === tema);
 
     const actualizar = useCallback((cambios: Record<string, string | null>) => {
         setParametros((previos) => {
@@ -29,6 +50,16 @@ function MemoriaPublica() {
         }, { replace: true });
     }, [setParametros]);
     const buscar = useCallback((texto: string) => actualizar({ q: texto.trim() || null }), [actualizar]);
+    const limpiar = () => setParametros({}, { replace: true });
+
+    const titulo = destacado ? "Más registros" : anio && tema ? `${GENEROS[tema]} en ${anio}` : anio ? `Registros de ${anio}` : tema ? `Registros de ${GENEROS[tema]}` : "Registros";
+    const resumen = (
+        <>
+            Mostrando {registros.length} {registros.length === 1 ? "registro" : "registros"}
+            {anio && <> de {anio}</>}{tema && <> sobre {GENEROS[tema]}</>}{q && <> que coinciden con {q}</>}
+            {orden === "antiguos" && <>, del más antiguo al más reciente</>}
+        </>
+    );
 
     return (
         <PaginaPublica>
@@ -38,28 +69,56 @@ function MemoriaPublica() {
                 texto="Fotografías y registros autorizados de la vida de la biblioteca."
             />
 
-            <section className="lecturas-seccion">
+            <section className="lecturas-seccion lecturas-pagina">
                 <div className="lecturas-contenedor">
                     <BarraFiltros
                         arriba={<PestanasLecturas />}
                         etiquetaBusqueda="Buscar en la memoria pública"
-                        marcador="Busca un registro o actividad…"
+                        marcador="Busca una actividad, un tema o un año…"
                         texto={q}
                         alBuscar={buscar}
-                        grupos={[{
-                            etiqueta: "Año",
-                            opciones: [{ valor: "", texto: "Todos los años" }, ...anios.map((a) => ({ valor: String(a), texto: String(a) }))],
-                            activa: anio ? String(anio) : "",
-                            alElegir: (valor) => actualizar({ anio: valor || null }),
-                        }]}
-                        alLimpiar={() => setParametros({}, { replace: true })}
+                        grupos={[
+                            {
+                                etiqueta: "Año", activa: anio ? String(anio) : "", alElegir: (valor) => actualizar({ anio: valor || null }),
+                                opciones: [
+                                    { valor: "", texto: "Todos los años", cuenta: datos ? filtrar(null, tema).length : undefined },
+                                    ...anios.map((a) => ({ valor: String(a), texto: String(a), cuenta: porAnio(a) })),
+                                ],
+                            },
+                            {
+                                etiqueta: "Tema", activa: tema, alElegir: (valor) => actualizar({ tema: valor || null }),
+                                opciones: [
+                                    { valor: "", texto: "Todos los temas", cuenta: datos ? filtrar(anio, "").length : undefined },
+                                    ...temas.map((t) => ({ valor: t, texto: GENEROS[t], cuenta: porTema(t) })),
+                                ],
+                            },
+                            {
+                                etiqueta: "Ordenar por", activa: orden, alElegir: (valor) => actualizar({ orden: valor === "antiguos" ? valor : null }),
+                                opciones: (Object.keys(ORDENES_MEMORIA) as OrdenMemoria[]).map((o) => ({ valor: o, texto: ORDENES_MEMORIA[o] })),
+                            },
+                        ]}
+                        alLimpiar={limpiar}
                     />
-                    {error ? <p role="alert">{error}</p> : !datos ? <EsqueletoTarjetas cantidad={3} texto="Cargando memoria pública…" /> : (
+                    {error ? <EstadoLecturas tipo="error" /> : !datos ? <EsqueletoTarjetas cantidad={3} texto="Cargando memoria pública…" /> : (
                         <>
-                            {registros.length === 0 && <p>{q ? "No encontramos registros con esa búsqueda." : "No hay registros de memoria publicados para este año."}</p>}
-                            <ul className="rejilla-memoria">
-                                {registros.map((m) => <TarjetaMemoria key={m.id} memoria={m} />)}
-                            </ul>
+                            <p className="solo-lectores" role="status">{resumen}</p>
+                            {registros.length === 0 ? (
+                                <EstadoLecturas tipo="sin-resultados" alLimpiar={limpiar} />
+                            ) : (
+                                <>
+                                    {destacado && <MemoriaDestacada memoria={destacado} />}
+                                    {resto.length > 0 && (
+                                        <section className="lecturas-grupo" aria-labelledby="titulo-mas-registros">
+                                            <div className="lecturas-grupo__encabezado">
+                                                <EtiquetaPerfil id="titulo-mas-registros" icono={iconoLibro}>{titulo}</EtiquetaPerfil>
+                                            </div>
+                                            <ul className="rejilla-lecturas">
+                                                {resto.map((m: Memoria) => <TarjetaMemoria key={m.id} memoria={m} />)}
+                                            </ul>
+                                        </section>
+                                    )}
+                                </>
+                            )}
                         </>
                     )}
                 </div>

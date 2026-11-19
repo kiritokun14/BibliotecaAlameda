@@ -2413,3 +2413,172 @@
 .pagina-publica .perfil-solicitud.perfil-mensaje { border-left: 1px solid #e2ded5; }
 .pagina-publica .perfil-solicitud.perfil-mensaje.perfil-solicitud--gris { background: #fff; }
 .pagina-publica .perfil-solicitud.perfil-mensaje--abierto { border-color: #e6d194; border-left-color: #e6d194; }
+
+/* ==========================================================================
+   LECTURAS Y RESEÑAS (19 nov 2026 · plantilla C, como Noticias)
+   Pestañas Lecturas · Memoria pública (Por tema se quitó el 19 nov) y los detalles de reseña y de registro.
+   Orden: 1. franja · 2. barra y etiqueta · 3. tarjetas · 4. estados · 5. detalle · 6. animaciones · 7. plantas.
+   ========================================================================== */
+
+/* 1. Franja verde compacta con el ícono del libro (≈ 150 px: título de 36 px y texto de 15 px) */
+.pagina-publica .encabezado-lecturas--compacto { gap: 10px; padding: 26px 24px 30px; }
+.pagina-publica .encabezado-lecturas--compacto h1 { font-size: 36px; line-height: 42px; letter-spacing: -0.5px; }
+.pagina-publica .encabezado-lecturas--compacto p { max-width: 640px; font-size: 15px; line-height: 22px; }
+
+/* 2. Contenido: barra (pestañas + buscador + filtros) y la etiqueta del grupo */
+.pagina-publica .lecturas-pagina .lecturas-contenedor { position: relative; gap: 22px; }
+.pagina-publica .lecturas-pagina .perfil-etiqueta { align-self: flex-start; }
+
+/* Tipo de lectura en pastilla con punto, sin mayúsculas (verde = reseña, dorado = recomendada, guinda = memoria) */
+.pagina-publica .lectura-tipo {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 3px 10px; border-radius: 999px;
+  background: #e4efeb; color: #164f44; font-size: 12.5px; font-weight: 700; line-height: 18px;
+}
+.pagina-publica .lectura-tipo__punto { width: 7px; height: 7px; border-radius: 50%; background: #1f6b5c; }
+.pagina-publica .lectura-tipo small { margin-left: 2px; color: inherit; font-size: 12px; font-weight: 600; opacity: 0.8; }
+.pagina-publica .lectura-tipo--recomendada { background: #f6eeda; color: #6b4f12; }
+.pagina-publica .lectura-tipo--recomendada .lectura-tipo__punto { background: #c9a24a; }
+.pagina-publica .lectura-tipo--memoria { background: #f6eaee; color: #611232; }
+.pagina-publica .lectura-tipo--memoria .lectura-tipo__punto { background: #9b2247; }
+.pagina-publica .lectura-tipo--claro { background: rgba(255, 255, 255, 0.14); color: #fff; box-shadow: inset 0 0 0 1px rgba(230, 209, 148, 0.4); }
+.pagina-publica .lectura-tipo--claro .lectura-tipo__punto { background: #e6d194; }
+
+/* 3. Tarjetas: blancas, borde parejo, radio 24, franja de color arriba (verde = reseña, dorada = memoria);
+   se elevan 4 px, su portada o foto se acerca 3 % y su enlace se subraya en dorado */
+.pagina-publica .tarjeta-lectura {
+  position: relative; display: flex; flex-direction: column; gap: 0; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 6px 16px rgba(22, 79, 68, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-publica .tarjeta-lectura::before { content: ""; position: absolute; inset: 0 0 auto; z-index: 2; height: 4px; background: linear-gradient(90deg, #164f44, #2a7d6b); }
+.pagina-publica .tarjeta-lectura--memoria::before { background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); } /* memoria = guinda, como su pastilla */
+.pagina-publica .tarjeta-lectura:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(22, 79, 68, 0.14); }
+.pagina-publica .tarjeta-lectura__portada,
+.pagina-publica .tarjeta-lectura .tarjeta-memoria__imagen { display: block; overflow: hidden; color: inherit; text-decoration: none; }
+.pagina-publica .tarjeta-lectura .portada-lectura { margin: 0; border-radius: 0; box-shadow: none; transition: transform 0.3s ease; }
+.pagina-publica .tarjeta-lectura .tarjeta-memoria__imagen img { transition: transform 0.3s ease; }
+.pagina-publica .tarjeta-lectura:hover :is(.portada-lectura, .tarjeta-memoria__imagen img) { transform: scale(1.03); }
+.pagina-publica .tarjeta-lectura .portada-lectura--normal { height: 240px; }
+.pagina-publica .tarjeta-lectura__contenido { display: flex; flex: 1; flex-direction: column; gap: 6px; padding: 16px 20px 20px; }
+.pagina-publica .tarjeta-lectura h3 { margin: 4px 0 0; color: #161a1d; font-size: 18px; line-height: 24px; }
+.pagina-publica .tarjeta-lectura .tarjeta-resena__autoria { margin: 0; color: #4d4d4d; font-size: 14px; }
+.pagina-publica .tarjeta-lectura .tarjeta-resena__fecha { margin: 0; color: #6b675e; font-size: 12.5px; }
+.pagina-publica .tarjeta-lectura__accion {
+  align-self: flex-start; margin-top: auto; padding-top: 10px; color: #164f44; font-size: 14.5px; font-weight: 700;
+  text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 2px; text-underline-offset: 5px;
+  transition: text-decoration-color 0.2s ease;
+}
+.pagina-publica .tarjeta-lectura:hover .tarjeta-lectura__accion,
+.pagina-publica .tarjeta-lectura__accion:focus-visible { text-decoration-color: #c9a24a; }
+.pagina-publica .rejilla-resenas { gap: 24px; }
+.pagina-publica .tarjeta-lectura .tarjeta-memoria__contenido { gap: 6px; padding: 16px 20px 20px; }
+.pagina-publica .etiqueta-ilustrativa { display: none; } /* sin avisos de relleno (AGENTS §2) */
+
+/* 4. Estados (sin resultados, no disponible, restringido, error): el vacío importante; guinda si es error */
+.pagina-publica .estado-lecturas-nuevo { margin: 8px 0 0; }
+.pagina-publica .estado-lecturas-nuevo--guinda .perfil-vacio__insignia { background: #9b2247; box-shadow: 0 0 0 5px #f6eaee, 0 14px 28px rgba(155, 34, 71, 0.22); }
+.pagina-publica .estado-lecturas-nuevo__botones { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+
+/* 5. Detalle (reseña y registro): reutiliza el detalle de Noticias (franja compacta + dos columnas) */
+.pagina-publica .detalle-lectura .detalle-noticia__introduccion { border-left-width: 1px; } /* sin franja al costado */
+/* Reseña: no hay foto, así que el texto va en una tarjeta blanca con franja que monta sobre la franja verde */
+.pagina-publica .detalle-lectura--resena .detalle-lectura__texto {
+  position: relative; overflow: hidden; padding: 30px 34px 28px; box-sizing: border-box;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 18px 36px rgba(11, 59, 51, 0.12);
+}
+.pagina-publica .detalle-lectura--resena .detalle-lectura__texto::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .detalle-lectura__firma { display: flex; align-items: center; gap: 12px; margin: 8px 0 0; padding-top: 18px; border-top: 1px solid #e2ded5; }
+.pagina-publica .detalle-lectura__firma-icono {
+  position: relative; flex: none; width: 38px; height: 38px; border-radius: 50%; background: #164f44; box-shadow: 0 0 0 3px #f2e3b8;
+}
+.pagina-publica .detalle-lectura__firma-icono::after {
+  content: ""; position: absolute; inset: 10px; background: #fff;
+  -webkit-mask: url("../../assets/comun/iconos/lecturas-libro.svg") center / contain no-repeat; mask: url("../../assets/comun/iconos/lecturas-libro.svg") center / contain no-repeat;
+}
+.pagina-publica .detalle-lectura__firma > span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.pagina-publica .detalle-lectura__firma strong { color: #164f44; font-size: 14.5px; }
+.pagina-publica .detalle-lectura__firma small { color: #6b675e; font-size: 12.5px; }
+/* El libro en la columna lateral: portada con aro dorado arriba de la ficha */
+.pagina-publica .detalle-lectura__libro .portada-lectura--detalle { height: 250px; margin: 0 0 4px; border-radius: 18px; box-shadow: 0 0 0 3px #f2e3b8, 0 14px 28px rgba(11, 59, 51, 0.2); }
+/* Miniatura de una portada en «Otras reseñas»: solo el color y el círculo, sin texto */
+.pagina-publica .detalle-lectura__mini .portada-lectura { height: 100%; padding: 0; border-radius: 0; box-shadow: none; }
+.pagina-publica .detalle-lectura__mini .portada-lectura :is(strong, small) { display: none; }
+
+/* 5b. Lecturas y Memoria pública (19 nov): filtros en el panel de «Filtros» con el conteo de cada opción,
+   la barra y su panel por encima de las tarjetas, grupo con su etiqueta (sin contador visible) y tarjetas en rejilla de 3.
+   En Memoria, el registro más reciente va destacado (foto a la izquierda, texto y botón a la derecha). */
+.pagina-publica .lecturas-pagina .barra-filtros__panel { z-index: 40; box-shadow: 0 20px 44px rgba(22, 26, 29, 0.22); }
+/* Cuántos elementos hay en cada opción del panel (Lecturas y Memoria) */
+.pagina-publica .barra-filtros__cuenta-opcion {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-left: 8px; padding: 0 6px;
+  border-radius: 999px; background: #e4efeb; color: #164f44; font-size: 11.5px; font-weight: 700;
+}
+.pagina-publica .barra-filtros__opcion input:checked + span .barra-filtros__cuenta-opcion { background: #e6d194; }
+.pagina-publica .lecturas-grupo { display: flex; flex-direction: column; gap: 14px; }
+.pagina-publica .lecturas-grupo + .lecturas-grupo { margin-top: 10px; }
+.pagina-publica .lecturas-grupo__encabezado { display: flex; align-items: center; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #e2ded5; }
+.pagina-publica .rejilla-lecturas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .rejilla-lecturas .tarjeta-memoria__imagen { height: 200px; }
+.pagina-publica .rejilla-lecturas .tarjeta-memoria__imagen img { width: 100%; height: 100%; object-fit: cover; }
+.pagina-publica .memoria-destacada { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); min-height: 300px; }
+.pagina-publica .memoria-destacada__foto { display: block; overflow: hidden; }
+.pagina-publica .memoria-destacada__foto img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.pagina-publica .memoria-destacada:hover .memoria-destacada__foto img { transform: scale(1.03); }
+.pagina-publica .memoria-destacada__contenido { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 32px 36px; }
+.pagina-publica .memoria-destacada__nota { margin: 0; color: #8a6414; font-size: 13px; font-weight: 700; }
+.pagina-publica .memoria-destacada h2 { margin: 0; color: #161a1d; font-size: 26px; line-height: 32px; }
+.pagina-publica .memoria-destacada__texto { display: -webkit-box; margin: 0; overflow: hidden; color: #4d4d4d; font-size: 15px; line-height: 23px; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
+.pagina-publica .memoria-destacada .perfil-boton { align-self: flex-start; margin-top: 6px; }
+/* Reacciones en el detalle de una reseña: dentro de la tarjeta del texto, separadas por la misma línea que la firma */
+.pagina-publica .detalle-lectura .reacciones-noticia { margin-top: 18px; }
+
+/* 6. Animaciones (solo las de §3): barra, etiqueta y tarjetas aparecen subiendo una tras otra al entrar
+   y, al bajar, cada tarjeta aparece al entrar en pantalla */
+.pagina-publica .lecturas-pagina .lecturas-contenedor > * { animation: acerca-entra 0.5s ease-out both; }
+.pagina-publica .lecturas-pagina .lecturas-contenedor > :nth-child(2) { animation-delay: 60ms; }
+.pagina-publica .lecturas-pagina .lecturas-contenedor > :nth-child(n+3) { animation-delay: 120ms; }
+.pagina-publica .lecturas-pagina .tarjeta-lectura { animation: acerca-entra 0.5s ease-out both; }
+.pagina-publica .lecturas-pagina .lecturas-grupo { animation: acerca-entra 0.5s ease-out both; }
+.pagina-publica .lecturas-pagina .tarjeta-lectura:nth-child(2) { animation-delay: 60ms; }
+.pagina-publica .lecturas-pagina .tarjeta-lectura:nth-child(n+3) { animation-delay: 120ms; }
+@supports (animation-timeline: view()) {
+  .pagina-publica .lecturas-pagina .tarjeta-lectura:nth-child(n+4) { animation-delay: 0s; animation-timeline: view(); animation-range: entry 0% entry 60%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .lecturas-pagina .lecturas-contenedor > *, .pagina-publica .lecturas-pagina .tarjeta-lectura { animation: none; }
+  .pagina-publica .tarjeta-lectura:hover, .pagina-publica .tarjeta-lectura:hover :is(.portada-lectura, img) { transform: none; }
+}
+
+/* 7. Plantas propias de Lecturas: laurel arriba a la izquierda, tulipanes arriba a la derecha y cerezo abajo a la izquierda */
+@media (min-width: 1025px) {
+  .pagina-publica .lecturas-pagina { position: relative; }
+  .pagina-publica .lecturas-pagina::before,
+  .pagina-publica .lecturas-pagina::after,
+  .pagina-publica .lecturas-pagina .lecturas-contenedor::after {
+    content: ""; position: absolute; z-index: 0; pointer-events: none; background-repeat: no-repeat; background-size: contain;
+    filter: drop-shadow(0 8px 12px rgba(11, 59, 51, 0.16)); animation: detalle-mecer 9s ease-in-out infinite alternate;
+  }
+  .pagina-publica .lecturas-pagina::before {
+    top: 24px; left: calc(50% - 500px - 175px); width: 136px; height: 223px;
+    background-image: url("../../assets/inicio/adorno-laurel.svg"); background-position: left top; transform-origin: 6% 0%;
+  }
+  .pagina-publica .lecturas-pagina::after {
+    top: 24px; right: calc(50% - 500px - 175px); width: 136px; height: 223px;
+    background-image: url("../../assets/inicio/adorno-tulipanes.svg"); background-position: right top; transform-origin: 52% 100%; animation-delay: -3s;
+  }
+  .pagina-publica .lecturas-pagina .lecturas-contenedor::after {
+    bottom: 0; left: -180px; width: 146px; height: 214px;
+    background-image: url("../../assets/inicio/adorno-cerezo.svg"); background-position: left bottom; transform-origin: 8% 100%; animation-delay: -5s;
+  }
+  .pagina-publica .lecturas-pagina .lecturas-contenedor > * { position: relative; z-index: 1; }
+  /* La barra (y su panel de «Filtros») va por encima de las tarjetas, que suben de capa al animarse */
+  .pagina-publica .lecturas-pagina .lecturas-contenedor > .barra-filtros { z-index: 20; }
+  .pagina-publica .lecturas-pagina .lecturas-contenedor:not(:has(.tarjeta-lectura))::after { content: none; } /* en páginas cortas solo las dos de arriba */
+  /* En el detalle, las mismas plantas en lugar de las de Noticias */
+  .pagina-publica .detalle-lectura .detalle-noticia__columnas::before { width: 136px; height: 223px; background-image: url("../../assets/inicio/adorno-laurel.svg"); transform-origin: 6% 0%; }
+  .pagina-publica .detalle-lectura .detalle-noticia__columnas::after { width: 136px; height: 223px; background-image: url("../../assets/inicio/adorno-tulipanes.svg"); transform-origin: 52% 100%; }
+  .pagina-publica .detalle-lectura .detalle-noticia__cuerpo::after { width: 146px; height: 214px; background-image: url("../../assets/inicio/adorno-cerezo.svg"); transform-origin: 8% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .lecturas-pagina::before, .pagina-publica .lecturas-pagina::after, .pagina-publica .lecturas-pagina .lecturas-contenedor::after { animation: none; }
+}

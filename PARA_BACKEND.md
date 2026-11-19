@@ -84,32 +84,36 @@ Para no llenar la base, **Contacto y sugerencias pide sesión siempre** y cada c
 
 ---
 
-## 2. Reacciones de noticias («Me gusta», «Me sirvió», «Compartir») — prioridad media
+## 2. Reacciones («Me gusta», «Me sirvió / Me fue útil», «Compartir») — prioridad media
 
-**Lo que hay hoy.** El frontend ya llama a estas rutas (`Front/src/servicios/reacciones.ts`). Como todavía no existen:
+**Aplica a noticias, reseñas y registros de memoria** (19 nov 2026). Los tres son contenidos publicados con folio (`CN-0045`), así que la ruta es **una sola** bajo `/contenidos/publicos/{folio}`.
 
-- usa los conteos que trae la noticia;
-- guarda en el navegador la marca de cada persona (por cuenta) y las veces compartida.
+**Lo que hay hoy.**
 
-**Pantalla lista:** `Front/src/pages/publico/noticias/DetalleNoticia.tsx`. Las reacciones van al final del texto. Con sesión, se marcan y desmarcan; sin sesión, aparece «Inicia sesión para reaccionar».
+- El frontend ya llama a estas rutas (`Front/src/servicios/reacciones.ts`) desde una sola pieza, `Front/src/components/portal/Reacciones.tsx`. La usan:
+  - `noticias/DetalleNoticia.tsx`, con «Me sirvió»;
+  - `lecturas/DetalleResena.tsx` y `lecturas/DetalleMemoria.tsx`, con «Me fue útil». Es el mismo tipo, `me_sirvio`.
+- Como todavía no existen, la pantalla usa los conteos que trae el contenido y guarda en el navegador la marca de cada persona (por cuenta) y las veces compartida.
+- Con sesión, las reacciones se marcan y desmarcan; sin sesión, aparece «Inicia sesión para reaccionar». Compartir funciona sin cuenta.
 
 **Tabla sugerida:**
 
-- `reacciones_noticia (noticia_id, usuario_id, tipo ∈ {me_gusta, me_sirvio}, creado_en)`, con llave única `(noticia_id, usuario_id, tipo)`;
-- un contador `compartidos` por noticia.
+- `reacciones_contenido (contenido_id, usuario_id, tipo ∈ {me_gusta, me_sirvio}, creado_en)`, con llave única `(contenido_id, usuario_id, tipo)`;
+- un contador `compartidos` por contenido.
 
 **Contrato:**
 
 | Método y ruta | Sesión | Respuesta |
 |---|---|---|
-| `GET /noticias/{id}/reacciones` | opcional | `{ meGusta, meSirvio, compartir, mias: ("me_gusta" \| "me_sirvio")[] }` (`mias` vacío sin sesión) |
-| `PUT /noticias/{id}/reacciones/{tipo}` | obligatoria | Igual que el GET, ya con la marca puesta (idempotente) |
-| `DELETE /noticias/{id}/reacciones/{tipo}` | obligatoria | Igual que el GET, ya sin la marca (idempotente) |
-| `POST /noticias/{id}/compartidos` | no | Igual que el GET, con `compartir` + 1 |
+| `GET /contenidos/publicos/{folio}/reacciones` | opcional | `{ meGusta, meSirvio, compartir, mias: ("me_gusta" \| "me_sirvio")[] }` (`mias` vacío sin sesión) |
+| `PUT /contenidos/publicos/{folio}/reacciones/{tipo}` | obligatoria | Igual que el GET, ya con la marca puesta (idempotente) |
+| `DELETE /contenidos/publicos/{folio}/reacciones/{tipo}` | obligatoria | Igual que el GET, ya sin la marca (idempotente) |
+| `POST /contenidos/publicos/{folio}/compartidos` | no | Igual que el GET, con `compartir` + 1 |
 
-- `{id}` es el mismo identificador del detalle público (`/contenidos/publicos/{identificador}`, p. ej. `CN-0045`). Si prefieren montarlo bajo `/contenidos/publicos/{identificador}/reacciones`, avisen y el frontend cambia solo la función `ruta()` de `reacciones.ts`.
-- **Errores:** `401` sin sesión en PUT y DELETE; `404` si la noticia no existe o no está publicada.
+- `{folio}` es el mismo del detalle público (`/contenidos/publicos/{identificador}`). `{tipo}` es `me_gusta` o `me_sirvio`.
+- **Errores:** `401` sin sesión en PUT y DELETE; `404` si el contenido no existe o no está publicado.
 - Una persona cuenta una sola vez por tipo y puede tener las dos marcas.
+- **Opcional:** incluir `reacciones: { meGusta, meSirvio, compartir }` en `GET /contenidos/publicos` para mostrar los conteos en las tarjetas sin una llamada por contenido.
 
 **Cuando exista, en el frontend:** nada que programar; `reacciones.ts` ya intenta el backend primero. Solo hay que quitar el respaldo en el navegador (`reaccionesLocales`, `conteoLocal`).
 

@@ -5,8 +5,7 @@ import "./Noticias.css";
 import { fechaLarga, nombreCategoria, obtenerNoticia, obtenerNoticias, otrasNoticias, type Noticia } from "./datos";
 import iconoNoticias from "../../../assets/inicio/noticias-periodico.svg";
 import { EtiquetaPerfil } from "../perfil/piezas";
-import { useSesion } from "../perfil/usarSesion";
-import { conteoLocal, consultarReacciones, marcarReaccion, reaccionesLocales, registrarCompartido, type ReaccionesNoticia, type TipoReaccion } from "../../../servicios/reacciones";
+import Reacciones from "../../../components/portal/Reacciones";
 import { EncabezadoNoticias, EstadoNoticias, ImagenNoticia, PuntoCategoria, type Origen } from "./piezas";
 import { EsqueletoArticulo } from "../../../components/portal/Esqueleto";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
@@ -14,9 +13,6 @@ import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import iconoCalendario from "../../../assets/noticias/dato-calendario.svg";
 import iconoReloj from "../../../assets/noticias/dato-reloj.svg";
 import iconoPin from "../../../assets/noticias/dato-pin.svg";
-import iconoEstrella from "../../../assets/noticias/reaccion-estrella.svg";
-import iconoCheck from "../../../assets/noticias/reaccion-check.svg";
-import iconoCompartir from "../../../assets/noticias/reaccion-compartir.svg";
 
 type Carga =
     | { estado: "cargando" }
@@ -105,7 +101,7 @@ function DetalleNoticia() {
                                     </dl>
                                 );
                             })}
-                            <Reacciones noticia={noticia} />
+                            <Reacciones id={noticia.id} titulo={noticia.titulo} base={noticia.reacciones} />
                         </div>
 
                         <aside className="detalle-noticia__lateral">
@@ -167,81 +163,6 @@ function DatoActividad({ icono, titulo, children }: { icono: string; titulo: str
                 <dt>{titulo}</dt>
                 <dd>{children}</dd>
             </div>
-        </div>
-    );
-}
-
-// Visitante: ve cuántas reacciones hay, pero para reaccionar necesita una cuenta.
-// Compartir sí funciona sin cuenta (menú del sistema o copia el enlace).
-function Reacciones({ noticia }: { noticia: Noticia }) {
-    const sesion = useSesion(); // undefined = todavía no se sabe; null = visitante
-    const [aviso, setAviso] = useState("");
-    const [servidor, setServidor] = useState<ReaccionesNoticia | null>(null); // lo que responde el backend (cuando exista)
-    const [, refrescar] = useState(0);
-    const [enviando, setEnviando] = useState(false);
-    // Sin backend: marcas y compartidos guardados en este navegador (sobreviven a recargar)
-    const mias = servidor?.mias ?? (sesion ? reaccionesLocales.de(sesion, noticia.id) : []);
-    const conteo = servidor ?? conteoLocal(noticia.reacciones, noticia.id, mias);
-
-    useEffect(() => {
-        let vigente = true;
-        consultarReacciones(noticia.id).then((r) => { if (vigente) setServidor(r); })
-            .catch(() => { /* TODO backend: aún no existe; se usan los datos guardados aquí */ });
-        return () => { vigente = false; };
-    }, [noticia.id, sesion]);
-
-    async function alternar(tipo: TipoReaccion) {
-        if (!sesion || enviando) return;
-        const activa = !mias.includes(tipo);
-        setEnviando(true);
-        try { setServidor(await marcarReaccion(noticia.id, tipo, activa)); }
-        catch { reaccionesLocales.guardar(sesion, noticia.id, activa ? [...mias, tipo] : mias.filter((t) => t !== tipo)); refrescar((n) => n + 1); }
-        finally { setEnviando(false); }
-    }
-
-    async function compartir() {
-        const url = window.location.href;
-        try {
-            if (navigator.share) await navigator.share({ title: noticia.titulo, url });
-            else { await navigator.clipboard.writeText(url); setAviso("Enlace copiado"); }
-        } catch { return; /* cerró el menú de compartir o el navegador no dejó copiar */ }
-        try { setServidor(await registrarCompartido(noticia.id)); }
-        catch { reaccionesLocales.sumarCompartido(noticia.id); refrescar((n) => n + 1); }
-    }
-
-    const opciones = [
-        { tipo: "me_gusta" as const, texto: "Me gusta", icono: iconoEstrella, cantidad: conteo.meGusta },
-        { tipo: "me_sirvio" as const, texto: "Me sirvió", icono: iconoCheck, cantidad: conteo.meSirvio },
-    ];
-    return (
-        <div className="reacciones-noticia">
-            <div className="reacciones-noticia__pregunta">
-                <p className="reacciones-noticia__titulo">¿Qué te pareció?</p>
-                {sesion === null && (
-                    <p><Link to="/iniciar-sesion" className="enlace-noticias enlace-noticias--subrayado">Inicia sesión</Link> para reaccionar</p>
-                )}
-                {sesion && <p>Toca una opción para marcarla o quitarla.</p>}
-            </div>
-            <div className="reacciones-noticia__chips">
-                {opciones.map((o) => {
-                    const activa = mias.includes(o.tipo);
-                    return (
-                        <button key={o.tipo} type="button" disabled={!sesion} aria-pressed={activa}
-                            className={`reaccion-noticia reaccion-noticia--boton${activa ? " reaccion-noticia--activa" : ""}`} onClick={() => alternar(o.tipo)}>
-                            <img src={o.icono} alt="" />
-                            {o.texto}
-                            <span className="reaccion-noticia__cantidad">{o.cantidad}</span>
-                        </button>
-                    );
-                })}
-                <button type="button" className="reaccion-noticia reaccion-noticia--boton" onClick={compartir}>
-                    <img src={iconoCompartir} alt="" />
-                    Compartir
-                    <span className="reaccion-noticia__cantidad">{conteo.compartir}</span>
-                </button>
-            </div>
-            <p className="solo-lectores" role="status">{aviso}</p>
-            {aviso && <p className="reacciones-noticia__aviso" aria-hidden="true">{aviso}</p>}
         </div>
     );
 }
