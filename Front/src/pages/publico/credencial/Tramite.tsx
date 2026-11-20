@@ -40,6 +40,8 @@ export default function Tramite({ vista }: { vista: Vista }) {
     const usuario = useSesion();
     const carga = usePerfil(usuario);
     const tramite = useTramite();
+    // Al llegar desde otra pantalla del trámite (tras enviar), la página entra sin esperas: no parpadea.
+    const sigue = (useLocation().state as { enviada?: boolean } | null)?.enviada === true;
 
     if (usuario === null) {
         return (
@@ -84,7 +86,7 @@ export default function Tramite({ vista }: { vista: Vista }) {
     return (
         <PaginaPublica>
             <EncabezadoPublico icono={iconosSeccion.credencial} etiqueta="Credencial" titulo={encabezado.titulo} texto={encabezado.texto} />
-            <section className="contacto-seccion contacto-seccion--crema cred-pagina cred-pagina--tramite">
+            <section className={`contacto-seccion contacto-seccion--crema cred-pagina cred-pagina--tramite${sigue ? " cred-pagina--sigue" : ""}`}>
                 <div className="contacto-pila">
                     <PasosTramite actual={pasoDelEstado(vista === "solicitud" ? "solicitud" : "seguimiento", estado)}
                         pagina={vista === "solicitud" ? 2 : 3} solicitar={puedeSolicitar(tramite.estado)} />
@@ -308,6 +310,7 @@ function Seguimiento({ tramite, titular }: { tramite: TramiteCredencial; titular
 function CancelarSolicitud({ folio }: { folio: string }) {
     const navegar = useNavigate();
     const [confirmando, setConfirmando] = useState(false);
+    const [cerrando, setCerrando] = useState(false); // «No, conservarla»: la nota se recoge (0.3 s) antes de volver al botón
     const [cancelando, setCancelando] = useState(false);
     const [error, setError] = useState("");
     function cancelar() {
@@ -325,7 +328,7 @@ function CancelarSolicitud({ folio }: { folio: string }) {
     }
     if (!confirmando) {
         return (
-            <div className="perfil-acciones">
+            <div key="boton" className="perfil-acciones">
                 <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={() => setConfirmando(true)}>
                     Cancelar solicitud
                 </button>
@@ -333,7 +336,7 @@ function CancelarSolicitud({ folio }: { folio: string }) {
         );
     }
     return (
-        <div className="perfil-nota perfil-nota--guinda cred-cancelar" role="group" aria-labelledby="titulo-cancelar">
+        <div key="confirmacion" className={`perfil-nota perfil-nota--guinda cred-cancelar${cerrando ? " cred-cancelar--cerrando" : ""}`} role="group" aria-labelledby="titulo-cancelar">
             <p><strong id="titulo-cancelar">{folio === "Por asignar" ? "¿Cancelar tu solicitud?" : `¿Cancelar tu solicitud ${folio}?`}</strong>
                 El personal ya no la revisará. Si después la necesitas, puedes solicitarla de nuevo.</p>
             {error && <p className="cred-error-campo" role="alert">{error}</p>}
@@ -341,7 +344,8 @@ function CancelarSolicitud({ folio }: { folio: string }) {
                 <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={cancelar} disabled={cancelando}>
                     {cancelando ? "Cancelando…" : "Sí, cancelar"}
                 </button>
-                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" onClick={() => { setConfirmando(false); setError(""); }}
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno"
+                    onClick={() => { setCerrando(true); window.setTimeout(() => { setConfirmando(false); setCerrando(false); setError(""); }, 300); }}
                     disabled={cancelando}>No, conservarla</button>
             </div>
         </div>

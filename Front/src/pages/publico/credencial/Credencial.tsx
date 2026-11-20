@@ -72,7 +72,7 @@ function Credencial() {
                 texto="Qué es, qué necesitas y cómo se tramita, con el estado de tu solicitud."
             />
 
-            <section className="contacto-seccion contacto-seccion--crema cred-pagina">
+            <section className={`contacto-seccion contacto-seccion--crema cred-pagina${cancelada ? " cred-pagina--sigue" : ""}`}>
                 <div className="contacto-pila">
                     <PasosTramite actual={sesion ? pasoDelEstado("informacion", tramite.estado) : 1} pagina={1}
                         solicitar={!!sesion && puedeSolicitar(tramite.estado)} />

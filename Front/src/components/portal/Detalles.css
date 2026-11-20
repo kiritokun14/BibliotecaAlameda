@@ -2516,7 +2516,15 @@
 .pagina-publica .cred-pagina .cred-aviso img { width: 20px; height: 20px; }
 .pagina-publica .cred-pagina .cred-aviso { border-color: #bfd9d0; border-left-color: #1f6b5c; }
 .pagina-publica .cred-pagina .cred-aviso strong { color: #164f44; }
-.pagina-publica .cred-pagina .cred-cancelar { flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: 16px; animation: acerca-despliega 0.3s ease-out both; }
+.pagina-publica .cred-pagina .cred-cancelar { flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: 16px; }
+/* La confirmación crece desde el alto del botón y se recoge igual al conservarla (0.35 s, alto animado con interpolate-size,
+   como el acordeón de §3): la fila crece al mismo paso y la tarjeta de ayuda de al lado se estira suave, sin saltos (19 nov). */
+.pagina-publica .cred-pagina .cred-cancelar {
+  height: auto; overflow: hidden; interpolate-size: allow-keywords;
+  transition: height 0.35s ease, opacity 0.25s ease, transform 0.3s ease-out;
+}
+@starting-style { .pagina-publica .cred-pagina .cred-cancelar { height: 34px; opacity: 0; transform: translateY(-8px); } }
+.pagina-publica .cred-pagina .cred-cancelar--cerrando { height: 34px; opacity: 0; transform: translateY(-8px); }
 .pagina-publica .cred-pagina .cred-cancelar > p { display: block; font-size: 14px; line-height: 20px; }
 .pagina-publica .cred-pagina .cred-cancelar > p strong { display: block; }
 .pagina-publica .cred-pagina .cred-cancelar .perfil-acciones { margin: 0; }
@@ -2548,7 +2556,56 @@
   .pagina-publica .cred-pagina .contacto-lateral > .perfil-tarjeta, .pagina-publica .cred-pagina .cred-error-campo { animation: none; }
   .pagina-publica .cred-pagina .perfil-boton:hover:not(:disabled), .pagina-publica .cred-paso:has(.cred-paso__enlace):hover { transform: none; }
   .pagina-publica .cred-pagina .contacto-seguimiento, .pagina-publica .cred-pagina .contacto-seguimiento > * { transition: none; }
+  .pagina-publica .cred-pagina .cred-cancelar { transition: none; }
 }
+
+/* 6b. Interacciones de Credencial (Aldahir, 19 nov): todas con animaciones de §3, una por elemento.
+   - Opciones «Tipo de trámite» y chips de ejemplo: al pasar el mouse borde verde, fondo verde claro y suben 2 px; al elegir, pulso 0.96 → 1.
+   - Casillas: pulso corto al marcarlas. Campos: al enfocar, borde verde y aro dorado suave (0.2 s).
+   - Enlaces dentro de notas y de la ayuda: subrayado dorado que se engrosa.
+   - «En curso» y «En revisión» (elementos vivos): el punto del chip late (1.8 s).
+   - Paso actual (indicador de arriba y ruta): su número late con un aro dorado **una vez** al aparecer (0.9 s).
+   - Listas de la columna derecha y canales de ayuda: cada renglón aparece subiendo 8 px, uno tras otro (60 ms). */
+.pagina-publica .cred-pagina .perfil-opcion { transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease; }
+.pagina-publica .cred-pagina .perfil-opcion:hover { border-color: #1f6b5c; background: #f1f7f4; transform: translateY(-2px); }
+.pagina-publica .cred-pagina .perfil-opcion--activa { animation: noticias-pulso 0.25s ease-out; }
+.pagina-publica .cred-pagina .cred-ejemplo { transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease; }
+.pagina-publica .cred-pagina .cred-ejemplo:not(.cred-ejemplo--activo):hover { border-color: #1f6b5c; background: #e4efeb; transform: translateY(-2px); }
+.pagina-publica .cred-pagina .cred-ejemplo--activo { animation: noticias-pulso 0.25s ease-out; }
+.pagina-publica .cred-pagina .cred-casilla input:checked { animation: noticias-pulso 0.25s ease-out; }
+.pagina-publica .cred-pagina .perfil-campo :is(input, select, textarea) { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.pagina-publica .cred-pagina .perfil-campo :is(input, select, textarea):focus { border-color: #1f6b5c; box-shadow: 0 0 0 4px rgba(201, 162, 74, 0.18); }
+.pagina-publica .cred-pagina :is(.perfil-nota, .cred-aviso) a {
+  color: #164f44; font-weight: 700; text-decoration: underline; text-decoration-color: #c9a24a; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  transition: text-decoration-thickness 0.2s ease;
+}
+.pagina-publica .cred-pagina :is(.perfil-nota, .cred-aviso, .cred-ayuda__canales) a:hover { text-decoration-thickness: 2px; }
+.pagina-publica .cred-pagina .cred-chip--dorado { position: relative; }
+.pagina-publica .cred-pagina .cred-chip--dorado::after {
+  content: ""; position: absolute; top: 50%; left: 13px; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #c9a24a;
+  pointer-events: none; animation: detalle-latido 1.8s ease-out infinite;
+}
+.pagina-publica .cred-pagina .cred-paso--actual .cred-paso__numero { animation: acerca-aro 0.9s ease-out 0.45s 1 backwards; }
+.pagina-publica .cred-ruta .perfil-nivel--dorado .perfil-nivel__numero { animation: acerca-aro 0.9s ease-out 0.7s 1 backwards; }
+.pagina-publica .cred-pagina .contacto-lateral :is(.cred-lista, .cred-mini-pasos) > li { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .cred-pagina .contacto-lateral :is(.cred-lista, .cred-mini-pasos) > li:nth-child(1) { animation-delay: 0.4s; }
+.pagina-publica .cred-pagina .contacto-lateral :is(.cred-lista, .cred-mini-pasos) > li:nth-child(2) { animation-delay: 0.46s; }
+.pagina-publica .cred-pagina .contacto-lateral :is(.cred-lista, .cred-mini-pasos) > li:nth-child(n+3) { animation-delay: 0.52s; }
+.pagina-publica .cred-pagina .cred-ayuda__canales > li { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .cred-pagina .cred-ayuda__canales > li:nth-child(1) { animation-delay: 0.56s; }
+.pagina-publica .cred-pagina .cred-ayuda__canales > li:nth-child(2) { animation-delay: 0.62s; }
+.pagina-publica .cred-pagina .cred-ayuda__canales > li:nth-child(3) { animation-delay: 0.68s; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .cred-pagina :is(.perfil-opcion--activa, .cred-ejemplo--activo, .cred-casilla input:checked, .cred-paso__numero, .cred-ayuda__canales > li),
+  .pagina-publica .cred-pagina .cred-chip--dorado::after, .pagina-publica .cred-ruta .perfil-nivel__numero,
+  .pagina-publica .cred-pagina .contacto-lateral :is(.cred-lista, .cred-mini-pasos) > li { animation: none; }
+  .pagina-publica .cred-pagina :is(.perfil-opcion, .cred-ejemplo):hover { transform: none; }
+}
+
+/* 6c. Al pasar de una pantalla del trámite a otra (tras enviar o cancelar), todo entra a la vez, sin las esperas de la
+   entrada escalonada: si no, la tarjeta de ayuda se quedaba medio segundo en blanco y parecía que desaparecía (19 nov). */
+.pagina-publica .cred-pagina--sigue .contacto-columnas--nuevo,
+.pagina-publica .cred-pagina--sigue .contacto-columnas--nuevo * { animation-delay: 0s !important; }
 
 /* 7. Plantas propias de Credencial (en los márgenes, se mecen a destiempo):
    bugambilia que cuelga arriba a la izquierda, cempasúchil arriba a la derecha y agave abajo a la izquierda */
