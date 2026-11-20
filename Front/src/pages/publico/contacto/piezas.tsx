@@ -14,9 +14,11 @@ import iconoPregunta from "../../../assets/inicio/etiqueta-accesos.svg";
 import { etapasContacto } from "./seguimiento";
 import "../credencial/CredencialSesion.css";
 
-// ---------- Tarjeta verde "Cómo encontrarnos" ----------
+// ---------- Fila de tarjetas de datos ----------
+// Sin datos, los de la biblioteca (Contacto); otra página pasa los suyos (p. ej. Credencial: costo, revisión, vigencia y cotejo).
+export type DatoFila = { id: string; titulo: string; valor: string | null | undefined; icono: string };
 
-const datos = [
+const datosContacto: DatoFila[] = [
     { id: "direccion", titulo: "Dirección", valor: datosBiblioteca.direccion, icono: iconoPin },
     { id: "horario", titulo: "Horario", valor: datosBiblioteca.horario, icono: iconoReloj },
     { id: "telefono", titulo: "Teléfono", valor: datosBiblioteca.telefono, icono: iconoTelefono },
@@ -25,7 +27,7 @@ const datos = [
 
 const MAPA_BIBLIOTECA = "https://maps.app.goo.gl/3kJpfUj9dDBsZZNz9"; // el mismo enlace del mapa de Inicio
 
-export function TarjetaDatos() {
+export function TarjetaDatos({ datos = datosContacto, titulo = "Cómo encontrarnos" }: { datos?: DatoFila[]; titulo?: string }) {
     const enlaces: Record<string, { href: string; externo?: boolean } | undefined> = {
         direccion: { href: MAPA_BIBLIOTECA, externo: true },
         telefono: datosBiblioteca.telefono ? { href: `tel:+52${datosBiblioteca.telefono.replace(/\D/g, "")}` } : undefined,
@@ -33,7 +35,7 @@ export function TarjetaDatos() {
     };
     return (
         <section className="contacto-datos" aria-labelledby="titulo-datos">
-            <h2 id="titulo-datos" className="solo-lectores">Cómo encontrarnos</h2>
+            <h2 id="titulo-datos" className="solo-lectores">{titulo}</h2>
             <ul className="tarjeta-datos__lista">
                 {datos.map((dato) => {
                     const enlace = enlaces[dato.id];
@@ -189,11 +191,10 @@ export const Confirmacion = forwardRef<HTMLHeadingElement, {
     );
 });
 
-// ---------- Otras formas de comunicarte ----------
-
 // ---------- Preguntas frecuentes ----------
 // Respuestas que remiten a lo que ya existe en el portal (no inventan reglas de la biblioteca).
-const PREGUNTAS: { pregunta: string; respuesta: string; enlace: { texto: string; ruta: string } }[] = [
+export type PreguntaFrecuente = { pregunta: string; respuesta: string; enlace: { texto: string; ruta: string } };
+const PREGUNTAS: PreguntaFrecuente[] = [
     { pregunta: "¿Cómo tramito mi credencial?", respuesta: "La solicitas desde el portal con tu cuenta y después acudes a la biblioteca para el cotejo de tus datos.", enlace: { texto: "Ver el trámite de credencial", ruta: "/credencial" } },
     { pregunta: "¿Cómo solicito un espacio de la biblioteca?", respuesta: "Con tu sesión iniciada eliges el área, la fecha y el horario; la biblioteca revisa y confirma cada solicitud.", enlace: { texto: "Ver la agenda de espacios", ruta: "/espacios" } },
     { pregunta: "¿Dónde consulto los talleres y actividades?", respuesta: "En Eventos encuentras la agenda con las próximas actividades, sus horarios y lugares.", enlace: { texto: "Ver eventos y actividades", ruta: "/eventos" } },
@@ -201,13 +202,13 @@ const PREGUNTAS: { pregunta: string; respuesta: string; enlace: { texto: string;
 ];
 
 // Solo una pregunta abierta a la vez: al abrir otra, la anterior se cierra (así la columna no se alarga de más)
-export function PreguntasFrecuentes() {
+export function PreguntasFrecuentes({ preguntas = PREGUNTAS }: { preguntas?: PreguntaFrecuente[] }) {
     const [abierta, setAbierta] = useState<number | null>(null);
     return (
         <section className="preguntas-tarjeta" aria-labelledby="titulo-preguntas">
             <EtiquetaPerfil id="titulo-preguntas" icono={iconoPregunta}>Preguntas frecuentes</EtiquetaPerfil>
             <div className="preguntas-contacto">
-                {PREGUNTAS.map((p, i) => (
+                {preguntas.map((p, i) => (
                     <details key={p.pregunta} className="pregunta-contacto" open={abierta === i}
                         onToggle={(e) => {
                             const abiertaAhora = (e.currentTarget as HTMLDetailsElement).open;

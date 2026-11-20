@@ -55,6 +55,19 @@ class AtencionTramitesTests(unittest.TestCase):
         self.assertEqual(r.status_code, 409)
         self.assertNotIn('dato interno', r.text)
 
+    def test_cancelar_credencial_propia(self):
+        r = self.http.post(f'/credenciales/solicitudes/{self.id}/cancelar', headers=self.headers)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.cliente.rpc.call_args.args, ('atencion_solicitudes', {'tipo_solicitud': 'credencial', 'operacion': 'cancelar', 'datos': {'id': self.id}}))
+        self.assertEqual(r.headers['Cache-Control'], 'private, no-store')
+
+    def test_cancelar_sin_sesion_ajena_o_ya_cerrada(self):
+        self.assertEqual(self.http.post(f'/credenciales/solicitudes/{self.id}/cancelar').status_code, 401)
+        self.assertEqual(self.http.post('/credenciales/solicitudes/no-es-uuid/cancelar', headers=self.headers).status_code, 422)
+        for codigo, estado in [('42501', 403), ('55000', 409), ('P0002', 404)]:
+            self.cliente.rpc.return_value.execute.side_effect = APIError({'code': codigo, 'message': 'interno', 'details': None, 'hint': None})
+            self.assertEqual(self.http.post(f'/credenciales/solicitudes/{self.id}/cancelar', headers=self.headers).status_code, estado)
+
     def test_cita_requiere_fecha_con_zona_y_rechazo_requiere_motivo(self):
         for datos in [{'estadoSolicitud': 'cita_programada'}, {'estadoSolicitud': 'cita_programada', 'fechaCita': '2035-06-12T10:00:00'}, {'estadoSolicitud': 'rechazada'}, {'estadoSolicitud': 'cancelada', 'observaciones': ' '}]:
             r = self.http.patch('/credenciales/solicitudes/'+self.id, headers=self.headers, json={'actualizadaEn': VERSION, **datos})

@@ -1,113 +1,127 @@
-import { Link } from "react-router";
+import { Link, Navigate, useLocation } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
-import {
-    AvisoCuenta,
-    LlamadoVisitante,
-    PasosVisitante,
-    SeccionVisitante,
-} from "../../../components/portal/Visitante";
-import { useSesion } from "../perfil/usarSesion";
-import { PasosTramite, TarjetaMiTramite } from "./piezas";
-import "./Credencial.css";
+import { PreguntasFrecuentes, TarjetaDatos, type DatoFila, type PreguntaFrecuente } from "../contacto/piezas";
+import { TarjetaPerfil } from "../perfil/piezas";
+import { iconosSeccion } from "../perfil/iconos";
+import { nombreCompleto } from "../perfil/datos";
+import { sesionSimulada, usePerfil, useSesion } from "../perfil/usarSesion";
+import { EstadoCredencial, PasosTramite, RutaCredencial, SelectorEstados } from "./piezas";
+import { datosTramite, estadosCredencial, etapasCredencial, pasoDelEstado, puedeSolicitar, useTramite, verEjemplo, type DatosEstado } from "./datos";
+import "../contacto/Contacto.css";
+import "../perfil/Perfil.css";
 import "./CredencialSesion.css";
-import iconoCheck from "../../../assets/comun/iconos/check-verde.svg";
-import iconoInfo from "../../../assets/comun/iconos/lecturas-info.svg";
 import iconoCosto from "../../../assets/comun/iconos/accesos-credencial.svg";
-import iconoReloj from "../../../assets/comun/iconos/cifras-reloj.svg";
+import iconoReloj from "../../../assets/contacto/dato-reloj.svg";
+import iconoPin from "../../../assets/contacto/dato-pin.svg";
+import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
+import notaInfo from "../../../assets/perfil/nota-info.svg";
 
-// Credencial · información del trámite.
-// Sin cuenta: aviso para iniciar sesión y llamado a crear cuenta.
-// Con sesión (Figma A-02, 476:9984): pasos del trámite y tarjeta «Mi trámite» para solicitarla.
-// TODO backend: costo y tiempos los confirma la biblioteca (por ahora son de ejemplo).
+// Credencial · información y estado del trámite (plantilla C, como Contacto; Aldahir, 19 nov 2026).
+// Franja compacta con ícono → fila de datos del trámite → dos columnas del mismo alto:
+//   izquierda: el trámite por estados (sin cuenta, sin solicitud, en revisión, corrección, vigente o vencida) y los cuatro pasos;
+//   derecha: preguntas frecuentes y una tarjeta verde (con sesión, tus solicitudes; sin sesión, contacto).
+const datosFila: DatoFila[] = [
+    { id: "costo", titulo: "Costo", valor: datosTramite.costo, icono: iconoCosto },
+    { id: "revision", titulo: "Revisión", valor: datosTramite.revision, icono: iconoReloj },
+    { id: "vigencia", titulo: "Vigencia", valor: datosTramite.vigencia, icono: iconosSeccion.eventos },
+    { id: "cotejo", titulo: "Cotejo presencial", valor: datosTramite.cotejo, icono: iconoPin },
+];
+
+const preguntas: PreguntaFrecuente[] = [
+    { pregunta: "¿Para qué sirve la credencial?", respuesta: "Te permite solicitar espacios de la biblioteca desde el portal y registrar tu progreso de participación.",
+        enlace: { texto: "Ver la agenda de espacios", ruta: "/espacios" } },
+    { pregunta: "¿La necesito para ir a las actividades?", respuesta: "No. Participar en actividades y consultar el portal no exige la credencial.",
+        enlace: { texto: "Ver eventos y actividades", ruta: "/eventos" } },
+    { pregunta: "¿Qué llevo al cotejo presencial?", respuesta: "Una identificación y tus datos de contacto al día en tu perfil. El cotejo se hace en Préstamos.",
+        enlace: { texto: "Revisar mis datos", ruta: "/mi-perfil/datos" } },
+    { pregunta: "¿Qué pasa cuando vence?", respuesta: "Dura 2 años. La renuevas en línea y tu cuenta y tu historial se conservan.",
+        enlace: { texto: "Renovar mi credencial", ruta: "/credencial/solicitud?tipo=renovacion" } },
+];
+
+const sinCuenta: DatosEstado = {
+    chip: "Sin sesión", color: "gris", titulo: "Inicia sesión para solicitarla",
+    texto: "Puedes conocer todo el trámite sin cuenta. Para solicitar tu credencial y seguir su avance, entra con tu cuenta.",
+    accion: { texto: "Iniciar sesión", ruta: "/iniciar-sesion" }, paso: 0,
+};
+const revisando: DatosEstado = {
+    chip: "Revisando", color: "gris", titulo: "Revisando tu cuenta…", texto: "En un momento verás el estado de tu trámite.",
+    accion: { texto: "", ruta: "" }, paso: 0,
+};
+
 function Credencial() {
     const sesion = useSesion(); // undefined mientras se sabe si hay sesión
+    const carga = usePerfil(sesion);
+    const tramite = useTramite();
+    const titular = carga && "perfil" in carga ? nombreCompleto(carga.perfil) : "Tu nombre";
+    const datos = sesion === null ? sinCuenta : sesion === undefined ? revisando : estadosCredencial[tramite.estado];
+    const etapas = sesion ? etapasCredencial(datos.paso) : null;
+    // Al cancelar desde el seguimiento se vuelve aquí con el aviso (solo si de verdad ya no hay solicitud)
+    const cancelada = (useLocation().state as { cancelada?: boolean } | null)?.cancelada === true && tramite.estado === "sin-solicitud";
+
+    // Con una solicitud en proceso (o la credencial vigente) el trámite ya va en el paso 3: entrar a Credencial lleva
+    // directo al seguimiento, sin una pantalla intermedia con «Ver seguimiento» (Aldahir, 19 nov). Vencida se queda aquí:
+    // empieza una renovación (paso 1).
+    if (sesion && pasoDelEstado("informacion", tramite.estado) >= 3) return <Navigate to="/credencial/seguimiento" replace />;
+
     return (
         <PaginaPublica>
-            {/* Encabezado centrado, igual que las demás páginas del menú */}
             <EncabezadoPublico
+                icono={iconosSeccion.credencial}
                 etiqueta="Credencial"
-                titulo={<><span>Credencial</span> de la biblioteca</>}
-                texto="Conoce qué es, qué necesitas y cómo funciona el trámite."
+                titulo={<>Tu credencial de la <span>biblioteca</span></>}
+                texto="Qué es, qué necesitas y cómo se tramita, con el estado de tu solicitud."
             />
 
-            {sesion ? <>
-                <PasosTramite actual={1} />
-                <SeccionVisitante fondo="crema">
-                    <Link to="/mis-tramites/credencial" className="cred-enlace-tramites">
-                        <span><strong>Mis solicitudes registradas</strong>Consulta el estado de las solicitudes de credencial que ya enviaste.</span>
-                    </Link>
-                    <TarjetaMiTramite />
-                </SeccionVisitante>
-            </> : sesion === null && (
-                <SeccionVisitante fondo="crema">
-                    <AvisoCuenta
-                        titulo="Inicia sesión o crea una cuenta para solicitar tu credencial"
-                        texto="Puedes conocer todo el trámite sin cuenta. Solicitarla, dar seguimiento a tu solicitud y renovarla se hace con una cuenta."
-                        sinCuenta={[
-                            "Conocer para qué sirve la credencial",
-                            "Revisar cómo funciona el trámite",
-                            "Ver qué necesitas antes de empezar",
-                        ]}
-                        conCuenta={["Solicitar tu credencial", "Ver el seguimiento de tu solicitud", "Renovar tu credencial"]}
-                    />
-                </SeccionVisitante>
-            )}
+            <section className="contacto-seccion contacto-seccion--crema cred-pagina">
+                <div className="contacto-pila">
+                    <PasosTramite actual={sesion ? pasoDelEstado("informacion", tramite.estado) : 1} pagina={1}
+                        solicitar={!!sesion && puedeSolicitar(tramite.estado)} />
+                    {sesionSimulada && <SelectorEstados actual={tramite.estado} alElegir={verEjemplo} />}
+                    <TarjetaDatos datos={datosFila} titulo="Datos del trámite" />
+                    <div className="contacto-columnas contacto-columnas--nuevo">
+                        <div className="cred-principal">
+                            <EstadoCredencial datos={datos} titular={titular} tramite={sesion ? tramite : undefined} nivel={2}>
+                                {cancelada && (
+                                    <p className="perfil-nota cred-aviso" role="status">
+                                        <img src={notaInfo} alt="" />
+                                        <span><strong>Cancelaste tu solicitud.</strong> Si la necesitas, puedes solicitarla de nuevo cuando quieras.</span>
+                                    </p>
+                                )}
+                                <div className="perfil-acciones">
+                                    {sesion === null ? <>
+                                        <Link to="/iniciar-sesion" className="perfil-boton">Iniciar sesión</Link>
+                                        <Link to="/crear-cuenta" className="perfil-boton perfil-boton--contorno">Crear cuenta</Link>
+                                    </> : sesion && tramite.estado === "sin-solicitud" ? <>
+                                        <Link to="/credencial/solicitud" className="perfil-boton">Solicitar credencial</Link>
+                                        <Link to="/credencial/solicitud?tipo=renovacion" className="perfil-boton perfil-boton--contorno">Renovar credencial</Link>
+                                    </> : sesion && (
+                                        <Link to="/credencial/solicitud?tipo=renovacion" className="perfil-boton">Solicitar renovación</Link>
+                                    )}
+                                </div>
+                            </EstadoCredencial>
 
-            <SeccionVisitante fondo="verde" sobretitulo="QUÉ ES" titulo="¿Qué es y para qué sirve?">
-                <div className="credencial-que-es">
-                    <div className="credencial-que-es__texto">
-                        <p>
-                            Es tu credencial de persona usuaria de la biblioteca. Una vez validada por el personal y
-                            mientras esté vigente, te permite solicitar espacios y llevar el seguimiento de tu
-                            participación en actividades.
-                        </p>
-                        <p className="credencial-nota">
-                            <img src={iconoInfo} alt="" />
-                            Participar en actividades y consultar el portal no exige la credencial.
-                        </p>
-                    </div>
-                    <ul className="credencial-usos">
-                        <li><img src={iconoCheck} alt="" />Solicitar espacios de la biblioteca desde el portal.</li>
-                        <li><img src={iconoCheck} alt="" />Registrar tu progreso de participación y, cuando existan, recompensas.</li>
-                        <li><img src={iconoCheck} alt="" />Conservar tu cuenta e historial aunque la credencial venza.</li>
-                    </ul>
-                </div>
-            </SeccionVisitante>
+                            <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo funciona el trámite"
+                                texto={etapas ? undefined : "Cuatro pasos: tú lo solicitas en línea y lo terminas en la biblioteca."}>
+                                <RutaCredencial etapas={etapas} />
+                            </TarjetaPerfil>
+                        </div>
 
-            <SeccionVisitante fondo="blanco" sobretitulo="EL TRÁMITE" titulo="¿Cómo funciona el trámite?">
-                <PasosVisitante
-                    pasos={[
-                        { titulo: "Solicitas desde el portal", texto: "Confirmas tus datos y envías la solicitud.", quien: "Tú" },
-                        { titulo: "La biblioteca revisa", texto: "El personal revisa tu solicitud y tus datos.", quien: "Biblioteca" },
-                        { titulo: "Cotejo presencial", texto: "Acudes a la biblioteca para que verifiquen tu solicitud en persona.", quien: "Tú y la biblioteca" },
-                        { titulo: "Credencial validada", texto: "El personal registra tu credencial y su vigencia de 2 años. Verás el resultado en el seguimiento.", quien: "Biblioteca" },
-                    ]}
-                />
-            </SeccionVisitante>
-
-            <SeccionVisitante fondo="crema" sobretitulo="ANTES DE EMPEZAR" titulo="Lo que necesitas y lo que debes saber">
-                <div className="credencial-antes">
-                    <div className="credencial-antes__tarjeta">
-                        <p className="credencial-antes__titulo">NECESITAS</p>
-                        <ul>
-                            <li><img src={iconoCheck} alt="" />Tener una cuenta en el portal.</li>
-                            <li><img src={iconoCheck} alt="" />Tu solicitud queda en tu cuenta y puedes seguir su avance desde el portal.</li>
-                        </ul>
-                    </div>
-                    <div className="credencial-antes__tarjeta credencial-antes__tarjeta--dorada">
-                        <p className="credencial-antes__titulo">DATOS DEL TRÁMITE</p>
-                        <ul>
-                            <li><img src={iconoCosto} alt="" />Costo del trámite: gratuito.</li>
-                            <li><img src={iconoReloj} alt="" />Tiempo estimado de revisión: aproximadamente de 3 a 5 días hábiles (estimado).</li>
-                        </ul>
+                        <div className="contacto-lateral">
+                            <PreguntasFrecuentes preguntas={preguntas} />
+                            <section className="contacto-seguimiento" aria-labelledby="titulo-mis-solicitudes">
+                                <span className="contacto-seguimiento__insignia" aria-hidden="true" />
+                                <h2 id="titulo-mis-solicitudes">{sesion ? "Tus solicitudes" : "¿Tienes otra duda?"}</h2>
+                                <p>{sesion
+                                    ? "Consulta todas tus solicitudes de credencial y en qué va cada una."
+                                    : "Escríbenos o llama al 311 212 8989, de lunes a viernes de 8:00 a 19:30 h."}</p>
+                                <Link to={sesion ? "/mis-tramites/credencial" : "/contacto"} className="perfil-boton perfil-boton--guardar">
+                                    {sesion ? "Ver mis solicitudes" : "Escríbenos"}
+                                </Link>
+                            </section>
+                        </div>
                     </div>
                 </div>
-            </SeccionVisitante>
-
-            {sesion === null && <LlamadoVisitante
-                titulo="¿Quieres tramitar tu credencial?"
-                texto="Inicia sesión o crea una cuenta para solicitarla. Podrás seguir su avance en la sección Seguimiento."
-            />}
+            </section>
         </PaginaPublica>
     );
 }

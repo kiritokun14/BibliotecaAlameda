@@ -65,3 +65,9 @@ Una sola ruta para los tres tipos de contenido publicado: `GET/PUT/DELETE /conte
 ## Mis mensajes (Mi perfil) — 18 nov 2026
 
 `POST /v1/public/contacto` ya guarda `usuario_id` con sesión; falta **listar los mensajes de la cuenta** (`GET /v1/me/contacto`) y **ligar** uno enviado sin sesión (`POST /v1/me/contacto/{folio}`). Contrato completo en **`PARA_BACKEND.md`** (raíz del repositorio), punto 1.
+
+## Credencial: cancelar mi solicitud — 19 nov 2026
+
+Hecho en front, back y base: `POST /credenciales/solicitudes/{id}/cancelar` y `Supabase/cancelacion_credencial_propia.sql`.
+**No funciona todavía**: al probarlo, la pantalla dijo «No pudimos conectar con el servidor». Queda como tarea para backend
+(revisar el borrador, ejecutar el SQL, reproducir y corregir). Pasos en **`PARA_BACKEND.md`**, punto 6.

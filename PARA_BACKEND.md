@@ -4,7 +4,7 @@
 **De quién:** frontend (rama `Aldahir`).
 **Fecha:** 18 nov 2026.
 
-Este archivo junta **todo lo que el frontend necesita del backend** después del rediseño del portal. El frontend **no tocó `Back/` ni `Supabase/`**. Cada punto de abajo trae:
+Este archivo junta **todo lo que el frontend necesita del backend** después del rediseño del portal. El frontend **no tocó `Back/` ni `Supabase/`**, salvo la cancelación de credencial del punto 6 (borrador para que backend lo revise). Cada punto de abajo trae:
 
 - lo que ya hace la pantalla;
 - el contrato que espera (rutas, entradas, respuestas y errores);
@@ -154,6 +154,47 @@ Las pantallas con datos de ejemplo y su contrato están en `Front/docs/pendiente
 |---|---|
 | `Front/src/pages/publico/inicio/horarioBiblioteca.ts` | Días festivos o especiales. El letrero «Abierto ahora / Cerrado ahora» usa solo el horario fijo (L–V 8:00–19:30, sáb 9:00–14:00). Puede salir de `GET /configuracion` (punto 4) |
 | Avisos del portal (`pages/admin/atencion/avisos/datos.ts`) | Que el portal lea los avisos vigentes. Hoy la pantalla es solo de demostración |
+
+## 6. Credencial: la persona cancela su propia solicitud — **prioridad alta: NO FUNCIONA, tarea para backend** (19 nov 2026)
+
+Si la persona se equivocó o ya no quiere la credencial, la cancela desde **Seguimiento de tu credencial**
+(botón «Cancelar solicitud» → «¿Cancelar tu solicitud?» → «Sí, cancelar»).
+
+### Tarea para el agente de backend
+
+Aldahir lo probó con su cuenta el 19 nov y **no cancela**: bajo «Sí, cancelar» sale
+«No pudimos conectar con el servidor. Comprueba que el backend esté encendido.». Ese texto lo pone `pedirApi()` cuando
+`fetch` falla o pasa de 20 s sin respuesta (`Front/src/servicios/api.ts`), así que la petición no recibió respuesta del backend.
+Lo que sí se comprobó: el backend local estaba encendido, `/openapi.json` incluye la ruta y, sin sesión, `POST …/cancelar` responde `401`.
+No se sabe si `cancelacion_credencial_propia.sql` ya se ejecutó en CECANbd.
+
+1. **Revisar** el borrador de abajo (lo hizo Claude, desde frontend, con permiso de Aldahir): cambiar lo que no siga las reglas del equipo.
+2. **Ejecutar** `Supabase/cancelacion_credencial_propia.sql` en CECANbd y después `Supabase/pruebas_cancelacion_credencial_propia.sql` (`ROLLBACK`).
+3. **Reproducir** con una cuenta que tenga una solicitud `recibida`: entrar a `/credencial/seguimiento` → «Cancelar solicitud» → «Sí, cancelar»,
+   viendo la terminal de uvicorn. Averiguar por qué no responde (¿se cuelga la RPC, se bloquea la fila con `FOR UPDATE`, el proxy de Vite
+   `/api` → `127.0.0.1:8000` corta el `POST`, o uvicorn se reinició con `--reload`?) y corregirlo.
+4. **Confirmar** que responde `200` con la solicitud en `cancelada`, que la pantalla vuelve a la información con «Cancelaste tu solicitud»
+   y que después se puede solicitar otra. Avisar a Aldahir y marcar este punto como hecho.
+
+El frontend no necesita cambios si la ruta respeta el contrato de abajo.
+
+### Borrador que ya está en la rama `Aldahir`
+
+- **`Supabase/cancelacion_credencial_propia.sql`** (paso 22 del README de Supabase): recrea `privado.atencion_solicitudes` igual que
+  `resolucion_institucional_propuestas.sql` más la operación `cancelar`, solo para credenciales:
+  - solo la persona titular (ni otra persona ni el personal por esta vía; el personal sigue usando `resolver` con motivo): si no, `42501`;
+  - solo desde `recibida`, `en_atencion`, `cita_programada` o `rechazada` (el frontend llama «Corrección solicitada» a `rechazada`); si no, `55000`;
+  - no pide `actualizadaEn` (la fila se bloquea con `FOR UPDATE`) y no acepta más campos que `id`;
+  - deja `estadoSolicitud = 'cancelada'` sin tocar las observaciones del personal y lo anota en el historial
+    (`accion = 'cancelar'`, nota «La persona canceló su solicitud desde el portal.»).
+- **`Supabase/pruebas_cancelacion_credencial_propia.sql`** (con `ROLLBACK`): otra persona y el personal no pueden, la titular sí,
+  no se cancela dos veces, después puede solicitar otra y las propuestas no se cancelan por esta vía.
+- **`Back/credenciales.py`**: `POST /credenciales/solicitudes/{id}/cancelar` → `200` con la solicitud; `403` ajena, `404` no existe,
+  `409` ya atendida o cancelada, `401` sin sesión. Pruebas en `Back/tests/test_atencion_tramites.py`.
+- **Frontend:** `cancelarSolicitudCredencial` (`tramites.ts`), `cancelarSolicitud` y `puedeCancelar` (`credencial/datos.ts`) y
+  `CancelarSolicitud` (`credencial/Tramite.tsx`). Si la base todavía no tiene el SQL, el servidor responde `422` y la pantalla dice
+  «Por ahora no se puede cancelar en línea…» con el teléfono; un `409` dice que la solicitud ya cambió de estado.
+- **Pendiente:** todo lo de «Tarea para el agente de backend», arriba.
 
 ## Cómo probar
 

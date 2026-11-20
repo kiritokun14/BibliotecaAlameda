@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type R
 import { Link } from "react-router";
 import type { PerfilPropio } from "../../../servicios/perfil";
 import { mensajeError } from "../../../servicios/api";
-import { Dato, EncabezadoSeccion, EtiquetaPerfil, TarjetaPerfil } from "./piezas";
+import { EncabezadoSeccion, EtiquetaPerfil, TarjetaPerfil } from "./piezas";
 import { iconosSeccion } from "./iconos";
 import { sesionSimulada } from "./usarSesion";
 import {
@@ -15,8 +15,8 @@ import {
 } from "./solicitudes";
 import { cambiarContrasena } from "./seguridad";
 import { listarMisSolicitudes, type SolicitudEspacioApi } from "../../../servicios/espacios";
-import { fechaLarga, useTramite, verEjemplo, type Etapa, type EstadoCredencial } from "../credencial/datos";
-import { Chip, EtapasTramite, SelectorEstados, TarjetaCredencial } from "../credencial/piezas";
+import { estadosCredencial, etapasCredencial, useTramite, verEjemplo } from "../credencial/datos";
+import { Chip, EstadoCredencial, EtapasTramite, SelectorEstados } from "../credencial/piezas";
 import "../credencial/CredencialSesion.css";
 import notaInfo from "../../../assets/perfil/nota-info.svg";
 import notaInfoDorada from "../../../assets/perfil/nota-info-dorada.svg";
@@ -52,77 +52,22 @@ function Filtros<T extends string>({ opciones, actual, alElegir }: { opciones: {
 // ---------- Mi credencial ----------
 // Un bloque por estado: a la izquierda la credencial (o su lugar mientras no existe) y a la derecha qué pasa y qué hacer.
 // Abajo, los cuatro pasos del trámite con el paso actual marcado. Con ?simular=sesion se pueden ver todos los estados.
-type DatosEstado = { chip: string; color: "gris" | "dorado" | "guinda" | "verde"; titulo: string; texto: string; accion: { texto: string; ruta: string }; paso: number };
-const estadosCredencial: Record<EstadoCredencial, DatosEstado> = {
-    "sin-solicitud": { chip: "Sin solicitud", color: "gris", titulo: "Aún no tienes credencial",
-        texto: "Solicítala en línea en pocos minutos. Después acudes a la biblioteca para el cotejo presencial y el personal la valida.",
-        accion: { texto: "Solicitar mi credencial", ruta: "/credencial" }, paso: 0 },
-    "en-revision": { chip: "En revisión", color: "dorado", titulo: "Tu solicitud está en revisión",
-        texto: "El personal revisa tus datos. Te avisaremos en tus notificaciones cuando puedas acudir al cotejo presencial.",
-        accion: { texto: "Ver seguimiento", ruta: "/credencial/seguimiento" }, paso: 1 },
-    correccion: { chip: "Corrección solicitada", color: "guinda", titulo: "Corrige un dato de tu solicitud",
-        texto: "El personal pidió un ajuste antes de continuar. Revisa la observación y envía la corrección.",
-        accion: { texto: "Corregir mi solicitud", ruta: "/credencial/seguimiento" }, paso: 1 },
-    vigente: { chip: "Vigente", color: "verde", titulo: "Tu credencial está vigente",
-        texto: "Preséntala en la biblioteca para tus trámites. Con ella se activan tu progreso y tus recompensas.",
-        accion: { texto: "Ver mi credencial", ruta: "/credencial/seguimiento" }, paso: 4 },
-    vencida: { chip: "Vencida", color: "guinda", titulo: "Tu credencial venció",
-        texto: "Renuévala en línea; tu cuenta y tu historial de actividades se conservan.",
-        accion: { texto: "Solicitar renovación", ruta: "/credencial/solicitud?tipo=renovacion" }, paso: 4 },
-};
-const pasosCredencial = [
-    { titulo: "Solicitud en línea", texto: "Envías tu solicitud desde el portal." },
-    { titulo: "Revisión del personal", texto: "La biblioteca revisa tu solicitud y tus datos." },
-    { titulo: "Cotejo presencial", texto: "Acudes a Préstamos para verificar tus datos." },
-    { titulo: "Credencial validada", texto: "El personal registra tu credencial y su vigencia (2 años)." },
-];
-function etapasCredencial(paso: number): Etapa[] {
-    return pasosCredencial.map((p, i) => ({ ...p, estado: i < paso ? "hecho" : i === paso ? "actual" : "pendiente" }));
-}
-
 export function MiCredencialPerfil({ perfil, menor = false }: { perfil: PerfilPropio; menor?: boolean }) {
     const tramite = useTramite(); // GET /mis-solicitudes
     const datos = estadosCredencial[tramite.estado];
-    const emitida = tramite.estado === "vigente" || tramite.estado === "vencida";
     return (
         <>
             <EncabezadoSeccion titulo="Mi credencial"
                 texto={menor ? "Consulta el estado de la credencial y da seguimiento a la solicitud." : "Consulta el estado de tu credencial y da seguimiento a tu solicitud."} />
             {sesionSimulada && <SelectorEstados actual={tramite.estado} alElegir={verEjemplo} />}
-            <section className={`perfil-credencial-estado perfil-credencial-estado--${datos.color}`} aria-labelledby="titulo-estado-credencial">
-                <div className="perfil-credencial-estado__visual">
-                    {emitida
-                        ? <TarjetaCredencial titular={nombreCompleto(perfil)} vencida={tramite.estado === "vencida"} emision={tramite.emision} />
-                        : (
-                            <div className="perfil-credencial-vacia">
-                                <span className="perfil-credencial-vacia__icono"><img src={iconosSeccion.credencial} alt="" /></span>
-                                <strong>{nombreCompleto(perfil)}</strong>
-                                <span>Tu credencial aparecerá aquí cuando el personal la valide.</span>
-                            </div>
-                        )}
-                </div>
-                <div className="perfil-credencial-estado__textos">
-                    <Chip color={datos.color}>{datos.chip}</Chip>
-                    <h3 id="titulo-estado-credencial">{datos.titulo}</h3>
-                    <p>{datos.texto}</p>
-                    {tramite.estado === "correccion" && tramite.motivoCorreccion && (
-                        <div className="perfil-nota perfil-nota--guinda"><p><strong>Observación del personal</strong>{tramite.motivoCorreccion}</p></div>
+            <EstadoCredencial datos={datos} titular={nombreCompleto(perfil)} tramite={tramite}>
+                <div className="perfil-acciones">
+                    <Link to={datos.accion.ruta} className="perfil-boton">{datos.accion.texto}</Link>
+                    {tramite.estado !== "sin-solicitud" && datos.accion.ruta !== "/credencial/seguimiento" && (
+                        <Link to="/credencial/seguimiento" className="perfil-boton perfil-boton--contorno">Ver seguimiento</Link>
                     )}
-                    {emitida && (
-                        <dl className="perfil-datos perfil-datos--dos">
-                            <Dato etiqueta="Emisión" valor={tramite.emision ? fechaLarga(tramite.emision) : "Por confirmar"} />
-                            <Dato etiqueta={tramite.estado === "vencida" ? "Venció" : "Vigencia"}
-                                valor={tramite.vencimiento ? fechaLarga(tramite.vencimiento) : "2 años desde la emisión"} />
-                        </dl>
-                    )}
-                    <div className="perfil-acciones">
-                        <Link to={datos.accion.ruta} className="perfil-boton">{datos.accion.texto}</Link>
-                        {tramite.estado !== "sin-solicitud" && datos.accion.ruta !== "/credencial/seguimiento" && (
-                            <Link to="/credencial/seguimiento" className="perfil-boton perfil-boton--contorno">Ver seguimiento</Link>
-                        )}
-                    </div>
                 </div>
-            </section>
+            </EstadoCredencial>
             <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo avanza tu trámite" texto="Los cuatro pasos para tener tu credencial.">
                 <EtapasTramite etapas={etapasCredencial(datos.paso)} />
             </TarjetaPerfil>

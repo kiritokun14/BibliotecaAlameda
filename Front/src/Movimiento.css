@@ -97,7 +97,6 @@ input[type="checkbox"]:active, input[type="radio"]:active { transform: scale(0.9
 :is(.cred-tarjeta, .formulario-contacto, .tarjeta-datos, .detalle-actividad, .detalle-noticia__cuerpo, .detalle-resena__contenido, .estado-pagina, .estado-lecturas, .estado-noticias) {
   animation: mov-sube 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-.cred-lateral > :nth-child(2) { animation-delay: 0.08s; }
 .tarjeta-datos + .formulario-contacto { animation-delay: 0.08s; }
 
 /* Pasos (Credencial, Espacios): el paso actual resalta */

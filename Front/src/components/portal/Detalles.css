@@ -2376,6 +2376,209 @@
 }
 
 /* ==========================================================================
+   CREDENCIAL (19 nov 2026 · plantilla C, como Contacto)
+   Información (/credencial): franja compacta con ícono → fila de datos del trámite → dos columnas del mismo alto:
+   trámite por estados (EstadoCredencial) + «Cómo funciona el trámite» | preguntas frecuentes + tarjeta verde.
+   Solicitud, solicitud enviada y seguimiento (/credencial/…) usan la misma franja, las mismas columnas y las mismas piezas.
+   Orden: 1. franja · 2. área de trabajo y columnas · 3. pasos · 4. vistas con sesión · 5. enviada y corrección · 6. animaciones · 7. plantas.
+   ========================================================================== */
+
+/* 1. Franja verde compacta (≈ 150 px), igual que Contacto */
+.pagina-publica:has(.cred-pagina) .encabezado-publico { gap: 10px; padding: 26px 24px 30px; }
+.pagina-publica:has(.cred-pagina) .encabezado-publico h1 { font-size: 36px; line-height: 42px; letter-spacing: -0.5px; }
+.pagina-publica:has(.cred-pagina) .encabezado-publico p { max-width: 640px; font-size: 15px; line-height: 22px; }
+
+/* 2. Área de trabajo ajustada a la pantalla (§1): datos + columnas miden el alto visible bajo la barra y el scroll los encuadra.
+   La columna principal reparte su alto entre el estado y los pasos; la tarjeta verde lleva el ícono de credencial. */
+@media (min-width: 1025px) {
+  html:has(.pagina-publica .cred-pagina) { scroll-snap-type: y proximity; scroll-padding-top: 61px; }
+  .pagina-publica .cred-pagina { min-height: max(700px, calc((100vh - 61px) / 0.9)); padding: 22px 24px; box-sizing: border-box; scroll-snap-align: start; }
+  .pagina-publica .cred-pagina > .contacto-pila { flex: 1; min-height: 0; }
+  .pagina-publica .cred-pagina .contacto-columnas--nuevo { flex: 1; min-height: 0; }
+}
+.pagina-publica .cred-pagina .perfil-credencial-estado { grid-template-columns: 240px minmax(0, 1fr); gap: 22px; padding: 18px 22px; }
+.pagina-publica .cred-pagina > .contacto-pila, .pagina-publica .cred-principal, .pagina-publica .cred-pagina .contacto-lateral { gap: 14px; }
+.pagina-publica .cred-pagina .perfil-credencial-vacia { gap: 6px; padding: 14px; }
+.pagina-publica .cred-pagina .perfil-credencial-vacia__icono { width: 44px; height: 44px; }
+.pagina-publica .cred-pagina .perfil-credencial-estado__textos { gap: 10px; }
+.pagina-publica .cred-pagina .perfil-credencial-estado__textos > p { font-size: 14.5px; line-height: 21px; }
+.pagina-publica .cred-pagina .perfil-acciones { flex-wrap: nowrap; gap: 10px; margin-top: 4px; }
+.pagina-publica .cred-pagina .contacto-datos .tarjeta-datos__lista { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pagina-publica .cred-principal { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.pagina-publica .cred-principal > .perfil-tarjeta { flex: 1; min-height: 0; margin: 0; }
+.pagina-publica .cred-pagina .perfil-credencial-estado { margin: 0; }
+.pagina-publica .cred-pagina .perfil-credencial-estado__textos h2 { margin: 0; color: #161a1d; font-size: 22px; line-height: 28px; }
+.pagina-publica .cred-pagina .contacto-seguimiento__insignia::after {
+  -webkit-mask-image: url("../../assets/perfil/menu-archivo.svg"); mask-image: url("../../assets/perfil/menu-archivo.svg");
+}
+.pagina-publica .cred-pagina .cred-ejemplos { margin: 0; }
+/* Abrir una pregunta no estira nada (Aldahir, 19 nov): la columna derecha no cuenta para el alto de la fila (contain: size),
+   así manda la izquierda; al abrir, la tarjeta verde se compacta (solo título y botón) y cede su espacio.
+   La lista solo se desplaza por dentro en pantallas más bajas que 1366 × 768. */
+.pagina-publica .cred-pagina .contacto-lateral:has(.preguntas-tarjeta) { contain: size; }
+.pagina-publica .cred-pagina .contacto-lateral > .preguntas-tarjeta { flex: 0 1 auto; min-height: 0; }
+.pagina-publica .cred-pagina .preguntas-tarjeta .preguntas-contacto { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.pagina-publica .cred-pagina .contacto-lateral > .contacto-seguimiento { flex: 1 0 auto; gap: 6px; padding: 18px 20px; }
+/* ¿Necesitas ayuda? (Solicitud y Seguimiento): canales en fichas translúcidas y dos aros dorados de fondo (19 nov) */
+.pagina-publica .cred-ayuda::after {
+  content: ""; position: absolute; right: -70px; bottom: -70px; width: 200px; height: 200px; border-radius: 50%; pointer-events: none;
+  border: 1px solid rgba(230, 209, 148, 0.22); box-shadow: 0 0 0 26px rgba(230, 209, 148, 0.05), 0 0 0 27px rgba(230, 209, 148, 0.14);
+}
+.pagina-publica .cred-ayuda > * { position: relative; z-index: 1; }
+.pagina-publica .cred-ayuda__canales { display: flex; flex-direction: column; gap: 6px; width: 100%; margin: 4px 0 0; padding: 0; list-style: none; text-align: left; }
+.pagina-publica .cred-ayuda__canales li {
+  display: flex; flex-direction: column; gap: 1px; padding: 8px 12px; border: 1px solid rgba(230, 209, 148, 0.28); border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07); transition: background 0.2s ease, border-color 0.2s ease;
+}
+.pagina-publica .cred-ayuda__canales li:hover { border-color: rgba(230, 209, 148, 0.6); background: rgba(255, 255, 255, 0.11); }
+.pagina-publica .cred-ayuda__canales span { color: #e6d194; font-size: 12px; font-weight: 700; }
+.pagina-publica .cred-ayuda__canales :is(strong, a) { color: #fff; font-size: 13.5px; font-weight: 600; line-height: 19px; }
+.pagina-publica .cred-ayuda__canales a { text-decoration: underline; text-decoration-color: rgba(230, 209, 148, 0.6); text-underline-offset: 3px; }
+.pagina-publica .cred-ayuda__canales a:hover { text-decoration-color: #e6d194; }
+.pagina-publica .cred-pagina .cred-ayuda--compacta > :is(.contacto-seguimiento__insignia, p) { display: none; }
+.pagina-publica .cred-pagina .cred-ayuda--compacta .cred-ayuda__canales { gap: 5px; }
+.pagina-publica .cred-pagina .cred-ayuda--compacta .cred-ayuda__canales li { padding: 5px 12px; }
+/* La compactación es suave, al paso del acordeón (0.35 s): la insignia y el texto se recogen (alto, opacidad y escala) y la
+   tarjeta acorta su relleno; al cerrar la pregunta vuelven igual. La entrada de la tarjeta usa «backwards» para que,
+   al terminar, no fije la opacidad ni la posición y la transición pueda actuar. */
+.pagina-publica .cred-pagina .contacto-lateral > .contacto-seguimiento { transition: padding 0.35s ease; }
+.pagina-publica .cred-pagina .contacto-seguimiento > * { animation-fill-mode: backwards; }
+.pagina-publica .cred-pagina .contacto-seguimiento > :is(.contacto-seguimiento__insignia, p) {
+  max-height: 80px; transition: max-height 0.35s ease, margin 0.35s ease, opacity 0.25s ease, transform 0.35s ease;
+}
+.pagina-publica .cred-pagina .contacto-lateral:has(.pregunta-contacto[open]) > .contacto-seguimiento { padding-block: 14px; }
+.pagina-publica .cred-pagina .contacto-lateral:has(.pregunta-contacto[open]) .contacto-seguimiento > :is(.contacto-seguimiento__insignia, p) {
+  max-height: 0; margin-block: -3px; overflow: hidden; opacity: 0; transform: scale(0.85);
+}
+/* Botones del trámite: los dos caben en la columna del texto (antes «Renovar mi credencial» se salía de la tarjeta) */
+.pagina-publica .cred-pagina .perfil-acciones .perfil-boton { padding: 0 20px; }
+/* Si la sección crece (credencial emitida, corrección), crece la página: nada queda debajo del pie (19 nov).
+   Para caber a 1366 × 768, la credencial va compacta: solo el titular y el estado, y los círculos dentro de la tarjeta. */
+.pagina-publica .cred-pagina .cred-credencial { gap: 10px; padding: 18px 20px; }
+.pagina-publica .cred-pagina .cred-credencial__cabecera { margin-bottom: 4px; }
+.pagina-publica .cred-pagina .cred-credencial__titular { font-size: 23px; line-height: 27px; }
+.pagina-publica .cred-pagina .cred-credencial__datos div:not(:first-child) { display: none; } /* emisión y vigencia ya van en las fichas de al lado */
+.pagina-publica .cred-pagina .cred-credencial__circulo--1 { left: auto; right: -170px; }
+.pagina-publica .cred-pagina .perfil-credencial-estado .perfil-datos { gap: 8px; }
+.pagina-publica .cred-pagina .perfil-credencial-estado .perfil-dato { padding: 9px 12px; }
+.pagina-publica .cred-pagina .perfil-credencial-estado .perfil-nota { padding: 10px 14px; }
+
+/* 3. Los cuatro pasos en fila, unidos por una línea (la ruta de Progreso, con cuatro columnas) */
+.pagina-publica .cred-ruta { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pagina-publica .cred-ruta::before { left: 12.5%; right: 12.5%; }
+.pagina-publica .cred-ruta::before { top: 32px; }
+.pagina-publica .cred-ruta .perfil-nivel { justify-content: flex-start; gap: 2px; padding: 10px 10px 12px; }
+.pagina-publica .cred-ruta .perfil-nivel__numero { width: 36px; height: 36px; font-size: 16px; }
+.pagina-publica .cred-principal > .perfil-tarjeta { display: flex; flex-direction: column; gap: 12px; padding: 18px 24px; }
+.pagina-publica .cred-principal > .perfil-tarjeta > .perfil-tarjeta__cabecera { padding-bottom: 10px; }
+.pagina-publica .cred-principal > .perfil-tarjeta > .cred-ruta { flex: 1; }
+.pagina-publica .cred-ruta .perfil-nivel strong { font-size: 15px; line-height: 20px; }
+.pagina-publica .cred-ruta__texto { color: #4d4d4d; font-size: 13px; line-height: 18px; }
+.pagina-publica .cred-ruta .cred-chip { margin-top: 6px; }
+/* Cuatro tarjetas simétricas (19 nov): cada parte (número, quién, título, texto, chip) ocupa la misma fila en las cuatro
+   gracias a subgrid; el texto toma el espacio sobrante y el chip queda abajo, a la misma altura. */
+.pagina-publica .cred-ruta { grid-template-rows: auto auto minmax(40px, auto) 1fr auto; row-gap: 0; }
+.pagina-publica .cred-ruta .perfil-nivel { display: grid; grid-row: span 5; grid-template-rows: subgrid; justify-items: center; align-items: start; row-gap: 2px; }
+.pagina-publica .cred-ruta .perfil-nivel strong { align-self: center; }
+.pagina-publica .cred-ruta .cred-chip { grid-row: 5; align-self: end; }
+
+/* 4. Solicitud, enviada y seguimiento: la página crece con su contenido (al menos el alto visible); la columna derecha
+   lleva una tarjeta de la vista y la verde de ayuda. El formulario es la tarjeta blanca de Contacto con franja guinda → dorado. */
+.pagina-publica .cred-pagina .cred-pasos { margin: 0; }
+.pagina-publica .cred-pagina .contacto-lateral > .perfil-tarjeta { flex: none; margin: 0; }
+.pagina-publica .cred-formulario { align-items: stretch; gap: 16px; padding: 24px 28px 24px; }
+.pagina-publica .cred-formulario .perfil-nota { gap: 10px; padding: 10px 14px; border-radius: 16px; }
+.pagina-publica .cred-formulario .perfil-nota img { width: 20px; height: 20px; }
+.pagina-publica .cred-formulario .perfil-nota p { display: block; font-size: 14px; line-height: 20px; }
+.pagina-publica .cred-grupo { display: flex; flex-direction: column; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.pagina-publica .cred-grupo__titulo { margin: 0 0 2px; padding: 0; color: #164f44; font-size: 17px; font-weight: 700; line-height: 22px; }
+.pagina-publica .cred-opciones-tipo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pagina-publica .cred-pagina .perfil-datos--tres { grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+/* Folio, trámite y enviada: tres fichas iguales, cada valor en un renglón (19 nov) */
+.pagina-publica .cred-pagina .perfil-datos--tres .perfil-dato dd { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pagina-publica .cred-formulario .perfil-acciones { margin-top: 2px; }
+.pagina-publica .cred-pagina .cred-casilla { font-size: 14px; }
+.pagina-publica .cred-pagina .cred-error-campo { margin: -6px 0 0; animation: acerca-despliega 0.3s ease-out both; }
+.pagina-publica .cred-pagina .perfil-tarjeta .perfil-nota { margin: 0; }
+
+/* 5. Flujo: indicador de pasos en las tres pantallas (los visitables son enlaces, como los chips: borde verde, fondo verde
+   claro y suben 2 px), aviso al enviar o cancelar (nota verde clara que baja y aparece), cancelar con confirmación en nota
+   rosa, y la corrección (tarjeta rosa en lugar de los pasos) */
+.pagina-publica .cred-pagina .cred-pasos-franja { padding: 0; background: none; }
+.pagina-publica .cred-pagina .cred-pasos { max-width: none; }
+.pagina-publica .cred-paso:has(.cred-paso__enlace) { padding: 0; transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
+.pagina-publica .cred-paso__enlace { display: flex; align-items: center; gap: 10px; padding: 6px 18px 6px 6px; border-radius: 999px; color: inherit; text-decoration: none; }
+.pagina-publica .cred-paso:has(.cred-paso__enlace):hover { border-color: #1f6b5c; background: #e4efeb; transform: translateY(-2px); }
+.pagina-publica .cred-paso--actual:has(.cred-paso__enlace):hover { background: #1f6b5c; }
+.pagina-publica .cred-paso__enlace:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pagina-publica .cred-pagina .cred-aviso { align-items: center; gap: 10px; margin: 0; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 20px;
+  animation: acerca-despliega 0.3s ease-out both; }
+.pagina-publica .cred-pagina .cred-aviso img { width: 20px; height: 20px; }
+.pagina-publica .cred-pagina .cred-aviso { border-color: #bfd9d0; border-left-color: #1f6b5c; }
+.pagina-publica .cred-pagina .cred-aviso strong { color: #164f44; }
+.pagina-publica .cred-pagina .cred-cancelar { flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: 16px; animation: acerca-despliega 0.3s ease-out both; }
+.pagina-publica .cred-pagina .cred-cancelar > p { display: block; font-size: 14px; line-height: 20px; }
+.pagina-publica .cred-pagina .cred-cancelar > p strong { display: block; }
+.pagina-publica .cred-pagina .cred-cancelar .perfil-acciones { margin: 0; }
+.pagina-publica .cred-correccion { flex: 1; margin: 0; }
+
+/* 6. Animaciones (solo las de §3 en AGENTS.md)
+   Entrada escalonada: datos (0–180 ms, las de Contacto) → estado (200 ms) → pasos (260 ms, cada paso 40 ms después) →
+   preguntas y tarjeta verde (las de Contacto). Botones suben 2 px. */
+.pagina-publica .cred-principal > .perfil-credencial-estado { animation: acerca-entra 0.5s ease-out 0.2s both; }
+.pagina-publica .cred-principal > .perfil-tarjeta { animation: acerca-entra 0.5s ease-out 0.26s both; }
+.pagina-publica .cred-ruta .perfil-nivel { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .cred-ruta .perfil-nivel:nth-child(1) { animation-delay: 0.34s; }
+.pagina-publica .cred-ruta .perfil-nivel:nth-child(2) { animation-delay: 0.38s; }
+.pagina-publica .cred-ruta .perfil-nivel:nth-child(3) { animation-delay: 0.42s; }
+.pagina-publica .cred-ruta .perfil-nivel:nth-child(4) { animation-delay: 0.46s; }
+.pagina-publica .cred-pagina .formulario-contacto { animation: acerca-entra 0.5s ease-out 0.1s both; }
+.pagina-publica .cred-formulario > * { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .cred-formulario > :nth-child(2) { animation-delay: 0.2s; }
+.pagina-publica .cred-formulario > :nth-child(3) { animation-delay: 0.26s; }
+.pagina-publica .cred-formulario > :nth-child(n+4) { animation-delay: 0.32s; }
+.pagina-publica .cred-pagina .contacto-lateral > .perfil-tarjeta { animation: acerca-entra 0.5s ease-out 0.26s both; }
+.pagina-publica .cred-pagina .perfil-boton { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
+.pagina-publica .cred-pagina .perfil-boton:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 22px rgba(18, 63, 55, 0.2); }
+.pagina-publica .cred-pagina .perfil-boton:active { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .cred-principal > *, .pagina-publica .cred-ruta .perfil-nivel, .pagina-publica .cred-pagina .formulario-contacto,
+  .pagina-publica .cred-formulario > *, .pagina-publica .cred-aviso, .pagina-publica .cred-cancelar,
+  .pagina-publica .cred-pagina .contacto-seguimiento, .pagina-publica .cred-pagina .contacto-seguimiento > *,
+  .pagina-publica .cred-pagina .contacto-lateral > .perfil-tarjeta, .pagina-publica .cred-pagina .cred-error-campo { animation: none; }
+  .pagina-publica .cred-pagina .perfil-boton:hover:not(:disabled), .pagina-publica .cred-paso:has(.cred-paso__enlace):hover { transform: none; }
+  .pagina-publica .cred-pagina .contacto-seguimiento, .pagina-publica .cred-pagina .contacto-seguimiento > * { transition: none; }
+}
+
+/* 7. Plantas propias de Credencial (en los márgenes, se mecen a destiempo):
+   bugambilia que cuelga arriba a la izquierda, cempasúchil arriba a la derecha y agave abajo a la izquierda */
+@media (min-width: 1025px) {
+  .pagina-publica .cred-pagina { position: relative; }
+  .pagina-publica .cred-pagina > * { position: relative; z-index: 1; }
+  .pagina-publica .cred-pagina::before,
+  .pagina-publica .cred-pagina::after,
+  .pagina-publica .cred-pagina .contacto-columnas--nuevo::after {
+    content: ""; position: absolute; z-index: 0; pointer-events: none; background-repeat: no-repeat; background-size: contain;
+    filter: drop-shadow(0 8px 12px rgba(11, 59, 51, 0.16)); animation: detalle-mecer 9s ease-in-out infinite alternate;
+  }
+  .pagina-publica .cred-pagina::before {
+    top: 0; left: calc(50% - 550px - 168px); width: 140px; height: 220px;
+    background-image: url("../../assets/inicio/adorno-bugambilia.svg"); background-position: left top; transform-origin: 10% 0%;
+  }
+  .pagina-publica .cred-pagina::after {
+    top: 24px; right: calc(50% - 550px - 168px); width: 140px; height: 220px;
+    background-image: url("../../assets/inicio/adorno-cempasuchil.svg"); background-position: right top; transform-origin: 52% 100%; animation-delay: -3s;
+  }
+  .pagina-publica .cred-pagina .contacto-columnas--nuevo::after {
+    bottom: 0; left: -178px; width: 150px; height: 200px;
+    background-image: url("../../assets/inicio/adorno-agave.svg"); background-position: left bottom; transform-origin: 50% 100%; animation-delay: -5s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .cred-pagina::before, .pagina-publica .cred-pagina::after, .pagina-publica .cred-pagina .contacto-columnas--nuevo::after { animation: none; }
+}
+
+/* ==========================================================================
    MI PERFIL · MIS MENSAJES (18 nov 2026, rehecho con el patrón de Mis eventos)
    Una sola lista con filtros (Todos · En proceso · Atendidos); cada mensaje es una tarjeta de lista con su
    bloque de fecha, folio corto y chip; «Ver seguimiento» abre los pasos, la respuesta y el folio completo

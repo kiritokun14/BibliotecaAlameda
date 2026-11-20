@@ -65,3 +65,9 @@ def detalle(solicitud_id: UUID, cliente: Cliente, response: Response):
 @router.patch('/{solicitud_id}')
 def resolver(solicitud_id: UUID, datos: SolicitudCredencialUpdate, cliente: Cliente, response: Response):
     return llamar(cliente, 'resolver', {'id': str(solicitud_id), **datos.model_dump(mode='json')}, response)
+
+
+# La persona titular cancela su propia solicitud mientras no esté atendida (19 nov 2026).
+@router.post('/{solicitud_id}/cancelar')
+def cancelar(solicitud_id: UUID, cliente: Cliente, response: Response):
+    return llamar(cliente, 'cancelar', {'id': str(solicitud_id)}, response)

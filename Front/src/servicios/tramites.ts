@@ -46,6 +46,11 @@ export function consultarTramite(tipo: TipoTramite, id: string) { return consult
 export function solicitarCredencial(tipoSolicitud: string, observaciones: string) {
     return pedir<SolicitudAtencion>('credencial', '', { method: 'POST', body: JSON.stringify({ tipoSolicitud, observaciones: observaciones.trim() || null }) });
 }
+// La persona cancela su propia solicitud de credencial (en revisión o con corrección solicitada).
+// POST /credenciales/solicitudes/{id}/cancelar (Back/credenciales.py; en la base, Supabase/cancelacion_credencial_propia.sql).
+export function cancelarSolicitudCredencial(id: string) {
+    return pedir<SolicitudAtencion>('credencial', `/${encodeURIComponent(id)}/cancelar`, { method: 'POST' });
+}
 export function enviarPropuesta(datos: DatosPropuesta, anterior?: SolicitudAtencion) {
     return pedir<SolicitudAtencion>('propuesta', anterior ? `/${encodeURIComponent(anterior.id)}/corregir` : '', {
         method: anterior ? 'PUT' : 'POST', body: JSON.stringify({ ...datos, ...(anterior ? { actualizadoEn: anterior.actualizadoEn } : {}) }),

@@ -217,7 +217,7 @@ type CampoProps = {
     obligatorio?: boolean; ayuda?: string; marcador?: string; deshabilitado?: boolean;
     tipo?: string; maximo?: number; autocompletar?: string; modoTeclado?: "numeric" | "email" | "text"; icono?: string;
 };
-function Campo({ id, etiqueta, valor, alCambiar, error, obligatorio = true, ayuda, marcador, deshabilitado, tipo = "text", maximo, autocompletar, modoTeclado, icono }: CampoProps) {
+export function Campo({ id, etiqueta, valor, alCambiar, error, obligatorio = true, ayuda, marcador, deshabilitado, tipo = "text", maximo, autocompletar, modoTeclado, icono }: CampoProps) {
     const descripcion = [error && `${id}-error`, ayuda && `${id}-ayuda`].filter(Boolean).join(" ") || undefined;
     return (
         <div className="perfil-campo">
