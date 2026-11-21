@@ -2684,6 +2684,7 @@
 .pagina-publica .esp-mapa__fondo { transition: filter 0.35s ease, opacity 0.35s ease; }
 .pagina-publica .esp-mapa__svg--foco .esp-mapa__fondo { filter: blur(2.5px) saturate(0.55); opacity: 0.55; }
 .pagina-publica .esp-mapa__foco { animation: esp-foco 0.35s ease-out both; }
+.pagina-publica .esp-mapa__luz { animation: esp-foco 0.6s ease-out 0.2s both; }
 @keyframes esp-foco { from { opacity: 0; } to { opacity: 1; } }
 .pagina-publica .esp-mapa__contorno { stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: esp-contorno 0.6s ease-out 0.05s forwards; }
 @keyframes esp-contorno { to { stroke-dashoffset: 0; } }
@@ -2905,6 +2906,205 @@
   .pagina-publica .esp-pagina::after { background-image: url("../../assets/inicio/adorno-cerezo.svg"); }
   .pagina-publica .esp-pagina .contacto-columnas--nuevo::after { background-image: url("../../assets/inicio/adorno-espigas.svg"); }
 }
+
+/* ==========================================================================
+   EVENTOS · CONSULTA (20 nov 2026 · plantilla C «Página de consulta», con las piezas de Noticias)
+   /eventos: barra (tipos en chips | «Lista · Calendario» y «Ver todas») → destacada → «Más actividades».
+   /eventos/todas: panel de «Filtros» → «Actividades» con Cuadrícula | Lista → un grupo por mes.
+   /eventos/calendario: barra del mes → el mes en tarjeta blanca | el día elegido en tarjeta verde.
+   Clases de Noticias (`noticias-pagina`, `noticia-principal`, `tarjeta-noticia`…) + `eventos-pagina` para lo propio.
+   Orden: 1. barra y proponer · 2. tarjetas · 3. grupos por mes · 4. calendario · 5. plantas.
+   ========================================================================== */
+
+/* 1. Barra: a la derecha «Lista · Calendario» (pastillas segmentadas) y la acción; con sesión, proponer en una línea */
+.pagina-publica .evento-barra__acciones { display: flex; flex: none; align-items: center; gap: 10px; }
+.pagina-publica .evento-proponer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0; padding: 12px 16px; }
+.pagina-publica .evento-proponer p { margin: 0; color: #2b2f31; font-size: 14px; line-height: 20px; }
+.pagina-publica .evento-proponer p strong { color: #164f44; }
+.pagina-publica .evento-proponer .perfil-acciones { flex: none; flex-wrap: nowrap; margin: 0; }
+
+/* 1b. Agenda pulida (Aldahir, 20 nov): barra blanca con los tipos (pastillas con su punto de color) y «Ver como»;
+   la destacada y la tarjeta verde «Participa» en dos columnas del mismo alto; «Más actividades» con «Ver todas» a la derecha */
+.pagina-publica .evento-herramientas {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 10px 12px;
+  border: 1px solid #e2ded5; border-radius: 22px; background: #fff; box-shadow: 0 8px 20px rgba(22, 79, 68, 0.06);
+  animation: acerca-entra 0.5s ease-out both;
+}
+.pagina-publica .evento-herramientas__grupo { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 0 8px; }
+.pagina-publica .evento-herramientas__grupo + .evento-herramientas__grupo { margin-left: 8px; padding-left: 18px; border-left: 1px solid #efebe2; }
+.pagina-publica .evento-herramientas__etiqueta { flex: none; color: #6b675e; font-size: 13px; font-weight: 600; }
+.pagina-publica .evento-tipos { flex-wrap: nowrap; height: 44px; padding: 4px; box-sizing: border-box; background: #f7f5f0; box-shadow: inset 0 0 0 1px #efebe2; }
+.pagina-publica .evento-tipo { height: 36px; box-sizing: border-box; gap: 7px; padding: 0 14px; white-space: nowrap; color: #164f44; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.pagina-publica .evento-tipo:not(.perfil-filtro--activo):hover { background: #e4efeb; transform: translateY(-2px); }
+.pagina-publica .evento-tipo.perfil-filtro--activo { color: #fff; animation: noticias-pulso 0.25s ease-out; }
+.pagina-publica .evento-tipo:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pagina-publica .evento-tipo__punto { width: 8px; height: 8px; border-radius: 50%; background: #164f44; }
+.pagina-publica .evento-tipo__punto--club, .pagina-publica .evento-tipo__punto--evento { background: #c9a24a; }
+.pagina-publica .evento-tipo__punto--visita { background: #9b2247; }
+.pagina-publica .perfil-filtro--activo .evento-tipo__punto { box-shadow: 0 0 0 2px #fff; }
+
+/* «Ver como»: Lista · Calendario, dos opciones del mismo ancho con su ícono (verde; blanco en la elegida), en la misma
+   pastilla crema que los tipos y del mismo alto (44 px), para que la barra quede pareja */
+.pagina-publica .evento-vista { display: grid; grid-template-columns: repeat(2, 120px); height: 44px; padding: 4px; box-sizing: border-box; border-radius: 999px; background: #f7f5f0; box-shadow: inset 0 0 0 1px #efebe2; }
+.pagina-publica .evento-vista__opcion {
+  display: flex; align-items: center; justify-content: center; gap: 8px; height: 36px; border-radius: 999px; color: #164f44;
+  font-size: 13.5px; font-weight: 700; text-decoration: none; transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.pagina-publica .evento-vista__icono { width: 16px; height: 16px; background: currentColor; -webkit-mask: var(--icono) center / contain no-repeat; mask: var(--icono) center / contain no-repeat; }
+.pagina-publica .evento-vista__opcion:not(.evento-vista__opcion--activa):hover { background: #e4efeb; transform: translateY(-2px); }
+.pagina-publica .evento-vista__opcion--activa { background: #164f44; color: #fff; box-shadow: 0 6px 14px rgba(22, 79, 68, 0.22); }
+.pagina-publica .evento-vista__opcion:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .evento-vista__opcion:hover { transform: none; } }
+
+.pagina-publica .evento-principal { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; align-items: stretch; }
+.pagina-publica .evento-principal .noticia-principal { gap: 26px; height: 100%; box-sizing: border-box; }
+.pagina-publica .evento-principal .noticia-principal__imagen { width: 300px; height: 260px; flex: none; }
+.pagina-publica .evento-principal .noticia-principal__titulo { font-size: 27px; line-height: 33px; letter-spacing: -0.3px; }
+.pagina-publica .evento-principal .noticia-principal { align-items: center; }
+.pagina-publica .evento-principal .noticia-principal__meta { flex-wrap: wrap; }
+.pagina-publica .evento-principal .noticia-principal__resumen { font-size: 15.5px; line-height: 23px; }
+.pagina-publica .evento-principal > .perfil-vacio { margin: 0; }
+.pagina-publica .evento-participa {
+  position: relative; display: flex; flex-direction: column; gap: 10px; padding: 24px 22px 22px; overflow: hidden; border-radius: 28px; color: #fff;
+  background: radial-gradient(circle at 15% 0%, rgba(201, 162, 74, 0.32), transparent 45%), radial-gradient(circle at 90% 100%, rgba(155, 34, 71, 0.38), transparent 45%), linear-gradient(150deg, #0b3b33, #1f6b5c);
+  box-shadow: 0 14px 30px rgba(22, 79, 68, 0.2); animation: acerca-entra 0.5s ease-out 0.12s both;
+}
+.pagina-publica .evento-participa::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .evento-participa__insignia {
+  display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: #e6d194;
+  box-shadow: 0 0 0 4px rgba(242, 227, 184, 0.35); animation: acerca-aro 0.9s ease-out 0.6s 1 backwards;
+}
+.pagina-publica .evento-participa__insignia img { width: 22px; height: 22px; }
+.pagina-publica .evento-participa h2 { margin: 4px 0 0; font-size: 20px; line-height: 26px; }
+.pagina-publica .evento-participa > p { margin: 0; color: #e4efeb; font-size: 14px; line-height: 21px; }
+.pagina-publica .evento-participa__puntos { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 0; padding: 0; list-style: none; }
+.pagina-publica .evento-participa__puntos li {
+  padding: 8px 12px; border: 1px solid rgba(230, 209, 148, 0.28); border-radius: 12px; background: rgba(255, 255, 255, 0.07);
+  color: #fff; font-size: 13.5px; font-weight: 600; line-height: 18px;
+}
+.pagina-publica .evento-participa__acciones { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: 6px; }
+.pagina-publica .evento-participa .evento-participa__principal { width: 100%; border-color: #e6d194; background: #e6d194; color: #164f44; }
+.pagina-publica .evento-participa .evento-participa__principal:hover { background: #f2e3b8; }
+.pagina-publica .evento-participa .evento-participa__secundario { width: 100%; border-color: rgba(255, 255, 255, 0.55); background: transparent; color: #fff; }
+.pagina-publica .evento-participa .evento-participa__secundario:hover { border-color: #e6d194; background: rgba(255, 255, 255, 0.1); }
+.pagina-publica .evento-mas__encabezado { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .evento-herramientas, .pagina-publica .evento-participa, .pagina-publica .evento-participa__insignia, .pagina-publica .evento-tipo.perfil-filtro--activo { animation: none; }
+  .pagina-publica .evento-tipo:hover { transform: none; }
+}
+
+/* 2. Tarjetas: tipo en pastilla verde clara (dorada sobre la destacada), estado con su color, fecha sobre la foto */
+.pagina-publica .evento-pastilla { padding: 2px 10px; border-radius: 999px; background: #e4efeb; color: #164f44; font-size: 12px; font-weight: 700; line-height: 18px; }
+.pagina-publica .evento-pastilla--claro { background: #e6d194; color: #164f44; }
+.pagina-publica .evento-estado { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; line-height: 18px; }
+.pagina-publica .evento-estado--verde { background: #e4efeb; color: #164f44; }
+.pagina-publica .evento-estado--dorado { background: #f6eeda; color: #8a6414; }
+.pagina-publica .evento-estado--guinda { background: #f6eaee; color: #9b2247; }
+.pagina-publica .evento-estado--gris { background: #f1efea; color: #4d4d4d; }
+.pagina-publica .tarjeta-evento .tarjeta-noticia__imagen { position: relative; }
+.pagina-publica .tarjeta-evento__fecha {
+  position: absolute; z-index: 1; top: 10px; left: 10px; display: flex; flex-direction: column; align-items: center; min-width: 44px; padding: 5px 8px;
+  border-radius: 12px; background: #fff; box-shadow: 0 6px 14px rgba(11, 59, 51, 0.18); color: #6b4f12; font-size: 11px; font-weight: 700; line-height: 13px;
+}
+.pagina-publica .tarjeta-evento__fecha strong { color: #164f44; font-size: 18px; line-height: 21px; }
+.pagina-publica .tarjeta-evento--cancelada .tarjeta-noticia__imagen img { filter: grayscale(0.7); opacity: 0.7; }
+.pagina-publica .evento-imagen-nota {
+  position: absolute; left: 12px; bottom: 12px; padding: 3px 10px; border-radius: 999px; background: rgba(11, 59, 51, 0.72); color: #fff; font-size: 11.5px; font-weight: 600;
+}
+.pagina-publica .evento-destacada .noticia-principal__imagen { position: relative; }
+
+/* 3. Grupos por mes: el mes en verde con «Próximas» o «Ya pasaron» en pastilla y una línea fina; sin contadores */
+.pagina-publica .evento-grupo { display: flex; flex-direction: column; gap: 14px; }
+.pagina-publica .evento-grupo__encabezado { display: flex; align-items: center; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #e2ded5; }
+.pagina-publica .evento-grupo__encabezado h2 { margin: 0; color: #164f44; font-size: 22px; line-height: 28px; }
+.pagina-publica .evento-grupo__encabezado span { padding: 2px 10px; border-radius: 999px; background: #f6eeda; color: #8a6414; font-size: 12px; font-weight: 700; }
+
+/* 4. Calendario: barra con «Mes anterior · mes · Mes siguiente»; el mes en tarjeta blanca con franja; el día en tarjeta verde */
+/* El cambio de mes va dentro de la tarjeta del mes: «Mes anterior» y «Mes siguiente» a los lados y el mes al centro */
+.pagina-publica .evento-calendario__mes { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #efebe2; }
+.pagina-publica .evento-calendario__mes h2 { margin: 0; color: #161a1d; font-size: 22px; line-height: 28px; text-align: center; }
+.pagina-publica .evento-calendario__lateral { display: flex; flex-direction: column; gap: 16px; }
+.pagina-publica .evento-calendario__lateral .evento-participa { flex: none; }
+.pagina-publica .evento-calendario__dia { flex: 1; }
+.pagina-publica .evento-calendario { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 24px; align-items: stretch; }
+.pagina-publica .evento-calendario__mes-tarjeta {
+  position: relative; padding: 20px 22px 16px; overflow: hidden; border: 1px solid #e2ded5; border-radius: 24px; background: #fff;
+  box-shadow: 0 10px 26px rgba(22, 79, 68, 0.08); animation: acerca-entra 0.5s ease-out 0.1s both;
+}
+.pagina-publica .evento-calendario__mes-tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .evento-calendario__mes-tarjeta .calendario-agenda__tabla { width: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.pagina-publica .evento-calendario__mes-tarjeta .calendario-agenda__tabla th { color: #6b675e; font-size: 12.5px; letter-spacing: 0; }
+.pagina-publica .calendario-agenda__dia--hoy .calendario-agenda__numero { box-shadow: 0 0 0 2px #e6d194; border-radius: 50%; }
+.pagina-publica .evento-calendario__dia {
+  position: relative; display: flex; flex-direction: column; gap: 6px; padding: 22px 20px; overflow: hidden; border-radius: 24px; color: #fff;
+  background: radial-gradient(circle at 15% 0%, rgba(201, 162, 74, 0.3), transparent 45%), radial-gradient(circle at 90% 100%, rgba(155, 34, 71, 0.35), transparent 45%), linear-gradient(150deg, #0b3b33, #1f6b5c);
+  box-shadow: 0 12px 26px rgba(22, 79, 68, 0.18); animation: acerca-entra 0.5s ease-out 0.2s both;
+}
+.pagina-publica .evento-calendario__dia::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .evento-calendario__semana { margin: 0; color: #e6d194; font-size: 13px; font-weight: 700; }
+.pagina-publica .evento-calendario__dia h3 { margin: 0 0 6px; font-size: 22px; line-height: 28px; }
+.pagina-publica .evento-calendario__dia ul { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .evento-calendario__dia li {
+  display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid rgba(230, 209, 148, 0.28); border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07); animation: detalle-entrada 0.35s ease-out both;
+}
+.pagina-publica .evento-calendario__tipo { display: flex; align-items: center; gap: 8px; margin: 0; color: #e6d194; font-size: 12.5px; font-weight: 700; }
+.pagina-publica .evento-calendario__dia h4 { margin: 0; font-size: 16px; line-height: 21px; }
+.pagina-publica .evento-calendario__lugar { margin: 0; color: #d6e8e1; font-size: 13px; line-height: 18px; }
+.pagina-publica .evento-calendario__ver { align-self: flex-start; margin-top: 4px; background: #e6d194; color: #164f44; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .evento-calendario__mes-tarjeta, .pagina-publica .evento-calendario__dia, .pagina-publica .evento-calendario__dia li { animation: none; }
+}
+
+/* 5. Plantas propias de Eventos (reemplazan las de Noticias): margaritas arriba a la izquierda, ginkgo arriba a la derecha
+   y flor de tallo abajo a la derecha */
+@media (min-width: 1025px) {
+  .pagina-publica .eventos-pagina .noticias-contenedor::before { background-image: url("../../assets/inicio/adorno-margaritas.svg"); }
+  .pagina-publica .eventos-pagina .noticias-contenedor::after { background-image: url("../../assets/inicio/adorno-ginkgo.svg"); }
+  .pagina-publica .eventos-pagina::after { background-image: url("../../assets/inicio/adorno-flor-tallo.svg"); }
+}
+
+/* ==========================================================================
+   EVENTOS · DETALLE DE UNA ACTIVIDAD (20 nov 2026 · plantilla C «Página de detalle», como Noticias y Memoria)
+   Franja compacta con el tipo y la próxima fecha en pastilla → foto montada, texto, requisitos, quién la organiza y
+   las sesiones (tarjetas de lista con «Mi inscripción» en el lugar) | al lado: sobre la actividad, «Dónde es» con el
+   mapa de la biblioteca (espacio resaltado) y la foto del lugar, y los botones.
+   Orden: 1. franja · 2. texto y sesiones · 3. «Dónde es» · 4. plantas.
+   ========================================================================== */
+
+/* 1. Franja: el tipo en pastilla dorada dentro de la pastilla de datos */
+.pagina-publica .detalle-evento__tipo { padding: 2px 10px; border-radius: 999px; background: #e6d194; color: #164f44; font-size: 12px; font-weight: 800; }
+
+/* 2. Texto: requisitos y responsable en dos tarjetas iguales; sesiones con las tarjetas de lista de Mis eventos */
+.pagina-publica .detalle-evento__bloques { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 6px 0 4px; }
+.pagina-publica .detalle-evento__bloques section {
+  display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid #d6e8e1; border-radius: 16px; background: #f1f7f4;
+}
+.pagina-publica .detalle-evento__bloques h2 { margin: 0; color: #1f6b5c; font-size: 13.5px; font-weight: 700; line-height: 18px; }
+.pagina-publica .detalle-evento__bloques p { margin: 0; color: #2b2f31; font-size: 14.5px; line-height: 21px; }
+/* Sesiones: TarjetaPerfil verde (cabecera con su ícono, título y qué hacer); dentro, las tarjetas de lista de cada sesión */
+.pagina-publica .detalle-evento__sesiones { margin-top: 10px; scroll-margin-top: 90px; }
+.pagina-publica .detalle-evento__sesiones .perfil-tarjeta { margin: 0; }
+.pagina-publica .detalle-evento__sesiones .perfil-solicitudes { display: flex; flex-direction: column; gap: 10px; }
+.pagina-publica .detalle-evento__nota { margin: -4px 0 4px; color: #6b675e; font-size: 14px; line-height: 20px; }
+.pagina-publica .detalle-evento__sesiones .perfil-solicitudes { margin: 0; padding: 0; list-style: none; }
+.pagina-publica .detalle-evento__sesiones .perfil-solicitud { border-left-width: 1px; } /* sin franja al costado, como Mis eventos */
+
+/* 3. «Dónde es»: el mapa en un lienzo crema con el espacio resaltado; debajo, la foto del lugar (abre la vista previa) y su nombre */
+.pagina-publica .detalle-evento__mapa { position: relative; height: 230px; overflow: hidden; border: 1px solid #efebe2; border-radius: 14px; }
+.pagina-publica .detalle-evento__mapa .esp-mapa__lienzo { position: absolute; inset: 0; border-radius: 0; }
+.pagina-publica .detalle-evento__lugar { display: flex; align-items: center; gap: 12px; }
+.pagina-publica .detalle-evento__foto {
+  flex: none; width: 64px; height: 48px; padding: 0; overflow: hidden; border: 0; border-radius: 10px; cursor: zoom-in;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #e6d194; transition: box-shadow 0.3s ease;
+}
+.pagina-publica .detalle-evento__foto img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.pagina-publica .detalle-evento__foto:hover { box-shadow: 0 0 0 2px #fff, 0 0 0 3px #c9a24a; }
+.pagina-publica .detalle-evento__foto:hover img { transform: scale(1.03); }
+.pagina-publica .detalle-evento__foto:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+.pagina-publica .detalle-evento__lugar p { display: flex; flex-direction: column; gap: 1px; margin: 0; color: #6b675e; font-size: 13px; line-height: 18px; }
+.pagina-publica .detalle-evento__lugar p strong { color: #161a1d; font-size: 15px; line-height: 20px; }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .detalle-evento__foto img { transition: none; } }
 
 /* ==========================================================================
    MI PERFIL · MIS MENSAJES (18 nov 2026, rehecho con el patrón de Mis eventos)

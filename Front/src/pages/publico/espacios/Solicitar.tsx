@@ -10,7 +10,7 @@ import { AyudaTramite, PasosTramite } from "../credencial/piezas";
 import PedirSesion from "../sesion/PedirSesion";
 import { espaciosEvento, pasosEspacio, rutasEspacio, zonaPorSlug } from "./datos";
 import { DetalleEspacio } from "./piezas";
-import { guardarSimulada, HORARIO, validarSolicitud, type DatosSolicitud, type ErroresSolicitud } from "./datosSesion";
+import { guardarSimulada, HORARIO, recordarSolicitud, validarSolicitud, type DatosSolicitud, type ErroresSolicitud } from "./datosSesion";
 import "../contacto/Contacto.css";
 import "../perfil/Perfil.css";
 import "../credencial/CredencialSesion.css";
@@ -81,7 +81,7 @@ function Formulario({ slug }: { slug: string }) {
             tipo: datos.tipo, areaId: slug, fecha: datos.fecha, horaInicio: datos.horaInicio, horaFin: datos.horaFin,
             personas: Number(datos.personas), motivo: datos.motivo.trim(), institucion: datos.institucion.trim() || undefined,
         })
-            .then((s) => navegar(`/espacios/solicitud/${encodeURIComponent(s.folio)}`, { state: { enviada: true } }))
+            .then((s) => { recordarSolicitud(s); navegar(`/espacios/solicitud/${encodeURIComponent(s.folio)}`, { state: { enviada: true } }); })
             .catch((error) => { setErrorEnvio(mensajeError(error)); bloqueo.current = false; setEnviando(false); });
     }
 

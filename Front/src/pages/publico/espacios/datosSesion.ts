@@ -85,6 +85,23 @@ export function fechaCorta(f: string) {
     return a && m && d ? `${String(d).padStart(2, "0")} ${meses[m - 1]} ${a}` : f;
 }
 
+// ---------- La solicitud en proceso de esta persona (bug del 20 nov: al volver a Espacios se quedaba en el paso 1) ----------
+// Se recuerda en esta pestaña en cuanto se envía o se abre su seguimiento, para llevar a ella sin esperar al servidor;
+// si no hay nada recordado, Espacios pregunta al servidor (GET /espacios/solicitudes) antes de mostrar el mapa.
+const CLAVE_EN_PROCESO = "biblioteca-espacio-en-proceso";
+export function folioEnProceso(): string | null {
+    try { return sessionStorage.getItem(CLAVE_EN_PROCESO); } catch { return null; }
+}
+export function recordarSolicitud(s: Pick<SolicitudEspacioApi, "folio" | "estado">) {
+    try {
+        if (estaEnProceso(s)) sessionStorage.setItem(CLAVE_EN_PROCESO, s.folio);
+        else if (sessionStorage.getItem(CLAVE_EN_PROCESO) === s.folio) sessionStorage.removeItem(CLAVE_EN_PROCESO);
+    } catch { /* sin almacenamiento: se pregunta al servidor */ }
+}
+export function olvidarSolicitud(folio: string) {
+    try { if (sessionStorage.getItem(CLAVE_EN_PROCESO) === folio) sessionStorage.removeItem(CLAVE_EN_PROCESO); } catch { /* nada que olvidar */ }
+}
+
 // ---------- Sesión de ejemplo (?simular=sesion): la solicitud vive en memoria mientras la página esté abierta ----------
 let simulada: SolicitudEspacioApi | null = null;
 export const solicitudSimulada = () => simulada;
