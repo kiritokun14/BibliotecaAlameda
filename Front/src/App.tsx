@@ -74,6 +74,7 @@ const Credencial = lazy(() => import("./pages/publico/credencial/Credencial.tsx"
 const TramiteCredencial = lazy(() => import("./pages/publico/credencial/Tramite.tsx"));
 const NotificacionesUsuario = lazy(() => import("./pages/publico/notificaciones/Notificaciones.tsx"));
 const EspaciosPublico = lazy(() => import("./pages/publico/espacios/Espacios.tsx"));
+const SolicitarEspacio = lazy(() => import("./pages/publico/espacios/Solicitar.tsx"));
 const ProponerActividad = lazy(() => import("./pages/publico/proponer/Proponer.tsx"));
 const PropuestaEnviada = lazy(() => import("./pages/publico/proponer/Proponer.tsx").then(m => ({ default: m.PropuestaEnviada })));
 const DetallePropuestaUsuario = lazy(() => import("./pages/publico/proponer/Proponer.tsx").then(m => ({ default: m.DetallePropuesta })));
@@ -294,6 +295,7 @@ function App() {
         <Route path="/credencial/seguimiento" element={<TramiteCredencial vista="seguimiento" />} />
         <Route path="/notificaciones" element={<NotificacionesUsuario />} />
         <Route path="/espacios" element={<EspaciosPublico />} />
+        <Route path="/espacios/solicitar" element={<SolicitarEspacio />} />
         <Route path="/espacios/enviada" element={<SolicitudEspacioEnviada />} />
         <Route path="/espacios/solicitud/:id" element={<GestionarSolicitudEspacio />} />
         <Route path="/proponer" element={<ProponerActividad />} />

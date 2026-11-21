@@ -6,7 +6,7 @@ import { iconosSeccion } from "../perfil/iconos";
 import { nombreCompleto } from "../perfil/datos";
 import { sesionSimulada, usePerfil, useSesion } from "../perfil/usarSesion";
 import { EstadoCredencial, PasosTramite, RutaCredencial, SelectorEstados } from "./piezas";
-import { datosTramite, estadosCredencial, etapasCredencial, pasoDelEstado, puedeSolicitar, useTramite, verEjemplo, type DatosEstado } from "./datos";
+import { datosTramite, estadosCredencial, etapasCredencial, pasoDelEstado, puedeSolicitar, useTramite, useTramiteListo, verEjemplo, type DatosEstado } from "./datos";
 import "../contacto/Contacto.css";
 import "../perfil/Perfil.css";
 import "./CredencialSesion.css";
@@ -53,7 +53,8 @@ function Credencial() {
     const carga = usePerfil(sesion);
     const tramite = useTramite();
     const titular = carga && "perfil" in carga ? nombreCompleto(carga.perfil) : "Tu nombre";
-    const datos = sesion === null ? sinCuenta : sesion === undefined ? revisando : estadosCredencial[tramite.estado];
+    const listo = useTramiteListo(); // mientras no llega el estado real: «Revisando…», sin pasos ni redirección
+    const datos = sesion === null ? sinCuenta : sesion === undefined || !listo ? revisando : estadosCredencial[tramite.estado];
     const etapas = sesion ? etapasCredencial(datos.paso) : null;
     // Al cancelar desde el seguimiento se vuelve aquí con el aviso (solo si de verdad ya no hay solicitud)
     const cancelada = (useLocation().state as { cancelada?: boolean } | null)?.cancelada === true && tramite.estado === "sin-solicitud";
@@ -61,7 +62,7 @@ function Credencial() {
     // Con una solicitud en proceso (o la credencial vigente) el trámite ya va en el paso 3: entrar a Credencial lleva
     // directo al seguimiento, sin una pantalla intermedia con «Ver seguimiento» (Aldahir, 19 nov). Vencida se queda aquí:
     // empieza una renovación (paso 1).
-    if (sesion && pasoDelEstado("informacion", tramite.estado) >= 3) return <Navigate to="/credencial/seguimiento" replace />;
+    if (sesion && listo && pasoDelEstado("informacion", tramite.estado) >= 3) return <Navigate to="/credencial/seguimiento" replace />;
 
     return (
         <PaginaPublica>

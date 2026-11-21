@@ -2636,6 +2636,277 @@
 }
 
 /* ==========================================================================
+   ESPACIOS (20 nov 2026 · plantilla C «Página de trámite», como Credencial; mapa 2D de Aldahir)
+   /espacios: franja compacta → pasos → mapa de la biblioteca | detalle del espacio + disponibilidad.
+   /espacios/solicitar: el formulario de Credencial | el espacio elegido + ayuda. Usa `cred-pagina` (área ajustada, pasos,
+   formulario, ayuda y animaciones de la plantilla) más `esp-pagina` para lo propio.
+   Orden: 1. columnas · 2. mapa · 3. detalle y leyenda · 4. formulario · 5. animaciones · 6. plantas.
+   ========================================================================== */
+
+/* 1. Columnas: el mapa manda el alto; la columna derecha (340 px) no lo estira (contain: size) y su detalle se desplaza por dentro */
+.pagina-publica .esp-pagina .contacto-columnas--nuevo { grid-template-columns: minmax(0, 1fr) 340px; }
+.pagina-publica .esp-pagina .contacto-lateral { contain: size; min-height: 0; }
+.pagina-publica .esp-pagina .contacto-lateral > :is(.perfil-tarjeta, .esp-tarjeta) { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+/* Tarjeta del detalle: blanca con franja verde arriba y la foto a lo ancho como portada (sin cabecera) */
+.pagina-publica .esp-tarjeta {
+  position: relative; padding: 0 0 16px; border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 26px rgba(22, 79, 68, 0.08);
+  animation: detalle-entrada 0.35s ease-out both;
+}
+.pagina-publica .esp-tarjeta::before { content: ""; position: absolute; z-index: 1; inset: 0 0 auto; height: 5px; border-radius: 24px 24px 0 0; background: #1f6b5c; }
+.pagina-publica .esp-tarjeta .esp-detalle > :not(.esp-detalle__portada) { margin-inline: 16px; }
+/* La tarjeta llena su columna: el detalle crece y las acciones quedan al pie, para que no sobre espacio abajo */
+.pagina-publica .esp-tarjeta { display: flex; flex-direction: column; }
+.pagina-publica .esp-tarjeta .esp-detalle { flex: 1; }
+.pagina-publica .esp-tarjeta .esp-detalle > .perfil-acciones:last-child, .pagina-publica .esp-tarjeta .esp-detalle > .perfil-acciones:nth-last-child(2) { margin-top: auto; }
+
+/* 2. Mapa: tarjeta blanca con franja guinda → dorado; barra con título y selector de planta; lienzo punteado */
+.pagina-publica .esp-mapa {
+  position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px 18px 14px; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 26px rgba(22, 79, 68, 0.08);
+}
+.pagina-publica .esp-mapa::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .esp-mapa__barra { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pagina-publica .esp-mapa__barra h2 { margin: 0; color: #161a1d; font-size: 20px; line-height: 26px; }
+.pagina-publica .esp-mapa__barra p { margin: 2px 0 0; color: #6b675e; font-size: 13.5px; line-height: 19px; }
+.pagina-publica .esp-mapa__barra .perfil-filtro { padding: 8px 16px; font-size: 13.5px; font-weight: 700; transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
+.pagina-publica .esp-mapa__lienzo {
+  position: relative; flex: 1; min-height: 0; border-radius: 16px;
+  background: #fbf9f4 radial-gradient(#ebe4d6 1px, transparent 1px) 0 0 / 18px 18px;
+}
+/* El lienzo toma el alto que sobra en la tarjeta y el plano se ajusta dentro (sin alto propio: no estira la fila) */
+.pagina-publica .esp-mapa__svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.pagina-publica .esp-zona { transition: filter 0.2s ease, opacity 0.2s ease; }
+.pagina-publica .esp-zona--libre { cursor: pointer; filter: url(#esp-sombra); }
+.pagina-publica .esp-zona--libre:hover { filter: drop-shadow(0 6px 8px rgba(43, 34, 20, 0.32)) brightness(1.05); }
+.pagina-publica .esp-zona--libre:focus-visible { outline: none; stroke: #c9a24a; stroke-width: 6; }
+/* Espacio elegido: el resto del plano se desenfoca y se apaga; el espacio queda nítido (copia recortada a su forma) con un
+   contorno dorado con brillo que aparece dibujándose (0.5 s) */
+.pagina-publica .esp-mapa__fondo { transition: filter 0.35s ease, opacity 0.35s ease; }
+.pagina-publica .esp-mapa__svg--foco .esp-mapa__fondo { filter: blur(2.5px) saturate(0.55); opacity: 0.55; }
+.pagina-publica .esp-mapa__foco { animation: esp-foco 0.35s ease-out both; }
+@keyframes esp-foco { from { opacity: 0; } to { opacity: 1; } }
+.pagina-publica .esp-mapa__contorno { stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: esp-contorno 0.6s ease-out 0.05s forwards; }
+@keyframes esp-contorno { to { stroke-dashoffset: 0; } }
+.pagina-publica .esp-zona--tenue, .pagina-publica .esp-etiqueta--tenue { opacity: 0.25; }
+.pagina-publica .esp-etiqueta { transition: opacity 0.2s ease; }
+.pagina-publica .esp-mapa__svg--alta .esp-mapa__baja { opacity: 0.28; filter: grayscale(1); pointer-events: none; }
+.pagina-publica .esp-mapa__baja { transition: opacity 0.3s ease; }
+.pagina-publica .esp-mapa__pildora { cursor: pointer; transition: transform 0.2s ease; transform-box: fill-box; }
+.pagina-publica .esp-mapa__pildora:hover { transform: translateY(-2px); }
+.pagina-publica .esp-mapa__pildora:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pagina-publica .esp-mapa__globo {
+  position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 2px; max-width: 250px; padding: 9px 12px; pointer-events: none;
+  border-radius: 12px; background: #164f44; box-shadow: 0 10px 24px rgba(11, 59, 51, 0.3); color: #fff; animation: desplegable-entra 0.15s ease-out both;
+}
+.pagina-publica .esp-mapa__globo strong { font-size: 13.5px; line-height: 18px; }
+.pagina-publica .esp-mapa__globo span { color: #d6e8e1; font-size: 12px; line-height: 16px; }
+.pagina-publica .esp-mapa__globo em { color: #e6d194; font-size: 11.5px; font-style: normal; }
+
+/* 3. Detalle del espacio (chip, nombre, planta, capacidad, uso, condiciones y la acción) y leyenda de disponibilidad */
+/* Detalle limpio (Aldahir, 20 nov: «muy saturado»): portada a lo ancho → nombre y chip → capacidad y planta en una línea
+   con separador → «Ideal para» → «Ten en cuenta». Sin recuadros: cada sección se separa con una línea fina. */
+.pagina-publica .esp-detalle { display: flex; flex-direction: column; gap: 14px; animation: detalle-entrada 0.3s ease-out both; }
+/* Portada: la foto (botón que abre la vista previa) con un degradado verde abajo; encima, el ícono del espacio en su
+   círculo, el nombre en blanco y su chip. «Ver fotos» arriba a la derecha. La foto entra con un acercamiento leve. */
+.pagina-publica .esp-detalle__portada {
+  position: relative; flex: none; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; border-bottom: 3px solid #e6d194;
+  border-radius: 24px 24px 0 0; background: #164f44; transition: border-color 0.3s ease;
+}
+.pagina-publica .esp-detalle__portada:hover { border-bottom-color: #c9a24a; }
+.pagina-publica .esp-detalle__portada > button { position: absolute; inset: 0; display: block; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.pagina-publica .esp-detalle__portada > button::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(11, 59, 51, 0) 38%, rgba(11, 59, 51, 0.55) 68%, rgba(11, 59, 51, 0.92) 100%);
+}
+.pagina-publica .esp-detalle__portada img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; animation: esp-portada 0.6s ease-out both; }
+@keyframes esp-portada { from { transform: scale(1.06); } to { transform: none; } }
+.pagina-publica .esp-detalle__portada > button:hover img { transform: scale(1.03); }
+.pagina-publica .esp-detalle__portada > button span {
+  position: absolute; z-index: 1; top: 12px; right: 12px; padding: 5px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.92);
+  color: #164f44; font-size: 12.5px; font-weight: 700; line-height: 16px; transition: transform 0.2s ease;
+}
+.pagina-publica .esp-detalle__portada > button:hover span { transform: translateY(-2px); }
+.pagina-publica .esp-detalle__portada > button:focus-visible { outline: 3px solid #c9a24a; outline-offset: -3px; }
+.pagina-publica .esp-detalle__cabeza { display: flex; align-items: center; gap: 12px; }
+.pagina-publica .esp-detalle__cabeza > div { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.pagina-publica .esp-detalle__cabeza h3 { margin: 0; color: #161a1d; font-size: 20px; line-height: 25px; }
+.pagina-publica .esp-detalle__icono {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%;
+  background: #e4efeb; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e6d194;
+}
+.pagina-publica .esp-detalle__icono img { width: 22px; height: 22px; }
+.pagina-publica .esp-detalle__portada .esp-detalle__cabeza {
+  position: absolute; z-index: 1; right: 16px; bottom: 14px; left: 16px; margin: 0; pointer-events: none;
+  animation: detalle-entrada 0.4s ease-out 0.15s both;
+}
+.pagina-publica .esp-detalle__portada .esp-detalle__cabeza h3 { color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35); }
+.pagina-publica .esp-detalle__portada .esp-detalle__icono { background: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35); }
+.pagina-publica .esp-detalle__datos { display: grid; grid-template-columns: 1fr 1fr; margin: 0; padding: 12px 0; border-block: 1px solid #efebe2; }
+/* Cada dato con su ícono en un círculo verde claro a la izquierda (capacidad: persona; planta: pin) */
+.pagina-publica .esp-detalle__datos > div { display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: 10px; align-items: center; }
+.pagina-publica .esp-detalle__datos > div::before {
+  content: ""; grid-row: 1 / span 2; width: 32px; height: 32px; border-radius: 50%; background: #e4efeb var(--icono) center / 16px no-repeat;
+}
+.pagina-publica .esp-detalle__datos > div + div { padding-left: 14px; border-left: 1px solid #efebe2; }
+.pagina-publica .esp-detalle__datos dt { grid-column: 2; color: #6b675e; font-size: 12px; line-height: 16px; }
+.pagina-publica .esp-detalle__datos dd { grid-column: 2; margin: 1px 0 0; color: #161a1d; font-size: 14.5px; font-weight: 700; line-height: 19px; }
+.pagina-publica .esp-detalle__bloque { display: flex; flex-direction: column; gap: 4px; }
+.pagina-publica .esp-detalle__bloque h4 { margin: 0; color: #1f6b5c; font-size: 13px; font-weight: 700; line-height: 17px; }
+.pagina-publica .esp-detalle__bloque p { margin: 0; color: #4d4d4d; font-size: 14px; line-height: 21px; }
+.pagina-publica .esp-detalle__bloque ul { display: flex; flex-direction: column; gap: 5px; margin: 0; padding: 0; list-style: none; color: #4d4d4d; font-size: 13.5px; line-height: 19px; }
+/* Cómo se pide: tres pasos cortos con su número en círculo verde (solo en los espacios con pocas condiciones) */
+.pagina-publica .esp-detalle__pasos { display: flex; flex-direction: column; gap: 8px; margin: 2px 0 0; padding: 0; list-style: none; }
+.pagina-publica .esp-detalle__pasos li { display: flex; align-items: center; gap: 10px; color: #4d4d4d; font-size: 13.5px; line-height: 19px; }
+.pagina-publica .esp-detalle__pasos span {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%;
+  background: #1f6b5c; color: #fff; font-size: 12px; font-weight: 800;
+}
+.pagina-publica .esp-detalle .perfil-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 2px; }
+.pagina-publica .esp-detalle .perfil-acciones .perfil-boton { padding: 0 12px; }
+.pagina-publica .esp-detalle .perfil-acciones > :only-child { grid-column: 1 / -1; }
+
+/* Vista previa de fotos a pantalla completa: velo verde oscuro; arriba el nombre y «Cerrar»; la foto grande al centro con
+   «Anterior» y «Siguiente» a sus lados (pastillas blancas translúcidas que suben 2 px); abajo las miniaturas, la actual
+   con aro dorado. La foto entra con un fundido y un acercamiento leve (0.35 s). Va en el <body>, fuera de la página. */
+.esp-visor {
+  position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; gap: 16px; padding: 22px 32px 26px; box-sizing: border-box;
+  background: rgba(7, 33, 29, 0.92); font-family: 'Noto Sans', sans-serif; animation: mov-aparece 0.25s ease-out both;
+}
+.esp-visor__barra { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; max-width: 1180px; margin: 0 auto; }
+.esp-visor__barra h2 { margin: 0; color: #fff; font-size: 22px; font-weight: 700; line-height: 28px; }
+.esp-visor__barra h2::after { content: ""; display: block; width: 44px; height: 3px; margin-top: 6px; border-radius: 3px; background: #c9a24a; }
+.esp-visor__boton {
+  height: 40px; padding: 0 20px; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 999px; background: rgba(255, 255, 255, 0.1);
+  color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+.esp-visor__boton:hover { border-color: #e6d194; background: rgba(255, 255, 255, 0.18); transform: translateY(-2px); }
+.esp-visor__boton:active { transform: none; }
+.esp-visor__boton:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.esp-visor__escena { display: flex; flex: 1; min-height: 0; align-items: center; justify-content: center; gap: 20px; width: 100%; max-width: 1180px; margin: 0 auto; }
+.esp-visor__escena img {
+  display: block; min-width: 0; max-width: calc(100% - 260px); max-height: 100%; object-fit: contain; border-radius: 18px;
+  box-shadow: 0 0 0 3px rgba(230, 209, 148, 0.5), 0 30px 70px rgba(0, 0, 0, 0.45); animation: esp-visor-foto 0.35s ease-out both;
+}
+@keyframes esp-visor-foto { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: none; } }
+.esp-visor__lado { flex: none; width: 110px; }
+.esp-visor__miniaturas { display: flex; justify-content: center; gap: 10px; }
+.esp-visor__miniaturas button {
+  width: 96px; aspect-ratio: 16 / 9; padding: 0; overflow: hidden; border: 0; border-radius: 10px; background: #1f6b5c; cursor: pointer;
+  opacity: 0.55; transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.esp-visor__miniaturas button:hover { opacity: 0.9; transform: translateY(-2px); }
+.esp-visor__miniaturas img { width: 100%; height: 100%; object-fit: cover; }
+.esp-visor__miniaturas .esp-visor__miniatura--actual { opacity: 1; box-shadow: 0 0 0 2px #07211d, 0 0 0 4px #c9a24a; }
+.esp-visor__miniaturas button:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .esp-visor, .esp-visor__escena img { animation: none; }
+  .esp-visor__boton:hover, .esp-visor__miniaturas button:hover { transform: none; }
+  .pagina-publica .esp-detalle__portada img { transition: none; }
+  .pagina-publica .esp-tarjeta, .pagina-publica .esp-detalle__portada img, .pagina-publica .esp-detalle__portada .esp-detalle__cabeza { animation: none; }
+}
+.pagina-publica .esp-detalle--vacio p strong { display: block; margin-bottom: 4px; color: #161a1d; font-size: 15px; }
+/* Leyenda al pie del mapa: chips que resaltan su disponibilidad; la nota de capacidades a la derecha */
+.pagina-publica .esp-leyenda { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; }
+.pagina-publica .esp-leyenda__opcion {
+  display: flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid #e2ded5; border-radius: 999px; background: #fff; cursor: pointer;
+  color: #161a1d; font: inherit; font-size: 12.5px; font-weight: 700; line-height: 16px; white-space: nowrap;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.pagina-publica .esp-leyenda__opcion span { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+.pagina-publica .esp-leyenda__opcion:hover { border-color: #1f6b5c; background: #f1f7f4; transform: translateY(-2px); }
+.pagina-publica .esp-leyenda__opcion--activa { border-color: #1f6b5c; background: #e4efeb; animation: noticias-pulso 0.25s ease-out; }
+.pagina-publica .esp-leyenda__opcion:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pagina-publica .esp-leyenda__nota { margin: 0 0 0 auto; color: #6b675e; font-size: 12px; line-height: 16px; white-space: nowrap; }
+/* Lista de los espacios para eventos (columna derecha, sin elegir): sus filas se reparten todo el alto de la tarjeta
+   (Aldahir, 20 nov), cada una con el ícono del espacio en un círculo verde claro, su nombre, su cupo y su estado */
+.pagina-publica .esp-pagina .contacto-lateral > .perfil-tarjeta { display: flex; flex-direction: column; animation: detalle-entrada 0.35s ease-out both; }
+.pagina-publica .esp-lista { display: flex; flex: 1; flex-direction: column; gap: 8px; min-height: 0; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .esp-lista li { display: flex; flex: 1; min-height: 52px; }
+.pagina-publica .esp-lista__opcion {
+  display: flex; flex: 1; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 1px solid #e2ded5; border-radius: 16px; background: #fff;
+  cursor: pointer; font: inherit; text-align: left; transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-publica .esp-lista__icono {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #e4efeb;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e6d194; transition: background-color 0.2s ease;
+}
+.pagina-publica .esp-lista__icono img { width: 20px; height: 20px; }
+.pagina-publica .esp-lista__opcion:hover .esp-lista__icono { background: #fff; }
+.pagina-publica .esp-lista__opcion:hover { border-color: #1f6b5c; background: #f1f7f4; box-shadow: 0 8px 18px rgba(22, 79, 68, 0.1); transform: translateY(-2px); }
+.pagina-publica .esp-lista__opcion:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pagina-publica .esp-lista__textos { display: flex; flex: 1; flex-direction: column; gap: 1px; min-width: 0; color: #6b675e; font-size: 12.5px; line-height: 16px; }
+.pagina-publica .esp-lista__estado {
+  flex: none; width: 94px; padding: 4px 0; box-sizing: border-box; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 15px;
+  text-align: center; white-space: nowrap;
+}
+.pagina-publica .esp-lista__estado--disponible { background: #e4efeb; color: #164f44; }
+.pagina-publica .esp-lista__estado--ludico { background: #f6eeda; color: #8a6414; }
+.pagina-publica .esp-lista__estado--condiciones { background: #f6eaee; color: #9b2247; }
+.pagina-publica .esp-lista__textos strong { color: #161a1d; font-size: 14px; line-height: 19px; }
+.pagina-publica .esp-lista__textos { overflow: hidden; white-space: nowrap; }
+.pagina-publica .esp-lista__textos strong { white-space: normal; }
+.pagina-publica .esp-lista li { animation: detalle-entrada 0.4s ease-out both; }
+.pagina-publica .esp-lista li:nth-child(2) { animation-delay: 0.05s; }
+.pagina-publica .esp-lista li:nth-child(3) { animation-delay: 0.1s; }
+.pagina-publica .esp-lista li:nth-child(n+4) { animation-delay: 0.15s; }
+
+/* 4. Formulario: fecha, desde y hasta en una fila de tres; descripción en textarea de la plantilla */
+.pagina-publica .esp-fila-tres { grid-template-columns: 1.4fr 1fr 1fr; }
+.pagina-publica .esp-formulario .perfil-campo textarea {
+  width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #b9b3a5; border-radius: 12px; font: inherit; font-size: 15px; resize: vertical;
+}
+
+/* 4b. Seguimiento (/espacios/solicitud/:folio): el estado como el trámite de Credencial (foto del espacio a la izquierda;
+   chip, título, qué pasa, fichas Folio · Fecha · Horario y lo que se puede hacer a la derecha) y la ruta de cuatro pasos */
+.pagina-publica .esp-estado {
+  position: relative; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 22px; padding: 18px 22px; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 26px rgba(22, 79, 68, 0.08);
+  animation: acerca-entra 0.5s ease-out 0.2s both;
+}
+.pagina-publica .esp-estado::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .esp-estado__visual { display: flex; flex-direction: column; gap: 10px; }
+.pagina-publica .esp-estado__visual > img, .pagina-publica .esp-estado__sin-foto {
+  width: 100%; aspect-ratio: 4 / 3; border-radius: 16px; object-fit: cover; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e6d194;
+}
+.pagina-publica .esp-estado__sin-foto { display: flex; align-items: center; justify-content: center; background: #e4efeb; }
+.pagina-publica .esp-estado__sin-foto img { width: 40px; height: 40px; }
+.pagina-publica .esp-estado__visual p { display: flex; flex-direction: column; gap: 1px; margin: 0; color: #6b675e; font-size: 13px; line-height: 18px; }
+.pagina-publica .esp-estado__visual p strong { color: #161a1d; font-size: 15px; line-height: 20px; }
+.pagina-publica .esp-estado__textos { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.pagina-publica .esp-estado__textos h2 { margin: 0; color: #161a1d; font-size: 22px; line-height: 28px; }
+.pagina-publica .esp-estado__textos > p { margin: 0; color: #4d4d4d; font-size: 14.5px; line-height: 21px; }
+.pagina-publica .esp-estado .perfil-datos { gap: 8px; }
+.pagina-publica .esp-estado .perfil-dato { padding: 9px 12px; }
+.pagina-publica .esp-estado .perfil-nota { width: 100%; margin: 0; box-sizing: border-box; }
+.pagina-publica .esp-propuesta { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; border-radius: 16px; animation: acerca-despliega 0.3s ease-out both; }
+.pagina-publica .esp-propuesta > p { display: block; font-size: 14px; line-height: 20px; }
+.pagina-publica .esp-propuesta > p strong { display: block; color: #8a6414; }
+.pagina-publica .esp-propuesta .perfil-acciones { margin: 0; }
+.pagina-publica .esp-seguimiento__carga { flex: 1; justify-content: center; }
+.pagina-publica .esp-seguimiento__texto { margin: 0; color: #4d4d4d; font-size: 14px; line-height: 20px; }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .esp-estado, .pagina-publica .esp-propuesta { animation: none; } }
+
+/* 5. Animaciones (§3): el mapa entra con la columna; las zonas libres se elevan con sombra al pasar el mouse; el detalle cambia
+   bajando 8 px; las opciones de la leyenda suben 2 px y pulsan al elegir; las píldoras del mapa suben 2 px */
+.pagina-publica .esp-pagina .esp-mapa { animation: acerca-entra 0.5s ease-out 0.1s both; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .esp-pagina .esp-mapa, .pagina-publica .esp-detalle, .pagina-publica .esp-mapa__globo, .pagina-publica .esp-leyenda__opcion--activa { animation: none; }
+  .pagina-publica .esp-leyenda__opcion:hover, .pagina-publica .esp-mapa__pildora:hover, .pagina-publica .esp-lista__opcion:hover { transform: none; }
+  .pagina-publica .esp-lista li, .pagina-publica .esp-mapa__foco, .pagina-publica .esp-mapa__contorno { animation: none; }
+  .pagina-publica .esp-mapa__contorno { stroke-dashoffset: 0; }
+  .pagina-publica .esp-mapa__fondo { transition: none; }
+  .pagina-publica .esp-zona, .pagina-publica .esp-mapa__baja { transition: none; }
+}
+
+/* 6. Plantas propias de Espacios (en los márgenes, se mecen a destiempo): eucalipto arriba a la izquierda, cerezo arriba a la
+   derecha y espigas abajo a la izquierda. Reemplazan las de Credencial (misma plantilla). */
+@media (min-width: 1025px) {
+  .pagina-publica .esp-pagina::before { background-image: url("../../assets/inicio/adorno-eucalipto.svg"); }
+  .pagina-publica .esp-pagina::after { background-image: url("../../assets/inicio/adorno-cerezo.svg"); }
+  .pagina-publica .esp-pagina .contacto-columnas--nuevo::after { background-image: url("../../assets/inicio/adorno-espigas.svg"); }
+}
+
+/* ==========================================================================
    MI PERFIL · MIS MENSAJES (18 nov 2026, rehecho con el patrón de Mis eventos)
    Una sola lista con filtros (Todos · En proceso · Atendidos); cada mensaje es una tarjeta de lista con su
    bloque de fecha, folio corto y chip; «Ver seguimiento» abre los pasos, la respuesta y el folio completo

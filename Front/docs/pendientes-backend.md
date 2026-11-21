@@ -71,3 +71,8 @@ Una sola ruta para los tres tipos de contenido publicado: `GET/PUT/DELETE /conte
 Hecho en front, back y base: `POST /credenciales/solicitudes/{id}/cancelar` y `Supabase/cancelacion_credencial_propia.sql`.
 **No funciona todavía**: al probarlo, la pantalla dijo «No pudimos conectar con el servidor». Queda como tarea para backend
 (revisar el borrador, ejecutar el SQL, reproducir y corregir). Pasos en **`PARA_BACKEND.md`**, punto 6.
+
+## Espacios: los seis espacios del mapa — 20 nov 2026
+
+La página de Espacios es ahora un mapa de la biblioteca con seis espacios para eventos. Falta registrarlos en `public.espacio` con sus `slug`
+(sala-general, sala-usos-multiples, vestibulo, coliseo-bibliografico, area-infantil, mesanim). Tabla y detalle en **`PARA_BACKEND.md`**, punto 7.
