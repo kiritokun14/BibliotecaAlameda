@@ -483,9 +483,8 @@ a.contenidos-boton {
 .contenidos-encabezado--tarjeta {
     padding: 24px 28px;
     border: 1px solid var(--solon-borde);
-    border-left: 4px solid var(--solon-azul);
     border-radius: 18px;
-    background: #fff;
+    background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194) top / 100% 4px no-repeat, #fff;
 }
 
 .contenidos-volver {

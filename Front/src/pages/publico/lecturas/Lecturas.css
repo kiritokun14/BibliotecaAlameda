@@ -1,7 +1,7 @@
 /* =========================================================
    LECTURAS Y RESEÑAS · vista de visitante (basada en el Actor 2)
    Reutiliza .encabezado-publico, .etiqueta-inicio, .punto-dorado,
-   .etiqueta-ilustrativa y .solo-lectores.
+   .solo-lectores.
    ========================================================= */
 
 .lecturas-seccion {
@@ -146,7 +146,6 @@
 }
 
 .tarjeta-memoria__imagen > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.tarjeta-memoria__imagen .etiqueta-ilustrativa { position: relative; }
 
 .tarjeta-memoria__contenido { display: flex; flex-direction: column; gap: 10px; padding: 18px 22px 22px; }
 .tarjeta-memoria h3 { color: #161a1d; font-size: 20px; line-height: 26px; }

@@ -22,6 +22,8 @@ type Props = {
     elegido: string | null;
     alElegir: (id: string) => void;
     resaltar?: Disponibilidad | null;
+    // Solo para ver (p. ej. «Dónde es» en el detalle de una actividad): sin clics, sin globo ni botones de planta
+    soloLectura?: boolean;
 };
 
 type Globo = { x: number; y: number; zona: Zona } | null;
@@ -39,7 +41,7 @@ function forma(z: Zona, atributos: Record<string, unknown>, key?: string) {
     return <path key={key} {...atributos} d={z.forma.ruta} />;
 }
 
-export default function MapaBiblioteca({ planta, alCambiarPlanta, elegido, alElegir, resaltar = null }: Props) {
+export default function MapaBiblioteca({ planta, alCambiarPlanta, elegido, alElegir, resaltar = null, soloLectura = false }: Props) {
     const caja = useRef<HTMLDivElement>(null);
     const [globo, setGlobo] = useState<Globo>(null);
     const alta = planta === "alta";
@@ -75,7 +77,7 @@ export default function MapaBiblioteca({ planta, alCambiarPlanta, elegido, alEle
         const evento = espaciosEvento[z.id];
         const clase = ["esp-zona", evento ? "esp-zona--libre" : "esp-zona--no", elegido === z.id ? "esp-zona--elegida" : "", atenuada(z) ? "esp-zona--tenue" : ""].join(" ");
         const base = { className: clase, ...pintura(z), strokeWidth: 3 };
-        if (copia) return forma(z, { ...base, "aria-hidden": true, pointerEvents: "none" }, z.id);
+        if (copia || soloLectura) return forma(z, { ...base, "aria-hidden": true, pointerEvents: "none" }, z.id);
         return forma(z, {
             ...base,
             ...(evento ? {
@@ -123,8 +125,9 @@ export default function MapaBiblioteca({ planta, alCambiarPlanta, elegido, alEle
 
     return (
         <div className="esp-mapa__lienzo" ref={caja}>
-            <svg className={`esp-mapa__svg${alta ? " esp-mapa__svg--alta" : ""}${foco ? " esp-mapa__svg--foco" : ""}`} viewBox="15 85 1070 935" role="group"
-                aria-label={alta ? "Mapa de la planta alta de la biblioteca" : "Mapa de la planta baja de la biblioteca"}>
+            <svg className={`esp-mapa__svg${alta ? " esp-mapa__svg--alta" : ""}${foco ? " esp-mapa__svg--foco" : ""}`} viewBox="15 85 1070 935"
+                role={soloLectura ? "img" : "group"}
+                aria-label={soloLectura && elegida ? `Mapa de la biblioteca con ${elegida.nombre} resaltado` : alta ? "Mapa de la planta alta de la biblioteca" : "Mapa de la planta baja de la biblioteca"}>
                 <defs>
                     <filter id="esp-sombra" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#2b2214" floodOpacity=".18" /></filter>
                     <filter id="esp-edificio" x="-5%" y="-5%" width="110%" height="115%"><feDropShadow dx="0" dy="10" stdDeviation="10" floodColor="#2b2214" floodOpacity=".22" /></filter>
@@ -188,13 +191,15 @@ export default function MapaBiblioteca({ planta, alCambiarPlanta, elegido, alEle
                 {foco && elegida && (
                     <g className="esp-mapa__foco" key={elegida.id} pointerEvents="none" aria-hidden="true">
                         <g clipPath="url(#esp-recorte)">{elegida.planta === "alta" ? planoAlto(true) : plantaBaja(true)}</g>
-                        {forma(elegida, { className: "esp-mapa__contorno", fill: "none", stroke: "#c9a24a", strokeWidth: 6, filter: "url(#esp-brillo)" })}
+                        {/* En el mapa chico («Dónde es») el espacio además se ilumina en verde para distinguirse de lejos */}
+                        {soloLectura && forma(elegida, { className: "esp-mapa__luz", fill: "#1f6b5c", fillOpacity: 0.42, stroke: "none" })}
+                        {forma(elegida, { className: "esp-mapa__contorno", fill: "none", stroke: "#c9a24a", strokeWidth: soloLectura ? 10 : 6, filter: "url(#esp-brillo)" })}
                         <Etiqueta zona={elegida} tenue={false} elegida />
                     </g>
                 )}
 
                 {/* botones del plano para cambiar de planta (siempre nítidos) */}
-                {!alta ? (
+                {soloLectura ? null : !alta ? (
                     <g className="esp-mapa__pildora" role="button" tabIndex={0} aria-label="Ver el Mesanim en la planta alta"
                         onClick={() => alCambiarPlanta("alta")} onKeyDown={(e) => tecla(e, () => alCambiarPlanta("alta"))}>
                         <rect x="908" y="455" width="134" height="28" rx="14" fill="#8a6414" filter="url(#esp-pildora)" />

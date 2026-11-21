@@ -35,10 +35,10 @@ const configPropuestas: ConfigArea = {
 };
 
 const columnas: Columna<Propuesta>[] = [
-    { titulo: "PROPUESTA", celda: (p) => <CeldaDoble arriba={p.titulo} abajo={`${p.persona}`} /> },
-    { titulo: "TIPO", ancho: 120, celda: (p) => p.tipo },
-    { titulo: "FECHA PROPUESTA", ancho: 170, celda: (p) => fechaPropuesta(p) },
-    { titulo: "PARTICIPANTES", ancho: 130, celda: (p) => p.participantes },
+    { titulo: "Propuesta", celda: (p) => <CeldaDoble arriba={p.titulo} abajo={`${p.persona}`} /> },
+    { titulo: "Tipo", ancho: 120, celda: (p) => p.tipo },
+    { titulo: "Fecha propuesta", ancho: 170, celda: (p) => fechaPropuesta(p) },
+    { titulo: "Participantes", ancho: 130, celda: (p) => p.participantes },
 ];
 
 function Propuestas({ vista }: { vista: "bandeja" | "todas" }) {

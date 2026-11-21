@@ -25,7 +25,6 @@ export default function SinPermiso() {
     return (
         <PanelLayout titulo={seccion} tema="contenidos">
             <div className="sin-permiso">
-                <p className="sin-permiso__etiqueta"><span />Acceso</p>
                 <h1 className="sin-permiso__titulo">Sin permiso para esta sección</h1>
 
                 <section className="sin-permiso__aviso" role="alert">

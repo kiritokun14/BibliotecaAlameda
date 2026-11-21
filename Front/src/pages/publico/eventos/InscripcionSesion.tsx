@@ -3,12 +3,19 @@ import { mensajeError } from '../../../servicios/api';
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 import { cancelarInscripcionPropia, consultarInscripcionPropia, estadoInscripcionPropia,
     solicitarInscripcionPropia, type InscripcionPropia } from '../../../servicios/inscripciones';
+import { sesionSimulada } from '../perfil/usarSesion';
+import { Chip } from '../credencial/piezas';
 
 // Mi inscripción en una sesión (datos reales). Se usa en el detalle de la actividad y en Perfil › Mis eventos.
-const TONO: Record<string, 'verde' | 'dorado' | 'guinda' | 'gris'> = { confirmada: 'verde', pendiente: 'dorado', cancelada: 'guinda', rechazada: 'gris' };
+// Diseño normalizado (Aldahir, 20 nov: «algunos textos no están bien posicionados»): una fila con «Tu lugar» y el chip de
+// su estado, y debajo qué significa; las acciones a la derecha como botones chicos; al elegir una, la confirmación crece
+// en el lugar (nota crema para pedir el lugar, rosa para cancelar) con «Sí, …» y «Volver». El error, en nota rosa.
+// Con ?simular=sesion se ven datos de ejemplo y las acciones solo cambian la vista (para revisar el diseño sin backend).
+const COLOR = { confirmada: 'verde', pendiente: 'dorado', cancelada: 'gris', rechazada: 'guinda' } as const;
+const EJEMPLO: InscripcionPropia = { id: null, estado: null, actualizadoA: null, registroAbierto: true, hayCupo: true, puedeCancelar: false };
 
 export default function InscripcionSesion({ sesion, desdePerfil = false }: { sesion: string; desdePerfil?: boolean }) {
-    const [datos, setDatos] = useState<InscripcionPropia>();
+    const [datos, setDatos] = useState<InscripcionPropia | undefined>(sesionSimulada ? EJEMPLO : undefined);
     const [error, setError] = useState('');
     const [intento, recargar] = useState(0);
     const [accion, setAccion] = useState<'solicitar' | 'cancelar'>();
@@ -16,6 +23,7 @@ export default function InscripcionSesion({ sesion, desdePerfil = false }: { ses
     const bloqueo = useRef(false);
 
     useEffect(() => {
+        if (sesionSimulada) return;
         let vigente = true;
         consultarInscripcionPropia(sesion).then(r => { if (vigente) setDatos(r); })
             .catch(e => { if (vigente) setError(mensajeError(e)); });
@@ -28,7 +36,10 @@ export default function InscripcionSesion({ sesion, desdePerfil = false }: { ses
         setOcupado(true);
         setError('');
         try {
-            if (accion === 'solicitar') setDatos(await solicitarInscripcionPropia(sesion));
+            if (sesionSimulada) setDatos(accion === 'solicitar'
+                ? { ...datos, id: 'ejemplo', estado: 'pendiente', actualizadoA: 'ejemplo', puedeCancelar: true }
+                : { ...datos, estado: 'cancelada', puedeCancelar: false });
+            else if (accion === 'solicitar') setDatos(await solicitarInscripcionPropia(sesion));
             else if (datos.actualizadoA) setDatos(await cancelarInscripcionPropia(sesion, datos.actualizadoA));
         } catch (e) { setError(mensajeError(e)); }
         finally { bloqueo.current = false; setOcupado(false); setAccion(undefined); }
@@ -38,34 +49,50 @@ export default function InscripcionSesion({ sesion, desdePerfil = false }: { ses
         && (!datos.estado || datos.estado === 'cancelada');
     const aviso = !datos ? '' : datos.estado === 'pendiente' ? 'El personal revisará tu solicitud. Tu lugar queda apartado cuando la confirme.'
         : datos.estado === 'confirmada' ? 'Tu lugar está apartado. Si no puedes asistir, cancela para que otra persona lo ocupe.'
-        : !datos.estado && !puedeSolicitar ? (datos.registroAbierto ? 'Cupo completo por ahora. Regresa después: si alguien cancela, se libera un lugar.' : 'El registro de esta sesión está cerrado.')
-        : !datos.estado ? 'Revisa los requisitos antes de solicitar tu lugar.' : '';
+        : datos.estado === 'rechazada' ? 'El personal no pudo confirmar tu lugar en esta sesión.'
+        : datos.estado === 'cancelada' && puedeSolicitar ? 'Cancelaste tu lugar. Si cambias de opinión, puedes pedirlo de nuevo.'
+        : !puedeSolicitar ? (datos.registroAbierto ? 'Cupo completo por ahora. Regresa después: si alguien cancela, se libera un lugar.' : 'El registro de esta sesión está cerrado.')
+        : 'Revisa los materiales y requisitos antes de pedir tu lugar.';
 
-    return <div className="insc-sesion">
-        {!datos && !error && <EsqueletoLista filas={1} texto="Consultando tu inscripción…" />}
-        {datos && <>
-            {datos.estado
-                ? <p className={`insc-sesion__estado insc-sesion__estado--${TONO[datos.estado] ?? 'gris'}`} role="status"><span aria-hidden="true" />Tu inscripción: <strong>{estadoInscripcionPropia[datos.estado]}</strong></p>
-                : <p className="insc-sesion__estado insc-sesion__estado--gris" role="status"><span aria-hidden="true" />Aún no estás inscrito en esta sesión</p>}
-            {aviso && <p className="insc-sesion__texto">{aviso}</p>}
-        </>}
-        {!accion && (puedeSolicitar || datos?.puedeCancelar) && <div className="insc-sesion__botones">
-            {puedeSolicitar && <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => setAccion('solicitar')}>Solicitar inscripción</button>}
-            {datos?.puedeCancelar && <button type="button" className="agenda-boton agenda-boton--contorno-verde insc-sesion__cancelar" onClick={() => setAccion('cancelar')}>Cancelar mi inscripción</button>}
-        </div>}
-        {accion && <div className={`insc-sesion__confirmar${accion === 'cancelar' ? ' insc-sesion__confirmar--cancelar' : ''}`}>
-            <p>{accion === 'cancelar' ? '¿Confirmas que quieres cancelar tu participación en esta sesión? Tu lugar quedará libre para otra persona.' :
-                'Confirma que revisaste los requisitos publicados para esta sesión. El personal confirmará tu lugar según el cupo.'}</p>
-            <div className="insc-sesion__botones">
-                <button type="button" className={`agenda-boton ${accion === 'cancelar' ? 'agenda-boton--guinda' : 'agenda-boton--verde'}`} disabled={ocupado} onClick={() => void guardar()}>
-                    {ocupado ? 'Guardando…' : accion === 'cancelar' ? 'Sí, cancelar mi inscripción' : 'Enviar solicitud'}
-                </button>
-                <button type="button" className="agenda-boton agenda-boton--contorno-verde" disabled={ocupado} onClick={() => setAccion(undefined)}>Volver</button>
-            </div>
-        </div>}
-        {error && <div className="insc-sesion__error" role="alert">
-            <p>{error}</p>
-            <button type="button" className="agenda-boton agenda-boton--contorno-verde" onClick={() => { setError(''); setDatos(undefined); recargar(i => i + 1); }}>Consultar de nuevo</button>
-        </div>}
-    </div>;
+    if (!datos && !error) return <div className="insc"><EsqueletoLista filas={1} texto="Consultando tu inscripción…" /></div>;
+
+    return (
+        <div className="insc">
+            {datos && (
+                <div className="insc__fila">
+                    <div className="insc__estado" role="status">
+                        <span className="insc__etiqueta">Tu lugar</span>
+                        <Chip color={datos.estado ? COLOR[datos.estado] : 'gris'}>{datos.estado ? estadoInscripcionPropia[datos.estado] : 'Sin inscripción'}</Chip>
+                        <p>{aviso}</p>
+                    </div>
+                    {!accion && (puedeSolicitar || datos.puedeCancelar) && (
+                        <div className="insc__acciones">
+                            {puedeSolicitar && <button type="button" className="perfil-boton perfil-boton--chico" onClick={() => setAccion('solicitar')}>Pedir mi lugar</button>}
+                            {datos.puedeCancelar && <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={() => setAccion('cancelar')}>Cancelar mi lugar</button>}
+                        </div>
+                    )}
+                </div>
+            )}
+            {accion && (
+                <div key={accion} className={`perfil-nota insc__confirmar${accion === 'cancelar' ? ' perfil-nota--guinda' : ''}`} role="group" aria-labelledby="insc-confirmar">
+                    <p>
+                        <strong id="insc-confirmar">{accion === 'cancelar' ? '¿Cancelar tu lugar en esta sesión?' : '¿Pedir tu lugar en esta sesión?'}</strong>
+                        {accion === 'cancelar' ? 'Tu lugar quedará libre para otra persona.' : 'Confirma que revisaste los materiales y requisitos. El personal confirma tu lugar según el cupo.'}
+                    </p>
+                    <div className="insc__acciones">
+                        <button type="button" className={`perfil-boton perfil-boton--chico${accion === 'cancelar' ? ' perfil-boton--guinda' : ''}`} disabled={ocupado} onClick={() => void guardar()}>
+                            {ocupado ? 'Guardando…' : accion === 'cancelar' ? 'Sí, cancelar' : 'Sí, pedir mi lugar'}
+                        </button>
+                        <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" disabled={ocupado} onClick={() => setAccion(undefined)}>Volver</button>
+                    </div>
+                </div>
+            )}
+            {error && (
+                <div className="perfil-nota perfil-nota--guinda insc__error" role="alert">
+                    <p>{error}</p>
+                    <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" onClick={() => { setError(''); setDatos(undefined); recargar(i => i + 1); }}>Consultar de nuevo</button>
+                </div>
+            )}
+        </div>
+    );
 }

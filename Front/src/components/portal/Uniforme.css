@@ -71,25 +71,15 @@
 .pagina-publica .tarjeta-tema__contenido { flex: 1; }
 .pagina-publica .tarjeta-noticia__leer { margin-top: auto; }
 
-/* Servicios: descripciones de distinto largo, mismo alto */
-.pagina-publica .tarjeta-servicio { height: 100%; box-sizing: border-box; }
-.pagina-publica .tarjeta-servicio__descripcion {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  min-height: 3lh;
-}
-
 /* ---------- 2. Movimiento común (igual que Inicio) ----------
    Solo transform y opacity. Todo se apaga con «reducir animaciones». */
 
 /* Efecto al pasar el mouse: las tarjetas se levantan */
-.pagina-publica :is(.tarjeta-memoria, .agenda-tarjeta, .tarjeta-servicio, .canal-contacto) {
+.pagina-publica :is(.tarjeta-memoria, .agenda-tarjeta, .canal-contacto) {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.pagina-publica :is(.tarjeta-memoria, .agenda-tarjeta, .tarjeta-servicio):hover {
+.pagina-publica :is(.tarjeta-memoria, .agenda-tarjeta):hover {
   box-shadow: 0 18px 32px rgba(22, 79, 68, 0.16);
   transform: translateY(-4px);
 }
@@ -137,7 +127,7 @@
   @media (prefers-reduced-motion: no-preference) {
     .pagina-publica :is(
       .rejilla-resenas, .rejilla-temas, .rejilla-memoria, .agenda-tarjetas, .agenda-filas,
-      .noticias-fila, .noticias-archivo, .servicios-tarjetas, .pasos-visitante, .canales-contacto,
+      .noticias-fila, .noticias-archivo, .pasos-visitante, .canales-contacto,
       .preguntas-contacto, .cred-etapas
     ) > *,
     .pagina-publica :is(.noticia-principal, .agenda-destacada, .seccion-visitante__contenido, .contacto-columnas, .acerca-contenedor) {
@@ -154,7 +144,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pagina-publica :is(.tarjeta-memoria, .agenda-tarjeta, .tarjeta-servicio, .canal-contacto, .portada-lectura, .pasos-visitante li, .pestana-acerca,
+  .pagina-publica :is(.tarjeta-memoria, .agenda-tarjeta, .canal-contacto, .portada-lectura, .pasos-visitante li, .pestana-acerca,
     .boton-blanco, .boton-dorado, .boton-contorno, .agenda-boton, .boton-noticias, .boton-lectura, .boton-contacto, .boton-servicios),
   .pagina-publica :is(.boton-blanco, .boton-dorado, .boton-contorno, .agenda-boton, .boton-noticias, .boton-lectura, .boton-contacto, .boton-servicios) img,
   .pagina-publica :is(.agenda-tarjeta__imagen, .tarjeta-memoria__imagen) > img {

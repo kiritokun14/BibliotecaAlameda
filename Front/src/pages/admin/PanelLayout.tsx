@@ -6,6 +6,7 @@ import { Link, NavLink, useLocation } from "react-router";
 import { ContextoPanel, capacidadPanel, nombresRoles, permisoGlobal, type IdentidadPanel } from "../../servicios/accesoPanel";
 import { PiePortal } from "../../components/portal/Portal";
 import "./Panel.css";
+import "./PanelNormalizado.css";
 import { RESUMEN, SECCIONES_MENU, type SeccionMenu, type SubitemMenu } from "./menu";
 import { useNotificaciones } from "./notificaciones/datos";
 import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.webp";
@@ -13,7 +14,6 @@ import logoNayarit from "../../assets/comun/logos/logo-nayarit-blanco.png";
 import iconoLibro from "../../assets/admin/menu-book.svg";
 import iconoExpandir from "../../assets/admin/menu-expandir.svg";
 import iconoContraer from "../../assets/admin/menu-contraer.svg";
-import iconoExterno from "../../assets/admin/icono-external.svg";
 import iconoCampana from "../../assets/admin/icono-bell.svg";
 import iconoUsuario from "../../assets/admin/icono-user.svg";
 
@@ -54,7 +54,7 @@ function estadoSubitem(subitem: SubitemMenu, identidad: IdentidadPanel | null): 
 
 // Título de la tarjeta de rol: «acceso total» para quien tiene todo; si no, sus roles
 function textoRol(identidad: IdentidadPanel | null) {
-    return { titulo: "PERMISOS DE LA CUENTA", texto: identidad ? nombresRoles(identidad.acceso) : "Personal de la biblioteca" };
+    return { titulo: "Permisos de la cuenta", texto: identidad ? nombresRoles(identidad.acceso) : "Personal de la biblioteca" };
 }
 
 function BarraLateral() {
@@ -81,7 +81,7 @@ function BarraLateral() {
                 <span className="panel-marca__sello"><img src={iconoLibro} alt="" /></span>
                 <div>
                     <p className="panel-marca__nombre">Biblioteca Solón Argüello</p>
-                    <p className="panel-marca__subtitulo">PANEL DEL PERSONAL</p>
+                    <p className="panel-marca__subtitulo">Panel del personal</p>
                 </div>
             </div>
 
@@ -178,7 +178,6 @@ function Cabecera({ titulo }: { titulo: string }) {
             <h1 className="panel-cabecera__titulo">{titulo}</h1>
             <a href="/" target="_blank" rel="noopener noreferrer" className="boton-panel boton-panel--contorno-verde boton-panel--cabecera">
                 Ver portal público
-                <img src={iconoExterno} alt="" />
                 <span className="solo-lectores">(se abre en una pestaña nueva)</span>
             </a>
             <Link to="/admin/notificaciones" className="panel-campana" aria-label={pendientes > 0 ? `Notificaciones: ${pendientes} sin leer` : "Notificaciones"}>

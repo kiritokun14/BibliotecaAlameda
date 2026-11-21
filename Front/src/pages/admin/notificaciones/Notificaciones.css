@@ -193,7 +193,7 @@
   background: transparent;
 }
 
-.notificacion--sin-leer .notificacion__punto { background: #2f7d6b; }
+.notificacion--sin-leer .notificacion__punto { background: #c9a24a; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e6d194; } /* sin leer: punto dorado */
 
 .notificacion__textos {
   display: flex;
@@ -248,4 +248,4 @@
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 .panel--contenidos .notificacion:hover { border-color: var(--solon-primario); transform: translateY(-1px); box-shadow: 0 8px 18px rgba(22, 79, 68, 0.08); }
-.panel--contenidos .notificacion--sin-leer { border-left: 4px solid var(--solon-primario); background: var(--solon-azul-suave); }
+.panel--contenidos .notificacion--sin-leer { border-color: #e6d194; background: #fffdf7; } /* sin franja al costado (21 nov) */

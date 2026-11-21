@@ -112,7 +112,7 @@ export default function Bitacora() {
                                     <span role="cell">{m.modulo}</span>
                                     <span role="cell" className="at-celda">{m.accion}</span>
                                     <span role="cell"><Chip tono={m.tipo === "Sensible" ? "dorado" : "gris"}>{m.tipo}</Chip></span>
-                                    <span role="cell"><Link to={`${RUTA}/${m.folio}`} className="contenidos-tabla__accion">Ver →<span className="solo-lectores"> {m.folio}</span></Link></span>
+                                    <span role="cell"><Link to={`${RUTA}/${m.folio}`} className="contenidos-tabla__accion">Ver<span className="solo-lectores"> {m.folio}</span></Link></span>
                                 </div>
                             ))}
                         </div>

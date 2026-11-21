@@ -140,7 +140,7 @@ export default function CuentasPermisos() {
                                         <span role="cell" className="at-celda">{ocultarCorreo(c.correo)}</span>
                                         <span role="cell" className="at-celda">{rolesTexto(c)}</span>
                                         <span role="cell"><EstadoChip c={c} /></span>
-                                        <span role="cell"><Link to={`${RUTA}/${c.id}`} className="contenidos-tabla__accion">Abrir →<span className="solo-lectores"> {nombreCompleto(c)}</span></Link></span>
+                                        <span role="cell"><Link to={`${RUTA}/${c.id}`} className="contenidos-tabla__accion">Abrir<span className="solo-lectores"> {nombreCompleto(c)}</span></Link></span>
                                     </div>
                                 ))}
                             </div>

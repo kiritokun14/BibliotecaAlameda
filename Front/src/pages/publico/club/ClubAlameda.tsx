@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
-import PaginaPublica from "../../../components/portal/PaginaPublica";
-import { EncabezadoNoticias } from "../noticias/piezas";
-import "../noticias/Noticias.css";
+import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import { ModalAgenda } from "../eventos/DetalleActividad";
-import "../eventos/Agenda.css";
+import "../eventos/Agenda.css"; // solo por la ventana del reporte (ModalAgenda)
+import "../perfil/Perfil.css";
+import { EtiquetaPerfil, TarjetaPerfil } from "../perfil/piezas";
+import { iconosSeccion } from "../perfil/iconos";
 import { mensajeError, obtenerSupabase } from '../../../servicios/api';
 import { consultarTemasForo, consultarTemaForo, consultarRespuestasForo, publicarRespuestaForo, editarRespuestaForo, retirarRespuestaForo, type RespuestaReal, type TemaReal } from '../../../servicios/foro';
 import { reportarContenidoForo } from '../../../servicios/moderacion';
@@ -13,7 +14,6 @@ import {
     textoRespuestas, validarReporte,
     validarRespuesta, type ColorTema, type Tema,
 } from "./datos";
-import "./ClubAlameda.css";
 import libroVerde from "../../../assets/club/lecturas.svg";
 import libroDorado from "../../../assets/club/intercambio.svg";
 import libroRosa from "../../../assets/club/recomendaciones.svg";
@@ -21,12 +21,16 @@ import libroGris from "../../../assets/club/escritura.svg";
 import alertaGuinda from "../../../assets/credencial/alerta-guinda.svg";
 import checkEnviada from "../../../assets/credencial/enviada-check.svg";
 import infoVerde from "../../../assets/credencial/info-verde.svg";
+import iconoUsuarios from "../../../assets/inicio/etiqueta-usuarios.svg";
+import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
+import tarjetaEstrella from "../../../assets/perfil/tarjeta-estrella.svg";
 
 import { EsqueletoArticulo, EsqueletoLista } from "../../../components/portal/Esqueleto";
-// Club Alameda · foro de la Bibliocomunidad (HU-26). Figma A-02: 759:93132 inicio, 759:93772 detalle de un hilo.
-// Sin diseño en Figma (se armó con las piezas del portal): el reporte de una respuesta, la respuesta «En revisión»,
-// la invitación a iniciar sesión y el aviso de cuenta silenciada.
+// Club Alameda · foro de la Bibliocomunidad (HU-26). Rehecho el 21 nov 2026 (Aldahir) con la plantilla C del portal:
+// franja compacta con ícono → dos columnas: temas (o la conversación) | normas para participar + tarjeta verde.
+// El reporte de una respuesta, la respuesta «En revisión» y las acciones propias siguen igual que antes.
 const ICONOS: Record<ColorTema, string> = { verde: libroVerde, dorado: libroDorado, rosa: libroRosa, gris: libroGris };
+const POR_PAGINA = 20;
 
 function useSesionForo() {
     const [sesion, setSesion] = useState<string | null | undefined>();
@@ -53,32 +57,86 @@ function useConsulta<T>(clave: string, consulta: () => Promise<T>, identidad = c
     return resultado.clave === clave || (resultado.identidad === identidad && resultado.datos) ? resultado : undefined;
 }
 
+// ---------- Piezas comunes ----------
+function Encabezado({ titulo, texto }: { titulo: ReactNode; texto: string }) {
+    return <EncabezadoPublico icono={iconoUsuarios} etiqueta="Club Alameda" titulo={titulo} texto={texto} />;
+}
+
+// Paginación: solo si hay más de una página
+function Paginas({ pagina, total, alCambiar }: { pagina: number; total: number; alCambiar: (p: number) => void }) {
+    if (total <= POR_PAGINA) return null;
+    return (
+        <div className="club-paginas">
+            <button type="button" className="perfil-boton perfil-boton--contorno perfil-boton--chico" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>Anterior</button>
+            <span>Página {pagina + 1} de {Math.ceil(total / POR_PAGINA)}</span>
+            <button type="button" className="perfil-boton perfil-boton--contorno perfil-boton--chico" disabled={(pagina + 1) * POR_PAGINA >= total} onClick={() => alCambiar(pagina + 1)}>Siguiente</button>
+        </div>
+    );
+}
+
+// Columna derecha: normas + tarjeta verde (sin sesión invita a entrar; con sesión, a proponer un tema)
+function Lateral({ sesion, enHilo = false }: { sesion: string | null | undefined; enHilo?: boolean }) {
+    return (
+        <aside className="club-lateral">
+            <TarjetaPerfil color="dorada" icono={tarjetaEstrella} titulo="Normas para participar" texto="Las cuida el personal de la biblioteca.">
+                <ol className="club-normas">{NORMAS_CLUB.map((n, i) => <li key={n}><span aria-hidden="true">{i + 1}</span>{n}</li>)}</ol>
+            </TarjetaPerfil>
+            <section className="contacto-seguimiento club-ayuda-tarjeta" aria-labelledby="titulo-club-ayuda">
+                <span className="contacto-seguimiento__insignia" aria-hidden="true" />
+                {sesion === null ? <>
+                    <h2 id="titulo-club-ayuda">Participa con tu cuenta</h2>
+                    <p>Puedes leer sin cuenta. Para responder y reportar, inicia sesión.</p>
+                    <Link to="/iniciar-sesion" className="perfil-boton perfil-boton--guardar">Iniciar sesión</Link>
+                </> : <>
+                    <h2 id="titulo-club-ayuda">¿Quieres proponer un tema?</h2>
+                    <p>Escríbenos con tu idea y el personal la revisa para abrir una conversación.</p>
+                    <Link to="/contacto" className="perfil-boton perfil-boton--guardar">Escríbenos</Link>
+                </>}
+            </section>
+            {enHilo && <Link to="/club-alameda" className="perfil-boton perfil-boton--contorno club-volver">Volver al foro</Link>}
+        </aside>
+    );
+}
+
 // ---------- Inicio del foro ----------
 export default function ClubAlameda() {
     const sesion = useSesionForo(); const [pagina, setPagina] = useState(0); const [intento, recargar] = useState(0);
     const carga = useConsulta(`${sesion}:${pagina}:${intento}`, () => consultarTemasForo(pagina));
     return (
         <PaginaPublica>
-            <EncabezadoNoticias
-                etiqueta="CLUB ALAMEDA"
-                titulo={<>Club <span>Alameda</span></>}
-                texto="Las buenas historias se disfrutan más cuando se comparten."
-            />
-            <div className="club-cuerpo">
-                <h2 className="club-titulo">Elige un tema</h2>
-                <p className="club-subtitulo">Lee las respuestas y comparte tu opinión.</p>
-                <div className="club-temas">
-                    {!carga && <EsqueletoLista texto="Cargando conversaciones…" />}
-                    {carga?.error && <p role="alert">{carga.error} <button className="club-boton" onClick={() => recargar(x => x + 1)}>Reintentar</button></p>}
-                    {carga?.datos?.temas.length === 0 && <p className="club-vacio">Todavía no hay conversaciones publicadas.</p>}
-                    {carga?.datos?.temas.map(t => <TarjetaTema key={t.slug} tema={t} respuestas={t.respuestas} ultimaActividad={t.ultimaActividad} />)}
+            <Encabezado titulo={<>Club <span>Alameda</span></>} texto="Las buenas historias se disfrutan más cuando se comparten." />
+            <div className="club-pagina">
+                <div className="club-columnas">
+                    <section className="club-principal" aria-labelledby="titulo-temas">
+                        <div className="club-grupo__encabezado">
+                            <EtiquetaPerfil id="titulo-temas" icono={iconosSeccion.mensajes}>Temas de conversación</EtiquetaPerfil>
+                            <p>Elige un tema, lee las respuestas y comparte tu opinión.</p>
+                        </div>
+                        {!carga && <EsqueletoLista texto="Cargando conversaciones…" />}
+                        {carga?.error && (
+                            <div className="perfil-vacio perfil-vacio--eventos perfil-vacio--error" role="alert" style={{ "--icono-seccion": `url("${iconosSeccion.mensajes}")` } as CSSProperties}>
+                                <span className="perfil-vacio__insignia" aria-hidden="true" />
+                                <h2>No pudimos cargar las conversaciones</h2>
+                                <p>{carga.error}</p>
+                                <div className="perfil-acciones perfil-acciones--centro"><button type="button" className="perfil-boton" onClick={() => recargar(x => x + 1)}>Reintentar</button></div>
+                            </div>
+                        )}
+                        {carga?.datos?.temas.length === 0 && (
+                            <div className="perfil-vacio perfil-vacio--eventos" role="status" style={{ "--icono-seccion": `url("${iconosSeccion.mensajes}")` } as CSSProperties}>
+                                <span className="perfil-vacio__insignia" aria-hidden="true" />
+                                <h2>Todavía no hay conversaciones</h2>
+                                <p>Pronto el personal abrirá los primeros temas del club.</p>
+                            </div>
+                        )}
+                        {!!carga?.datos?.temas.length && (
+                            <ul className="club-temas">
+                                {carga.datos.temas.map(t => <li key={t.slug}><TarjetaTema tema={t} respuestas={t.respuestas} ultimaActividad={t.ultimaActividad} /></li>)}
+                            </ul>
+                        )}
+                        {carga?.datos && <Paginas pagina={pagina} total={carga.datos.total} alCambiar={setPagina} />}
+                    </section>
+                    <Lateral sesion={sesion} />
                 </div>
-                {carga?.datos && <div className="club-respuesta__acciones"><button className="club-boton club-boton--contorno" disabled={pagina === 0} onClick={() => setPagina(p => p - 1)}>Anterior</button><span>Página {pagina + 1}</span><button className="club-boton club-boton--contorno" disabled={(pagina + 1) * 20 >= carga.datos.total} onClick={() => setPagina(p => p + 1)}>Siguiente</button></div>}
-                <section className="club-respeto">
-                    <h2>Un espacio para compartir con respeto</h2>
-                    <p>Libros, lectura y actividades · Respeto entre participantes</p>
-                    <p>Sin ventas ni publicidad no autorizada · Sin datos personales de otras personas</p>
-                </section>
             </div>
         </PaginaPublica>
     );
@@ -87,13 +145,16 @@ export default function ClubAlameda() {
 function TarjetaTema({ tema, respuestas, ultimaActividad }: { tema: Tema; respuestas: number; ultimaActividad: string }) {
     return (
         <Link to={`/club-alameda/${tema.slug}`} className={`club-tema club-tema--${tema.color}`}>
-            <span className="club-tema__motivo">
-                <img src={ICONOS[tema.color]} alt="" width={64} height={64} />
-                <span>{tema.numero} / {tema.etiqueta}</span>
+            <span className="club-tema__icono" aria-hidden="true"><img src={ICONOS[tema.color]} alt="" /></span>
+            <span className="club-tema__textos">
+                <span className="club-tema__numero">Tema {tema.numero}</span>
+                <span className="club-tema__titulo">{tema.titulo}</span>
+                <span className="club-tema__descripcion">{tema.descripcion}</span>
+                <span className="club-tema__meta">
+                    <span>{textoRespuestas(respuestas)}</span>
+                    <span>Última actividad: {actividadRelativa(ultimaActividad)}</span>
+                </span>
             </span>
-            <h3>{tema.titulo}</h3>
-            <p className="club-tema__descripcion">{tema.descripcion}</p>
-            <p className="club-tema__meta">{textoRespuestas(respuestas)} · Última actividad: {actividadRelativa(ultimaActividad)}</p>
             <span className="club-tema__entrar">Entrar a la conversación</span>
         </Link>
     );
@@ -115,45 +176,69 @@ function HiloPersistente({ slug, sesion }: { slug: string; sesion: string | null
     const tema: TemaReal | undefined = carga?.datos?.tema; const lista = carga?.datos?.respuestas ?? [];
     const publicadas = tema?.respuestas ?? 0;
     const actualizar = () => recargar(x => x + 1);
-    if (!tema) return <PaginaPublica><div className="club-cuerpo"><Link to="/club-alameda">Volver al foro</Link>{carga?.error ? <p role="alert">{carga.error} <button className="club-boton" onClick={actualizar}>Reintentar</button></p> : <EsqueletoArticulo texto="Cargando conversación…" />}</div></PaginaPublica>;
+    if (!tema) return (
+        <PaginaPublica>
+            <Encabezado titulo="Conversación del club" texto="Club Alameda" />
+            <div className="club-pagina">
+                <div className="club-columnas">
+                    <div className="club-principal">
+                        {carga?.error ? (
+                            <div className="perfil-vacio perfil-vacio--eventos perfil-vacio--error" role="alert" style={{ "--icono-seccion": `url("${iconosSeccion.mensajes}")` } as CSSProperties}>
+                                <span className="perfil-vacio__insignia" aria-hidden="true" />
+                                <h2>No pudimos abrir la conversación</h2>
+                                <p>{carga.error}</p>
+                                <div className="perfil-acciones perfil-acciones--centro">
+                                    <button type="button" className="perfil-boton" onClick={actualizar}>Reintentar</button>
+                                    <Link to="/club-alameda" className="perfil-boton perfil-boton--contorno">Volver al foro</Link>
+                                </div>
+                            </div>
+                        ) : <EsqueletoArticulo texto="Cargando conversación…" />}
+                    </div>
+                    <Lateral sesion={sesion} enHilo />
+                </div>
+            </div>
+        </PaginaPublica>
+    );
     return (
         <PaginaPublica>
-            <EncabezadoNoticias
-                regreso={{ texto: "Volver al foro", ruta: "/club-alameda" }}
-                etiqueta="CLUB ALAMEDA"
-                titulo={tema.titulo.replace(/^Reseña: /, "")}
-                texto="Conversación del Club Alameda"
-            />
-            <div className="club-cuerpo club-hilo">
-                <div className="club-hilo__principal">
-                    <article className="club-inicial">
-                        <p className="club-inicial__sobretitulo">PARA ABRIR LA CONVERSACIÓN</p>
-                        <p className="club-inicial__fecha">Publicación inicial · {fechaPublicacion(tema.inicial.fecha)}</p>
-                        <p className="club-inicial__texto">{tema.inicial.titulo}<br />{tema.inicial.texto}</p>
-                    </article>
-                    <h2 className="club-titulo club-titulo--respuestas">{textoRespuestas(publicadas)}</h2>
-                    {lista.length === 0 && <p className="club-vacio">Todavía no hay respuestas. ¡Sé la primera persona en participar!</p>}
-                    {lista.map((x, i) => (
-                        <TarjetaRespuesta
-                            key={x.id} respuesta={x} indice={i} conSesion={!!sesion}
-                            reportada={x.reportada} alReportar={() => setReportando(x)} alGuardar={actualizar}
-                        />
-                    ))}
-                    {sesion === null ? (
-                        <section className="club-responder club-responder--sin-sesion">
-                            <h2>Tu lectura también cuenta</h2>
-                            <p>Inicia sesión para responder y reportar publicaciones. Puedes leer las conversaciones sin cuenta.</p>
-                            <Link className="club-boton" to="/iniciar-sesion">Iniciar sesión</Link>
-                        </section>
-                    ) : sesion === undefined ? <p role="status">Comprobando sesión…</p> : (
-                        <FormularioRespuesta key={tema.slug} tema={tema.slug} alGuardar={actualizar} />
-                    )}
-                    <div className="club-respuesta__acciones"><button className="club-boton club-boton--contorno" onClick={actualizar}>Actualizar conversación</button><button className="club-boton club-boton--contorno" disabled={pagina === 0} onClick={() => setPagina(p => p - 1)}>Anterior</button><span>Página {pagina + 1}</span><button className="club-boton club-boton--contorno" disabled={(pagina + 1) * 20 >= (carga?.datos?.total ?? 0)} onClick={() => setPagina(p => p + 1)}>Siguiente</button></div>
+            <Encabezado titulo={tema.titulo.replace(/^Reseña: /, "")} texto="Conversación del Club Alameda" />
+            <div className="club-pagina">
+                <div className="club-columnas">
+                    <div className="club-principal">
+                        <TarjetaPerfil color="dorada" icono={tarjetaLista} titulo="Para abrir la conversación"
+                            texto={`Publicación inicial del ${fechaPublicacion(tema.inicial.fecha)}`}>
+                            <div className="club-inicial">
+                                <strong>{tema.inicial.titulo}</strong>
+                                <p>{tema.inicial.texto}</p>
+                            </div>
+                        </TarjetaPerfil>
+                        <div className="club-grupo__encabezado">
+                            <EtiquetaPerfil icono={iconosSeccion.mensajes}>{textoRespuestas(publicadas)}</EtiquetaPerfil>
+                            <button type="button" className="perfil-boton perfil-boton--contorno perfil-boton--chico" onClick={actualizar}>Actualizar</button>
+                        </div>
+                        {lista.length === 0 && <p className="club-vacio">Todavía no hay respuestas. Sé la primera persona en participar.</p>}
+                        {lista.map((x, i) => (
+                            <TarjetaRespuesta
+                                key={x.id} respuesta={x} indice={i} conSesion={!!sesion}
+                                reportada={x.reportada} alReportar={() => setReportando(x)} alGuardar={actualizar}
+                            />
+                        ))}
+                        <Paginas pagina={pagina} total={carga?.datos?.total ?? 0} alCambiar={setPagina} />
+                        {sesion === null ? (
+                            <section className="club-responder club-responder--sin-sesion">
+                                <h2>Tu lectura también cuenta</h2>
+                                <p>Inicia sesión para responder y reportar publicaciones. Puedes leer las conversaciones sin cuenta.</p>
+                                <div className="perfil-acciones">
+                                    <Link className="perfil-boton" to="/iniciar-sesion">Iniciar sesión</Link>
+                                    <Link className="perfil-boton perfil-boton--contorno" to="/crear-cuenta">Crear cuenta</Link>
+                                </div>
+                            </section>
+                        ) : sesion === undefined ? <p role="status" className="club-vacio">Comprobando sesión…</p> : (
+                            <FormularioRespuesta key={tema.slug} tema={tema.slug} alGuardar={actualizar} />
+                        )}
+                    </div>
+                    <Lateral sesion={sesion} enHilo />
                 </div>
-                <aside className="club-normas">
-                    <h2>Normas para participar</h2>
-                    <ol>{NORMAS_CLUB.map((n) => <li key={n}>{n}</li>)}</ol>
-                </aside>
             </div>
             {reportando && (
                 <ModalReporte
@@ -166,10 +251,10 @@ function HiloPersistente({ slug, sesion }: { slug: string; sesion: string | null
                 />
             )}
             {reportado && (
-                <ModalAgenda titulo="Gracias por avisarnos" sobretitulo="Reporte enviado" icono={checkEnviada} alCerrar={() => setReportado(false)}>
+                <ModalAgenda titulo="Gracias por avisarnos" icono={checkEnviada} alCerrar={() => setReportado(false)}>
                     <p className="modal-agenda__texto">El personal revisará la respuesta según las normas del Club Alameda. No le diremos a nadie quién la reportó.</p>
                     <div className="modal-agenda__acciones">
-                        <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => setReportado(false)}>Entendido</button>
+                        <button type="button" className="perfil-boton" onClick={() => setReportado(false)}>Entendido</button>
                     </div>
                 </ModalAgenda>
             )}
@@ -202,8 +287,8 @@ function TarjetaRespuesta({ respuesta: x, indice, conSesion, reportada, alReport
             {conSesion && !x.propia && (
                 <div className="club-respuesta__acciones">
                     {reportada
-                        ? <span className="club-reportada" role="status">Reportada · el personal la revisará</span>
-                        : <button type="button" className="club-boton club-boton--contorno" onClick={alReportar}>Reportar</button>}
+                        ? <span className="club-reportada" role="status">Reportada, el personal la revisará</span>
+                        : <button type="button" className="perfil-boton perfil-boton--contorno perfil-boton--chico" onClick={alReportar}>Reportar</button>}
                 </div>
             )}
         </article>
@@ -242,10 +327,10 @@ function FormularioRespuesta({ tema, alGuardar }: { tema: string; alGuardar: () 
             {error && <p className="club-error" role="alert">{error}</p>}
             <p id="club-respuesta-ayuda" className="club-ayuda">
                 Máximo 1,000 caracteres. Tu primera respuesta se revisa antes de mostrarse.
-                {texto.length > 0 && <span> · {texto.trim().length.toLocaleString("es-MX")} / 1,000</span>}
+                {texto.length > 0 && <span> Llevas {texto.trim().length.toLocaleString("es-MX")} de 1,000.</span>}
             </p>
             {aviso && <p className="club-nota" role="status"><img src={infoVerde} alt="" />{aviso}</p>}
-            <button type="submit" className="club-boton" disabled={ocupado}>{ocupado ? "Guardando…" : "Publicar respuesta"}</button>
+            <button type="submit" className="perfil-boton perfil-boton--guardar" disabled={ocupado}>{ocupado ? "Guardando…" : "Publicar respuesta"}</button>
         </form>
     );
 }
@@ -265,7 +350,7 @@ function ModalReporte({ respuesta, alCerrar, alEnviar }: { respuesta: RespuestaR
     };
     return (
         <ModalAgenda titulo="Reportar una respuesta" icono={alertaGuinda} iconoGuinda alCerrar={alCerrar}>
-            <p className="modal-agenda__texto">Respuesta de {respuesta.autor}: «{respuesta.texto.length > 90 ? `${respuesta.texto.slice(0, 90)}…` : respuesta.texto}»</p>
+            <p className="modal-agenda__texto">Respuesta de {respuesta.autor}: {respuesta.texto.length > 90 ? `${respuesta.texto.slice(0, 90)}…` : respuesta.texto}</p>
             <div className="club-campo">
                 <label htmlFor="club-norma">¿Qué norma no se cumple?</label>
                 <select id="club-norma" value={norma} aria-invalid={!!errores.norma} onChange={(e) => setNorma(e.target.value === "" ? "" : Number(e.target.value))}>
@@ -283,8 +368,8 @@ function ModalReporte({ respuesta, alCerrar, alEnviar }: { respuesta: RespuestaR
             </div>
             <div className="modal-agenda__acciones">
                 {error && <p className="club-error" role="alert">{error}</p>}
-                <button type="button" disabled={ocupado} className="agenda-boton agenda-boton--contorno-verde" onClick={alCerrar}>Cancelar</button>
-                <button type="button" className="agenda-boton agenda-boton--verde" disabled={ocupado} onClick={() => void enviar()}>{ocupado ? "Enviando…" : "Enviar reporte"}</button>
+                <button type="button" className="perfil-boton" disabled={ocupado} onClick={() => void enviar()}>{ocupado ? "Enviando…" : "Enviar reporte"}</button>
+                <button type="button" disabled={ocupado} className="perfil-boton perfil-boton--contorno" onClick={alCerrar}>Cancelar</button>
             </div>
         </ModalAgenda>
     );
@@ -300,10 +385,10 @@ function AccionesPropias({ respuesta, alGuardar }: { respuesta: RespuestaReal; a
         try { if (modo === 'editar') await editarRespuestaForo(respuesta, texto); else await retirarRespuestaForo(respuesta); setModo(null); alGuardar(); }
         catch (error) { setError(mensajeError(error)); } finally { bloqueo.current = false; setOcupado(false); }
     }
-    return <><div className="club-respuesta__acciones"><button className="club-boton club-boton--contorno" onClick={() => setModo('editar')}>Editar mi respuesta</button><button className="club-boton club-boton--contorno" onClick={() => setModo('retirar')}>Retirar mi respuesta</button></div>
+    return <><div className="club-respuesta__acciones"><button type="button" className="perfil-boton perfil-boton--contorno perfil-boton--chico" onClick={() => setModo('editar')}>Editar mi respuesta</button><button type="button" className="perfil-boton perfil-boton--contorno perfil-boton--chico" onClick={() => setModo('retirar')}>Retirar mi respuesta</button></div>
         {modo && <ModalAgenda titulo={modo === 'editar' ? 'Editar mi respuesta' : 'Retirar mi respuesta'} icono={infoVerde} alCerrar={() => { if (!ocupado) setModo(null); }}>
             {modo === 'editar' ? <div className="club-campo"><label htmlFor="club-editar">Respuesta</label><textarea id="club-editar" value={texto} maxLength={MAXIMO_RESPUESTA} onChange={e => setTexto(e.target.value)} /><p className="club-ayuda">La edición volverá a revisión antes de mostrarse públicamente.</p></div> : <p className="modal-agenda__texto">Tu respuesta dejará de mostrarse. Se conservará el registro del retiro.</p>}
-            {error && <p role="alert" className="club-error">{error}</p>}<div className="modal-agenda__acciones"><button className="agenda-boton agenda-boton--contorno-verde" disabled={ocupado} onClick={() => setModo(null)}>Cancelar</button><button className="agenda-boton agenda-boton--verde" disabled={ocupado} onClick={() => void guardar()}>{ocupado ? 'Guardando…' : 'Confirmar'}</button></div>
+            {error && <p role="alert" className="club-error">{error}</p>}<div className="modal-agenda__acciones"><button type="button" className="perfil-boton" disabled={ocupado} onClick={() => void guardar()}>{ocupado ? 'Guardando…' : 'Confirmar'}</button><button type="button" className="perfil-boton perfil-boton--contorno" disabled={ocupado} onClick={() => setModo(null)}>Cancelar</button></div>
         </ModalAgenda>}
     </>;
 }

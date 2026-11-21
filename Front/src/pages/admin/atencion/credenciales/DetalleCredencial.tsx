@@ -17,12 +17,12 @@ const RUTA = "/admin/atencion/credenciales";
 
 const textos: TextosEstado = {
     pendiente: {
-        etiqueta: "POR COTEJAR",
+        etiqueta: "Por cotejar",
         titulo: "Cotejo de datos",
         texto: "Revisa los datos que la persona dio al registrarse y decide.",
     },
     observaciones: {
-        etiqueta: "CON OBSERVACIONES",
+        etiqueta: "Con observaciones",
         titulo: "Esperando respuesta de la persona",
         texto: "Pediste una corrección. Cuando la persona responda, la solicitud vuelve a Por cotejar.",
         aviso: {
@@ -33,7 +33,7 @@ const textos: TextosEstado = {
         },
     },
     aprobada: {
-        etiqueta: "APROBADA",
+        etiqueta: "Aprobada",
         titulo: "Solicitud aprobada",
         texto: "La credencial quedó aprobada. Aquí puedes consultar los datos y el historial.",
         aviso: {
@@ -44,7 +44,7 @@ const textos: TextosEstado = {
         },
     },
     rechazada: {
-        etiqueta: "RECHAZADA",
+        etiqueta: "Rechazada",
         titulo: "Solicitud rechazada",
         texto: "La credencial no se aprobó. Aquí puedes consultar el motivo y el historial.",
         aviso: {
@@ -129,14 +129,14 @@ function DetalleCredencial() {
                 subtitulo="Datos que la persona dio al registrarse y al solicitar su credencial."
             >
                 <Datos>
-                    <Dato etiqueta="NOMBRE">{solicitud.persona}</Dato>
-                    <Dato etiqueta="TIPO DE CUENTA">
+                    <Dato etiqueta="Nombre">{solicitud.persona}</Dato>
+                    <Dato etiqueta="Tipo de cuenta">
                         {solicitud.tipoCuenta === "Adulta" ? "Persona adulta" : "Persona menor de edad"}
                     </Dato>
-                    <Dato etiqueta="ENVIADA">{formatearFecha(solicitud.enviada)}</Dato>
-                    <Dato etiqueta="CORREO">{solicitud.correo}</Dato>
-                    <Dato etiqueta="TELÉFONO">{solicitud.telefono}</Dato>
-                    <Dato etiqueta="FOLIO">{solicitud.folio}</Dato>
+                    <Dato etiqueta="Enviada">{formatearFecha(solicitud.enviada)}</Dato>
+                    <Dato etiqueta="Correo">{solicitud.correo}</Dato>
+                    <Dato etiqueta="Teléfono">{solicitud.telefono}</Dato>
+                    <Dato etiqueta="Folio">{solicitud.folio}</Dato>
                 </Datos>
             </Tarjeta>
 

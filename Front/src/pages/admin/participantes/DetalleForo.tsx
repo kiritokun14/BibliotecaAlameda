@@ -247,10 +247,10 @@ export function HiloCompleto() {
                 <Tarjeta icono={iconoLista} titulo="Publicaciones del hilo">
                     <Tabla
                         columnas={[
-                            { titulo: "FECHA", ancho: 130, folio: true, celda: (x: Publicacion) => diaHora(x.fecha) },
-                            { titulo: "AUTOR", ancho: 230, fuerte: true, celda: (x: Publicacion) => x.autor },
-                            { titulo: "PUBLICACIÓN", celda: (x: Publicacion) => (x.folio === p.folio ? <strong>{x.texto} (la que revisas)</strong> : <Link to={`${BASE_FORO}/${x.folio}`} className="cn-enlace">{x.texto}</Link>) },
-                            { titulo: "ESTADO", ancho: 140, celda: (x: Publicacion) => <Chip tono={TONO_PUBLICACION[x.estado]} ancho={130}>{NOMBRE_ESTADO_PUBLICACION[x.estado]}</Chip> },
+                            { titulo: "Fecha", ancho: 130, folio: true, celda: (x: Publicacion) => diaHora(x.fecha) },
+                            { titulo: "Autor", ancho: 230, fuerte: true, celda: (x: Publicacion) => x.autor },
+                            { titulo: "Publicación", celda: (x: Publicacion) => (x.folio === p.folio ? <strong>{x.texto} (la que revisas)</strong> : <Link to={`${BASE_FORO}/${x.folio}`} className="cn-enlace">{x.texto}</Link>) },
+                            { titulo: "Estado", ancho: 140, celda: (x: Publicacion) => <Chip tono={TONO_PUBLICACION[x.estado]} ancho={130}>{NOMBRE_ESTADO_PUBLICACION[x.estado]}</Chip> },
                         ]}
                         filas={hilo}
                         clave={(x) => x.folio}

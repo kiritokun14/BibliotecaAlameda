@@ -91,12 +91,12 @@ function Progreso() {
                     <Tabla
                         columnas={[
                             { titulo: "N.º", ancho: 80, folio: true, celda: (p: Participante) => p.folio },
-                            { titulo: "PERSONA", fuerte: true, celda: (p: Participante) => p.nombre },
-                            { titulo: "META ACTUAL", ancho: 160, celda: (p: Participante) => obtenerMeta(p.meta)?.nombre ?? "Sin meta" },
-                            { titulo: "AVANCE", ancho: 170, celda: (p: Participante) => { const a = avanceDe(p); return <BarraAvance hechas={a.hechas} necesarias={a.necesarias} />; } },
-                            { titulo: "PUNTOS", ancho: 80, celda: (p: Participante) => avanceDe(p).puntos },
-                            { titulo: "RECOMPENSA", ancho: 160, celda: (p: Participante) => { const e = estadoRecompensa(p); return <Chip tono={TONO_RECOMPENSA[e]} ancho={150}>{NOMBRE_ESTADO_RECOMPENSA[e]}</Chip>; } },
-                            { titulo: "ACCIÓN", ancho: 70, celda: (p: Participante) => <Link to={`${BASE_PROGRESO}/${p.folio}`} className="cn-enlace">Ver →<span className="cn-solo-lectores"> {p.nombre}</span></Link> },
+                            { titulo: "Persona", fuerte: true, celda: (p: Participante) => p.nombre },
+                            { titulo: "Meta actual", ancho: 160, celda: (p: Participante) => obtenerMeta(p.meta)?.nombre ?? "Sin meta" },
+                            { titulo: "Avance", ancho: 170, celda: (p: Participante) => { const a = avanceDe(p); return <BarraAvance hechas={a.hechas} necesarias={a.necesarias} />; } },
+                            { titulo: "Puntos", ancho: 80, celda: (p: Participante) => avanceDe(p).puntos },
+                            { titulo: "Recompensa", ancho: 160, celda: (p: Participante) => { const e = estadoRecompensa(p); return <Chip tono={TONO_RECOMPENSA[e]} ancho={150}>{NOMBRE_ESTADO_RECOMPENSA[e]}</Chip>; } },
+                            { titulo: "Acción", ancho: 70, celda: (p: Participante) => <Link to={`${BASE_PROGRESO}/${p.folio}`} className="cn-enlace">Ver<span className="cn-solo-lectores"> {p.nombre}</span></Link> },
                         ]}
                         filas={visibles}
                         clave={(p) => p.folio}
@@ -119,12 +119,12 @@ function Progreso() {
                     {filas.length === 0 ? (texto ? sinResultados("meta") : <EstadoVacio icono={vacioArchivo} titulo="Aún no hay metas" texto="Crea la primera con «Nueva meta»." />) : (
                         <Tabla
                             columnas={[
-                                { titulo: "META", ancho: 190, folio: true, celda: (m: Meta) => m.nombre },
-                                { titulo: "CONDICIÓN", fuerte: true, celda: (m: Meta) => `${m.necesarias} actividades en ${m.plazo}` },
-                                { titulo: "RECOMPENSA", ancho: 200, celda: (m: Meta) => obtenerRecompensa(m.recompensa)?.nombre.replace(/ «.*»/, "") ?? "Sin recompensa" },
-                                { titulo: "PERSONAS", ancho: 90, celda: (m: Meta) => participantes.filter((p) => p.meta === m.id).length },
-                                { titulo: "ESTADO", ancho: 130, celda: (m: Meta) => <Chip tono={m.estado === "activa" ? "verde" : "gris"} ancho={120}>{m.estado === "activa" ? "Activa" : "Borrador"}</Chip> },
-                                { titulo: "ACCIÓN", ancho: 90, celda: (m: Meta) => <Link to={`${BASE_PROGRESO}/metas/${m.id}`} className="cn-enlace">Editar →<span className="cn-solo-lectores"> {m.nombre}</span></Link> },
+                                { titulo: "Meta", ancho: 190, folio: true, celda: (m: Meta) => m.nombre },
+                                { titulo: "Condición", fuerte: true, celda: (m: Meta) => `${m.necesarias} actividades en ${m.plazo}` },
+                                { titulo: "Recompensa", ancho: 200, celda: (m: Meta) => obtenerRecompensa(m.recompensa)?.nombre.replace(/ «.*»/, "") ?? "Sin recompensa" },
+                                { titulo: "Personas", ancho: 90, celda: (m: Meta) => participantes.filter((p) => p.meta === m.id).length },
+                                { titulo: "Estado", ancho: 130, celda: (m: Meta) => <Chip tono={m.estado === "activa" ? "verde" : "gris"} ancho={120}>{m.estado === "activa" ? "Activa" : "Borrador"}</Chip> },
+                                { titulo: "Acción", ancho: 90, celda: (m: Meta) => <Link to={`${BASE_PROGRESO}/metas/${m.id}`} className="cn-enlace">Editar<span className="cn-solo-lectores"> {m.nombre}</span></Link> },
                             ]}
                             filas={filas}
                             clave={(m) => m.id}
@@ -144,12 +144,12 @@ function Progreso() {
                         <>
                             <Tabla
                                 columnas={[
-                                    { titulo: "RECOMPENSA", folio: true, celda: (r: Recompensa) => <Link to={`${BASE_PROGRESO}/recompensas/${r.id}`} className="cn-enlace">{r.nombre}</Link> },
-                                    { titulo: "TIPO", ancho: 130, celda: (r: Recompensa) => <strong>{r.tipo}</strong> },
-                                    { titulo: "EXISTENCIAS", ancho: 110, celda: (r: Recompensa) => (r.existencias === null ? "—" : r.existencias) },
-                                    { titulo: "ENTREGADAS", ancho: 100, celda: (r: Recompensa) => r.entregadas },
-                                    { titulo: "POR ENTREGAR", ancho: 130, celda: (r: Recompensa) => { const n = porEntregarDe(r.id); return <Chip tono={n > 0 ? "dorado" : "verde"} ancho={110}>{n}</Chip>; } },
-                                    { titulo: "ESTADO", ancho: 130, celda: (r: Recompensa) => { const d = disponibilidad(r); return <Chip tono={d.tono} ancho={120}>{d.texto}</Chip>; } },
+                                    { titulo: "Recompensa", folio: true, celda: (r: Recompensa) => <Link to={`${BASE_PROGRESO}/recompensas/${r.id}`} className="cn-enlace">{r.nombre}</Link> },
+                                    { titulo: "Tipo", ancho: 130, celda: (r: Recompensa) => <strong>{r.tipo}</strong> },
+                                    { titulo: "Existencias", ancho: 110, celda: (r: Recompensa) => (r.existencias === null ? "—" : r.existencias) },
+                                    { titulo: "Entregadas", ancho: 100, celda: (r: Recompensa) => r.entregadas },
+                                    { titulo: "Por entregar", ancho: 130, celda: (r: Recompensa) => { const n = porEntregarDe(r.id); return <Chip tono={n > 0 ? "dorado" : "verde"} ancho={110}>{n}</Chip>; } },
+                                    { titulo: "Estado", ancho: 130, celda: (r: Recompensa) => { const d = disponibilidad(r); return <Chip tono={d.tono} ancho={120}>{d.texto}</Chip>; } },
                                 ]}
                                 filas={filas}
                                 clave={(r) => r.id}
@@ -174,12 +174,12 @@ function Progreso() {
                         <>
                             <Tabla
                                 columnas={[
-                                    { titulo: "RECOMPENSA", folio: true, celda: (e: Entrega) => obtenerRecompensa(e.recompensa)?.nombre ?? e.recompensa },
-                                    { titulo: "PERSONA", ancho: 200, fuerte: true, celda: (e: Entrega) => e.persona },
-                                    { titulo: "FECHA", ancho: 110, celda: (e: Entrega) => fechaCorta(e.fecha) },
-                                    { titulo: "ENTREGÓ", ancho: 150, celda: (e: Entrega) => e.entrego },
-                                    { titulo: "AVISO", ancho: 130, celda: (e: Entrega) => <Chip tono={e.aviso === "enviado" ? "dorado" : "verde"} ancho={120}>{e.aviso === "enviado" ? "Enviado" : "Sin contacto"}</Chip> },
-                                    { titulo: "ESTADO", ancho: 130, celda: (e: Entrega) => <Chip tono={e.estado === "entregada" ? "verde" : "dorado"} ancho={120}>{e.estado === "entregada" ? "Entregada" : "Por recoger"}</Chip> },
+                                    { titulo: "Recompensa", folio: true, celda: (e: Entrega) => obtenerRecompensa(e.recompensa)?.nombre ?? e.recompensa },
+                                    { titulo: "Persona", ancho: 200, fuerte: true, celda: (e: Entrega) => e.persona },
+                                    { titulo: "Fecha", ancho: 110, celda: (e: Entrega) => fechaCorta(e.fecha) },
+                                    { titulo: "Entregó", ancho: 150, celda: (e: Entrega) => e.entrego },
+                                    { titulo: "Aviso", ancho: 130, celda: (e: Entrega) => <Chip tono={e.aviso === "enviado" ? "dorado" : "verde"} ancho={120}>{e.aviso === "enviado" ? "Enviado" : "Sin contacto"}</Chip> },
+                                    { titulo: "Estado", ancho: 130, celda: (e: Entrega) => <Chip tono={e.estado === "entregada" ? "verde" : "dorado"} ancho={120}>{e.estado === "entregada" ? "Entregada" : "Por recoger"}</Chip> },
                                 ]}
                                 filas={filas}
                                 clave={(e) => e.id}

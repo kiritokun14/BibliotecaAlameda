@@ -46,7 +46,7 @@ export default function EstadosSistema() {
                             <li key={e.id} className={`estados-catalogo__tarjeta estados-catalogo__tarjeta--${e.tono}`}>
                                 <strong>{e.nombre}</strong>
                                 <p>{e.cuando}</p>
-                                <Link to={`${BASE}/${e.id}`} className="contenidos-tabla__accion">Ver vista previa →</Link>
+                                <Link to={`${BASE}/${e.id}`} className="contenidos-tabla__accion">Ver vista previa</Link>
                             </li>
                         ))}
                     </ul>

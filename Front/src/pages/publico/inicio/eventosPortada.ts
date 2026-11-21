@@ -3,9 +3,10 @@
 import type { ActividadPublica } from "../../../servicios/actividades";
 import { fechaTexto } from "../eventos/datosAgenda";
 import type { TipoActividad } from "./datos";
-import fotoTaller from "../../../assets/comun/fotos/noticia-3.webp";
-import fotoCultural from "../../../assets/comun/fotos/noticia-1.webp";
-import fotoActividad from "../../../assets/comun/fotos/noticia-2.webp";
+import { ahoraTepic, sesionVigente, type Ahora } from "../../../servicios/vigenciaActividades";
+import fotoTaller from "../../../assets/comun/fotos/actividad-taller.webp";
+import fotoCultural from "../../../assets/comun/fotos/actividad-evento.webp";
+import fotoActividad from "../../../assets/comun/fotos/actividad-club.webp";
 
 export type EventoPortada = {
     id: string;
@@ -16,7 +17,7 @@ export type EventoPortada = {
 };
 
 // TODO backend: las actividades todavía no tienen imagen propia (no hay campo en /actividades/publicas).
-// Mientras, cada tipo usa una imagen ilustrativa; cuando exista el campo, se usa el de la actividad.
+// Mientras, cada tipo usa una foto real de la biblioteca; cuando exista el campo, se usa el de la actividad.
 export const IMAGEN_TIPO: Record<TipoActividad, string> = {
     Taller: fotoTaller,
     "Agenda cultural": fotoCultural,
@@ -48,13 +49,14 @@ export function repartirImagenes(eventos: EventoPortada[]): EventoPortada[] {
     });
 }
 
-// Solo las actividades con una fecha de hoy en adelante, de la más próxima a la más lejana
-export function eventosPortada(actividades: ActividadPublica[], hoy: string): EventoPortada[] {
+// Solo las actividades que todavía no terminan (con su próxima sesión vigente), de la más próxima a la más lejana.
+// «hoy» se conserva por compatibilidad; lo que decide es la hora de fin de cada sesión (hora de Tepic).
+export function eventosPortada(actividades: ActividadPublica[], hoy: string, ahora: Ahora = ahoraTepic()): EventoPortada[] {
     return repartirImagenes(actividades
         .map((a) => {
-            const sesion = a.sesiones.find((s) => s.fecha >= hoy);
-            const fecha = sesion?.fecha ?? a.fecha;
-            const inicio = (sesion?.inicio ?? a.inicio ?? "").slice(0, 5);
+            const sesion = sesionVigente(a, ahora);
+            const fecha = sesion?.fecha ?? "";
+            const inicio = (sesion?.inicio ?? "").slice(0, 5);
             return { a, fecha, inicio };
         })
         .filter(({ fecha }) => Boolean(fecha) && fecha >= hoy)

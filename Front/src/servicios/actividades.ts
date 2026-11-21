@@ -26,10 +26,17 @@ export function consultarAgenda(filtros: FiltrosAgenda = {}) {
     for (const [clave, valor] of Object.entries(filtros)) if (valor !== undefined && valor !== '') parametros.set(clave, String(valor));
     const ruta = `/actividades/publicas?${parametros}`;
     // Se recuerda 60 s: volver a Inicio o a Eventos no espera otra vez al servidor
-    return consultasEditor.obtener(ruta, () => pedirApi<ListaAgenda>(ruta), 60000);
+    return consultasEditor.obtener(ruta, () => pedirApi<ListaAgenda>(ruta).then((lista) => {
+        for (const a of lista?.actividades ?? []) actividadesVistas.set(a.folio, a);
+        return lista;
+    }), 60000);
 }
+// Cada actividad que ya llegó (de la agenda o de su detalle), para que el detalle se pinte al instante al abrirlo
+// desde la agenda y se actualice en cuanto responde el servidor (antes mostraba primero un esqueleto con texto suelto).
+const actividadesVistas = new Map<string, ActividadPublica>();
+export const actividadPublicaEnMemoria = (folio: string) => actividadesVistas.get(folio);
 export function consultarActividadPublica(folio: string) {
-    return pedirApi<ActividadPublica>(`/actividades/publicas/${encodeURIComponent(folio)}`);
+    return pedirApi<ActividadPublica>(`/actividades/publicas/${encodeURIComponent(folio)}`).then((a) => { if (a?.folio) actividadesVistas.set(a.folio, a); return a; });
 }
 async function gestion<T>(ruta = '', opciones: RequestInit = {}): Promise<T> {
     const { data, error } = await (await obtenerSupabase()).auth.getSession();

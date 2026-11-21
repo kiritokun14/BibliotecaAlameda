@@ -150,7 +150,7 @@ function Lista({ tipo, base }: { tipo: TipoTramite; base: string }) {
                             <span role="cell"><Chip tono={TONO[estado] ?? 'gris'}>{estados[estado] ?? estado}</Chip></span>
                             <span role="cell">
                                 <Link to={`${base}/${s.id}`} className="contenidos-tabla__accion">
-                                    {pendiente ? 'Atender' : 'Ver'} →<span className="solo-lectores"> {folioCorto(s.id)}</span>
+                                    {pendiente ? 'Atender' : 'Ver'}<span className="solo-lectores"> {folioCorto(s.id)}</span>
                                 </Link>
                             </span>
                         </div>;
@@ -367,7 +367,7 @@ function ResumenBandeja({ tipo, filtro, alElegir }: { tipo: TipoTramite; filtro:
                         <div className="contenidos-resumen__fila">
                             <span className="contenidos-resumen__icono">{t.icono}</span>
                             <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.filtro}
-                                onClick={() => alElegir(filtro === t.filtro ? '' : t.filtro)}>{t.enlace} →</button>
+                                onClick={() => alElegir(filtro === t.filtro ? '' : t.filtro)}>{t.enlace}</button>
                         </div>
                         {conteo ? <p className="contenidos-resumen__cifra">{t.estados.reduce((suma, e) => suma + (conteo.porEstado[e] ?? 0), 0)}</p>
                             : fallo ? <p className="contenidos-resumen__cifra" title="No se pudo contar">—</p> : <Bloque clase="tr-resumen__cifra--cargando" />}

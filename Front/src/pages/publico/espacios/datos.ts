@@ -101,6 +101,20 @@ export const colorDisponibilidad: Record<Disponibilidad, string> = {
 export const pasosEspacio = ["Elige el espacio", "Fecha y datos", "Seguimiento"];
 export const rutasEspacio = (slug?: string) => ["/espacios", slug ? `/espacios/solicitar?espacio=${slug}` : "/espacios", "/mi-perfil/espacios"];
 
+// El espacio de una sesión de actividad viene como texto («Sala de lectura (provisional)»): se busca su zona del mapa
+// por palabras clave. TODO backend: cuando las sesiones traigan el `slug` del espacio, usar zonaPorSlug.
+const sinAcentos = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const claves: [string, string][] = [
+    ["usos multiples", "14"], ["braille", "14"], ["infantil", "06"], ["coliseo", "05"], ["mesanim", "M"],
+    ["vestibulo", "10"], ["sala general", "04"], ["sala de lectura", "04"], ["lectura", "04"],
+];
+export function zonaPorNombreEspacio(nombre: string | null | undefined) {
+    if (!nombre) return undefined;
+    const n = sinAcentos(nombre);
+    const clave = claves.find(([palabra]) => n.includes(palabra));
+    return clave ? zonaPorId(clave[1]) : undefined;
+}
+
 export const plantaDe = (z: Zona) => (z.planta === "alta" ? "Planta alta, sobre el Área infantil" : "Planta baja");
 export const disponibilidadDe = (id: string): Disponibilidad => espaciosEvento[id]?.disponibilidad ?? "no";
 export const zonaPorId = (id: string) => zonas.find((z) => z.id === id);

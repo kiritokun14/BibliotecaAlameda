@@ -44,7 +44,7 @@ function EnviadoContenido() {
                 <div className="cn-acciones">
                     <Link to="/admin/contenidos/demostracion" className={`${clasesBoton("verde")} panel-regresar`}>Volver a Mis contenidos</Link>
                     <Link to={`/admin/contenidos/demostracion/${contenido.folio}/vista-previa`} className={clasesBoton("contorno")}>Ver el contenido enviado</Link>
-                    <Link to="/admin/contenidos/demostracion/nuevo" className={clasesBoton("suave")}>+ Nuevo contenido</Link>
+                    <Link to="/admin/contenidos/demostracion/nuevo" className={clasesBoton("suave")}>Nuevo contenido</Link>
                 </div>
 
                 <PieDatos />

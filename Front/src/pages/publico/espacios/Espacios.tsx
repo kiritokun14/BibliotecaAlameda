@@ -9,7 +9,8 @@ import { listarAreas, listarMisSolicitudes } from "../../../servicios/espacios";
 import MapaBiblioteca from "./MapaBiblioteca";
 import { DetalleEspacio } from "./piezas";
 import { iconoDe } from "./fotos";
-import { estaEnProceso, solicitudSimulada } from "./datosSesion";
+import { estaEnProceso, folioEnProceso, recordarSolicitud, solicitudSimulada } from "./datosSesion";
+import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 import {
     colorDisponibilidad, espaciosEvento, nombresDisponibilidad, pasosEspacio, rutasEspacio, zonaPorId, zonaPorSlug, zonas,
     type Disponibilidad, type Planta,
@@ -49,16 +50,24 @@ export default function Espacios() {
         return () => { vigente = false; };
     }, [sesion]);
 
-    // ¿Hay una solicitud en proceso? Entonces se va a su seguimiento (salvo que se pida otra a propósito)
+    // ¿Hay una solicitud en proceso? Entonces se va a su seguimiento (salvo que se pida otra a propósito). Mientras se
+    // revisa, en lugar del mapa dice «Revisando…»: nunca se muestra el paso 1 con un estado que todavía no llegó.
+    const [revisado, setRevisado] = useState(false);
+    const revisando = sesion === undefined || (!!sesion && !nueva && !revisado);
     useEffect(() => {
         if (!sesion || nueva) return;
         let vigente = true;
-        const buscar = sesionSimulada
-            ? Promise.resolve(solicitudSimulada())
-            : listarMisSolicitudes().then((r) => r.solicitudes.find(estaEnProceso) ?? null).catch(() => null);
-        buscar.then((s) => {
-            if (vigente && s && estaEnProceso(s)) navegar(`/espacios/solicitud/${encodeURIComponent(s.folio)}`, { replace: true });
-        });
+        const ir = (folio: string) => navegar(`/espacios/solicitud/${encodeURIComponent(folio)}`, { replace: true });
+        const ejemplo = sesionSimulada ? solicitudSimulada() : null;
+        const recordado = ejemplo && estaEnProceso(ejemplo) ? ejemplo.folio : sesionSimulada ? null : folioEnProceso();
+        if (recordado) { ir(recordado); return; }
+        const buscar = sesionSimulada ? Promise.resolve(null) : listarMisSolicitudes().then((r) => r.solicitudes.find(estaEnProceso) ?? null);
+        buscar
+            .then((s) => {
+                if (!vigente) return;
+                if (s) { recordarSolicitud(s); ir(s.folio); } else setRevisado(true);
+            })
+            .catch(() => { if (vigente) setRevisado(true); });
         return () => { vigente = false; };
     }, [sesion, nueva, navegar]);
 
@@ -85,6 +94,11 @@ export default function Espacios() {
             <section className="contacto-seccion contacto-seccion--crema cred-pagina esp-pagina">
                 <div className="contacto-pila">
                     <PasosTramite nombres={pasosEspacio} rutas={rutasEspacio(slug)} actual={1} pagina={1} solicitar={!!sesion && !!slug} />
+                    {revisando ? (
+                        <section className="esp-mapa esp-seguimiento__carga" aria-live="polite">
+                            <EsqueletoDetalle texto="Revisando tus solicitudes…" />
+                        </section>
+                    ) : (
                     <div className="contacto-columnas contacto-columnas--nuevo">
                         <section className="esp-mapa" aria-labelledby="titulo-mapa">
                             <div className="esp-mapa__barra">
@@ -139,6 +153,7 @@ export default function Espacios() {
                             )}
                         </div>
                     </div>
+                    )}
                 </div>
             </section>
         </PaginaPublica>

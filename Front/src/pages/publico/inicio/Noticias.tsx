@@ -53,7 +53,6 @@ function Noticias() {
                                 <FotoNoticia key={noticia.id} src={noticia.imagen}
                                     className={i === activa ? "noticia-destacada__foto noticia-destacada__foto--activa" : "noticia-destacada__foto"} />
                             ))}
-                            <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
                             {/* El % hace que al llegar al final vuelva a empezar */}
                             <Flecha lado="anterior" icono={anterior} alPresionar={() => setActiva((activa - 1 + total) % total)} />
                             <Flecha lado="siguiente" icono={siguiente} alPresionar={() => setActiva((activa + 1) % total)} />

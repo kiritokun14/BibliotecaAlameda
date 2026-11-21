@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { agendaEnMemoria, cargarAgendaPublica } from './agendaPublica';
 import { mensajeError } from './api';
+import { ahoraTepic, sesionTerminada } from './vigenciaActividades';
 import type { ActividadAgenda } from '../pages/publico/eventos/datosAgenda';
 
 // Agenda pública de un periodo. Si ya se había cargado en esta pestaña se muestra al instante
@@ -23,11 +24,13 @@ export function useAgendaPublica(desde = '', hasta = '') {
         return () => window.removeEventListener('focus', refrescar);
     }, []);
     const actual = resultado?.clave === clave ? resultado : undefined;
+    const ahora = ahoraTepic();
     // Mientras llega la consulta: lo último que se vio de este periodo (también al volver a la ventana)
     const mismoPeriodo = resultado && resultado.periodo === periodo && !resultado.error;
     const previas = actual ? undefined : (mismoPeriodo ? resultado.actividades : agendaEnMemoria(desde, hasta));
     return {
-        actividades: actual?.actividades ?? previas ?? [],
+        // Lo que ya terminó no se muestra (Aldahir, 21 nov 2026)
+        actividades: (actual?.actividades ?? previas ?? []).filter(a => !sesionTerminada(a, ahora)),
         cargando: !actual && !previas,
         error: actual?.error,
         reintentar: () => reintentar(v => v + 1),

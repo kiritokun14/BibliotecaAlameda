@@ -14,7 +14,8 @@ import { Chip, PasosTramite, RutaCredencial } from "../credencial/piezas";
 import PedirSesion from "../sesion/PedirSesion";
 import { pasosEspacio, rutasEspacio, zonaPorSlug } from "./datos";
 import {
-    cancelarSimulada, estaEnProceso, etapasEspacio, fechaCorta, motivosCancelacion, nombreEstado, pasosSolicitudEspacio, solicitudSimulada, textosEstado,
+    cancelarSimulada, estaEnProceso, etapasEspacio, fechaCorta, motivosCancelacion, nombreEstado, olvidarSolicitud, pasosSolicitudEspacio,
+    recordarSolicitud, solicitudSimulada, textosEstado,
 } from "./datosSesion";
 import { DetalleEspacio } from "./piezas";
 import { fotosDe } from "./fotos";
@@ -54,8 +55,8 @@ export function GestionarSolicitud() {
         const pedir = sesionSimulada
             ? Promise.resolve(solicitudSimulada()).then((s) => { if (!s || s.folio !== folio) throw new Error("No encontramos esta solicitud. Revisa tus solicitudes en Mi perfil."); return s; })
             : obtenerMiSolicitud(folio);
-        pedir.then((solicitud) => { if (vigente) setCarga({ solicitud }); })
-            .catch((e) => { if (vigente) setCarga({ error: e instanceof Error && sesionSimulada ? e.message : mensajeError(e) }); });
+        pedir.then((solicitud) => { recordarSolicitud(solicitud); if (vigente) setCarga({ solicitud }); })
+            .catch((e) => { olvidarSolicitud(folio); if (vigente) setCarga({ error: e instanceof Error && sesionSimulada ? e.message : mensajeError(e) }); });
         return () => { vigente = false; };
     }, [folio, intento, sesion]);
 
@@ -94,8 +95,8 @@ export function GestionarSolicitud() {
                     ) : (
                         <div className="contacto-columnas contacto-columnas--nuevo">
                             <div className="cred-principal">
-                                <Estado key={s.actualizadoEn} solicitud={s} enviada={enviada} alCambiar={(solicitud) => setCarga({ solicitud })} />
-                                {!sesionSimulada && <CorregirSolicitudEspacio key={s.actualizadoEn} solicitud={s} alGuardar={solicitud => setCarga({ solicitud })} />}
+                                <Estado key={s.actualizadoEn} solicitud={s} enviada={enviada} alCambiar={(solicitud) => { recordarSolicitud(solicitud); setCarga({ solicitud }); }} />
+                                {!sesionSimulada && <CorregirSolicitudEspacio key={s.actualizadoEn} solicitud={s} alGuardar={solicitud => { recordarSolicitud(solicitud); setCarga({ solicitud }); }} />}
                                 {!!s.versiones?.length && <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Versiones guardadas"><ol>{s.versiones.map(v => <li key={v.numero}>Versión {v.numero}: {v.motivo}. {new Date(v.fecha).toLocaleString('es-MX')}</li>)}</ol></TarjetaPerfil>}
                                 <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo avanza tu solicitud"
                                     texto={s.estado === "aprobada" ? "Solo falta tu actividad." : "Te avisaremos en tus notificaciones de cada cambio."}>

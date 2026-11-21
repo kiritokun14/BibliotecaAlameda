@@ -48,7 +48,7 @@ export function Resumen({ titulo = "Accesos rápidos", tarjetas }: { titulo?: st
                     <article key={t.titulo} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${t.tono}${t.activa ? " at-tarjeta--activa" : ""}`}>
                         <div className="contenidos-resumen__fila">
                             <span className="contenidos-resumen__icono">{t.icono}</span>
-                            {t.alPresionar && <button type="button" className="contenidos-resumen__enlace" aria-pressed={t.activa} onClick={t.alPresionar}>{t.enlace ?? "Ver"} →</button>}
+                            {t.alPresionar && <button type="button" className="contenidos-resumen__enlace" aria-pressed={t.activa} onClick={t.alPresionar}>{t.enlace ?? "Ver"}</button>}
                         </div>
                         <p className="contenidos-resumen__cifra">{t.cifra}</p>
                         <p className="contenidos-resumen__titulo">{t.titulo}</p>

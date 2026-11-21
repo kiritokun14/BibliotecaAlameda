@@ -24,7 +24,7 @@ if (typeof window !== "undefined" && window.location.pathname === "/") {
 // Página de inicio: cada sección vive en su propio archivo de esta carpeta
 function Inicio() {
     // null = todavía no se sabe (no se muestra nada para que no "parpadee" a quien ya inició sesión);
-    // false = visitante → se muestra "Crea tu cuenta"; true = con sesión → se oculta.
+    // false = visitante → «Crea tu cuenta»; true = con sesión → «Consulta tu credencial».
     const [sesionActiva, setSesionActiva] = useState<boolean | null>(null);
     return (
         <PaginaPublica alCambiarSesion={setSesionActiva}>
@@ -35,7 +35,7 @@ function Inicio() {
             <Cifras />
             <Actividades />
             <Noticias />
-            {sesionActiva === false && <LlamadoCuenta />}
+            {sesionActiva !== null && <LlamadoCuenta sesion={sesionActiva} />}
             <Contacto />
         </PaginaPublica>
     );

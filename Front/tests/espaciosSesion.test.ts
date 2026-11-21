@@ -6,7 +6,7 @@ import {
     aprobarEspacio, cancelarMiSolicitud, corregirMiSolicitud, diaLocal, enviarSolicitud, horarioLocal, proponerEspacio, responderPropuesta,
     type SolicitudEspacioPersonal,
 } from '../src/servicios/espacios';
-import { validarSolicitud, type DatosSolicitud } from '../src/pages/publico/espacios/datosSesion';
+import { folioEnProceso, olvidarSolicitud, recordarSolicitud, validarSolicitud, type DatosSolicitud } from '../src/pages/publico/espacios/datosSesion';
 import { aSolicitudAdmin } from '../src/pages/admin/atencion/espacios/mapeo';
 
 const ok: DatosSolicitud = { tipo: 'uso_espacio', fecha: '2026-11-20', horaInicio: '16:00', horaFin: '18:00', personas: '15', motivo: 'Taller de lectura', institucion: '' };
@@ -78,5 +78,18 @@ describe('Espacios con sesión (T-076)', () => {
             horario: '15:00 a 17:00', contacto: 'ana@correo.mx · 3110000000', resolucion: { mensaje: 'Otro día' },
         });
         expect(aSolicitudAdmin({ ...base, estado: 'cancelada', canceladaEn: '2026-11-10T18:00:00Z' }).resolucion).toMatchObject({ cancelada: true });
+    });
+});
+
+describe('Solicitud en proceso (para volver a su seguimiento)', () => {
+    it('se recuerda mientras está en proceso y se olvida al terminar', () => {
+        if (typeof sessionStorage === 'undefined') return;
+        recordarSolicitud({ folio: 'SE-0007', estado: 'en_revision' });
+        expect(folioEnProceso()).toBe('SE-0007');
+        recordarSolicitud({ folio: 'SE-0007', estado: 'cancelada' });
+        expect(folioEnProceso()).toBeNull();
+        recordarSolicitud({ folio: 'SE-0008', estado: 'requiere_correccion' });
+        olvidarSolicitud('SE-0008');
+        expect(folioEnProceso()).toBeNull();
     });
 });

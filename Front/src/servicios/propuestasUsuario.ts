@@ -1,5 +1,5 @@
 import type { DatosPropuesta } from '../pages/publico/proponer/datos';
-import { enviarPropuesta, type DatosPropuesta as EntradaServidor } from './tramites';
+import { enviarPropuesta, type DatosPropuesta as EntradaServidor, type SolicitudAtencion } from './tramites';
 
 export function fechaHoyTepic(fecha = new Date()) {
     const partes = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mazatlan', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(fecha);
@@ -24,4 +24,9 @@ export function adaptarPropuesta(datos: DatosPropuesta): EntradaServidor {
 
 export function registrarPropuestaUsuario(datos: DatosPropuesta) {
     return enviarPropuesta(adaptarPropuesta(datos));
+}
+
+// T-094: la corrección guarda motivo y versión y vuelve a revisión.
+export function editarPropuestaUsuario(datos: DatosPropuesta, anterior: SolicitudAtencion, motivoCambio: string) {
+    return enviarPropuesta(adaptarPropuesta(datos), anterior, motivoCambio);
 }

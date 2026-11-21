@@ -141,7 +141,7 @@ function GrupoVisitas({ titulo, texto, tono, visitas, accion }: { titulo: string
                         </span>
                         {v.estado === "por-confirmar" && v.responderAntes && <span className="vis-fila__plazo">Responder antes del {fechaCorta(v.responderAntes)}</span>}
                         <Chip tono={TONO[v.estado]}>{NOMBRE_ESTADO_VISITA[v.estado]}</Chip>
-                        <span className="vis-fila__accion">{accion} →</span>
+                        <span className="vis-fila__accion">{accion}</span>
                     </Link>
                 ))}
             </div>
@@ -206,7 +206,7 @@ function UsoEspacios({ texto, espacio }: { texto: string; espacio: string }) {
                             <span className="vis-fila__fecha"><strong>{fechaCorta(a.fecha)}</strong><small>{a.inicio}{a.fin ? `–${a.fin}` : ""}</small></span>
                             <span className="vis-fila__textos"><strong>{a.espacio}</strong><small>{a.nombre} · {a.inscritos} {a.inscritos === 1 ? "inscrita" : "inscritas"}</small></span>
                             <Chip tono="dorado">Por registrar</Chip>
-                            <span className="vis-fila__accion">Registrar →</span>
+                            <span className="vis-fila__accion">Registrar</span>
                         </Link>
                     ))}</div>}
                 {porRegistrar.length > 8 && <p className="contenidos-campo__ayuda">Y {porRegistrar.length - 8} más. Usa la búsqueda o el filtro de espacio para encontrarlas.</p>}

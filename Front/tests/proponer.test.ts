@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { propuestaVacia, validarPropuesta } from '../src/pages/publico/proponer/datos';
+import { propuestaDesdeSolicitud, propuestaVacia, puedeCancelar, puedeEditar, validarPropuesta } from '../src/pages/publico/proponer/datos';
 
 import { adaptarPropuesta, fechaHoyTepic } from '../src/servicios/propuestasUsuario';
 
@@ -28,5 +28,24 @@ describe('Proponer una actividad', () => {
         expect(entrada.abiertaAlPublico).toBe(false);
         expect(entrada.sinFinesDeLucro).toBe(false);
         expect(fechaHoyTepic(new Date('2026-11-10T02:00:00Z'))).toBe('2026-11-09');
+    });
+});
+
+describe('Editar y cancelar una propuesta', () => {
+    it('al editar, el formulario se llena con lo que se envió', () => {
+        const datos = { ...completa, tipo: 'club' as const, fecha: '2026-11-27', horaInicio: '16:00', horaFin: '18:00', espacio: 'Sala de lectura', material: 'Proyector' };
+        const enviada = { ...adaptarPropuesta(datos), id: 'p1', creadaEn: '2026-11-21T10:00:00Z', historial: [] };
+        expect(propuestaDesdeSolicitud(enviada)).toEqual(datos);
+        const sinFecha = { ...adaptarPropuesta(completa), id: 'p2', creadaEn: '2026-11-21T10:00:00Z', historial: [] };
+        const leida = propuestaDesdeSolicitud(sinFecha);
+        expect([leida.fecha, leida.horaInicio, leida.espacio, leida.material]).toEqual(['', '', '', '']);
+    });
+    it('editar solo con cambios pedidos o en borrador (en revisión solo en la vista de ejemplo); cancelar mientras no hay decisión', () => {
+        expect(puedeEditar('requiere_correccion')).toBe(true);
+        expect(puedeEditar('en_revision')).toBe(false);
+        expect(puedeEditar('en_revision', true)).toBe(true);
+        expect(puedeEditar('aprobada', true)).toBe(false);
+        expect(puedeCancelar('en_revision')).toBe(true);
+        expect(puedeCancelar('rechazada')).toBe(false);
     });
 });

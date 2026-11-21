@@ -5,6 +5,7 @@ import iconoPersona from "../../../assets/comun/iconos/persona-verde.svg";
 import tarjetaUsuario from "../../../assets/perfil/tarjeta-usuario.svg";
 import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
 import tarjetaEstrella from "../../../assets/perfil/tarjeta-estrella.svg";
+import solonRetrato from "../../../assets/acerca/solon-retrato.webp";
 
 // Solón Argüello (contenido del diseño de Figma), con el catálogo de piezas: ficha en datos, semblanza que se abre
 // con «Leer biografía completa», trayectoria como tarjetas de lista con fecha y obras con su portada.
@@ -19,9 +20,15 @@ function SolonArguello() {
         <>
             <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="José Solón Argüello Escobar"
                 texto="Poeta, maestro y periodista nicaragüense que vivió y enseñó en Tepic; da nombre a esta biblioteca.">
-                <dl className="perfil-datos">
-                    {fichaCompleta.map((f) => <Dato key={f.dato} etiqueta={f.dato} valor={f.valor} icono={iconoPersona} ancho={2} />)}
-                </dl>
+                <div className="acerca-solon-ficha">
+                    <figure className="historia-foto historia-foto--retrato">
+                        <img decoding="async" src={solonRetrato} alt="Retrato de José Solón Argüello" />
+                        <figcaption>José Solón Argüello Escobar</figcaption>
+                    </figure>
+                    <dl className="perfil-datos">
+                        {fichaCompleta.map((f) => <Dato key={f.dato} etiqueta={f.dato} valor={f.valor} icono={iconoPersona} ancho={2} />)}
+                    </dl>
+                </div>
             </TarjetaPerfil>
 
             <TarjetaPerfil color="dorada" icono={tarjetaLista} titulo="Semblanza">
