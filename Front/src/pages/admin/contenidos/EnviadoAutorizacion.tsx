@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { IconoMas } from "./piezas";
 import "./Contenidos.css";
 
 // Pantalla que aparece después de confirmar "Enviar a autorización".
@@ -99,7 +98,6 @@ function EnviadoAutorizacion() {
                     Ver el contenido enviado
                 </button>
                 <Link to="/admin/contenidos/editor/nuevo" className="contenidos-boton contenidos-boton--suave-azul">
-                    <IconoMas />
                     Nuevo contenido
                 </Link>
             </div>

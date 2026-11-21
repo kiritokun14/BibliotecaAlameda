@@ -127,8 +127,8 @@ function BandejaActividades() {
             {filtradas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filtradas.length} sesiones`} pagina={pag} paginas={paginas} alCambiar={setPaginaTabla} />}
             {(pagina > 0 || datos.length >= 20) && <div className="contenidos-lista__pie"><p>Actividades: grupo {pagina + 1}</p>
                 <div className="contenidos-paginas" role="group" aria-label="Más actividades">
-                    <button type="button" disabled={pagina === 0} onClick={() => { setPagina(x => x - 1); setPaginaTabla(0); }}>‹ Anteriores</button>
-                    <button type="button" disabled={datos.length < 20} onClick={() => { setPagina(x => x + 1); setPaginaTabla(0); }}>Siguientes ›</button>
+                    <button type="button" disabled={pagina === 0} onClick={() => { setPagina(x => x - 1); setPaginaTabla(0); }}>Anteriores</button>
+                    <button type="button" disabled={datos.length < 20} onClick={() => { setPagina(x => x + 1); setPaginaTabla(0); }}>Siguientes</button>
                 </div></div>}
         </SeccionLista>
     </>;

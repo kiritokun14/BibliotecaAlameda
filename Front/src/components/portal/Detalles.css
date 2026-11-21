@@ -298,6 +298,25 @@
   .pagina-publica .seccion-inicio:is(:has(.tarjeta-actividad), :has(.libro), :has(.noticia-destacada)) > .bloque { min-height: calc((100vh - 125px) / 0.855); }
 }
 
+/* 1280 × 720 (pendiente que Aldahir pidió para después, resuelto el 21 nov): con el zoom de 0.9 el bloque mide a 1280 px
+   lo mismo que a 1366, así que la regla vieja de «laptop» (accesos en dos filas y noticias apiladas) ya no hace falta:
+   se conservan las cuatro tarjetas en fila y la destacada junto a la lista, y en pantallas bajas se quita aire. */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .pagina-publica .tarjetas-acceso { grid-template-columns: repeat(4, 1fr); }
+  .pagina-publica .tarjeta-acceso { height: 230px; min-height: 0; }
+  .pagina-publica .noticias { flex-direction: row; }
+  .pagina-publica .noticia-destacada { flex: 0 1 696px; }
+  .pagina-publica .otras-noticias { flex: 1 1 480px; }
+}
+@media (min-width: 1025px) and (max-height: 760px) {
+  .pagina-publica .seccion-inicio:has(.tarjetas-acceso) > .bloque { padding-top: 36px; padding-bottom: 32px; gap: 20px; }
+  .pagina-publica .seccion-inicio .tarjeta-acceso { height: 200px; }
+  .pagina-publica .seccion-inicio:is(:has(.tarjeta-actividad), :has(.noticia-destacada)) > .bloque { padding-top: 40px; padding-bottom: 16px; }
+  .pagina-publica .bloque:has(.tarjeta-actividad) { gap: 8px; }
+  .pagina-publica .seccion-inicio .tarjeta-actividad .tarjeta-actividad__imagen { height: 124px; }
+  .pagina-publica .noticia-destacada__imagen { height: 210px; }
+}
+
 /* ---------- Carruseles del inicio: flechas hacia dentro y libros más grandes ----------
    Las flechas estaban casi en la orilla del bloque; ahora el carrusel deja un margen a cada lado
    y las flechas quedan dentro de él, más cerca del contenido. */
@@ -3440,6 +3459,203 @@
 }
 
 /* ==========================================================================
+   CATÁLOGO (21 nov 2026 · plantilla C, como Credencial; usa `cred-pagina` + `cat-pagina`)
+   Franja compacta con ícono → fila de datos → el catálogo (foto | qué buscar y «Abrir el catálogo») y «Cómo encontrar
+   un libro» (RutaCredencial) | preguntas frecuentes + tarjeta verde. Sin Koha configurado: el vacío importante en guinda.
+   Orden: 1. tarjeta del catálogo · 2. animaciones · 3. plantas.
+   ========================================================================== */
+
+/* 1. Tarjeta del catálogo: blanca con la franja guinda → dorado, foto con aro dorado a la izquierda */
+.pagina-publica .cat-tarjeta {
+  position: relative; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 24px; align-items: center;
+  padding: 22px; overflow: hidden; border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 24px rgba(11, 59, 51, 0.06);
+}
+.pagina-publica .cat-tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .cat-tarjeta__foto { margin: 0; overflow: hidden; border-radius: 18px; box-shadow: 0 0 0 3px #f2e3b8, 0 10px 20px rgba(0, 0, 0, 0.12); }
+.pagina-publica .cat-tarjeta__foto img { display: block; width: 100%; height: 230px; object-fit: cover; transition: transform 0.3s ease; }
+.pagina-publica .cat-tarjeta:hover .cat-tarjeta__foto img { transform: scale(1.03); }
+.pagina-publica .cat-tarjeta__textos { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.pagina-publica .cat-tarjeta h2 { margin: 0; color: #164f44; font-size: 24px; line-height: 30px; }
+.pagina-publica .cat-tarjeta p { margin: 0; color: #4d4d4d; font-size: 14.5px; line-height: 22px; }
+.pagina-publica .cat-tarjeta .cat-tarjeta__subtitulo { margin-top: 4px; color: #6b4f12; font-size: 13px; font-weight: 700; }
+.pagina-publica .cat-tarjeta__chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; padding: 0; list-style: none; }
+.pagina-publica .cat-tarjeta__chips li { padding: 5px 12px; border-radius: 999px; background: #e4efeb; color: #164f44; font-size: 13px; font-weight: 700; }
+.pagina-publica .cat-tarjeta__boton { min-width: 220px; }
+/* El alto que sobra en el área de trabajo lo toma la tarjeta del catálogo (su foto crece); la ruta mide lo suyo */
+.pagina-publica .cat-pagina .cred-principal > .perfil-tarjeta { flex: none; }
+.pagina-publica .cat-pagina .cred-principal > :is(.cat-tarjeta, .cat-vacio) { flex: 1; min-height: 0; }
+.pagina-publica .cat-tarjeta { align-items: stretch; }
+.pagina-publica .cat-tarjeta__foto img { height: 100%; min-height: 230px; }
+.pagina-publica .cat-tarjeta__textos { justify-content: center; }
+.pagina-publica .cat-vacio { min-height: 300px; margin: 0; }
+
+/* 2. Animaciones: la tarjeta entra como las demás de la página */
+.pagina-publica .cat-pagina .cat-tarjeta { animation: detalle-entrada 0.5s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .cat-pagina .cat-tarjeta { animation: none; }
+  .pagina-publica .cat-tarjeta:hover .cat-tarjeta__foto img { transform: none; }
+}
+
+/* 3. Plantas propias del Catálogo (reemplazan las de Credencial): cafeto, jacaranda y trébol */
+@media (min-width: 1025px) {
+  .pagina-publica .cat-pagina::before { background-image: url("../../assets/inicio/adorno-cafeto.svg"); }
+  .pagina-publica .cat-pagina::after { background-image: url("../../assets/inicio/adorno-jacaranda.svg"); }
+  .pagina-publica .cat-pagina .contacto-columnas--nuevo::after { background-image: url("../../assets/inicio/adorno-trebol.svg"); }
+}
+
+/* ==========================================================================
+   CLUB ALAMEDA (21 nov 2026 · plantilla C; antes ClubAlameda.css, ya borrado)
+   Inicio: franja compacta con ícono → temas (EtiquetaPerfil + tarjetas con su color) | normas + tarjeta verde.
+   Conversación: la misma franja y columnas: publicación inicial (TarjetaPerfil dorada), respuestas, responder | normas.
+   Orden: 1. franja · 2. columnas · 3. temas · 4. conversación · 5. campos y ventana del reporte · 6. animaciones · 7. plantas.
+   ========================================================================== */
+
+/* 1. Franja compacta */
+.pagina-publica:has(.club-pagina) .encabezado-publico { gap: 10px; padding: 26px 24px 30px; }
+.pagina-publica:has(.club-pagina) .encabezado-publico h1 { max-width: 900px; font-size: 36px; line-height: 42px; letter-spacing: -0.5px; }
+.pagina-publica:has(.club-pagina) .encabezado-publico p { max-width: 640px; font-size: 15px; line-height: 22px; }
+
+/* 2. Columnas: principal | lateral de 340 px que acompaña al bajar */
+.pagina-publica .club-pagina { position: relative; background: #f7f5f0; }
+.pagina-publica .club-columnas {
+  position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start;
+  width: min(1120px, calc(100% - 48px)); margin: 0 auto; padding: 32px 0 64px;
+}
+.pagina-publica .club-principal { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.pagina-publica .club-principal > .perfil-tarjeta { margin: 0; }
+.pagina-publica .club-lateral { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 14px; }
+.pagina-publica .club-lateral > .perfil-tarjeta { margin: 0; }
+.pagina-publica .club-lateral .contacto-seguimiento { gap: 6px; padding: 18px 20px; }
+.pagina-publica .club-ayuda-tarjeta .contacto-seguimiento__insignia::after {
+  -webkit-mask-image: url("../../assets/inicio/etiqueta-usuarios.svg"); mask-image: url("../../assets/inicio/etiqueta-usuarios.svg");
+}
+.pagina-publica .club-volver { width: 100%; }
+.pagina-publica .club-grupo__encabezado { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #e2ded5; }
+.pagina-publica .club-grupo__encabezado p { margin: 0; color: #6b675e; font-size: 14px; }
+.pagina-publica .club-normas { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .club-normas li { display: flex; align-items: flex-start; gap: 10px; color: #4d4d4d; font-size: 14px; line-height: 20px; }
+.pagina-publica .club-normas li > span {
+  display: grid; flex: none; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: #f6eeda; box-shadow: 0 0 0 2px #e6d194; color: #6b4f12; font-size: 12px; font-weight: 800;
+}
+.pagina-publica .club-paginas { display: flex; align-items: center; justify-content: center; gap: 12px; color: #6b675e; font-size: 14px; }
+
+/* 3. Temas: tarjeta clicable con franja de su color, ícono en círculo claro con aro dorado y «Entrar» con subrayado dorado */
+.pagina-publica .club-temas { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .club-tema {
+  --franja: #1f6b5c; --claro: #e4efeb; --tinta: #164f44;
+  position: relative; display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 18px; align-items: center;
+  padding: 20px 22px; overflow: hidden; border: 1px solid #e2ded5; border-radius: 24px; background: #fff;
+  box-shadow: 0 10px 24px rgba(11, 59, 51, 0.06); color: inherit; text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-publica .club-tema::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--franja); }
+.pagina-publica .club-tema--dorado { --franja: #c9a24a; --claro: #f6eeda; --tinta: #6b4f12; }
+.pagina-publica .club-tema--rosa { --franja: #9b2247; --claro: #f6eaee; --tinta: #9b2247; }
+.pagina-publica .club-tema--gris { --franja: #b9b3a5; --claro: #f1efea; --tinta: #611232; }
+.pagina-publica .club-tema:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(22, 79, 68, 0.14); }
+.pagina-publica .club-tema__icono { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--claro); box-shadow: 0 0 0 3px #fff, 0 0 0 5px #f2e3b8; }
+.pagina-publica .club-tema__icono img { width: 44px; height: 44px; }
+.pagina-publica .club-tema__textos { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pagina-publica .club-tema__numero { align-self: flex-start; padding: 2px 10px; border-radius: 999px; background: var(--claro); color: var(--tinta); font-size: 12px; font-weight: 700; }
+.pagina-publica .club-tema__titulo { color: #161a1d; font-size: 19px; line-height: 25px; font-weight: 700; }
+.pagina-publica .club-tema__descripcion { color: #4d4d4d; font-size: 14px; line-height: 21px; }
+.pagina-publica .club-tema__meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 2px; color: #6b675e; font-size: 12.5px; font-weight: 600; }
+.pagina-publica .club-tema__entrar {
+  color: var(--tinta); font-size: 14px; font-weight: 700; white-space: nowrap;
+  text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease;
+}
+.pagina-publica .club-tema:hover .club-tema__entrar { text-decoration-color: #c9a24a; }
+.pagina-publica .club-tema:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+
+/* 4. Conversación */
+.pagina-publica .club-inicial { display: flex; flex-direction: column; gap: 6px; }
+.pagina-publica .club-inicial strong { color: #164f44; font-size: 16px; }
+.pagina-publica .club-inicial p { margin: 0; color: #161a1d; font-size: 15px; line-height: 23px; white-space: pre-line; }
+.pagina-publica .club-vacio { margin: 0; padding: 18px 20px; border: 1px dashed #d8d2c5; border-radius: 18px; background: #fbfaf7; color: #6b675e; font-size: 14px; }
+.pagina-publica .club-respuesta {
+  display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border: 1px solid #e2ded5; border-radius: 22px; background: #fff;
+  box-shadow: 0 6px 16px rgba(11, 59, 51, 0.05);
+}
+.pagina-publica .club-respuesta--revision { border-style: dashed; border-color: #c9a24a; background: #fffdf7; }
+.pagina-publica .club-respuesta p { margin: 0; }
+.pagina-publica .club-respuesta__participante { display: flex; align-items: center; gap: 12px; }
+.pagina-publica .club-respuesta__nombre { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #164f44; font-size: 15px; font-weight: 700; }
+.pagina-publica .club-respuesta__fecha { color: #6b675e; font-size: 12.5px; }
+.pagina-publica .club-respuesta__texto { color: #161a1d; font-size: 15px; line-height: 23px; overflow-wrap: anywhere; white-space: pre-line; }
+.pagina-publica .club-respuesta__acciones { display: flex; justify-content: flex-end; gap: 8px; }
+.pagina-publica .club-avatar {
+  display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: #e4efeb; box-shadow: 0 0 0 2px #f2e3b8; color: #164f44; font-size: 16px; font-weight: 800;
+}
+.pagina-publica .club-avatar--rosa { background: #f6eaee; color: #9b2247; }
+.pagina-publica .club-avatar--dorado { background: #f6eeda; color: #6b4f12; }
+.pagina-publica .club-avatar--gris { background: #f1efea; color: #611232; }
+.pagina-publica .club-chip { padding: 2px 10px; border-radius: 999px; background: #f6eeda; color: #6b4f12; font-size: 12px; font-weight: 700; }
+.pagina-publica .club-reportada { color: #6b675e; font-size: 13px; font-weight: 700; }
+.pagina-publica .club-nota {
+  display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 10px 12px; border: 1px solid #cfe3dc; border-left: 4px solid #1f6b5c;
+  border-radius: 12px; background: #e4efeb; color: #164f44; font-size: 13px; font-weight: 600; line-height: 19px;
+}
+.pagina-publica .club-nota img { flex: none; width: 18px; height: 18px; }
+.pagina-publica .club-responder {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 22px; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 24px rgba(11, 59, 51, 0.06);
+}
+.pagina-publica .club-responder::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .club-responder h2 { margin: 0; color: #164f44; font-size: 20px; line-height: 26px; }
+.pagina-publica .club-responder > p { margin: 0; color: #4d4d4d; font-size: 14px; line-height: 21px; }
+.pagina-publica .club-responder .perfil-boton--guardar { width: auto; min-width: 200px; }
+
+/* 5. Campos (formulario y ventana del reporte): 44 px, radio 12, aro dorado al enfocar */
+.club-campo { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.club-campo label { color: #161a1d; font-size: 14px; font-weight: 700; }
+.club-campo label span { color: #6b675e; font-size: 13px; font-weight: 400; }
+.club-campo :is(textarea, select) {
+  width: 100%; box-sizing: border-box; border: 1px solid #b9b3a5; border-radius: 12px; background: #fff; color: #161a1d;
+  font-family: inherit; font-size: 15px; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.club-campo textarea { min-height: 120px; padding: 12px 14px; line-height: 22px; resize: vertical; }
+.club-campo textarea.club-campo__corto { min-height: 84px; }
+.club-campo select { height: 44px; padding: 0 12px; }
+.club-campo textarea::placeholder { color: #6b675e; }
+.club-campo [aria-invalid="true"] { border-color: #9b2247; }
+.club-campo :is(textarea, select):focus { border-color: #164f44; outline: none; box-shadow: 0 0 0 3px rgba(230, 209, 148, 0.55); }
+.club-ayuda { margin: 0; color: #6b675e; font-size: 12.5px; line-height: 18px; }
+.club-error { margin: 0; color: #9b2247; font-size: 13px; font-weight: 700; animation: detalle-entrada 0.3s ease-out both; }
+.modal-agenda .modal-agenda__acciones .perfil-boton { flex: 1; }
+
+/* 6. Animaciones: columnas y tarjetas entran subiendo 14 px, una tras otra */
+.pagina-publica .club-principal > *, .pagina-publica .club-lateral > * { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .club-lateral > * { animation-delay: 0.12s; }
+.pagina-publica .club-temas > li { animation: acerca-entra 0.5s ease-out both; }
+.pagina-publica .club-temas > li:nth-child(2) { animation-delay: 0.06s; }
+.pagina-publica .club-temas > li:nth-child(n+3) { animation-delay: 0.12s; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica :is(.club-principal > *, .club-lateral > *, .club-temas > li, .club-error) { animation: none; }
+  .pagina-publica .club-tema:hover { transform: none; }
+}
+
+/* 7. Plantas propias del Club: albahaca arriba a la izquierda y lirios abajo a la derecha */
+@media (min-width: 1025px) {
+  .pagina-publica .club-pagina::before,
+  .pagina-publica .club-pagina::after {
+    content: ""; position: absolute; z-index: 0; pointer-events: none; background-repeat: no-repeat; background-size: contain;
+    filter: drop-shadow(0 8px 12px rgba(11, 59, 51, 0.16)); animation: detalle-mecer 9s ease-in-out infinite alternate;
+  }
+  .pagina-publica .club-pagina::before {
+    top: 30px; left: calc(50% - 560px - 160px); width: 134px; height: 201px;
+    background-image: url("../../assets/inicio/adorno-albahaca.svg"); transform-origin: 50% 100%;
+  }
+  .pagina-publica .club-pagina::after {
+    bottom: 40px; right: calc(50% - 560px - 164px); width: 140px; height: 205px;
+    background-image: url("../../assets/inicio/adorno-lirios.svg"); transform-origin: 50% 100%; animation-delay: -4s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .club-pagina::before, .pagina-publica .club-pagina::after { animation: none; }
+}
+
+/* ==========================================================================
    SERVICIOS Y PROGRAMAS (21 nov 2026 · plantilla C «Página pública de consulta»)
    Franja compacta con ícono → «Servicios» y «Programas» con EtiquetaPerfil (sin contadores) y tarjetas con la foto
    real del servicio, su insignia, tipo en pastilla, título, texto y la acción como enlace con subrayado dorado →
@@ -3572,4 +3788,90 @@
     linear-gradient(166deg, rgba(11, 59, 51, 0.93) 0%, rgba(31, 107, 92, 0.84) 71%),
     var(--foto-franja, none) center / cover no-repeat,
     #0b3b33;
+}
+
+/* ==========================================================================
+   RESPONSIVO · PÁGINAS DE TRÁMITE Y DE CONSULTA (21 nov 2026, pasada responsiva pedida por Aldahir)
+   Credencial, Espacios, Propuestas, Contacto, Catálogo, Servicios, Club Alameda, Historia y Solón Argüello y el
+   bloque «Crea tu cuenta» del inicio. Tableta (≤ 1024 px): una columna, laterales que dejan de acompañar al bajar,
+   rejillas a dos. Teléfono (≤ 600 px): todo a una columna, botones a todo lo ancho, 16 px a los lados.
+   ========================================================================== */
+@media (max-width: 1024px) {
+  /* Plantilla C: la columna lateral pasa debajo y ya no recorta su alto */
+  .pagina-publica .contacto-columnas.contacto-columnas--nuevo,
+  .pagina-publica .esp-pagina .contacto-columnas--nuevo { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cred-pagina { min-height: 0; padding: 20px 24px 32px; }
+  .pagina-publica .cred-pagina .contacto-lateral:has(.preguntas-tarjeta) { contain: none; }
+  .pagina-publica .cred-pagina .contacto-datos .tarjeta-datos__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pagina-publica .cred-pagina .perfil-credencial-estado { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cred-ruta { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; row-gap: 12px; }
+  .pagina-publica :is(.pro-lateral, .club-lateral) { position: static; }
+  /* Espacios: el plano no tiene alto propio (lo da la columna en escritorio); aquí lo da su proporción */
+  .pagina-publica .esp-pagina .contacto-lateral { contain: none; }
+  .pagina-publica .esp-pagina .contacto-lateral > :is(.perfil-tarjeta, .esp-tarjeta) { overflow: visible; }
+  .pagina-publica .esp-mapa__lienzo { flex: none; height: min(62vw, 560px); }
+
+  /* Servicios, Catálogo y Club */
+  .pagina-publica .servicios-rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pagina-publica .servicios-ayuda { flex-wrap: wrap; }
+  .pagina-publica .servicios-ayuda__textos { flex-basis: calc(100% - 80px); }
+  .pagina-publica .servicios-ayuda__botones { width: 100%; }
+  .pagina-publica .servicios-ayuda__botones .perfil-boton { flex: 1; }
+  .pagina-publica .club-columnas { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cat-tarjeta { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cat-tarjeta__foto img { height: 220px; min-height: 0; }
+
+  /* Inicio · «Crea tu cuenta»: texto arriba y la foto con la credencial debajo, centradas */
+  .pagina-publica .bloque.llamado { flex-direction: column; align-items: stretch; gap: 32px; padding: 40px 32px; }
+  .pagina-publica .llamado__visual { flex: none; width: min(420px, 100%); height: 380px; margin: 0 auto; }
+}
+
+@media (max-width: 600px) {
+  .pagina-publica .cred-pagina { padding: 16px 16px 28px; }
+  .pagina-publica .cred-pagina .contacto-datos .tarjeta-datos__lista,
+  .pagina-publica .cred-ruta,
+  .pagina-publica .servicios-rejilla,
+  .pagina-publica .cred-pagina .perfil-datos--tres,
+  .pagina-publica :is(.historia-solon, .acerca-solon-ficha),
+  .pagina-publica .llamado__pasos { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cred-pagina .perfil-acciones { flex-wrap: wrap; }
+  .pagina-publica .cred-pagina .perfil-acciones > .perfil-boton { flex: 1 1 100%; }
+
+  /* Servicios y Club: contenedores a 16 px de la orilla */
+  .pagina-publica :is(.servicios-contenedor, .club-columnas) { width: calc(100% - 32px); padding: 24px 0 40px; }
+  .pagina-publica .servicios-ayuda { padding: 22px 20px; text-align: left; }
+  .pagina-publica .servicios-ayuda__botones { flex-direction: column; }
+  .pagina-publica .servicios-ayuda .perfil-boton { min-width: 0; width: 100%; }
+  .pagina-publica .club-tema { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; padding: 18px; }
+  .pagina-publica .club-tema__icono { width: 56px; height: 56px; }
+  .pagina-publica .club-tema__icono img { width: 34px; height: 34px; }
+  .pagina-publica .club-tema__entrar { grid-column: 2; }
+  .pagina-publica .club-grupo__encabezado { flex-wrap: wrap; }
+  .pagina-publica .club-respuesta__acciones { flex-wrap: wrap; justify-content: stretch; }
+  .pagina-publica .club-respuesta__acciones .perfil-boton { flex: 1; }
+  .pagina-publica .club-responder .perfil-boton--guardar { width: 100%; }
+
+  /* Espacios */
+  .pagina-publica .esp-mapa__barra { flex-wrap: wrap; }
+  .pagina-publica .esp-leyenda { flex-wrap: wrap; }
+  .pagina-publica .esp-mapa__lienzo { height: 92vw; }
+
+  /* Catálogo */
+  .pagina-publica .cat-tarjeta { padding: 16px; }
+  .pagina-publica .cat-tarjeta__boton { width: 100%; }
+
+  /* Historia y Solón Argüello */
+  .pagina-publica .historia-solon .historia-foto img { height: 220px; }
+  .pagina-publica .acerca-solon-ficha .historia-foto { max-width: 220px; }
+
+  /* Inicio · «Crea tu cuenta» */
+  .pagina-publica .bloque.llamado { padding: 32px 20px; }
+  .pagina-publica .llamado__paso { display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 12px; align-items: center; padding: 10px 14px; }
+  .pagina-publica .llamado__numero { grid-row: span 2; margin: 0; }
+  .pagina-publica .llamado__botones { flex-direction: column; width: 100%; }
+  .pagina-publica .llamado__botones > * { width: 100%; }
+  .pagina-publica .llamado__visual { height: 330px; }
+  .pagina-publica .llamado__foto { inset: 0 0 70px 24px; }
+  .pagina-publica .credencial-muestra { width: 280px; }
+  .pagina-publica .credencial-muestra__cuerpo strong { font-size: 19px; }
 }

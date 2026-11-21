@@ -87,6 +87,21 @@ body .panel .panel-contenido .contenidos-filtros:not(.tr-decisiones):not(.ac-mar
 body .panel .panel-contenido .contenidos-filtros:not(.tr-decisiones):not(.ac-marcar) .contenidos-filtro.contenidos-filtro--activo:hover,
 body .panel .panel-contenido .contenidos-filtros .contenidos-filtro.contenidos-filtro--activo { border-color: #164f44; background: #164f44; color: #fff; box-shadow: 0 6px 14px rgba(22, 79, 68, 0.22); }
 
+/* 4b. Las mismas pastillas segmentadas en las demás piezas de filtro (Actividades: ChipsFiltro; Progreso: Filtros cn-filtros) */
+body .panel .panel-contenido :is(.chips-filtro:not(.chips-filtro--oscuro), .cn-filtros) {
+  display: inline-flex; flex: none; flex-wrap: wrap; align-self: flex-start; gap: 4px; padding: 4px; border: 1px solid #e2ded5; border-radius: 22px; background: #fff;
+}
+body .panel .panel-contenido :is(.chips-filtro:not(.chips-filtro--oscuro) .chip-filtro, .cn-filtros .cn-filtro) {
+  height: 34px; border-color: transparent; background: transparent; box-shadow: none;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+body .panel .panel-contenido :is(.chips-filtro:not(.chips-filtro--oscuro) .chip-filtro:not(.chip-filtro--activa), .cn-filtros .cn-filtro:not(.cn-filtro--activo)):hover {
+  background: #e4efeb; color: #164f44; transform: translateY(-2px);
+}
+body .panel .panel-contenido :is(.chips-filtro:not(.chips-filtro--oscuro) .chip-filtro.chip-filtro--activa, .cn-filtros .cn-filtro.cn-filtro--activo) {
+  border-color: #164f44; background: #164f44; color: #fff; box-shadow: 0 6px 14px rgba(22, 79, 68, 0.22);
+}
+
 /* 5. Botones: una sola animación (suben 2 px con sombra y regresan al presionar); foco dorado */
 body .panel :is(.contenidos-boton, .boton-panel, .boton-resumen, .cn-boton, .boton-opcion) { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
 body .panel :is(.contenidos-boton, .boton-panel, .boton-resumen, .cn-boton, .boton-opcion):not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(11, 59, 51, 0.16); }

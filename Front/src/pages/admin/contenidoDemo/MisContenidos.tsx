@@ -58,7 +58,7 @@ function MisContenidos() {
                     etiqueta="Contenidos · Editor"
                     titulo="Editor de contenidos"
                     texto="Redacta noticias, reseñas y textos del portal. Lo que envíes lo autoriza y publica el Administrador."
-                    accion={<Link to="/admin/contenidos/demostracion/nuevo" className={clasesBoton("verde")}>+ Nuevo contenido</Link>}
+                    accion={<Link to="/admin/contenidos/demostracion/nuevo" className={clasesBoton("verde")}>Nuevo contenido</Link>}
                 />
 
                 <BloqueResumen

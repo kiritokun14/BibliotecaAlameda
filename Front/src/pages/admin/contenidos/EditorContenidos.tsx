@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router";
-import { IconoAviso, IconoBuscar, IconoDocumento, IconoLapiz, IconoLista, IconoMas, IconoReloj, Migas } from "./piezas";
+import { IconoAviso, IconoBuscar, IconoDocumento, IconoLapiz, IconoLista, IconoReloj, Migas } from "./piezas";
 import PanelLayout from "../PanelLayout";
 import { mensajeError } from "../../../servicios/api";
 import {
@@ -155,7 +155,6 @@ function EditorContenidos() {
                     <h1>Editor de contenidos</h1>
                 </div>
                 <Link to="/admin/contenidos/editor/nuevo" className="contenidos-boton contenidos-boton--principal">
-                    <IconoMas />
                     Nuevo contenido
                 </Link>
             </div>

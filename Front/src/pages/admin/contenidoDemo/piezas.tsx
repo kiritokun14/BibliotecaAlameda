@@ -224,7 +224,7 @@ export function Paginacion({ pagina, paginas, alCambiar }: { pagina: number; pag
     if (paginas <= 1) return null;
     return (
         <div className="cn-paginacion" role="group" aria-label="Páginas">
-            <button type="button" className="cn-paginacion__paso" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>‹ Anterior</button>
+            <button type="button" className="cn-paginacion__paso" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>Anterior</button>
             {Array.from({ length: paginas }, (_, i) => (
                 <button
                     key={i}
@@ -236,7 +236,7 @@ export function Paginacion({ pagina, paginas, alCambiar }: { pagina: number; pag
                     {i + 1}
                 </button>
             ))}
-            <button type="button" className="cn-paginacion__paso" disabled={pagina >= paginas - 1} onClick={() => alCambiar(pagina + 1)}>Siguiente ›</button>
+            <button type="button" className="cn-paginacion__paso" disabled={pagina >= paginas - 1} onClick={() => alCambiar(pagina + 1)}>Siguiente</button>
         </div>
     );
 }

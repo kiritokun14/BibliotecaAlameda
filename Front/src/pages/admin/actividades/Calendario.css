@@ -14,15 +14,16 @@
 .cal-leyenda__punto--gris { background: #b9b4aa; }
 
 /* ---------- Tarjeta de actividad (semana y día) ---------- */
-.cal-evento { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1px solid #e2ded5; border-left: 4px solid #b9b4aa; border-radius: 10px; background: #fff; color: #161a1d; text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.cal-evento { --tono: #b9b4aa; position: relative; display: flex; flex-direction: column; gap: 2px; padding: 8px 10px 8px 22px; border: 1px solid #e2ded5; border-radius: 10px; background: #fff; color: #161a1d; text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
 .cal-evento:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(22, 79, 68, 0.1); }
 .cal-evento:focus-visible { outline: 3px solid #e6d194; outline-offset: 2px; }
 .cal-evento strong { font-size: 13px; line-height: 1.3; }
 .cal-evento small { color: #4d4d4d; font-size: 12px; }
 .cal-evento__hora { color: #164f44; font-size: 12px; font-weight: 700; }
-.cal-evento--verde { border-left-color: #164f44; background: #f4f9f6; }
-.cal-evento--dorado { border-left-color: #c9a24a; background: #fdf9ef; }
-.cal-evento--guinda { border-left-color: #9b2247; background: #fbf3f6; }
+.cal-evento::before { content: ""; position: absolute; top: 13px; left: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--tono); } /* estado: punto de color (sin franja al costado, 21 nov) */
+.cal-evento--verde { --tono: #164f44; background: #f4f9f6; }
+.cal-evento--dorado { --tono: #c9a24a; background: #fdf9ef; }
+.cal-evento--guinda { --tono: #9b2247; background: #fbf3f6; }
 
 /* ---------- Semana: 7 columnas ---------- */
 .cal-semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }

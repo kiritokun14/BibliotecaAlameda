@@ -132,7 +132,7 @@
 .tr-descripcion :where(p, dl, dd) { margin: 0; }
 .tr-descripcion__subtitulo { margin-top: 4px !important; padding-top: 12px; border-top: 1px dashed var(--solon-borde); color: var(--solon-primario); font-size: 14px; font-weight: 700; }
 .tr-descripcion__datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.tr-descripcion__datos > div { display: flex; flex-direction: column; gap: 3px; padding: 10px 14px; border-left: 3px solid var(--solon-acento); border-radius: 0 10px 10px 0; background: var(--solon-neutro-suave); }
+.tr-descripcion__datos > div { display: flex; flex-direction: column; gap: 3px; padding: 10px 14px; border: 1px solid #efebe2; border-radius: 14px; background: var(--solon-neutro-suave); } /* ficha de dato (sin franja al costado) */
 .tr-descripcion__datos dt { color: var(--solon-gris); font-size: 12px; }
 .tr-descripcion__datos dd { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
 @media (max-width: 1100px) { .tr-descripcion__datos { grid-template-columns: minmax(0, 1fr); } }

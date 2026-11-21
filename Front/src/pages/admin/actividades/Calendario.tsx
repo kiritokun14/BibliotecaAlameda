@@ -69,7 +69,7 @@ function Calendario() {
     const libresHoy = habilitadas.filter((s) => !actividades.some((a) => ocupa(a) && a.espacio === s.nombre && a.fecha === hoy)).length;
     const tipos = [...new Set(actividades.map((a) => a.tipo).filter(Boolean))].sort();
 
-    // Navegación de cada vista: ‹ anterior · periodo · siguiente › · Hoy
+    // Navegación de cada vista: Anterior · periodo · Siguiente · Hoy
     const semana = semanaCompleta(fecha);
     const periodo = {
         mes: nombreMes(d.getFullYear(), d.getMonth()),
@@ -133,9 +133,9 @@ function Calendario() {
                     />
                     {vista !== "salas" && (
                         <div className="cal-navegacion">
-                            <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={() => ir(vista, mover(-1))} aria-label="Periodo anterior">‹</button>
+                            <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={() => ir(vista, mover(-1))} aria-label="Periodo anterior">Anterior</button>
                             <h2 className="cal-navegacion__periodo">{periodo}</h2>
-                            <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={() => ir(vista, mover(1))} aria-label="Periodo siguiente">›</button>
+                            <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={() => ir(vista, mover(1))} aria-label="Periodo siguiente">Siguiente</button>
                             <button type="button" className="contenidos-boton contenidos-boton--oscuro contenidos-boton--chico" onClick={() => ir(vista, hoy)} disabled={fecha === hoy}>Hoy</button>
                             <span className="cal-leyenda" aria-label="Colores por estado">
                                 <span className="cal-leyenda__punto cal-leyenda__punto--verde" />Publicada
