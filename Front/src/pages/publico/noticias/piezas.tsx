@@ -1,18 +1,18 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { imagenFallo, marcarImagenFallida } from "../../../servicios/imagenesFallidas";
 import { Link } from "react-router";
+import "../perfil/Perfil.css"; // base de las piezas del catálogo (vacío, botones)
 import { MESES, fechaLarga, nombreCategoria, paginasVisibles, type Categoria, type Noticia } from "./datos";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
-import volverBlanca from "../../../assets/comun/iconos/volver-blanca.svg";
 import iconoNube from "../../../assets/comun/iconos/estado-nube.svg";
-import iconoReintentar from "../../../assets/comun/iconos/reintentar-blanco.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import flechaVerde from "../../../assets/noticias/flecha-verde.svg";
 import iconoBuscarGrande from "../../../assets/noticias/vacio-buscar.svg";
 import paginaAnterior from "../../../assets/noticias/pagina-anterior.svg";
 import paginaSiguiente from "../../../assets/noticias/pagina-siguiente.svg";
 import mesAnterior from "../../../assets/noticias/mes-anterior.svg";
 import mesSiguiente from "../../../assets/noticias/mes-siguiente.svg";
+import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.webp";
+import { EsqueletoDestacada, EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 
 // ---------- Encabezado verde (igual que EncabezadoPublico, con botón opcional para volver) ----------
 
@@ -21,14 +21,18 @@ export function EncabezadoNoticias({
     etiqueta,
     titulo,
     texto,
+    icono,
+    compacto = false,
 }: {
     regreso?: { texto: string; ruta: string };
     etiqueta: string;
     titulo: ReactNode;
     texto: string;
+    icono?: string; // insignia dorada con el ícono de la sección junto al título
+    compacto?: boolean; // franja verde compacta (pantallas de consulta)
 }) {
     return (
-        <section className={`encabezado-publico encabezado-noticias${regreso ? " encabezado-noticias--con-regreso" : ""}`}>
+        <section className={`encabezado-publico encabezado-noticias${regreso ? " encabezado-noticias--con-regreso" : ""}${compacto ? " encabezado-publico--compacto" : ""}`}>
             <img className="encabezado-publico__circulo encabezado-publico__circulo--1" src={circulo1} alt="" />
             <img className="encabezado-publico__circulo encabezado-publico__circulo--2" src={circulo2} alt="" />
             {regreso && (
@@ -40,7 +44,12 @@ export function EncabezadoNoticias({
                 <span className="punto-dorado" />
                 {etiqueta}
             </span>
-            <h1>{titulo}</h1>
+            {icono ? (
+                <div className="encabezado-publico__titular">
+                    <span className="encabezado-publico__insignia" style={{ "--icono": `url("${icono}")` } as CSSProperties} aria-hidden="true" />
+                    <h1>{titulo}</h1>
+                </div>
+            ) : <h1>{titulo}</h1>}
             <p>{texto}</p>
         </section>
     );
@@ -49,7 +58,6 @@ export function EncabezadoNoticias({
 export function BotonRegreso({ texto, ruta }: { texto: string; ruta: string }) {
     return (
         <Link to={ruta} className="boton-regreso-noticias">
-            <img src={volverBlanca} alt="" />
             {texto}
         </Link>
     );
@@ -65,7 +73,7 @@ export function PuntoCategoria({ categoria, claro = false }: { categoria: Catego
     return (
         <span className={`punto-categoria punto-categoria--${categoria}${claro ? " punto-categoria--claro" : ""}`}>
             <span className="punto-categoria__punto" aria-hidden="true" />
-            {nombreCategoria(categoria, "singular").toUpperCase()}
+            {nombreCategoria(categoria, "singular")}
         </span>
     );
 }
@@ -76,6 +84,20 @@ export function ChipCategoria({ activa, alPresionar, children }: { activa: boole
         <button type="button" className={`chip-noticias${activa ? " chip-noticias--activo" : ""}`} aria-pressed={activa} onClick={alPresionar}>
             {children}
         </button>
+    );
+}
+
+// ---------- Imagen de una noticia ----------
+// Si la noticia no tiene imagen o no carga, se muestra una foto de la biblioteca marcada como ilustrativa
+// (antes quedaba en blanco o con el ícono de imagen rota).
+export function ImagenNoticia({ noticia, perezosa = true }: { noticia: Noticia; ilustrativa?: boolean; perezosa?: boolean }) {
+    const [fallo, setFallo] = useState(() => imagenFallo(noticia.imagen));
+    const propia = Boolean(noticia.imagen) && !fallo;
+    return (
+        <>
+            <img loading={perezosa ? "lazy" : "eager"} decoding="async" src={propia ? noticia.imagen : fotoRespaldo} alt={propia ? noticia.textoAlternativo ?? "" : ""}
+                onError={() => { marcarImagenFallida(noticia.imagen); setFallo(true); }} />
+        </>
     );
 }
 
@@ -93,7 +115,7 @@ export function TarjetaChica({ noticia, origen }: { noticia: Noticia; origen: Or
     return (
         <Link to={rutaDetalle(noticia)} state={origen} className="tarjeta-noticia tarjeta-noticia--chica">
             <span className="tarjeta-noticia__imagen">
-                <img src={noticia.imagen || undefined} alt={noticia.textoAlternativo ?? ""} />
+                <ImagenNoticia noticia={noticia} />
             </span>
             <span className="tarjeta-noticia__textos">
                 <PuntoCategoria categoria={noticia.categoria} />
@@ -109,8 +131,7 @@ export function TarjetaArchivo({ noticia, vista, origen }: { noticia: Noticia; v
     return (
         <Link to={rutaDetalle(noticia)} state={origen} className={`tarjeta-noticia tarjeta-noticia--${vista}`}>
             <span className="tarjeta-noticia__imagen">
-                <img src={noticia.imagen || undefined} alt={noticia.textoAlternativo ?? ""} />
-                <span className="tarjeta-noticia__ilustrativa">Imagen ilustrativa</span>
+                <ImagenNoticia noticia={noticia} ilustrativa />
             </span>
             <span className="tarjeta-noticia__textos">
                 <span className="tarjeta-noticia__meta">
@@ -121,7 +142,6 @@ export function TarjetaArchivo({ noticia, vista, origen }: { noticia: Noticia; v
                 <span className="tarjeta-noticia__resumen">{noticia.resumen}</span>
                 <span className="tarjeta-noticia__leer">
                     Leer más
-                    <img src={flechaVerde} alt="" />
                 </span>
             </span>
         </Link>
@@ -130,12 +150,13 @@ export function TarjetaArchivo({ noticia, vista, origen }: { noticia: Noticia; v
 
 // ---------- Estados: cargando, sin resultados, error y no disponible ----------
 
-export function CargandoNoticias() {
+// Esqueleto: la forma de la noticia destacada y de las tarjetas mientras llegan
+export function CargandoNoticias({ destacada = true }: { destacada?: boolean }) {
     return (
-        <p className="noticias-cargando" role="status">
-            <span className="noticias-cargando__punto" aria-hidden="true" />
-            Cargando noticias…
-        </p>
+        <>
+            {destacada && <EsqueletoDestacada texto="Cargando noticias…" />}
+            <EsqueletoTarjetas cantidad={3} texto={destacada ? "" : "Cargando noticias…"} />
+        </>
     );
 }
 
@@ -167,45 +188,28 @@ export function EstadoNoticias({
     }[tipo];
     const esError = tipo === "error";
 
+    // Vacío importante del catálogo (AGENTS.md): luces, franja, insignia grande, mensaje, sugerencias y botones
     return (
-        <div className="estado-noticias" role={esError ? "alert" : "status"}>
-            <span className="estado-noticias__anillo">
-                <span className={`estado-noticias__icono${esError ? " estado-noticias__icono--error" : ""}`}>
-                    <img src={esError ? iconoNube : iconoBuscarGrande} alt="" />
-                </span>
-            </span>
-            <p className="estado-noticias__etiqueta">{contenido.etiqueta}</p>
-            <h2>{contenido.titulo}</h2>
-            <p className="estado-noticias__texto">{contenido.texto}</p>
-            <div className="estado-noticias__botones">
-                {tipo === "vacio" && (
-                    <button type="button" className="boton-noticias boton-noticias--verde" onClick={alAccionar}>
-                        Quitar filtros
-                        <img src={iconoReintentar} alt="" />
-                    </button>
-                )}
-                {tipo === "error" && (
-                    <>
-                        <button type="button" className="boton-noticias boton-noticias--verde" onClick={alAccionar}>
-                            Intentar de nuevo
-                            <img src={iconoReintentar} alt="" />
-                        </button>
-                        <Link to="/contacto?tipo=sugerencia" className="boton-noticias boton-noticias--contorno">
-                            Ir al Buzón de sugerencias
-                        </Link>
-                    </>
-                )}
-                {tipo === "no-disponible" && (
-                    <>
-                        <Link to="/noticias/todas" className="boton-noticias boton-noticias--verde">
-                            Ver todas las noticias
-                            <img src={flechaBlanca} alt="" />
-                        </Link>
-                        <Link to="/" className="boton-noticias boton-noticias--contorno">
-                            Ir al inicio
-                        </Link>
-                    </>
-                )}
+        <div className={`perfil-vacio perfil-vacio--eventos estado-noticias2${esError ? " estado-noticias2--error" : ""}`}
+            role={esError ? "alert" : "status"}
+            style={{ "--icono-seccion": `url("${esError ? iconoNube : iconoBuscarGrande}")` } as CSSProperties}>
+            <span className="perfil-vacio__insignia" aria-hidden="true" />
+            <p><strong>{contenido.titulo}</strong>{contenido.texto}</p>
+            {tipo === "vacio" && (
+                <ul className="perfil-vacio__sugerencias" aria-label="Sugerencias">
+                    <li>Usa una palabra más corta</li><li>Prueba otra categoría</li><li>Quita la fecha</li>
+                </ul>
+            )}
+            <div className="perfil-acciones perfil-acciones--centro">
+                {tipo === "vacio" && <button type="button" className="perfil-boton" onClick={alAccionar}>Quitar filtros</button>}
+                {tipo === "error" && <>
+                    <button type="button" className="perfil-boton" onClick={alAccionar}>Intentar de nuevo</button>
+                    <Link to="/contacto?tipo=sugerencia" className="perfil-boton perfil-boton--contorno">Ir al Buzón de sugerencias</Link>
+                </>}
+                {tipo === "no-disponible" && <>
+                    <Link to="/noticias/todas" className="perfil-boton">Ver todas las noticias</Link>
+                    <Link to="/" className="perfil-boton perfil-boton--contorno">Ir al inicio</Link>
+                </>}
             </div>
         </div>
     );

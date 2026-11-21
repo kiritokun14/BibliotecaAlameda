@@ -27,6 +27,7 @@ async function pedir<T>(ruta: string, cuerpo?: unknown): Promise<T> {
         ...(cuerpo === undefined ? {} : { method: 'POST', body: JSON.stringify(cuerpo) }) });
     if (cuerpo === undefined) return consultasEditor.obtener(`${token}:${ruta}`, ejecutar);
     consultasEditor.limpiar();
+    memoriaPublicados.clear(); // una decisión del personal cambia lo publicado
     try { return await ejecutar(); } finally { consultasEditor.limpiar(); }
 }
 // limite: de 1 a 50 (el backend no acepta más); la página se cuenta con ese mismo tamaño
@@ -51,16 +52,33 @@ export interface ContenidoPublico {
     folio: string; slug: string; tipo: string; titulo: string; resumen: string;
     cuerpo: string; datos: Record<string, unknown>; publicadoEn: string;
 }
+// Última respuesta de cada consulta pública, solo en memoria de esta pestaña (se pierde al recargar).
+// Sirve para pintar al instante al volver a una página; la consulta se hace de todos modos y la reemplaza,
+// así que retirar una publicación se sigue reflejando en cuanto llega la respuesta nueva.
+const memoriaPublicados = new Map<string, ContenidoPublico[]>();
+
+// Lo último que se recibió para ese tipo (o lo que se puede sacar de la consulta sin tipo); undefined si nunca se pidió
+export function publicadosEnMemoria(tipo?: string): ContenidoPublico[] | undefined {
+    const propio = memoriaPublicados.get(tipo ?? '');
+    if (propio || !tipo) return propio;
+    return memoriaPublicados.get('')?.filter((c) => c.tipo === tipo);
+}
+
+// Adelanta la consulta (por ejemplo, al pasar el mouse por un enlace del menú)
+export function precargarPublicados(tipo?: string) {
+    listarPublicados(tipo).catch(() => undefined);
+}
+
 export async function listarPublicados(tipo?: string): Promise<ContenidoPublico[]> {
     const filas: ContenidoPublico[] = [];
-    // Sin caché de resultados: retirar una publicación se refleja al volver a consultar.
     for (let desplazamiento = 0; desplazamiento <= 100000; desplazamiento += 50) {
         const p = new URLSearchParams({ limite: '50', desplazamiento: String(desplazamiento) });
         if (tipo) p.set('tipo', tipo);
         const lote = await consultasEditor.obtener(`publicos:${p}`, () => pedirApi<ContenidoPublico[]>(`/contenidos/publicos?${p}`));
         filas.push(...lote);
-        if (lote.length < 50) return filas;
+        if (lote.length < 50) break;
     }
+    memoriaPublicados.set(tipo ?? '', filas);
     return filas;
 }
 export async function obtenerPublicado(identificador: string, tipo?: string): Promise<ContenidoPublico | null> {

@@ -42,7 +42,7 @@ export function FichaInscripcion() {
                 <EncabezadoTarjeta volver={{ texto: "Volver a Inscripciones y cupos", ruta }} etiqueta="Inscripción" titulo={i.persona} texto={`${a.nombre} · ${a.folio}`} />
                 <Resultado tono={banda.tono} icono={banda.icono} titulo={banda.titulo} linea={`Se ${i.estado === "espera" ? "anotó" : "inscribió"} el ${fechaCorta(i.fecha)} ${i.via.startsWith("Portal") ? "desde el portal" : "con el personal"}`} chip={<Chip tono={TONO_INSCRIPCION[i.estado]}>{NOMBRE_ESTADO_INSCRIPCION[i.estado]}</Chip>} />
                 <Tarjeta icono={iconoLista} titulo="Datos de la inscripción">
-                    <Datos filas={[["Persona", i.persona], ["Contacto", i.contacto], ["Acompañantes", i.acompanantes ? `${i.acompanantes} (ejemplo)` : "Sin acompañantes"], ["Cómo se inscribió", i.via], ["Notas", i.notas || "Sin notas"]]} />
+                    <Datos filas={[["Persona", i.persona], ["Contacto", i.contacto], ["Acompañantes", i.acompanantes ? `${i.acompanantes}` : "Sin acompañantes"], ["Cómo se inscribió", i.via], ["Notas", i.notas || "Sin notas"]]} />
                 </Tarjeta>
                 <div className="cn-acciones">
                     {i.estado !== "cancelada" && <button type="button" className={clasesBoton("contorno-guinda")} onClick={() => setCancelando(true)}>Cancelar inscripción</button>}
@@ -137,7 +137,7 @@ export function ResultadoInscripcion({ tipo }: { tipo: "inscrita" | "ofrecido" |
     const enEspera = i?.estado === "espera";
     const datos = {
         inscrita: { titulo: enEspera ? "Persona en lista de espera" : "Persona inscrita", texto: enEspera ? "Se le avisará si se libera un lugar." : "Ya ocupa un lugar en la actividad.", tono: enEspera ? ("dorado" as const) : ("verde" as const), icono: enEspera ? iconoReloj : iconoCheck, nombre: i?.persona ?? "", linea: `${a.nombre} · ${fechaCorta(a.fecha)}` },
-        ofrecido: { titulo: "Lugar ofrecido", texto: "La persona tiene 24 horas para confirmar.", tono: "dorado" as const, icono: iconoReloj, nombre: i?.persona ?? "", linea: `${a.nombre} · se le avisó por correo (ejemplo)` },
+        ofrecido: { titulo: "Lugar ofrecido", texto: "La persona tiene 24 horas para confirmar.", tono: "dorado" as const, icono: iconoReloj, nombre: i?.persona ?? "", linea: `${a.nombre} · se le avisó por correo` },
         cancelada: { titulo: "Inscripción cancelada", texto: "El lugar quedó libre para la lista de espera.", tono: "guinda" as const, icono: iconoX, nombre: i?.persona ?? "", linea: `${a.nombre} · ${fechaCorta(a.fecha)}` },
         cupo: { titulo: "Cupo ajustado", texto: "El portal ya muestra los lugares disponibles.", tono: "verde" as const, icono: iconoCheck, nombre: a.nombre, linea: `Nuevo cupo: ${a.cupo} · ${lugaresLibres(a)} lugares libres` },
     }[tipo];

@@ -6,7 +6,6 @@ import Aviso from "../../../components/acceso/Aviso";
 import { Campo } from "../../../components/acceso/Campo";
 import { enviarEnlaceRecuperacion } from "../../../servicios/auth";
 import { esCorreoValido, MENSAJE_CORREO } from "../../../servicios/validaciones";
-import iconoFlechaDer from "../../../assets/comun/iconos/flecha-derecha.svg";
 
 // Se muestra cuando abren un enlace de recuperación que ya venció o ya se usó
 function EnlaceVencido() {
@@ -32,9 +31,7 @@ function EnlaceVencido() {
 
     return (
         <AccesoLayout
-            etiqueta="RECUPERAR ACCESO"
             titulo={<>Solicita un <span>nuevo</span> enlace</>}
-            texto="Por seguridad, los enlaces duran un tiempo limitado y se usan una sola vez."
         >
             <form className="tarjeta" onSubmit={enviar} noValidate>
                 <div className="tarjeta__encabezado">
@@ -52,11 +49,10 @@ function EnlaceVencido() {
 
                 <button type="submit" className="boton-principal" disabled={enviando}>
                     {enviando ? "Enviando…" : "Enviar nuevo enlace"}
-                    <img src={iconoFlechaDer} alt="" />
                 </button>
 
-                <Link to="/iniciar-sesion" className="enlace enlace--suelto">
-                    ← Volver a iniciar sesión
+                <Link to="/iniciar-sesion" className="enlace-volver">
+                    Volver a iniciar sesión
                 </Link>
             </form>
         </AccesoLayout>

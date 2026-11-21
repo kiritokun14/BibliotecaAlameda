@@ -21,7 +21,7 @@ export function estadisticas(seccion: SeccionEstadistica, periodo: Periodo): Est
     const miles = (v: number) => n(v).toLocaleString("es-MX");
     if (seccion === "actividades") return {
         indicadores: [
-            { titulo: "Actividades realizadas", valor: miles(18), detalle: "En el periodo (ejemplo)" },
+            { titulo: "Actividades realizadas", valor: miles(18), detalle: "En el periodo" },
             { titulo: "Personas inscritas", valor: miles(412), detalle: "Con y sin cuenta" },
             { titulo: "Asistencia promedio", valor: "84%", detalle: "De las inscritas" },
             { titulo: "Canceladas", valor: miles(2), detalle: "Con aviso" },
@@ -33,7 +33,7 @@ export function estadisticas(seccion: SeccionEstadistica, periodo: Periodo): Est
         indicadores: [
             { titulo: "Publicados", valor: miles(9), detalle: "Noticias, reseñas y textos" },
             { titulo: "Lecturas de contenidos", valor: miles(2380), detalle: "Visitas a noticias y reseñas" },
-            { titulo: "Por autorizar", valor: "3", detalle: "Hoy (ejemplo)" },
+            { titulo: "Por autorizar", valor: "3", detalle: "Hoy" },
             { titulo: "Tiempo de revisión", valor: "1.4 días", detalle: "Promedio" },
         ],
         tituloSerie: "Lecturas por semana", serie: [["Sem 1", 420], ["Sem 2", 510], ["Sem 3", 630], ["Sem 4", 480], ["Sem 5", 340]].map(([e, v]) => ({ etiqueta: String(e), valor: n(Number(v)) })),
@@ -41,7 +41,7 @@ export function estadisticas(seccion: SeccionEstadistica, periodo: Periodo): Est
     };
     return {
         indicadores: [
-            { titulo: "Visitas", valor: miles(4820), detalle: "+8% vs. periodo anterior (ejemplo)" },
+            { titulo: "Visitas", valor: miles(4820), detalle: "+8% vs. periodo anterior" },
             { titulo: "Personas distintas", valor: miles(1310), detalle: "Con y sin cuenta" },
             { titulo: "Cuentas activas", valor: miles(214), detalle: "Total" },
             { titulo: "Tiempo promedio", valor: "3:20", detalle: "Minutos" },
@@ -61,13 +61,13 @@ export type Movimiento = { folio: string; fecha: string; persona: string; modulo
 export const MODULOS: ModuloBitacora[] = ["Contenidos", "Actividades", "Participantes", "Atención", "Administración"];
 
 export const MOVIMIENTOS: Movimiento[] = [
-    { folio: "BT-1482", fecha: "2026-10-28T09:30", persona: "Administrador (ejemplo)", modulo: "Administración", accion: "Descargó evidencia EV-0061", tipo: "Sensible", detalle: "Descarga de una lista firmada del Club de lectura." },
-    { folio: "BT-1481", fecha: "2026-10-28T09:12", persona: "Personal (ejemplo)", modulo: "Actividades", accion: "Cerró lista de asistencia AC-0108", tipo: "Normal", detalle: "18 presentes de 20 inscritos." },
-    { folio: "BT-1480", fecha: "2026-10-27T18:40", persona: "Administrador (ejemplo)", modulo: "Administración", accion: "Cambió permisos del rol «Editor»", tipo: "Sensible", detalle: "Se agregó «Revisar y publicar contenidos»." },
-    { folio: "BT-1479", fecha: "2026-10-27T16:05", persona: "Personal (ejemplo)", modulo: "Contenidos", accion: "Publicó reseña CN-0030", tipo: "Normal", detalle: "Autorización: oficio por confirmar." },
-    { folio: "BT-1478", fecha: "2026-10-27T11:20", persona: "Personal (ejemplo)", modulo: "Atención", accion: "Aprobó credencial CRED-0410", tipo: "Normal", detalle: "Cotejo completo." },
-    { folio: "BT-1477", fecha: "2026-10-26T13:02", persona: "Personal (ejemplo)", modulo: "Participantes", accion: "Retiró publicación FO-0230", tipo: "Normal", detalle: "Norma 2: respeto entre participantes." },
-    { folio: "BT-1476", fecha: "2026-10-25T10:44", persona: "Administrador (ejemplo)", modulo: "Atención", accion: "Consultó datos sensibles de C-0214", tipo: "Sensible", detalle: "Motivo: la persona pidió ayuda en mostrador." },
+    { folio: "BT-1482", fecha: "2026-10-28T09:30", persona: "Administrador", modulo: "Administración", accion: "Descargó evidencia EV-0061", tipo: "Sensible", detalle: "Descarga de una lista firmada del Club de lectura." },
+    { folio: "BT-1481", fecha: "2026-10-28T09:12", persona: "Personal", modulo: "Actividades", accion: "Cerró lista de asistencia AC-0108", tipo: "Normal", detalle: "18 presentes de 20 inscritos." },
+    { folio: "BT-1480", fecha: "2026-10-27T18:40", persona: "Administrador", modulo: "Administración", accion: "Cambió permisos del rol «Editor»", tipo: "Sensible", detalle: "Se agregó «Revisar y publicar contenidos»." },
+    { folio: "BT-1479", fecha: "2026-10-27T16:05", persona: "Personal", modulo: "Contenidos", accion: "Publicó reseña CN-0030", tipo: "Normal", detalle: "Autorización: oficio por confirmar." },
+    { folio: "BT-1478", fecha: "2026-10-27T11:20", persona: "Personal", modulo: "Atención", accion: "Aprobó credencial CRED-0410", tipo: "Normal", detalle: "Cotejo completo." },
+    { folio: "BT-1477", fecha: "2026-10-26T13:02", persona: "Personal", modulo: "Participantes", accion: "Retiró publicación FO-0230", tipo: "Normal", detalle: "Norma 2: respeto entre participantes." },
+    { folio: "BT-1476", fecha: "2026-10-25T10:44", persona: "Administrador", modulo: "Atención", accion: "Consultó datos sensibles de C-0214", tipo: "Sensible", detalle: "Motivo: la persona pidió ayuda en mostrador." },
 ];
 
 export type FiltrosBitacora = { modulo: ModuloBitacora | "todos"; texto: string; tipo: "todos" | "Normal" | "Sensible"; desde: string; hasta: string };

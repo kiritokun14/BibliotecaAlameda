@@ -19,7 +19,6 @@ import {
     resolverDuplicado, type DatosAltaAsistida, type ResultadoAlta, type SolicitudAbierta,
 } from "../../servicios/altaAsistida";
 import { calcularEdad, esCorreoValido, tieneDigitos, MENSAJE_CORREO, MENSAJE_OBLIGATORIO } from "../../servicios/validaciones";
-import iconoFlechaDer from "../../assets/comun/iconos/flecha-derecha.svg";
 
 const pasos = [
     "Captura los datos con la persona",
@@ -243,8 +242,7 @@ function AltaAsistida() {
     // Sin sesión o sin permiso: los mismos avisos de antes (no se muestra el panel)
     if (acceso !== "permitido") {
         return (
-            <AccesoLayout etiqueta="PERSONAL DE LA BIBLIOTECA" titulo={<>Alta <span>asistida</span></>}
-                texto="Registro de cuentas con apoyo del personal de Servicios Digitales.">
+            <AccesoLayout titulo={<>Alta <span>asistida</span></>}>
                 <div className="tarjeta">
                     {acceso === "error-servicio" ? (
                         <Aviso tipo="error" titulo="No se pudo comprobar el acceso">{errorServidor}</Aviso>
@@ -259,7 +257,6 @@ function AltaAsistida() {
                     )}
                     <Link to={acceso === "error-servicio" ? "/" : "/iniciar-sesion"} className="boton-principal" onClick={() => { if (acceso !== "error-servicio") void cerrarSesion().catch(() => undefined); }}>
                         {acceso === "error-servicio" ? "Volver al inicio" : acceso === "sin-sesion" ? "Iniciar sesión" : "Entrar con otra cuenta"}
-                        <img src={iconoFlechaDer} alt="" />
                     </Link>
                 </div>
             </AccesoLayout>
@@ -276,7 +273,6 @@ function AltaAsistida() {
 
                 <div className="contenidos-encabezado">
                     <div>
-                        <p className="contenidos-etiqueta">Atención · Altas asistidas</p>
                         <h1>Altas asistidas</h1>
                         <p className="contenidos-encabezado__texto">Registra la cuenta de una persona que pide apoyo en la biblioteca. Nunca escribas ni conozcas su contraseña.</p>
                     </div>

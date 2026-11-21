@@ -8,6 +8,7 @@ import {
 } from "../../../servicios/contenidos";
 import "./Contenidos.css";
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 // Pantalla de inicio del Editor de contenidos (HU-11 / T-054).
 // Las cifras y la lista vienen del backend (/contenidos/editor) y solo incluyen lo propio.
 
@@ -151,7 +152,6 @@ function EditorContenidos() {
 
             <div className="contenidos-encabezado">
                 <div>
-                    <p className="contenidos-etiqueta">Contenidos · Editor</p>
                     <h1>Editor de contenidos</h1>
                 </div>
                 <Link to="/admin/contenidos/editor/nuevo" className="contenidos-boton contenidos-boton--principal">
@@ -230,7 +230,7 @@ function EditorContenidos() {
                 </div>
 
                 <div className="contenidos-tabla" tabIndex={0} role="table" aria-label="Mis contenidos" aria-busy={cargando}>
-                    {cargando && <p role="status" className="contenidos-cargando">Cargando contenidos…</p>}
+                    {cargando && <EsqueletoLista texto="Cargando contenidos…" />}
                     <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
                         <span role="columnheader">Folio</span>
                         <span role="columnheader">Título</span>

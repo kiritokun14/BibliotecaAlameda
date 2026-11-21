@@ -51,6 +51,26 @@ describe('Acceso a las pantallas de atención', () => {
         expect(permisoGlobal(atencion, capacidadPanel('/admin/actividades/propuestas')!)).toBe(false);
         expect(permisoGlobal(atencion, capacidadPanel('/admin/actividades/evidencias')!)).toBe(false);
     });
+    it.each([
+        ['/admin/resumen', 'panel_general'],
+        ['/admin/notificaciones', 'panel_general'],
+        ['/admin/administracion/cuentas', 'administrar_cuentas'],
+        ['/admin/administracion/fuentes', 'gestionar_fuentes_asistente'],
+        ['/admin/administracion/estadisticas', 'consultar_estadisticas'],
+        ['/admin/administracion/bitacora', 'administrar_cuentas'],
+        ['/admin/administracion/configuracion', 'administrar_cuentas'],
+        ['/admin/administracion/estados', 'administrar_cuentas'],
+        ['/admin/participantes/progreso', 'registrar_recompensas'],
+    ] as const)('asigna la capacidad correcta a %s', (ruta, capacidad) => {
+        expect(capacidadPanel(ruta)).toBe(capacidad);
+    });
+    it('recompensas y moderación habilitan el panel por sí mismas', () => {
+        for (const capacidad of ['registrar_recompensas', 'moderar_foro']) {
+            const cuenta = acceso(capacidad);
+            cuenta.roles = [];
+            expect(tienePanel(cuenta)).toBe(true);
+        }
+    });
     it('sin rutas conocidas no presume permiso', () => {
         expect(capacidadPanel('/admin/desconocida')).toBeNull();
     });

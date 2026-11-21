@@ -73,7 +73,7 @@ function Formulario({ actividad }: { actividad?: Actividad }) {
         if (!actividad || !comprobar(actividad.estado === "borrador")) return;
         actualizarActividad(actividad.folio, datos);
         if (volver) navigate(`${BASE_PROPUESTAS}/${actividad.folio}`);
-        else setGuardado("Cambios guardados (ejemplo).");
+        else setGuardado("Cambios guardados.");
     }
 
     const id = (campo: string) => `act-${campo}`;
@@ -131,7 +131,7 @@ function Formulario({ actividad }: { actividad?: Actividad }) {
                                     {espacios().map((e) => <option key={e.nombre}>{e.nombre}</option>)}
                                 </select>
                             </Campo>
-                            <Campo campo="cupo" etiqueta="Cupo máximo" obligatorio errores={errores} ayuda={maximo ? `Máximo ${maximo} personas en este espacio (ejemplo).` : undefined}>
+                            <Campo campo="cupo" etiqueta="Cupo máximo" obligatorio errores={errores} ayuda={maximo ? `Máximo ${maximo} personas en este espacio.` : undefined}>
                                 <input inputMode="numeric" {...props("cupo")} aria-describedby={errores.cupo ? `${id("cupo")}-error` : maximo ? `${id("cupo")}-ayuda` : undefined} value={datos.cupo} onChange={(e) => cambiar("cupo", e.target.value.replace(/\D/g, ""))} />
                             </Campo>
                             <Campo campo="inscripcion" etiqueta="Requiere inscripción" errores={errores}>

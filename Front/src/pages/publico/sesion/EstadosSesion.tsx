@@ -5,7 +5,6 @@ import Inicio from "../inicio/Inicio";
 import { ModalAgenda } from "../eventos/DetalleActividad";
 import "../eventos/Agenda.css";
 import candado from "../../../assets/perfil/menu-candado.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 
 // Estados del sistema que solo existen con sesión (Figma A-02, 585:51342).
 // TODO backend: el portal debe mandar aquí cuando /administracion/mi-acceso responda cuenta suspendida
@@ -32,7 +31,7 @@ export function SesionCaducada() {
                 <p className="modal-agenda__texto">Por seguridad cerramos la sesión después de un rato sin actividad. Inicia sesión de nuevo para continuar.</p>
                 <div className="modal-agenda__acciones">
                     <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => navegar("/iniciar-sesion")}>
-                        Iniciar sesión <img src={flechaBlanca} alt="" />
+                        Iniciar sesión
                     </button>
                 </div>
             </ModalAgenda>

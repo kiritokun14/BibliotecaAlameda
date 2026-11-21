@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { imagenFallo, marcarImagenFallida } from "../../../servicios/imagenesFallidas";
 import { useLecturasPublicadas } from "../lecturas/publicados";
 import { Bloque, EncabezadoSeccion } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
@@ -8,7 +10,6 @@ import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import textura from "../../../assets/inicio/lecturas-textura.svg";
 import iconoLibro from "../../../assets/comun/iconos/lecturas-libro.svg";
-import flechaBlanca from "../../../assets/inicio/lecturas-flecha.svg";
 import anterior from "../../../assets/inicio/carrusel-anterior.svg";
 import siguiente from "../../../assets/inicio/carrusel-siguiente.svg";
 import formaNarrativa from "../../../assets/inicio/forma-narrativa.svg";
@@ -25,8 +26,8 @@ import formaEnsayo5 from "../../../assets/inicio/forma-ensayo-5.svg";
 import formaEnsayo6 from "../../../assets/inicio/forma-ensayo-6.svg";
 import iconoSala from "../../../assets/inicio/estado-consulta-sala.svg";
 import iconoInfo from "../../../assets/comun/iconos/lecturas-info.svg";
-import flechaVerde from "../../../assets/inicio/lecturas-flecha-verde.svg";
 
+import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 // El dibujo del centro de cada portada cambia según el género
 function Ilustracion({ estilo }: { estilo: Libro["estilo"] }) {
     switch (estilo) {
@@ -91,26 +92,26 @@ function Ilustracion({ estilo }: { estilo: Libro["estilo"] }) {
     }
 }
 
+// La portada ilustrada se ve siempre; si el libro tiene foto, aparece encima con un desvanecido
+// solo cuando terminó de cargar. Si la foto falla o tarda, se queda la ilustrada (nunca un recuadro vacío).
 function PortadaLibro({ libro }: { libro: Libro }) {
-    // Foto real (cuando el backend la mande)
-    if (libro.portadaUrl) {
-        return (
-            <div className="portada-libro portada-libro--foto">
-                <img src={libro.portadaUrl} alt={`Portada de ${libro.titulo}`} />
-            </div>
-        );
-    }
-
-    // Portada ilustrada mientras no haya foto
+    const [foto, setFoto] = useState<"cargando" | "lista" | "fallo">(() => (imagenFallo(libro.portadaUrl) ? "fallo" : "cargando"));
+    const conFoto = Boolean(libro.portadaUrl) && foto !== "fallo";
     return (
-        <div className={`portada-libro portada-libro--${libro.estilo}`} aria-hidden="true">
+        <div className={`portada-libro portada-libro--${libro.estilo}`}>
             <Ilustracion estilo={libro.estilo} />
             {/* lomo y hojas para que parezca un libro de verdad */}
-            <span className="portada-libro__lomo" />
-            <span className="portada-libro__hojas" />
-            <p className="portada-libro__genero">{libro.genero}</p>
-            <p className="portada-libro__titulo">{libro.titulo}</p>
-            <p className="portada-libro__autoria">{libro.autoria}</p>
+            <span className="portada-libro__lomo" aria-hidden="true" />
+            <span className="portada-libro__hojas" aria-hidden="true" />
+            <p className="portada-libro__genero" aria-hidden="true">{libro.genero}</p>
+            {/* En la portada solo el nombre del libro (lo que va antes de «:»); el título completo va debajo */}
+            <p className="portada-libro__titulo" aria-hidden="true">{libro.titulo.split(":")[0]}</p>
+            <p className="portada-libro__autoria" aria-hidden="true">{libro.autoria}</p>
+            {conFoto && (
+                <img className={`portada-libro__foto${foto === "lista" ? " portada-libro__foto--lista" : ""}`}
+                    src={libro.portadaUrl} alt={foto === "lista" ? `Portada de ${libro.titulo}` : ""} decoding="async"
+                    onLoad={() => setFoto("lista")} onError={() => { marcarImagenFallida(libro.portadaUrl); setFoto("fallo"); }} />
+            )}
         </div>
     );
 }
@@ -120,7 +121,7 @@ function Lecturas() {
     const libros: Libro[] = resenas.slice(0, 8).map(c => ({ id: c.id, titulo: c.libro, autoria: c.autoria, genero: c.genero, portadaUrl: c.imagen, estilo: "narrativa" }));
     const { refPista, pagina, totalPaginas, alDesplazar, irAnterior, irSiguiente, irAPagina } = useCarrusel();
 
-    if (!libros.length) return <section className="seccion-inicio"><h2>Lecturas y reseñas</h2><p role={error ? "alert" : "status"}>{error ?? (!datos ? "Cargando lecturas…" : "Todavía no hay reseñas publicadas.")}</p></section>;
+    if (!libros.length) return <section className="seccion-inicio"><h2>Lecturas y reseñas</h2>{!error && !datos ? <EsqueletoTarjetas libro cantidad={4} texto="Cargando lecturas…" /> : <p role={error ? "alert" : "status"}>{error ?? "Todavía no hay reseñas publicadas."}</p>}</section>;
     return (
         <section className="seccion-inicio seccion-inicio--verde-claro">
             <Bloque tema="verde" circulos={[circulo1, circulo2]} textura={{ src: textura, ancho: 420, alto: 200 }}>
@@ -128,7 +129,6 @@ function Lecturas() {
                     etiqueta="Lecturas y reseñas"
                     iconoEtiqueta={iconoLibro}
                     titulo={<>Para leer <span>esta semana</span></>}
-                    boton={{ texto: "Ver todas las lecturas", ruta: "/lecturas", icono: flechaBlanca }}
                 />
 
                 <div className="carrusel">
@@ -160,14 +160,17 @@ function Lecturas() {
                 <Puntos total={totalPaginas} activo={pagina} alElegir={irAPagina} />
                 <div className="repisa" />
 
-                {/* El portal no muestra disponibilidad: eso vive en Koha (HU-04) */}
-                <div className="aviso-catalogo">
-                    <img src={iconoInfo} alt="" />
-                    <p>La disponibilidad de cada libro se consulta en el catálogo de la biblioteca.</p>
-                    <Link to="/catalogo" className="boton-contorno-verde">
-                        Ver en el catálogo
-                        <img src={flechaVerde} alt="" />
-                    </Link>
+                {/* Pie del bloque, igual que en Actividades y Noticias: el aviso a la izquierda y el botón a la derecha.
+                    El portal no muestra disponibilidad: eso vive en Koha (HU-04) */}
+                <div className="actividades-pie">
+                    <div className="aviso-catalogo">
+                        <img src={iconoInfo} alt="" />
+                        <p>La disponibilidad de cada libro se consulta en el catálogo de la biblioteca.</p>
+                        <Link to="/catalogo" className="boton-contorno-verde">
+                            Ver en el catálogo
+                        </Link>
+                    </div>
+                    <Link to="/lecturas" className="boton-dorado boton-dorado--chico">Ver todas las lecturas</Link>
                 </div>
             </Bloque>
         </section>

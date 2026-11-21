@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { tieneCapacidad } from "../../servicios/altaAsistida";
 import { cerrarSesion, consultarMiAcceso } from "../../servicios/auth";
 import { obtenerSupabase, mensajeError } from "../../servicios/api";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router";
 import MenuCuenta from "../../pages/publico/perfil/MenuCuenta";
+import { precargarRuta } from "./precarga";
 import "./Navegacion.css";
 import "./Portal.css"; // logo de la biblioteca (.logo-solon)
 
@@ -26,6 +27,7 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
     const [panel, setPanel] = useState(false);
     const [error, setError] = useState("");
     const [cerrando, setCerrando] = useState(false);
+    const [menuAbierto, setMenuAbierto] = useState(false);
     useEffect(() => {
         let activo = true;
         let cancelar: (() => void) | undefined;
@@ -58,30 +60,33 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
         });
         return () => { activo = false; cancelar?.(); };
     }, [alCambiarSesion]);
+    const navegar = useNavigate();
+    // Al cerrar sesión se regresa al Inicio del portal (desde cualquier página)
     async function salir() {
         setCerrando(true); setError("");
-        try { await cerrarSesion(); setPanel(false); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); }
+        try { await cerrarSesion(); setPanel(false); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); navegar("/", { replace: true }); window.scrollTo(0, 0); }
         catch (error) { setError(mensajeError(error)); }
         finally { setCerrando(false); }
     }
     return (
         <nav className="navegacion" aria-label="Principal">
-            <Link to="/" className="navegacion__marca" aria-label="Biblioteca Solón Argüello, ir al inicio">
-                <span className="logo-solon logo-solon--verde" />
-            </Link>
-
-            <div className="navegacion__desplegable">
+            {/* El logo de la biblioteca va en la franja guinda, junto a los de México y Nayarit */}
+            <button className="navegacion__menu" type="button" aria-expanded={menuAbierto} aria-controls="navegacion-movil" onClick={() => setMenuAbierto(!menuAbierto)}>
+                {menuAbierto ? "Cerrar menú" : "Menú"}
+            </button>
+            <div id="navegacion-movil" className={`navegacion__desplegable${menuAbierto ? " navegacion__desplegable--abierto" : ""}`} onClick={(evento) => { if ((evento.target as HTMLElement).closest("a")) setMenuAbierto(false); }}>
                 <ul className="navegacion__enlaces">
                     {enlaces.map((enlace) => (
                         <li key={enlace.ruta}>
                             {/* NavLink agrega la clase "active" cuando estás en esa página */}
-                            <NavLink to={enlace.ruta} end={enlace.ruta === "/"} className="navegacion__enlace">
+                            <NavLink to={enlace.ruta} end={enlace.ruta === "/"} className="navegacion__enlace"
+                                onMouseEnter={() => precargarRuta(enlace.ruta)} onFocus={() => precargarRuta(enlace.ruta)}>
                                 {enlace.texto}
                             </NavLink>
                         </li>
                     ))}
                 </ul>
-
+            </div>
                 <div className="navegacion__cuenta">
                     {correo ? <>
                         {panel && <Link to="/admin" className="navegacion__boton">Panel del personal</Link>}
@@ -94,7 +99,6 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
                     </>}
                     {error && <span role="alert">{error}</span>}
                 </div>
-            </div>
         </nav>
     );
 }

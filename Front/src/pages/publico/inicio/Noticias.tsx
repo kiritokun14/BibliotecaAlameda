@@ -1,6 +1,8 @@
 import { usePublicados } from "../../../servicios/usarPublicados.ts";
+import { imagenFallo, marcarImagenFallida } from "../../../servicios/imagenesFallidas";
 import { noticiaPublicada, fechaLarga } from "../noticias/datos";
 import { useState } from "react";
+import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.webp";
 import { Link } from "react-router";
 import { Bloque, EncabezadoSeccion, Etiqueta } from "./Bloque";
 import { Flecha, Puntos } from "./ControlesCarrusel";
@@ -9,14 +11,13 @@ import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import rama from "../../../assets/inicio/noticias-rama.svg";
 import iconoPeriodico from "../../../assets/inicio/noticias-periodico.svg";
-import flechaBlanca from "../../../assets/inicio/lecturas-flecha.svg";
 import iconoUsuarios from "../../../assets/inicio/noticia-usuarios-rosa.svg";
 import iconoCalendario from "../../../assets/inicio/noticia-calendario.svg";
 import iconoReloj from "../../../assets/inicio/noticia-reloj.svg";
-import flechaVerde from "../../../assets/inicio/noticia-flecha.svg";
 import anterior from "../../../assets/inicio/noticia-anterior.svg";
 import siguiente from "../../../assets/inicio/noticia-siguiente.svg";
 
+import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 // Color de la pastilla y su ícono según la categoría
 const categorias: Record<CategoriaNoticia, { color: string; icono: string }> = {
     Institucional: { color: "verde", icono: iconoUsuarios },
@@ -34,7 +35,7 @@ function Noticias() {
     const destacada = noticias[activa] ?? noticias[0];
     const total = noticias.length;
 
-    if (!destacada) return <section className="seccion-inicio"><h2>Noticias</h2><p role={error ? "alert" : "status"}>{error ?? (!datos ? "Cargando noticias…" : "Todavía no hay noticias publicadas.")}</p></section>;
+    if (!destacada) return <section className="seccion-inicio"><h2>Noticias</h2>{!error && !datos ? <EsqueletoTarjetas cantidad={3} texto="Cargando noticias…" /> : <p role={error ? "alert" : "status"}>{error ?? "Todavía no hay noticias publicadas."}</p>}</section>;
     return (
         <section className="seccion-inicio seccion-inicio--blanca">
             <Bloque tema="verde" circulos={[circulo1, circulo2]} textura={{ src: rama, ancho: 380, alto: 380 }}>
@@ -42,7 +43,6 @@ function Noticias() {
                     etiqueta="Noticias"
                     iconoEtiqueta={iconoPeriodico}
                     titulo={<>Últimas <span>noticias</span> de la biblioteca</>}
-                    boton={{ texto: "Ver todas las noticias", ruta: "/noticias", icono: flechaBlanca }}
                 />
 
                 <div className="noticias">
@@ -50,12 +50,8 @@ function Noticias() {
                         <div className="noticia-destacada__imagen">
                             {/* Todas las fotos están encimadas; solo la activa se ve (cambio con desvanecido) */}
                             {noticias.map((noticia, i) => (
-                                <img
-                                    key={noticia.id}
-                                    src={noticia.imagen || undefined}
-                                    alt=""
-                                    className={i === activa ? "noticia-destacada__foto noticia-destacada__foto--activa" : "noticia-destacada__foto"}
-                                />
+                                <FotoNoticia key={noticia.id} src={noticia.imagen}
+                                    className={i === activa ? "noticia-destacada__foto noticia-destacada__foto--activa" : "noticia-destacada__foto"} />
                             ))}
                             <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
                             {/* El % hace que al llegar al final vuelva a empezar */}
@@ -75,7 +71,6 @@ function Noticias() {
                             <p>{destacada.resumen}</p>
                             <Link to={`/noticias/${destacada.id}`} className="enlace-flecha">
                                 {destacada.enlace}
-                                <img src={flechaVerde} alt="" />
                             </Link>
                         </div>
                     </article>
@@ -89,27 +84,44 @@ function Noticias() {
                                     aria-pressed={i === activa}
                                     onClick={() => setActiva(i)}
                                 >
-                                    <span className="noticia-mini__meta">
-                                        <Etiqueta
-                                            icono={categorias[noticia.categoria].icono}
-                                            className={`etiqueta-inicio--${categorias[noticia.categoria].color}`}
-                                        >
-                                            {noticia.categoria}
-                                        </Etiqueta>
-                                        {noticia.fecha}
-                                        <span className="noticia-mini__viendo" aria-hidden={i !== activa}>Viendo</span>
+                                    {/* Miniatura a la izquierda; a la derecha categoría y fecha, título y descripción */}
+                                    <FotoNoticia src={noticia.imagen} className="noticia-mini__miniatura" />
+                                    <span className="noticia-mini__cuerpo">
+                                        <span className="noticia-mini__meta">
+                                            <Etiqueta
+                                                icono={categorias[noticia.categoria].icono}
+                                                className={`etiqueta-inicio--${categorias[noticia.categoria].color}`}
+                                            >
+                                                {noticia.categoria}
+                                            </Etiqueta>
+                                            {noticia.fecha}
+                                            <span className="noticia-mini__viendo" aria-hidden={i !== activa}>Viendo</span>
+                                        </span>
+                                        <span className="noticia-mini__titulo">{noticia.titulo}</span>
+                                        <span className="noticia-mini__resumen">{noticia.resumen}</span>
                                     </span>
-                                    <span className="noticia-mini__titulo">{noticia.titulo}</span>
                                 </button>
                             </li>
                         ))}
                     </ul>
                 </div>
 
-                <p className="nota-ejemplo">Noticias autorizadas por la biblioteca.</p>
+                {/* Pie del bloque, igual que en Actividades: la nota a la izquierda y el botón a la derecha */}
+                <div className="actividades-pie">
+                    <p className="nota-ejemplo">Noticias autorizadas por la biblioteca.</p>
+                    <Link to="/noticias" className="boton-dorado boton-dorado--chico">Ver todas las noticias</Link>
+                </div>
             </Bloque>
         </section>
     );
 }
 
 export default Noticias;
+
+// Foto de la noticia; si no tiene o no carga (por ejemplo, el servidor de imágenes falla),
+// una foto de la biblioteca en lugar de un recuadro en blanco
+function FotoNoticia({ src, className }: { src?: string; className: string }) {
+    const [fallo, setFallo] = useState(() => imagenFallo(src));
+    return <img className={className} src={src && !fallo ? src : fotoRespaldo} alt="" decoding="async"
+        onError={() => { marcarImagenFallida(src); setFallo(true); }} />;
+}

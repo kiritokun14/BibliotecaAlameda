@@ -5,7 +5,7 @@
 .catalogo-busqueda {
   display: flex;
   justify-content: center;
-  padding: 88px 24px 96px;
+  padding: 40px 24px 96px; /* 40 px bajo el encabezado verde, igual en todas las páginas del portal */
   background: #f7f5f0;
 }
 

@@ -1,13 +1,15 @@
 import { useCuentaTramites } from '../../../servicios/useCuentaTramites';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
-import PaginaPublica from '../../../components/portal/PaginaPublica';
-import { consultarTramite, listarTramites, solicitarCredencial, estadoTramite, ESTADOS_CREDENCIAL, ESTADOS_PROPUESTA,
+import PaginaPublica, { EncabezadoPublico } from '../../../components/portal/PaginaPublica';
+import { NavLink } from 'react-router';
+import { consultarTramite, listarTramites, solicitarCredencial, estadoTramite,
     type ListaTramites, type SolicitudAtencion, type TipoTramite } from '../../../servicios/tramites';
 import { mensajeError } from '../../../servicios/api';
-import { AccesoTramites, AccionesPropuesta, FichaTramite, FormularioPropuesta } from './piezas';
+import { AccesoTramites, AccionesPropuesta, ChipTramite, FichaTramite, FormularioPropuesta } from './piezas';
 import './Tramites.css';
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 export default function Tramites() {
     const { pathname } = useLocation(); const { id } = useParams(); const navigate = useNavigate();
     const usuario = useCuentaTramites(); const [intento, recargar] = useState(0); const [pagina, setPagina] = useState(0);
@@ -24,22 +26,34 @@ export default function Tramites() {
         return () => { vigente = false; };
     }, [usuario, nueva, clave, id, tipo, pagina]);
     const base = `/mis-tramites/${tipo === 'credencial' ? 'credencial' : 'propuestas'}`;
-    return <PaginaPublica><div className="tramites">
-        <h1>{tipo === 'credencial' ? 'Mis solicitudes de credencial' : 'Mis propuestas de eventos y clubes'}</h1>
-        <p><Link to="/mi-perfil">Mi perfil</Link> · <Link to="/mis-tramites/credencial">Credenciales</Link> · <Link to="/mis-tramites/propuestas">Propuestas</Link></p>
-        {usuario === undefined ? <p role="status">Comprobando sesión…</p> : usuario === null ? <AccesoTramites /> : <>
+    return <PaginaPublica>
+        <EncabezadoPublico etiqueta="Mis trámites" titulo={tipo === 'credencial' ? <>Mis solicitudes de <span>credencial</span></> : <>Mis <span>propuestas</span></>}
+            texto={tipo === 'credencial' ? 'Consulta el estado de las solicitudes de credencial que enviaste.' : 'Consulta el estado de tus propuestas de eventos y clubes.'} />
+        <div className="tramites">
+        <nav className="tramites-pestanas" aria-label="Mis trámites">
+            <NavLink to="/mis-tramites/credencial">Credencial</NavLink>
+            <NavLink to="/mis-tramites/propuestas">Propuestas</NavLink>
+            <Link to="/mi-perfil" className="tramites-pestanas__perfil">Ir a Mi perfil</Link>
+        </nav>
+        {usuario === undefined ? <p role="status" className="tramites-estado">Comprobando sesión…</p> : usuario === null ? <AccesoTramites /> : <>
             {nueva ? <section className="tramites-tarjeta"><FormularioPropuesta key={usuario} alGuardar={s => navigate(`/mis-tramites/propuestas/${s.id}`)} /></section> : <>
-                {!actual && <p role="status">Cargando tus solicitudes…</p>}
-                {actual?.error && <p role="alert">{actual.error} <button onClick={() => recargar(x => x + 1)}>Reintentar</button></p>}
+                {!actual && <EsqueletoLista texto="Cargando tus solicitudes…" />}
+                {actual?.error && <div className="tramites-tarjeta tramites-error" role="alert"><h2>No pudimos cargar tus solicitudes</h2><p>{actual.error}</p><button type="button" className="tramites-boton" onClick={() => recargar(x => x + 1)}>Reintentar</button></div>}
                 {actual?.lista && <>
-                    {tipo === 'credencial' ? <SolicitudCredencial key={usuario} alGuardar={s => navigate(`${base}/${s.id}`)} /> : <p><Link to="/proponer-evento">Enviar una nueva propuesta</Link></p>}
-                    <p>{actual.lista.total} solicitudes registradas</p>
-                    {actual.lista.solicitudes.map(s => <article className="tramites-tarjeta" key={s.id}><h2>{s.tituloPropuesta || `Credencial: ${s.tipoSolicitud}`}</h2>
-                        <p>{(tipo === 'credencial' ? ESTADOS_CREDENCIAL : ESTADOS_PROPUESTA)[estadoTramite(s)]}</p><Link to={`${base}/${s.id}`}>Ver seguimiento · {s.id}</Link></article>)}
-                    <button disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button><span> Página {pagina + 1} </span>
-                    <button disabled={(pagina + 1) * 20 >= actual.lista.total} onClick={() => setPagina(x => x + 1)}>Siguiente</button>
+                    {tipo === 'credencial' ? <SolicitudCredencial key={usuario} alGuardar={s => navigate(`${base}/${s.id}`)} /> : <div className="tramites-tarjeta tramites-nueva"><div><h2>¿Tienes otra idea?</h2><p>Propón un evento, taller o club. El personal la revisa y te responde aquí.</p></div><Link className="tramites-boton" to="/proponer-evento">Enviar una nueva propuesta</Link></div>}
+                    <p className="tramites-total">{actual.lista.total} {actual.lista.total === 1 ? 'solicitud registrada' : 'solicitudes registradas'}</p>
+                    {actual.lista.solicitudes.length === 0 ? <p className="tramites-tarjeta tramites-vacio">{tipo === 'credencial' ? 'Todavía no envías solicitudes de credencial.' : 'Todavía no envías propuestas.'}</p>
+                        : <ul className="tramites-lista">{actual.lista.solicitudes.map(s => <li className="tramites-fila" key={s.id}>
+                            <span className="tramites-fila__icono" aria-hidden="true">{tipo === 'credencial' ? 'C' : 'P'}</span>
+                            <span className="tramites-fila__textos"><strong>{s.tituloPropuesta || (s.tipoSolicitud === 'renovacion' ? 'Renovación de credencial' : 'Obtención de credencial')}</strong>
+                                <small>Enviada el {new Date(s.creadaEn).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}</small></span>
+                            <ChipTramite estado={estadoTramite(s)} />
+                            <Link className="tramites-enlace" to={`${base}/${s.id}`}>Ver seguimiento<span className="solo-lectores"> de {s.tituloPropuesta || 'la solicitud'}</span></Link>
+                        </li>)}</ul>}
+                    {actual.lista.total > 20 && <div className="tramites-paginas"><button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button><span> Página {pagina + 1} </span>
+                    <button type="button" disabled={(pagina + 1) * 20 >= actual.lista.total} onClick={() => setPagina(x => x + 1)}>Siguiente</button></div>}
                 </>}
-                {actual?.solicitud && <section className="tramites-tarjeta"><Link to={base}>Volver a mis solicitudes</Link><FichaTramite solicitud={actual.solicitud} />
+                {actual?.solicitud && <section className="tramites-tarjeta tramites-ficha"><Link className="tramites-enlace" to={base}>Volver a mis solicitudes</Link><FichaTramite solicitud={actual.solicitud} />
                     {tipo === 'propuesta' && <AccionesPropuesta key={actual.solicitud.actualizadoEn} solicitud={actual.solicitud} alGuardar={() => recargar(x => x + 1)} />}
                 </section>}
             </>}
@@ -58,7 +72,7 @@ function SolicitudCredencial({ alGuardar }: { alGuardar: (s: SolicitudAtencion) 
     return <form className="tramites-tarjeta" onSubmit={enviar}><h2>Solicitar atención para tu credencial</h2>
         <p>La solicitud inicia el trámite; no emite una credencial. El cotejo de documentos se realiza presencialmente en la biblioteca.</p>
         <fieldset className="tramites-campos" disabled={guardando}><label>Tipo<select name="tipo"><option value="obtencion">Obtención</option><option value="renovacion">Renovación</option></select></label>
-            <label>Observaciones opcionales<textarea name="nota" maxLength={1000} /></label><button>{guardando ? 'Enviando…' : 'Enviar solicitud'}</button></fieldset>
-        {error && <p role="alert">{error}</p>}
+            <label>Observaciones (opcional)<textarea name="nota" maxLength={1000} /></label><button className="tramites-boton">{guardando ? 'Enviando…' : 'Enviar solicitud'}</button></fieldset>
+        {error && <p className="tramites-aviso-error" role="alert">{error}</p>}
     </form>;
 }

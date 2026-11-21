@@ -2,11 +2,11 @@ import { listarPublicados, obtenerPublicado, type ContenidoPublico } from "../..
 // Noticias de la biblioteca (vista de visitante, sin sesión).
 // La consulta pública usa exclusivamente publicaciones autorizadas del backend.
 // Las constantes de ejemplo se conservan para las pruebas de reglas puras.
-import foto1 from "../../../assets/comun/fotos/noticia-1.jpg";
-import foto2 from "../../../assets/comun/fotos/noticia-2.jpg";
-import foto3 from "../../../assets/comun/fotos/noticia-3.jpg";
-import foto4 from "../../../assets/comun/fotos/foto-biblioteca.jpg";
-import foto5 from "../../../assets/comun/fotos/cuenta-foto.jpg";
+import foto1 from "../../../assets/comun/fotos/noticia-1.webp";
+import foto2 from "../../../assets/comun/fotos/noticia-2.webp";
+import foto3 from "../../../assets/comun/fotos/noticia-3.webp";
+import foto4 from "../../../assets/comun/fotos/foto-biblioteca.webp";
+import foto5 from "../../../assets/comun/fotos/cuenta-foto.webp";
 
 // ---------- Tipos ----------
 
@@ -195,16 +195,16 @@ export const noticias: Noticia[] = [
         reacciones: reaccionesEjemplo,
     },
     {
-        id: "mantenimiento-hemeroteca",
+        id: "mantenimiento-sala-computo",
         estado: "publicada",
         categoria: "avisos",
         fecha: "2026-10-01",
         minutosLectura: 1,
-        titulo: "Mantenimiento de la hemeroteca",
-        resaltado: "hemeroteca",
-        resumen: "La hemeroteca cerrará por mantenimiento; el resto de las salas seguirá abierto.",
+        titulo: "Mantenimiento de la sala de cómputo",
+        resaltado: "sala de cómputo",
+        resumen: "La sala de cómputo cerrará por mantenimiento; el resto de las salas seguirá abierto.",
         imagen: foto5,
-        introduccion: "Del 5 al 9 de octubre la hemeroteca estará cerrada por trabajos de mantenimiento.",
+        introduccion: "Del 5 al 9 de octubre la sala de cómputo estará cerrada por trabajos de mantenimiento.",
         bloques: [
             { tipo: "parrafo", texto: "El resto de las salas seguirá abierto en su horario habitual." },
         ],

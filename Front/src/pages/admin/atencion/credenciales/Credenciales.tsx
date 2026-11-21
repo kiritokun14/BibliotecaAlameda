@@ -11,7 +11,7 @@ const configCredenciales: ConfigArea = {
     titulo: "Solicitudes de credencial",
     tituloTodas: "Todas las solicitudes de credencial",
     descripcion:
-        "Cotejo de los datos de registro de las personas que piden su credencial de la biblioteca. Cada solicitud tiene folio, estado y responsable. Datos de ejemplo.",
+        "Cotejo de los datos de registro de las personas que piden su credencial de la biblioteca. Cada solicitud tiene folio, estado y responsable.",
     etiquetaBloque: "Solicitudes",
     pregunta: "¿Cómo van las solicitudes de credencial?",
     sustantivo: "solicitudes",
@@ -34,7 +34,7 @@ const configCredenciales: ConfigArea = {
 };
 
 const columnas: Columna<Credencial>[] = [
-    { titulo: "PERSONA SOLICITANTE", celda: (s) => <CeldaDoble arriba={s.persona} abajo="(ejemplo)" /> },
+    { titulo: "PERSONA SOLICITANTE", celda: (s) => <CeldaDoble arriba={s.persona} abajo="" /> },
     { titulo: "TIPO DE CUENTA", ancho: 170, celda: (s) => s.tipoCuenta },
     { titulo: "ENVIADA", ancho: 150, celda: (s) => formatearFecha(s.enviada) },
 ];

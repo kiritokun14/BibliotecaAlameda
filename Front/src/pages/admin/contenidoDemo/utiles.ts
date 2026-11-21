@@ -26,7 +26,7 @@ export function paginar<T>(lista: T[], pagina: number, porPagina: number) {
 
 // En las tablas de Revisión, el Editor que redactó (CA-12.1)
 export function redactoCorto(c: Contenido) {
-    return autorDe(c) === YO ? "Editor (tú)" : "Editor (ejemplo)";
+    return autorDe(c) === YO ? "Editor (tú)" : "Editor";
 }
 
 // Dónde aparece en el portal cuando se publica

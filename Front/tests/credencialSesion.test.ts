@@ -1,7 +1,9 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+const servidor = vi.hoisted(() => ({ solicitarCredencial: vi.fn(), cancelarSolicitudCredencial: vi.fn(), listarTramites: vi.fn() }));
+vi.mock('../src/servicios/tramites', () => ({ solicitarCredencial: servidor.solicitarCredencial, cancelarSolicitudCredencial: servidor.cancelarSolicitudCredencial, listarTramites: servidor.listarTramites }));
 import {
-    consultarTramite, enviarCorreccion, enviarSolicitud, fechaLarga, pasoDelEstado, validarCorreccion,
-    validarSolicitud, verEjemplo, type SolicitudCredencial,
+    cancelarSolicitud, consultarTramite, sincronizarTramite, enviarCorreccion, enviarSolicitud, fechaLarga, pasoDelEstado, puedeCancelar, puedeSolicitar,
+    validarCorreccion, validarSolicitud, verEjemplo, type SolicitudCredencial,
 } from '../src/pages/publico/credencial/datos';
 
 const solicitud: SolicitudCredencial = { tipo: 'primera-vez', horario: '', comentarios: '', aceptaCotejo: true, aceptaAviso: true };
@@ -18,10 +20,29 @@ describe('Credencial con sesión · trámite', () => {
             .toEqual(['aceptaAviso', 'aceptaCotejo']);
         expect(validarSolicitud({ ...solicitud, comentarios: 'a'.repeat(501) }).comentarios).toBeDefined();
     });
-    it('al enviar queda en revisión, con el tipo elegido y folio por asignar', () => {
-        const t = enviarSolicitud({ ...solicitud, tipo: 'renovacion' });
-        expect(t).toMatchObject({ estado: 'en-revision', tipo: 'renovacion', folio: null });
+    it('al enviar registra la solicitud en el servidor y queda en revisión con su folio', async () => {
+        servidor.solicitarCredencial.mockResolvedValue({ id: 'abcd1234-0000-4000-8000-000000000001', creadaEn: '2026-11-12T10:00:00Z' });
+        const t = await enviarSolicitud({ ...solicitud, tipo: 'renovacion', horario: 'Mañana', comentarios: 'Gracias' });
+        expect(servidor.solicitarCredencial).toHaveBeenCalledWith('renovacion', 'Horario preferido para el cotejo: Mañana\nGracias');
+        expect(t).toMatchObject({ estado: 'en-revision', tipo: 'renovacion', folio: 'abcd1234-0000-4000-8000-000000000001' });
         expect(consultarTramite().estado).toBe('en-revision');
+    });
+    it('al volver a entrar lee el estado de /credenciales/solicitudes/me y no pierde una recién enviada', async () => {
+        servidor.solicitarCredencial.mockResolvedValue({ id: 'f1', creadaEn: '2026-11-12T10:00:00Z' });
+        await enviarSolicitud(solicitud);
+        servidor.listarTramites.mockResolvedValueOnce({ total: 1, solicitudes: [{ id: 'f1', tipoSolicitud: 'obtencion', estadoSolicitud: 'en_atencion', creadaEn: '2026-11-12T10:00:00Z', historial: [] }] });
+        await sincronizarTramite();
+        expect(consultarTramite()).toMatchObject({ estado: 'en-revision', folio: 'f1' });
+        servidor.solicitarCredencial.mockResolvedValue({ id: 'f2', creadaEn: '2026-11-13T10:00:00Z' });
+        await enviarSolicitud(solicitud);
+        servidor.listarTramites.mockResolvedValueOnce({ total: 0, solicitudes: [] });
+        await sincronizarTramite();
+        expect(consultarTramite()).toMatchObject({ estado: 'en-revision', folio: 'f2' });
+    });
+    it('si el servidor falla, el trámite no cambia', async () => {
+        servidor.solicitarCredencial.mockRejectedValue(new Error('sin conexión'));
+        await expect(enviarSolicitud(solicitud)).rejects.toThrow();
+        expect(consultarTramite().estado).toBe('sin-solicitud');
     });
     it('una corrección pide nombre e identificación y regresa el trámite a revisión', () => {
         verEjemplo('correccion');
@@ -29,11 +50,41 @@ describe('Credencial con sesión · trámite', () => {
         expect(validarCorreccion({ nombre: 'Ana López', numero: 'INE 1234' })).toEqual({});
         expect(enviarCorreccion()).toMatchObject({ estado: 'en-revision', motivoCorreccion: null });
     });
-    it('marca el paso del trámite según la pantalla y el estado', () => {
+    it('marca el paso del trámite según su estado, no solo la pantalla', () => {
         expect(pasoDelEstado('informacion', 'sin-solicitud')).toBe(1);
         expect(pasoDelEstado('solicitud', 'sin-solicitud')).toBe(2);
-        expect(pasoDelEstado('seguimiento', 'en-revision')).toBe(3);
-        expect(pasoDelEstado('seguimiento', 'vigente')).toBe(4);
+        // con una solicitud en proceso, las tres pantallas dicen lo mismo: 1 y 2 hechos, 3 en curso
+        for (const vista of ['informacion', 'solicitud', 'seguimiento'] as const) {
+            expect(pasoDelEstado(vista, 'en-revision')).toBe(3);
+            expect(pasoDelEstado(vista, 'correccion')).toBe(3);
+            expect(pasoDelEstado(vista, 'vigente')).toBe(4);
+        }
+        expect(pasoDelEstado('informacion', 'vencida')).toBe(1); // la renovación empieza de nuevo
+        expect(pasoDelEstado('solicitud', 'vencida')).toBe(2);
+    });
+    it('solo deja solicitar sin solicitud o con la credencial vencida (no se duplican)', () => {
+        expect(['sin-solicitud', 'en-revision', 'correccion', 'vigente', 'vencida'].filter((e) => puedeSolicitar(e as never)))
+            .toEqual(['sin-solicitud', 'vencida']);
+    });
+    it('cancela una solicitud en revisión en el servidor y el trámite queda sin solicitud', async () => {
+        servidor.solicitarCredencial.mockResolvedValue({ id: 'abcd1234-0000-4000-8000-000000000002', creadaEn: '2026-11-19T10:00:00Z' });
+        servidor.cancelarSolicitudCredencial.mockResolvedValue({});
+        await enviarSolicitud(solicitud);
+        expect(puedeCancelar(consultarTramite().estado)).toBe(true);
+        expect((await cancelarSolicitud()).estado).toBe('sin-solicitud');
+        expect(servidor.cancelarSolicitudCredencial).toHaveBeenCalledWith('abcd1234-0000-4000-8000-000000000002');
+    });
+    it('si el servidor no permite cancelar, la solicitud sigue en revisión', async () => {
+        servidor.solicitarCredencial.mockResolvedValue({ id: 'abcd1234-0000-4000-8000-000000000003', creadaEn: '2026-11-19T10:00:00Z' });
+        servidor.cancelarSolicitudCredencial.mockRejectedValue(new Error('404'));
+        await enviarSolicitud(solicitud);
+        await expect(cancelarSolicitud()).rejects.toThrow();
+        expect(consultarTramite().estado).toBe('en-revision');
+    });
+    it('no cancela una credencial ya vigente', async () => {
+        verEjemplo('vigente');
+        expect(puedeCancelar('vigente')).toBe(false);
+        await expect(cancelarSolicitud()).rejects.toThrow();
     });
     it('escribe la fecha en palabras', () => {
         expect(fechaLarga('2026-10-02')).toBe('02 de octubre de 2026');

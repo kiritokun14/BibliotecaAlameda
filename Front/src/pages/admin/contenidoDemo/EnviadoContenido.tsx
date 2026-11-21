@@ -27,7 +27,7 @@ function EnviadoContenido() {
                     tono="verde"
                     icono={iconoCheck}
                     titulo={`${contenido.folio} · ${tituloDe(contenido.tipo, contenido.valores)}`}
-                    linea={`Estado: ${NOMBRE_ESTADO[contenido.estado]} · Enviado ${cuandoSeActualizo(contenido.enviado ?? contenido.actualizado).toLowerCase()} (ejemplo)`}
+                    linea={`Estado: ${NOMBRE_ESTADO[contenido.estado]} · Enviado ${cuandoSeActualizo(contenido.enviado ?? contenido.actualizado).toLowerCase()}`}
                     chip={<ChipEstado estado={contenido.estado} />}
                 />
 

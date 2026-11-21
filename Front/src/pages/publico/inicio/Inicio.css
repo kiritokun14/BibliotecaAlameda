@@ -470,11 +470,6 @@
   color: rgba(255, 255, 255, 0.88);
 }
 
-.portada__nota {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
 .portada__acciones {
   display: flex;
   flex-wrap: wrap;
@@ -505,29 +500,95 @@
   border-radius: 224px 224px 64px 64px;
 }
 
-.portada__foto {
+/* Marco fijo de la foto (con la sombra): las fotos de adentro solo cambian de opacidad */
+.portada__fotos {
   top: 24px;
   left: 120px;
   width: 400px;
   height: 560px;
-  object-fit: cover;
+  overflow: hidden;
   border-radius: 200px 200px 40px 40px;
+  background: #0b3b33;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
 }
 
+.portada__foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  will-change: opacity;
+}
+
+.portada__foto--activa { opacity: 1; }
+
+/* Las actividades aún no tienen foto propia: se avisa que es ilustrativa */
+.portada__ilustrativa {
+  top: 548px;
+  right: 36px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(22, 26, 29, 0.72);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Tarjeta de la actividad: lleva a su detalle y cambia sola (Portada.tsx).
+   Crece hacia arriba con el texto para que no se corten letras. */
 .portada__tarjeta {
-  top: 400px;
+  bottom: 40px;
   left: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 300px;
-  height: 150px;
+  width: 320px;
+  min-height: 150px;
   padding: 20px 22px;
   box-sizing: border-box;
   border-radius: 28px;
   background: #fff;
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+  color: #161a1d;
+  text-decoration: none;
+  animation: portada-aparece 0.5s ease;
+  transition: transform 0.2s ease;
+}
+
+/* Solo transform: la sombra no se vuelve a dibujar al pasar el mouse */
+.portada__tarjeta:hover { transform: translateY(-3px); }
+
+.portada__tarjeta:focus-visible,
+.portada__chip--credencial:focus-visible {
+  outline: 3px solid #e6d194;
+  outline-offset: 4px;
+}
+
+@keyframes portada-aparece {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes insignia-entra {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes insignia-flota {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portada__foto,
+  .portada__tarjeta,
+  .portada__insignia,
+  .portada__chip--credencial,
+  .portada__chip--credencial img,
+  .portada__chip--credencial::after { animation: none; transition: none; }
 }
 
 .chip-dorado {
@@ -540,7 +601,9 @@
   background: #f6eeda;
   color: #6b4f12;
   font-size: 13px;
+  line-height: 18px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .chip-dorado img {
@@ -548,11 +611,18 @@
   height: 14px;
 }
 
+/* Hasta 3 renglones; el nombre completo queda en el title y para lectores de pantalla */
 .portada__tarjeta-titulo {
+  display: -webkit-box;
+  overflow: hidden;
+  padding-bottom: 2px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
   font-family: 'Noto Sans', sans-serif;
-  font-size: 19px;
-  line-height: 24px;
+  font-size: 18px;
+  line-height: 25px;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .portada__tarjeta-dato {
@@ -560,6 +630,7 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
+  line-height: 20px;
   color: #4d4d4d;
 }
 
@@ -585,8 +656,55 @@
   height: 18px;
 }
 
-.portada__chip--horario { top: 528px; left: 250px; background: #e6d194; }
-.portada__chip--credencial { top: 56px; left: 0; background: #fff; }
+/* «Tramita tu credencial»: entra deslizándose, un brillo lo cruza de vez en cuando y su ícono
+   se asoma. Todo con transform/opacity (y la propiedad translate), para que no se trabe al cargar. */
+.portada__chip--credencial {
+  top: 56px;
+  left: 0;
+  overflow: hidden;
+  background: #fff;
+  color: #161a1d;
+  text-decoration: none;
+  animation: chip-entra 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both;
+  transition: transform 0.2s ease;
+}
+
+.portada__chip--credencial::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(230, 209, 148, 0.55) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: translateX(-120%);
+  pointer-events: none;
+  animation: chip-brillo 5s ease-in-out 1.2s infinite;
+}
+
+.portada__chip--credencial img {
+  animation: chip-icono 5s ease-in-out 1.2s infinite;
+}
+
+.portada__chip--credencial:hover { transform: translateY(-2px); }
+.portada__chip--credencial:hover img { animation-play-state: paused; }
+
+@keyframes chip-entra {
+  from { opacity: 0; translate: -24px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes chip-brillo {
+  0%, 60% { transform: translateX(-120%); }
+  85%, 100% { transform: translateX(220%); }
+}
+
+@keyframes chip-icono {
+  0%, 62%, 100% { transform: none; }
+  70% { transform: rotate(-10deg) scale(1.12); }
+  78% { transform: rotate(6deg) scale(1.12); }
+  86% { transform: none; }
+}
 
 .portada__insignia {
   top: 8px;
@@ -605,6 +723,8 @@
   font-size: 13px;
   font-weight: 700;
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+  /* Aparece con un pequeño rebote y luego flota despacio */
+  animation: insignia-entra 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both, insignia-flota 4.5s ease-in-out 0.9s infinite;
 }
 
 .portada__insignia strong {
@@ -855,14 +975,19 @@
   position: absolute;
 }
 
-.portada-libro--foto { background: #e4efeb; }
-
-.portada-libro--foto img {
+/* Foto real encima de la portada ilustrada: aparece solo cuando cargó (Lecturas.tsx) */
+.portada-libro__foto {
+  position: absolute;
   inset: 0;
+  z-index: 3;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
+
+.portada-libro__foto--lista { opacity: 1; }
 
 .portada-libro__lomo {
   top: 0;
@@ -905,11 +1030,20 @@
   line-height: 25px;
   letter-spacing: -0.22px;
   font-weight: 700;
+  /* Títulos largos: hasta 3 renglones, sin encimarse con el dibujo */
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .portada-libro__autoria {
   top: 270px;
   left: 32px;
+  overflow: hidden;
+  width: 150px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.88px;
@@ -1743,4 +1877,240 @@
   .noticias { flex-direction: column; }
   .noticia-destacada,
   .otras-noticias { flex: 1 1 auto; }
+}
+
+/* =========================================================
+   ANIMACIONES Y EFECTOS AL PASAR EL MOUSE (Inicio)
+   Solo transform y opacity: no se traban mientras carga la página.
+   ========================================================= */
+
+/* Portada: el texto entra escalonado y la composición de la foto aparece después */
+.portada__texto > * { animation: inicio-sube 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.portada__texto > :nth-child(2) { animation-delay: 0.07s; }
+.portada__texto > :nth-child(3) { animation-delay: 0.14s; }
+.portada__texto > :nth-child(4) { animation-delay: 0.21s; }
+.portada__texto > :nth-child(5) { animation-delay: 0.28s; }
+.portada__composicion { animation: inicio-aparece 0.8s ease-out 0.15s both; }
+
+@keyframes inicio-sube {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes inicio-aparece {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Secciones que aparecen al llegar con el scroll: solo CSS (animación ligada al scroll).
+   No toca el HTML de React. Donde el navegador no lo soporta, o con «reducir animaciones»,
+   las secciones se ven normal desde el principio: nunca quedan ocultas. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .seccion-inicio > * {
+      animation: inicio-revela linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 30%;
+    }
+  }
+}
+
+@keyframes inicio-revela {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Perfiles «Comunitaria · Académica · Cultural» */
+.portada__perfiles li {
+  transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+
+.portada__perfiles li:hover {
+  border-color: rgba(230, 209, 148, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-4px);
+}
+
+.portada__perfil-icono { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.portada__perfiles li:hover .portada__perfil-icono { transform: scale(1.12) rotate(-6deg); }
+
+/* Accesos: el ícono también reacciona */
+.tarjeta-acceso { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.tarjeta-acceso:hover { box-shadow: 0 18px 32px rgba(0, 0, 0, 0.16); }
+
+/* Franja dorada: cada cifra se levanta y su ícono gira un poco */
+.cifra { transition: transform 0.25s ease; }
+.cifra:hover { transform: translateY(-3px); }
+.cifra__icono { transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.cifra:hover .cifra__icono { transform: scale(1.12) rotate(-8deg); }
+
+/* Contacto: cada dato se desliza un poco */
+.datos-contacto li { transition: transform 0.25s ease; }
+.datos-contacto li:hover { transform: translateX(6px); }
+.datos-contacto__icono { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.datos-contacto li:hover .datos-contacto__icono { transform: scale(1.12); }
+
+@media (prefers-reduced-motion: reduce) {
+  .portada__texto > *,
+  .portada__composicion { animation: none; }
+  .portada__perfiles li,
+  .portada__perfil-icono,
+  .tarjeta-acceso,
+  .cifra,
+  .cifra__icono,
+  .datos-contacto li,
+  .datos-contacto__icono { transition: none; }
+}
+
+/* =========================================================
+   Ajustes de Inicio (12 de noviembre)
+   ========================================================= */
+
+/* ---------- Noticias: tamaño fijo, sin importar cuánto texto tenga cada noticia ----------
+   La foto mide 260 px; el texto ocupa un alto fijo: título a 2 renglones, resumen a 3 y el enlace abajo. */
+.noticia-destacada__contenido {
+  height: 270px;
+  box-sizing: border-box;
+}
+
+.noticia-destacada h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-height: 2lh;
+}
+
+.noticia-destacada__contenido > p:not(.noticia-destacada__meta) {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.noticia-destacada__contenido > .enlace-flecha { margin-top: auto; }
+
+/* La lista de la derecha también mide siempre lo mismo */
+.otras-noticias { justify-content: flex-start; }
+.otras-noticias > li { flex: 1; display: flex; }
+.noticia-mini { min-height: 0; height: 100%; justify-content: flex-start; }
+
+.noticia-mini__titulo {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* ---------- Botones de la portada: «Explora el catálogo Koha» y «Acerca de la biblioteca» ---------- */
+.portada__acciones .boton-blanco,
+.portada__acciones .boton-contorno {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Blanco: un brillo dorado lo cruza al pasar el mouse */
+.portada__acciones .boton-blanco::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 20%, rgba(230, 209, 148, 0.55) 50%, rgba(255, 255, 255, 0) 80%);
+  transform: translateX(-110%);
+  transition: transform 0.6s ease;
+}
+
+.portada__acciones .boton-blanco:hover::after { transform: translateX(110%); }
+
+/* Contorno: se llena de blanco desde abajo y el texto pasa a verde */
+.portada__acciones .boton-contorno::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #fff;
+  transform: translateY(101%);
+  transition: transform 0.3s ease;
+}
+
+.portada__acciones .boton-contorno:hover::before { transform: none; }
+.portada__acciones .boton-contorno:hover { color: #164f44; }
+.portada__acciones .boton-contorno:hover img { filter: brightness(0) saturate(100%) invert(22%) sepia(28%) saturate(1100%) hue-rotate(124deg); }
+
+.portada__acciones .boton-blanco:hover,
+.portada__acciones .boton-contorno:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+  transform: translateY(-3px);
+}
+
+.portada__acciones :is(.boton-blanco, .boton-contorno) img { transition: transform 0.25s ease, filter 0.25s ease; }
+.portada__acciones :is(.boton-blanco, .boton-contorno):hover img { transform: translateX(4px); }
+
+/* ---------- Libros de «Para leer esta semana»: más aire entre textos ---------- */
+.libro {
+  gap: 8px;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.libro h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  min-height: 3lh; /* todos los títulos ocupan lo mismo: los libros quedan parejos */
+  margin-top: 4px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.libro > p {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 13px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+/* Actividades de Inicio: títulos parejos */
+.tarjeta-actividad h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-height: 2lh;
+}
+
+.tarjeta-actividad__contenido { flex: 1; }
+.tarjeta-actividad__contenido > .enlace-flecha { margin-top: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .portada__acciones :is(.boton-blanco, .boton-contorno),
+  .portada__acciones :is(.boton-blanco, .boton-contorno)::before,
+  .portada__acciones :is(.boton-blanco, .boton-contorno)::after,
+  .portada__acciones :is(.boton-blanco, .boton-contorno) img { transition: none; }
+}
+
+/* Tarjeta-esqueleto de Actividades (mientras llegan los datos): mismo tamaño que una tarjeta real */
+.tarjeta-actividad--esqueleto { pointer-events: none; }
+.tarjeta-actividad__esqueleto-imagen { height: 200px; border-radius: 0; }
+
+@media (max-width: 700px) {
+  .seccion-inicio { padding: 36px 16px; }
+  .bloque { padding: 28px 20px; border-radius: 24px; }
+  .bloque.contacto { flex-direction: column; align-items: stretch; gap: 24px; }
+  .contacto__datos { flex: none; width: 100%; }
+  .mapa { flex: none; width: 100%; height: 300px; border-radius: 24px; }
+  .aviso-catalogo { flex-wrap: wrap; }
+  .carrusel .libro { flex-basis: 100%; min-width: 0; }
+  .aviso-catalogo p { flex: 1 1 calc(100% - 40px); min-width: 0; }
+  .aviso-catalogo .boton-contorno-verde { max-width: 100%; white-space: normal; height: auto; min-height: 44px; text-align: center; }
+  .portada { flex-direction: column; }
+  .portada__titulo { font-size: 36px; line-height: 1.15; }
+  .portada__perfiles, .tarjetas-acceso { grid-template-columns: minmax(0, 1fr); }
+  .portada__acciones, .encabezado-seccion { flex-wrap: wrap; }
 }

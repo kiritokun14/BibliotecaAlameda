@@ -1,5 +1,5 @@
 import { ErrorServicio, obtenerSupabase, pedirApi } from './api';
-import { consultasEditor } from './consultas';
+import { consultarConMemoria, consultasEditor, enMemoria } from './consultas';
 
 export interface DatosActividadReal {
     nombre: string; tipo: string; descripcion: string; fecha: string; inicio: string; fin: string;
@@ -25,7 +25,8 @@ export function consultarAgenda(filtros: FiltrosAgenda = {}) {
     const parametros = new URLSearchParams();
     for (const [clave, valor] of Object.entries(filtros)) if (valor !== undefined && valor !== '') parametros.set(clave, String(valor));
     const ruta = `/actividades/publicas?${parametros}`;
-    return consultasEditor.obtener(ruta, () => pedirApi<ListaAgenda>(ruta));
+    // Se recuerda 60 s: volver a Inicio o a Eventos no espera otra vez al servidor
+    return consultasEditor.obtener(ruta, () => pedirApi<ListaAgenda>(ruta), 60000);
 }
 export function consultarActividadPublica(folio: string) {
     return pedirApi<ActividadPublica>(`/actividades/publicas/${encodeURIComponent(folio)}`);
@@ -36,8 +37,10 @@ async function gestion<T>(ruta = '', opciones: RequestInit = {}): Promise<T> {
     return pedirApi<T>(`/actividades/gestion${ruta}`, { ...opciones,
         headers: { Authorization: `Bearer ${data.session.access_token}` } });
 }
-export const listarActividades = () => gestion<ActividadGestion[]>();
-export const consultarActividad = (folio: string) => gestion<ActividadGestion>(`/${encodeURIComponent(folio)}`);
+export const listarActividades = () => consultarConMemoria('actividades:gestion', () => gestion<ActividadGestion[]>());
+export const actividadesEnMemoria = () => enMemoria<ActividadGestion[]>('actividades:gestion');
+export const consultarActividad = (folio: string) => consultarConMemoria('actividades:' + folio, () => gestion<ActividadGestion>(`/${encodeURIComponent(folio)}`));
+export const actividadEnMemoria = (folio: string) => enMemoria<ActividadGestion>('actividades:' + folio);
 export const consultarEspaciosAgenda = () => gestion<{ nombre: string; capacidad: number }[]>('/espacios');
 export function guardarActividad(datos: DatosActividadReal, estado: 'borrador' | 'en-revision', anterior?: ActividadGestion) {
     // Los campos de fecha y hora vacíos son válidos solo en un borrador.
@@ -52,4 +55,18 @@ export function decidirActividad(actividad: ActividadGestion, accion: AccionActi
     return gestion<ActividadGestion>(`/${encodeURIComponent(actividad.folio)}/${accion}`, {
         method: 'POST', body: JSON.stringify({ actualizado: actividad.actualizado, referencia, motivo }),
     });
+}
+
+type CambioSesion = { motivo: string } & (
+    { accion: 'cancelar' } |
+    { accion: 'reprogramar'; fecha: string; inicio: string; fin: string; espacio: string }
+);
+
+export async function resolverSesion(actividad: ActividadGestion, sesion: string, cambio: CambioSesion) {
+    const resultado = await gestion<{ folioCambio: string; avisos: number }>(
+        `/${encodeURIComponent(actividad.folio)}/sesiones/${encodeURIComponent(sesion)}/resolver`,
+        { method: 'POST', body: JSON.stringify({ ...cambio, actualizado: actividad.actualizado, confirmacion: true }) },
+    );
+    consultasEditor.limpiar();
+    return resultado;
 }

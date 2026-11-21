@@ -18,7 +18,9 @@ export default function Estadisticas() {
     const [exportando, setExportando] = useState(false);
     const [exportado, setExportado] = useState("");
     const [errorExportar, setErrorExportar] = useState(false);
+    const [cargaRecuperada, setCargaRecuperada] = useState(false);
     const modo = simulacion(); // ?simular=error | sin-datos | error-exportar
+    const errorCarga = modo === "error" && !cargaRecuperada;
     const datos = estadisticas(seccion, periodo);
     const nombreSeccion = SECCIONES.find((s) => s.valor === seccion)!.texto;
     const nombrePeriodo = PERIODOS.find((p) => p.valor === periodo)!.texto.toLowerCase();
@@ -41,7 +43,7 @@ export default function Estadisticas() {
 
     return (
         <Pantalla migas={[["Estadísticas"], [nombreSeccion]]}>
-            <EncabezadoPagina etiqueta="Administración · Estadísticas" titulo="Estadísticas" texto="Cómo se usa el portal y las actividades. Sin datos personales. Datos de ejemplo."
+            <EncabezadoPagina etiqueta="Administración · Estadísticas" titulo="Estadísticas" texto="Cómo se usa el portal y las actividades. Sin datos personales."
                 accion={<button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => setExportando(true)}>Exportar</button>} />
 
             <div className="ad-barra">
@@ -52,8 +54,8 @@ export default function Estadisticas() {
             {exportado && <AvisoResultado tono="exito" titulo="Exportación lista" texto={`Se descargó ${exportado}.`} chip="Listo" />}
             {errorExportar && <AvisoResultado tono="error" titulo="No se pudo exportar" texto="Inténtalo de nuevo en unos minutos." chip="Error" />}
 
-            {modo === "error" ? (
-                <ErrorCarga titulo="No se pudieron cargar las estadísticas" texto="Revisa tu conexión e inténtalo de nuevo." />
+            {errorCarga ? (
+                <ErrorCarga titulo="No se pudieron cargar las estadísticas" texto="Revisa tu conexión e inténtalo de nuevo." alReintentar={() => setCargaRecuperada(true)} />
             ) : modo === "sin-datos" ? (
                 <div className="contenidos-vacio"><span><span className="contenidos-vacio__icono"><IconoLista /></span><strong>Sin datos para este periodo</strong><span>Prueba con otro periodo.</span></span></div>
             ) : (
@@ -65,7 +67,7 @@ export default function Estadisticas() {
                     <section className="contenidos-panel" aria-labelledby="ad-serie-titulo">
                         <div className="contenidos-lista__cabecera">
                             <span className="contenidos-lista__icono"><IconoLista /></span>
-                            <div className="at-cabecera__textos"><h2 id="ad-serie-titulo">{datos.tituloSerie}</h2><p>Últimas 5 semanas (ejemplo). Pasa el cursor o el foco por una barra para ver su valor.</p></div>
+                            <div className="at-cabecera__textos"><h2 id="ad-serie-titulo">{datos.tituloSerie}</h2><p>Últimas 5 semanas. Pasa el cursor o el foco por una barra para ver su valor.</p></div>
                         </div>
                         <div className="ad-grafica" role="img" aria-label={`${datos.tituloSerie}: ${datos.serie.map((s) => `${s.etiqueta} ${s.valor}`).join(", ")}`}>
                             {datos.serie.map((s) => (

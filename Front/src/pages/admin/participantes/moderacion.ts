@@ -31,7 +31,7 @@ export type Norma = { numero: number; nombre: string; descripcion: string; sanci
 
 export type Silencio = { id: string; persona: string; motivo: string; hasta: string; por: string };
 
-export const QUIEN_MODERA = "Personal (ejemplo)";
+export const QUIEN_MODERA = "Personal";
 
 export const NORMAS: Norma[] = [
     { numero: 1, nombre: "Tema del foro", descripcion: "Publicar sobre libros, lectura y actividades.", sancion: "Retirar" },
@@ -54,23 +54,23 @@ const retiro = (norma: number, fecha: string): Decision => ({ tipo: "retirada", 
 const aprobo = (fecha: string): Decision => ({ tipo: "aprobada", quien: QUIEN_MODERA, fecha });
 
 const publicacionesIniciales: Publicacion[] = [
-    { folio: "FO-0233", hilo: HILO_RESENA, texto: "Este libro me pareció muy aburrido y el autor no sabe escribir (texto de ejemplo con lenguaje ofensivo).", autor: "Persona usuaria A (ejemplo)", fecha: "2026-10-26T18:20", reportes: 3, motivo: "Lenguaje ofensivo", estado: "reportada", decisiones: [] },
-    { folio: "FO-0232", hilo: "Intercambio de libros", texto: "Vendo mis libros usados, escríbanme al número que dejo en mi perfil (texto de ejemplo).", autor: "Persona usuaria B (ejemplo)", fecha: "2026-10-26T16:05", reportes: 2, motivo: "Publicidad", estado: "reportada", decisiones: [] },
-    { folio: "FO-0231", hilo: "Recomendaciones", texto: "¿Alguien recomienda lecturas de misterio?", autor: "Persona usuaria C (ejemplo)", fecha: "2026-10-26T12:40", reportes: 0, motivo: "Primera publicación", estado: "pendiente", decisiones: [] },
-    { folio: "FO-0230", hilo: "Taller de escritura", texto: "Gracias por el taller del sábado.", autor: "Persona usuaria D (ejemplo)", fecha: "2026-10-26T10:15", reportes: 0, motivo: "—", estado: "aprobada", decisiones: [aprobo("2026-10-26")] },
-    { folio: "FO-0229", hilo: "Recomendaciones", texto: "Les comparto el teléfono de otra persona para que le pregunten (texto de ejemplo).", autor: "Persona usuaria F (ejemplo)", fecha: "2026-10-25T20:30", reportes: 1, motivo: "Datos personales", estado: "reportada", decisiones: [] },
-    { folio: "FO-0228", hilo: "Taller de escritura", texto: "Nadie entiende nada en ese taller (texto de ejemplo con lenguaje ofensivo).", autor: "Persona usuaria G (ejemplo)", fecha: "2026-10-25T17:50", reportes: 2, motivo: "Lenguaje ofensivo", estado: "reportada", decisiones: [] },
-    { folio: "FO-0227", hilo: "Partidos de futbol", texto: "¿Vieron el partido de ayer? (texto de ejemplo fuera de tema).", autor: "Persona usuaria I (ejemplo)", fecha: "2026-10-25T14:10", reportes: 1, motivo: "Fuera de tema", estado: "reportada", decisiones: [] },
-    { folio: "FO-0226", hilo: "Club de lectura", texto: "Hola, es mi primera vez en el club. ¿Qué libro leen este mes?", autor: "Persona usuaria J (ejemplo)", fecha: "2026-10-25T11:00", reportes: 0, motivo: "Primera publicación", estado: "pendiente", decisiones: [] },
-    { folio: "FO-0225", hilo: "Club de lectura", texto: "Me gustaría proponer una lectura de poesía para noviembre.", autor: "Persona usuaria K (ejemplo)", fecha: "2026-10-24T19:25", reportes: 0, motivo: "Primera publicación", estado: "pendiente", decisiones: [] },
-    { folio: "FO-0224", hilo: "Intercambio de libros", texto: "Visita mi tienda en línea con descuentos (texto de ejemplo).", autor: "Persona usuaria H (ejemplo)", fecha: "2026-10-24T09:30", reportes: 4, motivo: "Publicidad", estado: "retirada", decisiones: [retiro(3, "2026-10-24")] },
-    { folio: "FO-0223", hilo: HILO_RESENA, texto: "Me encantó la reseña, gracias.", autor: "Persona usuaria D (ejemplo)", fecha: "2026-10-26T18:02", reportes: 0, motivo: "—", estado: "aprobada", decisiones: [aprobo("2026-10-26")] },
-    { folio: "FO-0222", hilo: HILO_RESENA, texto: "Yo opino distinto, ¡léanlo!", autor: "Persona usuaria E (ejemplo)", fecha: "2026-10-26T19:10", reportes: 0, motivo: "—", estado: "aprobada", decisiones: [aprobo("2026-10-26")] },
-    { folio: "FO-0221", hilo: "Recomendaciones", texto: "Comparto la dirección de mi vecino que presta libros (texto de ejemplo).", autor: "Persona usuaria A (ejemplo)", fecha: "2026-10-20T13:00", reportes: 2, motivo: "Datos personales", estado: "retirada", decisiones: [retiro(4, "2026-10-20")] },
+    { folio: "FO-0233", hilo: HILO_RESENA, texto: "Este libro me pareció muy aburrido y el autor no sabe escribir.", autor: "Persona usuaria A", fecha: "2026-10-26T18:20", reportes: 3, motivo: "Lenguaje ofensivo", estado: "reportada", decisiones: [] },
+    { folio: "FO-0232", hilo: "Intercambio de libros", texto: "Vendo mis libros usados, escríbanme al número que dejo en mi perfil.", autor: "Persona usuaria B", fecha: "2026-10-26T16:05", reportes: 2, motivo: "Publicidad", estado: "reportada", decisiones: [] },
+    { folio: "FO-0231", hilo: "Recomendaciones", texto: "¿Alguien recomienda lecturas de misterio?", autor: "Persona usuaria C", fecha: "2026-10-26T12:40", reportes: 0, motivo: "Primera publicación", estado: "pendiente", decisiones: [] },
+    { folio: "FO-0230", hilo: "Taller de escritura", texto: "Gracias por el taller del sábado.", autor: "Persona usuaria D", fecha: "2026-10-26T10:15", reportes: 0, motivo: "—", estado: "aprobada", decisiones: [aprobo("2026-10-26")] },
+    { folio: "FO-0229", hilo: "Recomendaciones", texto: "Les comparto el teléfono de otra persona para que le pregunten.", autor: "Persona usuaria F", fecha: "2026-10-25T20:30", reportes: 1, motivo: "Datos personales", estado: "reportada", decisiones: [] },
+    { folio: "FO-0228", hilo: "Taller de escritura", texto: "Nadie entiende nada en ese taller.", autor: "Persona usuaria G", fecha: "2026-10-25T17:50", reportes: 2, motivo: "Lenguaje ofensivo", estado: "reportada", decisiones: [] },
+    { folio: "FO-0227", hilo: "Partidos de futbol", texto: "¿Vieron el partido de ayer?.", autor: "Persona usuaria I", fecha: "2026-10-25T14:10", reportes: 1, motivo: "Fuera de tema", estado: "reportada", decisiones: [] },
+    { folio: "FO-0226", hilo: "Club de lectura", texto: "Hola, es mi primera vez en el club. ¿Qué libro leen este mes?", autor: "Persona usuaria J", fecha: "2026-10-25T11:00", reportes: 0, motivo: "Primera publicación", estado: "pendiente", decisiones: [] },
+    { folio: "FO-0225", hilo: "Club de lectura", texto: "Me gustaría proponer una lectura de poesía para noviembre.", autor: "Persona usuaria K", fecha: "2026-10-24T19:25", reportes: 0, motivo: "Primera publicación", estado: "pendiente", decisiones: [] },
+    { folio: "FO-0224", hilo: "Intercambio de libros", texto: "Visita mi tienda en línea con descuentos.", autor: "Persona usuaria H", fecha: "2026-10-24T09:30", reportes: 4, motivo: "Publicidad", estado: "retirada", decisiones: [retiro(3, "2026-10-24")] },
+    { folio: "FO-0223", hilo: HILO_RESENA, texto: "Me encantó la reseña, gracias.", autor: "Persona usuaria D", fecha: "2026-10-26T18:02", reportes: 0, motivo: "—", estado: "aprobada", decisiones: [aprobo("2026-10-26")] },
+    { folio: "FO-0222", hilo: HILO_RESENA, texto: "Yo opino distinto, ¡léanlo!", autor: "Persona usuaria E", fecha: "2026-10-26T19:10", reportes: 0, motivo: "—", estado: "aprobada", decisiones: [aprobo("2026-10-26")] },
+    { folio: "FO-0221", hilo: "Recomendaciones", texto: "Comparto la dirección de mi vecino que presta libros.", autor: "Persona usuaria A", fecha: "2026-10-20T13:00", reportes: 2, motivo: "Datos personales", estado: "retirada", decisiones: [retiro(4, "2026-10-20")] },
 ];
 
 const silenciosIniciales: Silencio[] = [
-    { id: "SI-0012", persona: "Persona usuaria H (ejemplo)", motivo: "Publicidad reiterada", hasta: "2026-11-30", por: QUIEN_MODERA },
+    { id: "SI-0012", persona: "Persona usuaria H", motivo: "Publicidad reiterada", hasta: "2026-11-30", por: QUIEN_MODERA },
 ];
 
 let publicaciones = publicacionesIniciales;

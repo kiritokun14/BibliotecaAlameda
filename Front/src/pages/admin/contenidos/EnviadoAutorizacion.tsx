@@ -56,7 +56,6 @@ function EnviadoAutorizacion() {
 
             <div className="contenidos-encabezado">
                 <div>
-                    <p className="contenidos-etiqueta">Contenidos · Editor{envio?.folio ? ` · ${envio.folio}` : ""}</p>
                     <h1>Enviado a autorización</h1>
                     <p className="contenidos-encabezado__texto">
                         {envio ? `Tu ${que.replace(/^la /, "")} ya espera la decisión del Administrador.` : "Tu contenido ya espera la decisión del Administrador."}

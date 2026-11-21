@@ -40,7 +40,7 @@ export type Decision = { fecha: string; quien: string; motivo: string; explicaci
 export type Publicacion = { fecha: string; autorizo: string; referencia: string; version: number; programada?: boolean };
 
 export const YO = "Tú (Editor)";
-export const OTRO_EDITOR = "Persona del equipo (ejemplo)";
+export const OTRO_EDITOR = "Persona del equipo";
 export function autorDe(c: Contenido) {
     return c.autor ?? YO;
 }
@@ -75,29 +75,29 @@ function ejemplo(folio: string, tipo: TipoContenido, estado: EstadoContenido, ac
 
 // Publicado de ejemplo (autorizado con oficio por confirmar)
 const pub = (fecha: string, version = 1): Partial<Contenido> => ({
-    publicacion: { fecha, autorizo: "Administrador (ejemplo)", referencia: "Oficio por confirmar (ejemplo)", version },
+    publicacion: { fecha, autorizo: "Administrador", referencia: "Oficio por confirmar", version },
 });
 const deOtro = { autor: OTRO_EDITOR };
 
 const iniciales: Contenido[] = [
     ejemplo("CN-0031", "noticia", "borrador", hace(0), {
         titulo: "Horario especial por el puente",
-        resumen: "La biblioteca abrirá en horario reducido durante el puente de noviembre (ejemplo).",
+        resumen: "La biblioteca abrirá en horario reducido durante el puente de noviembre.",
         texto: "",
-        alt: "Fachada de la biblioteca (ejemplo)",
+        alt: "Fachada de la biblioteca",
         fecha: "2026-10-24",
         destacar: true,
     }, { creado: hace(2, "09:10") }),
     ejemplo("CN-0030", "resena", "por-autorizar", hace(1), {
         libro: "Cuentos de la Alameda", autoria: "Por confirmar", genero: "Cuento", anio: "2019",
-        resumen: "Cuentos breves que recorren los rincones del parque y de la ciudad. Una lectura amable para empezar la tarde… (texto de reseña de ejemplo por validar con la biblioteca).",
-        texto: "Cuentos breves que recorren los rincones del parque y de la ciudad. Una lectura amable para empezar la tarde… (texto de reseña de ejemplo por validar con la biblioteca).",
+        resumen: "Cuentos breves que recorren los rincones del parque y de la ciudad. Una lectura amable para empezar la tarde….",
+        texto: "Cuentos breves que recorren los rincones del parque y de la ciudad. Una lectura amable para empezar la tarde….",
         tema: "Cuentos y leyendas",
     }, { creado: hace(3, "12:00"), enviado: hace(0, "10:42") }),
     ejemplo("CN-0029", "noticia", "observaciones", hace(2), {
         titulo: "Nueva sala de estudio disponible",
-        resumen: "Abre una nueva sala con 24 lugares (ejemplo).",
-        texto: "La sala abrirá el 3 y el 10 de noviembre… (texto de ejemplo).",
+        resumen: "Abre una nueva sala con 24 lugares.",
+        texto: "La sala abrirá el 3 y el 10 de noviembre….",
         imagen: "sala-estudio.jpg",
         alt: "",
         fecha: "2026-10-20",
@@ -116,73 +116,73 @@ const iniciales: Contenido[] = [
     ejemplo("CN-0028", "acerca", "por-autorizar", hace(3, "11:30"), {
         seccion: "Misión y visión",
         titulo: "Misión y visión",
-        texto: "Acercar la lectura, la información y la cultura a todas las personas de Nayarit… (texto de ejemplo por validar con la biblioteca).",
+        texto: "Acercar la lectura, la información y la cultura a todas las personas de Nayarit….",
     }, { ...deOtro, creado: hace(6), enviado: hace(3, "11:30") }),
     ejemplo("CN-0027", "acerca", "por-autorizar", hace(3), {
         titulo: "Historia de la biblioteca",
-        texto: "La Biblioteca Pública Central Estatal Solón Argüello es el espacio de lectura y encuentro de Nayarit… (texto de ejemplo por validar con la biblioteca).",
+        texto: "La Biblioteca Pública Central Estatal Solón Argüello es el espacio de lectura y encuentro de Nayarit….",
         linea: "Año de fundación · por confirmar",
     }, { creado: hace(6), enviado: hace(3) }),
     ejemplo("CN-0026", "memoria", "por-autorizar", hace(0, "09:05"), {
-        titulo: "Calle Lerdo, Tepic (ejemplo)", fuente: "Archivo de la biblioteca (ejemplo)",
-        tipoPieza: "Fotografía", periodo: "Década de 1950 (ejemplo)",
-        resumen: "Vista de la calle principal a mitad del siglo XX, con comercios y transeúntes (ejemplo).",
-        texto: "Vista de la calle principal a mitad del siglo XX, con comercios y transeúntes (ejemplo).",
+        titulo: "Calle Lerdo, Tepic", fuente: "Archivo de la biblioteca",
+        tipoPieza: "Fotografía", periodo: "Década de 1950",
+        resumen: "Vista de la calle principal a mitad del siglo XX, con comercios y transeúntes.",
+        texto: "Vista de la calle principal a mitad del siglo XX, con comercios y transeúntes.",
         periodoTema: "Vida cotidiana",
         imagen: "calle-lerdo.jpg",
         permiso: true,
     }, { ...deOtro, creado: hace(2), enviado: hace(0, "09:05") }),
     ejemplo("CN-0024", "noticia", "publicado", "2026-10-12T12:00:00", {
         titulo: "Gracias por donar libros",
-        resumen: "Recibimos más de 300 libros donados por la comunidad (ejemplo).",
-        texto: "Gracias a todas las personas que donaron libros durante octubre (texto de ejemplo).",
+        resumen: "Recibimos más de 300 libros donados por la comunidad.",
+        texto: "Gracias a todas las personas que donaron libros durante octubre.",
         fecha: "2026-10-12",
         categoria: "Novedades",
     }, pub("2026-10-12T12:00:00", 2)),
     ejemplo("CN-0022", "resena", "publicado", "2026-10-08T12:00:00", {
-        libro: "Mitos del Nayar", autoria: "Autoría de ejemplo", genero: "Cuento",
-        resumen: "Relatos tradicionales de la región (ejemplo).",
-        texto: "Una recopilación de mitos y leyendas de la región (texto de ejemplo).",
+        libro: "Mitos del Nayar", autoria: "Autoría por confirmar", genero: "Cuento",
+        resumen: "Relatos tradicionales de la región.",
+        texto: "Una recopilación de mitos y leyendas de la región.",
     }, pub("2026-10-08T12:00:00")),
     ejemplo("CN-0020", "noticia", "borrador", "2026-10-05T09:00:00", {
         titulo: "Convocatoria: club de lectura juvenil",
-        resumen: "Abrimos inscripciones para el club de lectura juvenil (ejemplo).",
+        resumen: "Abrimos inscripciones para el club de lectura juvenil.",
         texto: "",
         categoria: "Convocatorias",
     }),
     ejemplo("CN-0019", "noticia", "publicado", "2026-10-02T12:00:00", {
         titulo: "Visita guiada de octubre",
-        resumen: "Recorrido por las salas y el acervo histórico (ejemplo).",
-        texto: "Te invitamos a la visita guiada de octubre (texto de ejemplo).",
+        resumen: "Recorrido por las salas y el acervo histórico.",
+        texto: "Te invitamos a la visita guiada de octubre.",
         fecha: "2026-10-02",
         categoria: "Actividades",
     }, { ...deOtro, ...pub("2026-10-02T12:00:00") }),
     ejemplo("CN-0018", "memoria", "borrador", "2026-10-02T09:00:00", {
-        titulo: "Plaza principal de Tepic (ejemplo)", fuente: "Archivo de la biblioteca (ejemplo)",
-        tipoPieza: "Fotografía", periodo: "Década de 1940 (ejemplo)",
-        resumen: "La plaza principal con el kiosco a mitad del siglo XX (ejemplo).",
+        titulo: "Plaza principal de Tepic", fuente: "Archivo de la biblioteca",
+        tipoPieza: "Fotografía", periodo: "Década de 1940",
+        resumen: "La plaza principal con el kiosco a mitad del siglo XX.",
         periodoTema: "Vida cotidiana",
     }),
     ejemplo("CN-0017", "resena", "publicado", "2026-09-28T13:00:00", {
-        libro: "Poemas para el camino", autoria: "Autoría de ejemplo", genero: "Poesía",
-        resumen: "Poemas breves para leer en voz alta (ejemplo).",
-        texto: "Una selección de poemas breves (texto de ejemplo).",
+        libro: "Poemas para el camino", autoria: "Autoría por confirmar", genero: "Poesía",
+        resumen: "Poemas breves para leer en voz alta.",
+        texto: "Una selección de poemas breves.",
     }, { ...deOtro, ...pub("2026-09-28T13:00:00") }),
     ejemplo("CN-0015", "noticia", "publicado", "2026-09-28T12:00:00", {
-        titulo: "Nuevo horario de la hemeroteca",
-        resumen: "La hemeroteca amplía su horario por las tardes (ejemplo).",
-        texto: "A partir de octubre, la hemeroteca abrirá hasta las 19:00 (texto de ejemplo).",
+        titulo: "Nuevo horario de la sala de lectura",
+        resumen: "La sala de lectura amplía su horario por las tardes.",
+        texto: "A partir de octubre, la sala de lectura abrirá hasta las 19:00.",
         fecha: "2026-09-28",
     }, pub("2026-09-28T12:00:00")),
     ejemplo("CN-0012", "acerca", "publicado", "2026-09-12T12:00:00", {
         seccion: "Misión y visión",
         titulo: "Misión y visión",
-        texto: "Acercar la lectura y la cultura a todas las personas (texto de ejemplo).",
+        texto: "Acercar la lectura y la cultura a todas las personas.",
     }, { ...deOtro, ...pub("2026-09-12T12:00:00", 3) }),
     ejemplo("CN-0010", "resena", "publicado", "2026-09-05T12:00:00", {
-        libro: "Leyendas de Tepic", autoria: "Autoría de ejemplo", genero: "Historia regional",
-        resumen: "Leyendas de la ciudad contadas por sus vecinos (ejemplo).",
-        texto: "Una recopilación de leyendas de Tepic (texto de ejemplo).",
+        libro: "Leyendas de Tepic", autoria: "Autoría por confirmar", genero: "Historia regional",
+        resumen: "Leyendas de la ciudad contadas por sus vecinos.",
+        texto: "Una recopilación de leyendas de Tepic.",
     }, { ...deOtro, ...pub("2026-09-05T12:00:00") }),
 ];
 

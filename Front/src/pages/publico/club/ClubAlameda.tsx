@@ -21,8 +21,8 @@ import libroGris from "../../../assets/club/escritura.svg";
 import alertaGuinda from "../../../assets/credencial/alerta-guinda.svg";
 import checkEnviada from "../../../assets/credencial/enviada-check.svg";
 import infoVerde from "../../../assets/credencial/info-verde.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 
+import { EsqueletoArticulo, EsqueletoLista } from "../../../components/portal/Esqueleto";
 // Club Alameda · foro de la Bibliocomunidad (HU-26). Figma A-02: 759:93132 inicio, 759:93772 detalle de un hilo.
 // Sin diseño en Figma (se armó con las piezas del portal): el reporte de una respuesta, la respuesta «En revisión»,
 // la invitación a iniciar sesión y el aviso de cuenta silenciada.
@@ -68,7 +68,7 @@ export default function ClubAlameda() {
                 <h2 className="club-titulo">Elige un tema</h2>
                 <p className="club-subtitulo">Lee las respuestas y comparte tu opinión.</p>
                 <div className="club-temas">
-                    {!carga && <p role="status">Cargando conversaciones…</p>}
+                    {!carga && <EsqueletoLista texto="Cargando conversaciones…" />}
                     {carga?.error && <p role="alert">{carga.error} <button className="club-boton" onClick={() => recargar(x => x + 1)}>Reintentar</button></p>}
                     {carga?.datos?.temas.length === 0 && <p className="club-vacio">Todavía no hay conversaciones publicadas.</p>}
                     {carga?.datos?.temas.map(t => <TarjetaTema key={t.slug} tema={t} respuestas={t.respuestas} ultimaActividad={t.ultimaActividad} />)}
@@ -94,7 +94,7 @@ function TarjetaTema({ tema, respuestas, ultimaActividad }: { tema: Tema; respue
             <h3>{tema.titulo}</h3>
             <p className="club-tema__descripcion">{tema.descripcion}</p>
             <p className="club-tema__meta">{textoRespuestas(respuestas)} · Última actividad: {actividadRelativa(ultimaActividad)}</p>
-            <span className="club-tema__entrar">Entrar a la conversación →</span>
+            <span className="club-tema__entrar">Entrar a la conversación</span>
         </Link>
     );
 }
@@ -115,7 +115,7 @@ function HiloPersistente({ slug, sesion }: { slug: string; sesion: string | null
     const tema: TemaReal | undefined = carga?.datos?.tema; const lista = carga?.datos?.respuestas ?? [];
     const publicadas = tema?.respuestas ?? 0;
     const actualizar = () => recargar(x => x + 1);
-    if (!tema) return <PaginaPublica><div className="club-cuerpo"><Link to="/club-alameda">Volver al foro</Link>{carga?.error ? <p role="alert">{carga.error} <button className="club-boton" onClick={actualizar}>Reintentar</button></p> : <p role="status">Cargando conversación…</p>}</div></PaginaPublica>;
+    if (!tema) return <PaginaPublica><div className="club-cuerpo"><Link to="/club-alameda">Volver al foro</Link>{carga?.error ? <p role="alert">{carga.error} <button className="club-boton" onClick={actualizar}>Reintentar</button></p> : <EsqueletoArticulo texto="Cargando conversación…" />}</div></PaginaPublica>;
     return (
         <PaginaPublica>
             <EncabezadoNoticias
@@ -143,7 +143,7 @@ function HiloPersistente({ slug, sesion }: { slug: string; sesion: string | null
                         <section className="club-responder club-responder--sin-sesion">
                             <h2>Tu lectura también cuenta</h2>
                             <p>Inicia sesión para responder y reportar publicaciones. Puedes leer las conversaciones sin cuenta.</p>
-                            <Link className="club-boton" to="/iniciar-sesion">Iniciar sesión <img src={flechaBlanca} alt="" /></Link>
+                            <Link className="club-boton" to="/iniciar-sesion">Iniciar sesión</Link>
                         </section>
                     ) : sesion === undefined ? <p role="status">Comprobando sesión…</p> : (
                         <FormularioRespuesta key={tema.slug} tema={tema.slug} alGuardar={actualizar} />

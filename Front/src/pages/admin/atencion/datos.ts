@@ -66,7 +66,7 @@ export function formatearFecha(fecha: string) {
     return `${dia} ${MESES[mes - 1]} ${anio}`;
 }
 
-const notaEjemplo = (texto: string): Nota[] => [{ autor: "Administrador", cuando: "hoy (ejemplo)", texto }];
+const notaEjemplo = (texto: string): Nota[] => [{ autor: "Administrador", cuando: "hoy", texto }];
 
 function credencial(numero: number, persona: number, enviada: string, estado: Estado, menor = false): Credencial {
     return {
@@ -76,25 +76,25 @@ function credencial(numero: number, persona: number, enviada: string, estado: Es
         estado,
         tipoCuenta: menor ? "Menor de edad" : "Adulta",
         correo: "nombre@ejemplo.mx",
-        telefono: "(311) 000 0000 (ejemplo)",
+        telefono: "(311) 000 0000",
         cotejo: [true, true, false, false],
-        notas: notaEjemplo("Confirmar los datos antes de aprobar (ejemplo)."),
+        notas: notaEjemplo("Confirmar los datos antes de aprobar."),
         responsable: "Yo (administrador)",
         resolucion: resolucionEjemplo(estado),
     };
 }
 
 function resolucionEjemplo(estado: Estado): Resolucion | undefined {
-    if (estado === "aprobada") return { fecha: "Hoy (ejemplo)" };
+    if (estado === "aprobada") return { fecha: "Hoy" };
     if (estado === "rechazada") {
         return {
-            fecha: "Hoy (ejemplo)",
-            motivo: "Datos incompletos (ejemplo)",
-            mensaje: "Mensaje de ejemplo con la explicación del rechazo.",
+            fecha: "Hoy",
+            motivo: "Datos incompletos",
+            mensaje: "Mensaje con la explicación del rechazo.",
         };
     }
     if (estado === "observaciones") {
-        return { fecha: "23 oct 2026", mensaje: "Mensaje de ejemplo para la persona." };
+        return { fecha: "23 oct 2026", mensaje: "Mensaje para la persona." };
     }
     return undefined;
 }
@@ -136,10 +136,10 @@ function espacio(
         fecha,
         horario,
         personas,
-        motivo: "Taller de lectura (ejemplo)",
+        motivo: "Taller de lectura",
         contacto: "nombre@ejemplo.mx",
         cotejo: [true, true, false, true],
-        notas: notaEjemplo("Confirmar con la agenda antes de aprobar (ejemplo)."),
+        notas: notaEjemplo("Confirmar con la agenda antes de aprobar."),
         responsable: "Yo (administrador)",
         resolucion: resolucionEjemplo(estado),
     };
@@ -173,14 +173,14 @@ function propuesta(numero: number, persona: number, datos: DatosPropuesta, estad
         estado,
         ...datos,
         horario: datos.fecha ? "17:00 a 19:00" : "",
-        publico: "Público en general (ejemplo)",
+        publico: "Público en general",
         espacio: USOS_MULTIPLES,
-        material: "Sillas y proyector (ejemplo)",
-        contacto: "10 dígitos (ejemplo)",
+        material: "Sillas y proyector",
+        contacto: "10 dígitos",
         descripcion:
-            "Encuentro para leer y comentar poesía de autores de la región, con espacio abierto para quienes quieran compartir sus textos. Texto de ejemplo.",
+            "Encuentro para leer y comentar poesía de autores de la región, con espacio abierto para quienes quieran compartir sus textos.",
         cotejo: [true, false, false, false],
-        notas: notaEjemplo("Confirmar con la agenda antes de aprobar (ejemplo)."),
+        notas: notaEjemplo("Confirmar con la agenda antes de aprobar."),
         responsable: "Yo (administrador)",
         resolucion: resolucionEjemplo(estado),
     };

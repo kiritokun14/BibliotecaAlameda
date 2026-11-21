@@ -1,16 +1,20 @@
 import { usePublicados } from "../../../servicios/usarPublicados.ts";
-import type { ReactNode } from "react";
-import { Navigate, NavLink, useParams } from "react-router";
+import { EsqueletoArticulo } from "../../../components/portal/Esqueleto";
+import type { CSSProperties, ReactNode } from "react";
+import { Link, Navigate, NavLink, useParams } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import EstadoPagina from "../../../components/portal/EstadoPagina";
 import { simulacion } from "../../../servicios/simulacion";
+import "../perfil/Perfil.css";
 import "./Acerca.css";
+import { EtiquetaPerfil, TarjetaPerfil } from "../perfil/piezas";
+import iconoAccesos from "../../../assets/inicio/etiqueta-accesos.svg";
+import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
 import type { SeccionAcerca } from "./datos";
 import Historia from "./Historia";
 import MisionVision from "./MisionVision";
 import SolonArguello from "./SolonArguello";
 import RolBiblioteca from "./RolBiblioteca";
-import { SinInformacion } from "./piezas";
 import iconoReloj from "../../../assets/acerca/pestana-reloj.svg";
 import iconoEstrella from "../../../assets/acerca/pestana-estrella.svg";
 import iconoPersona from "../../../assets/comun/iconos/persona-verde.svg";
@@ -62,12 +66,6 @@ const secciones: Record<SeccionAcerca, {
 
 const claveDe = (s: SeccionAcerca) => (s === "mision-vision" ? "mision" : s === "solon-arguello" ? "solon" : s);
 
-// Para el estado vacío: la primera sección que sí tenga información (si no hay ninguna, el inicio)
-function otraSeccion(actual: SeccionAcerca, datos: { datos: Record<string, unknown> }[]) {
-    const con = (Object.keys(secciones) as SeccionAcerca[]).find((s) => s !== actual && datos.some((c) => c.datos.seccion === claveDe(s)));
-    return con ? { texto: `Ver ${secciones[con].pestana}`, ruta: `/acerca/${con}` } : { texto: "Ir al inicio", ruta: "/" };
-}
-
 function esSeccion(valor: string | undefined): valor is SeccionAcerca {
     return valor !== undefined && valor in secciones;
 }
@@ -88,7 +86,7 @@ function Acerca() {
 
     return (
         <PaginaPublica>
-            <EncabezadoPublico etiqueta={actual.etiqueta} titulo={actual.titulo} texto={actual.texto} />
+            <EncabezadoPublico etiqueta={actual.etiqueta} titulo={actual.titulo} texto={actual.texto} icono={actual.icono} />
 
             {fallo ? (
                 <EstadoPagina
@@ -100,17 +98,42 @@ function Acerca() {
                     secundario={{ texto: "Ir al Buzón de sugerencias", ruta: "/contacto?tipo=sugerencia" }}
                 />
             ) : (
-                <div className="acerca">
-                    <nav className="pestanas-acerca" aria-label="Secciones de Acerca de">
-                        {(Object.keys(secciones) as SeccionAcerca[]).map((clave) => (
-                            <NavLink key={clave} to={`/acerca/${clave}`} className="pestana-acerca">
-                                <img src={secciones[clave].icono} alt="" />
-                                {secciones[clave].pestana}
-                            </NavLink>
-                        ))}
+                // Plantilla A del catálogo (AGENTS.md §7): menú lateral de secciones + sección con encabezado e insignia
+                <div className="perfil-cuerpo acerca-cuerpo">
+                    <nav className="perfil-menu acerca-menu" aria-label="Secciones de Acerca de">
+                        <EtiquetaPerfil icono={iconoAccesos}>Secciones</EtiquetaPerfil>
+                        <ul>
+                            {(Object.keys(secciones) as SeccionAcerca[]).map((clave) => (
+                                <li key={clave}>
+                                    <NavLink to={`/acerca/${clave}`}
+                                        className={`perfil-menu__opcion${clave === seccion ? " perfil-menu__opcion--activa" : ""}`}
+                                        aria-current={clave === seccion ? "page" : undefined}>
+                                        <img src={secciones[clave].icono} alt="" /><span className="perfil-menu__texto">{secciones[clave].pestana}</span>
+                                    </NavLink>
+                                </li>
+                            ))}
+                        </ul>
+                        {/* Contacto al pie del menú (antes era un botón en el encabezado de la sección) */}
+                        <div className="acerca-menu__contacto">
+                            <strong>¿Tienes dudas?</strong>
+                            <span>Escríbenos y la biblioteca te responde.</span>
+                            <Link to="/contacto" className="perfil-boton perfil-boton--chico">Contáctanos</Link>
+                        </div>
                     </nav>
 
-                    {!datos ? <p role="status">Cargando información institucional…</p> : !publicado ? <SinInformacion seccion={`«${actual.pestana}»`} otra={otraSeccion(seccion, datos)} /> : <article className="acerca-contenedor"><h2>{publicado.titulo}</h2><div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{publicado.cuerpo}</div>{typeof publicado.datos.lineaTiempo === 'string' && <p style={{ whiteSpace: 'pre-wrap' }}>{publicado.datos.lineaTiempo}</p>}</article>}
+                    <div className="perfil-seccion" key={seccion} style={{ "--icono-seccion": `url("${actual.icono}")` } as CSSProperties}>
+                        {!datos ? <EsqueletoArticulo texto="Cargando información institucional…" />
+                            // Mientras la biblioteca no publique el texto de una sección, se muestra el contenido del diseño de Figma
+                            : !publicado ? <actual.Contenido />
+                            : (
+                                <TarjetaPerfil color="verde" icono={tarjetaLista} titulo={publicado.titulo}>
+                                    <div className="acerca-texto">{publicado.cuerpo}</div>
+                                    {typeof publicado.datos.lineaTiempo === "string" && (
+                                        <div className="perfil-nota"><p><strong>Línea del tiempo</strong><span className="acerca-texto">{publicado.datos.lineaTiempo}</span></p></div>
+                                    )}
+                                </TarjetaPerfil>
+                            )}
+                    </div>
                 </div>
             )}
         </PaginaPublica>

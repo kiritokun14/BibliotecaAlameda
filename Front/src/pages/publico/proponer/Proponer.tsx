@@ -27,8 +27,8 @@ import libro from "../../../assets/credencial/libro.svg";
 import calendario from "../../../assets/perfil/evento-calendario-verde.svg";
 import usuario from "../../../assets/perfil/tarjeta-usuario.svg";
 import enviar from "../../../assets/perfil/tarjeta-enviar.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 
+import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 // Proponer una actividad con sesión (Figma A-02, 476:29029 formulario, 476:29255 enviado,
 // 476:29488 con observaciones, 543:15773 no aprobada).
 const regresoEventos = { texto: "Volver a Eventos y actividades", ruta: "/eventos" };
@@ -40,7 +40,7 @@ function SinSesion() {
             <div className="cred-estado">
                 <h1>Inicia sesión para proponer una actividad</h1>
                 <p>Con tu cuenta puedes proponer eventos o clubes y dar seguimiento a tus propuestas.</p>
-                <Link className="boton-visitante" to="/iniciar-sesion">Iniciar sesión <img src={flechaBlanca} alt="" /></Link>
+                <Link className="boton-visitante" to="/iniciar-sesion">Iniciar sesión</Link>
             </div>
         </PaginaPublica>
     );
@@ -74,7 +74,7 @@ export default function Proponer() {
     const [intento, reintentar] = useState(0);
     const carga = usePerfil(sesion, intento);
     if (sesion === null) return <SinSesion />;
-    if (!carga) return <PaginaPublica><p className="cred-estado" role="status">Cargando…</p></PaginaPublica>;
+    if (!carga) return <PaginaPublica><div className="proponer-esqueleto"><EsqueletoDetalle texto="Cargando tu propuesta…" /></div></PaginaPublica>;
     if ("error" in carga) return <PaginaPublica><div className="cred-estado"><p role="alert">{carga.error}</p><button type="button" onClick={() => reintentar(v => v + 1)}>Reintentar</button></div></PaginaPublica>;
     return <Formulario key={carga.perfil.id} responsable={nombreCompleto(carga.perfil)} telefono={carga.perfil.telefono} />;
 }
@@ -239,7 +239,7 @@ export function PropuestaEnviada() {
                     </div>
                     <p className="proponer-suave">Puedes consultar el estado y las observaciones desde Mis propuestas.</p>
                     <div className="cred-acciones">
-                        <Link to="/mi-perfil/propuestas" className="boton-visitante">Ver mis propuestas <img src={flechaBlanca} alt="" /></Link>
+                        <Link to="/mi-perfil/propuestas" className="boton-visitante">Ver mis propuestas</Link>
                         <Link to="/eventos" className="boton-visitante cred-boton-contorno">Volver a Eventos y actividades</Link>
                     </div>
                 </section>
@@ -272,7 +272,7 @@ export function DetallePropuesta() {
     return <PaginaPublica>
         <EncabezadoNoticias regreso={regresoPropuestas} etiqueta="MIS PROPUESTAS" titulo={solicitud?.tituloPropuesta || 'Seguimiento de propuesta'} texto="Consulta la revisión y las observaciones registradas por la biblioteca." />
         <div className="proponer-cuerpo proponer-cuerpo--una">
-            {!solicitud ? <p role={error ? 'alert' : 'status'}>{error || (cargando ? 'Cargando propuesta…' : 'Inicia sesión para consultar tu propuesta.')}</p> :
+            {!solicitud ? (cargando && !error ? <EsqueletoDetalle texto="Cargando propuesta…" /> : <p role={error ? 'alert' : 'status'}>{error || 'Inicia sesión para consultar tu propuesta.'}</p>) :
                 <section className="cred-tarjeta proponer-seccion">
                     <FichaTramite solicitud={solicitud} />
                     <AccionesPropuesta key={solicitud.actualizadoEn} solicitud={solicitud} alGuardar={() => setVersion(v => v + 1)} />

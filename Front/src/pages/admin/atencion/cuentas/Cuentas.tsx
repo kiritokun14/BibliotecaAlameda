@@ -18,6 +18,7 @@ import modalCheck from "../../../../assets/admin/modal-check.svg";
 import vacioBuscar from "../../../../assets/admin/vacio-search.svg";
 import vacioCheck from "../../../../assets/admin/vacio-check.svg";
 
+import { EsqueletoDetalle, EsqueletoLista } from "../../../../components/portal/Esqueleto";
 const RUTA = "/admin/atencion/cuentas";
 const POR_PAGINA = 10;
 
@@ -65,7 +66,7 @@ function ConCuenta({ miga, children }: { miga: string; children: (c: CuentaResum
     const { datos, error, cargando, recargar } = useCarga(id, () => verCuenta(id));
     return (
         <Pantalla migas={[[miga]]}>
-            {cargando && <p className="contenidos-cargando" role="status">Cargando cuenta…</p>}
+            {cargando && <EsqueletoDetalle texto="Cargando cuenta…" />}
             {error && <ErrorCarga texto={error} alReintentar={recargar} />}
             {datos && children(datos, recargar)}
         </Pantalla>
@@ -119,7 +120,7 @@ export default function Cuentas() {
                     </label>
                 </div>
 
-                {lista.cargando && <p className="contenidos-cargando" role="status">Cargando cuentas…</p>}
+                {lista.cargando && <EsqueletoLista texto="Cargando cuentas…" />}
                 {lista.error && <ErrorCarga texto={lista.error} alReintentar={lista.recargar} />}
                 {lista.datos && (visibles.length === 0 ? (
                     busqueda || filtro !== "todas"
@@ -277,7 +278,7 @@ export function BitacoraCuenta() {
                     <span className="contenidos-lista__icono"><IconoReloj /></span>
                     <div><h2 id="cuentas-bitacora-titulo">Cambios registrados</h2><p>Del más reciente al más antiguo.</p></div>
                 </div>
-                {bitacora.cargando && <p className="contenidos-cargando" role="status">Cargando bitácora…</p>}
+                {bitacora.cargando && <EsqueletoLista filas={3} texto="Cargando bitácora…" />}
                 {bitacora.error && <ErrorCarga texto={bitacora.error} alReintentar={bitacora.recargar} />}
                 {bitacora.datos && (bitacora.datos.cambios.length === 0
                     ? <EstadoVacio icono={vacioCheck} titulo="Sin cambios registrados" texto="Cuando se cambie un rol o el estado de la cuenta, aparecerá aquí." />

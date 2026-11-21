@@ -132,12 +132,12 @@ describe('Moderación del foro', () => {
     it('silenciar y restaurar participación', async () => {
         await expect(silenciarPersona('FO-0233', 7, ' ')).rejects.toThrow();
         await silenciarPersona('FO-0233', 7, 'Reincidencia');
-        const s = silencioDe('Persona usuaria A (ejemplo)')!;
+        const s = silencioDe('Persona usuaria A')!;
         expect(s.motivo).toBe('Reincidencia');
         expect(fechaHasta(7, new Date('2026-11-03T12:00:00'))).toBe('2026-11-10');
         expect(foroActual().silencios).toHaveLength(2);
         await restaurarParticipacion(s.id);
-        expect(silencioDe('Persona usuaria A (ejemplo)')).toBeUndefined();
+        expect(silencioDe('Persona usuaria A')).toBeUndefined();
         await expect(restaurarParticipacion(s.id)).rejects.toThrow(/ya no está silenciada/);
     });
 });

@@ -1,12 +1,32 @@
-import { invalidarConsultas } from './consultas';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { invalidarConsultas, olvidarMemoria } from './consultas';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export class ErrorServicio extends Error {
     estado: number;
     constructor(mensaje: string, estado = 0) { super(mensaje); this.estado = estado; }
 }
 
-export async function pedirApi<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
+// Lecturas iguales en curso (misma ruta y misma sesión) se juntan en una sola petición.
+// El navegador retiene dos GET idénticos simultáneos hasta que termina el primero, así que cada copia
+// duplicaba la espera (React monta dos veces en desarrollo y varias piezas piden lo mismo a la vez).
+const enCurso = new Map<string, Promise<unknown>>();
+
+export function pedirApi<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
+    const metodo = (opciones.method ?? 'GET').toUpperCase();
+    if (metodo !== 'GET') { olvidarMemoria(); return pedirApiDirecto<T>(ruta, opciones); } // un cambio deja vieja la memoria de listas
+    if (opciones.signal) return pedirApiDirecto<T>(ruta, opciones);
+    const sesion = new Headers(opciones.headers).get('Authorization') ?? '';
+    const clave = ruta + '|' + sesion;
+    let promesa = enCurso.get(clave);
+    if (!promesa) {
+        promesa = pedirApiDirecto<unknown>(ruta, opciones).finally(() => enCurso.delete(clave));
+        enCurso.set(clave, promesa);
+    }
+    // Cada quien recibe su propia copia, para que nadie modifique los datos de otro
+    return promesa.then((datos) => (datos === null || typeof datos !== 'object' ? datos : structuredClone(datos)) as T);
+}
+
+async function pedirApiDirecto<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
     let respuesta: Response;
     try {
         respuesta = await fetch(`/api${ruta}`, { ...opciones, signal: AbortSignal.timeout(20000),
@@ -39,8 +59,12 @@ const almacenamiento = {
 };
 let cliente: Promise<SupabaseClient> | undefined;
 export function obtenerSupabase(): Promise<SupabaseClient> {
-    cliente ??= pedirApi<{ url: string; clavePublicable: string }>('/cuentas/configuracion')
-        .then(({ url, clavePublicable }) => createClient(url, clavePublicable, { auth: {
+    // La librería de Supabase (unos 200 KB) se descarga aquí, en paralelo con la configuración,
+    // y no en el paquete principal: la página se pinta sin esperarla.
+    cliente ??= Promise.all([
+        pedirApi<{ url: string; clavePublicable: string }>('/cuentas/configuracion'),
+        import('@supabase/supabase-js'),
+    ]).then(([{ url, clavePublicable }, { createClient }]) => createClient(url, clavePublicable, { auth: {
             flowType: 'pkce', detectSessionInUrl: false, persistSession: true,
             autoRefreshToken: true, storage: almacenamiento,
         } })).catch(error => { cliente = undefined; throw error; });

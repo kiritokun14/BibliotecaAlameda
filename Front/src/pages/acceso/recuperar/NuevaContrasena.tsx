@@ -5,7 +5,6 @@ import { useNavigate } from "react-router";
 import AccesoLayout from "../../../components/acceso/AccesoLayout";
 import { CampoContrasena } from "../../../components/acceso/Campo";
 import { guardarNuevaContrasena, puedeRestablecerContrasena } from "../../../servicios/auth";
-import iconoFlechaDer from "../../../assets/comun/iconos/flecha-derecha.svg";
 
 type Errores = { contrasena?: string; confirmar?: string };
 
@@ -46,9 +45,7 @@ function NuevaContrasena() {
 
     return (
         <AccesoLayout
-            etiqueta="RECUPERAR ACCESO"
             titulo={<>Crea una <span>nueva</span> contraseña</>}
-            texto="Elige una contraseña que no hayas usado antes."
         >
             <form className="tarjeta" onSubmit={enviar} noValidate>
                 <div className="tarjeta__encabezado">
@@ -68,7 +65,6 @@ function NuevaContrasena() {
 
                 <button type="submit" className="boton-principal" disabled={enviando || !valido}>
                     {enviando ? "Guardando…" : "Guardar contraseña"}
-                    <img src={iconoFlechaDer} alt="" />
                 </button>
             </form>
         </AccesoLayout>

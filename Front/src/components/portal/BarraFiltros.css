@@ -1,0 +1,380 @@
+/* Filtros del portal (BarraFiltros.tsx): una fila compacta con buscador y botón «Filtros»
+   que despliega un panel flotante; debajo, solo lo elegido. */
+.barra-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.barra-filtros__fila {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ---------- Buscador ---------- */
+.barra-filtros__buscar {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+}
+
+.barra-filtros__lupa {
+  position: absolute;
+  left: 16px;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: #4d5652;
+  stroke-width: 2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.barra-filtros__buscar input {
+  width: 100%;
+  height: 46px;
+  padding: 0 44px 0 44px;
+  box-sizing: border-box;
+  border: 1px solid #d9e2de;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(22, 79, 68, 0.05);
+  color: #161a1d;
+  font: inherit;
+  font-size: 15px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.barra-filtros__buscar input::placeholder { color: #6b7570; }
+.barra-filtros__buscar input::-webkit-search-cancel-button { display: none; }
+
+.barra-filtros__buscar input:focus {
+  border-color: #1f6b5c;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(31, 107, 92, 0.15);
+}
+
+.barra-filtros__borrar {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: #4d5652;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.barra-filtros__borrar:hover { background: #eef3f1; }
+
+/* ---------- Botón «Filtros» ---------- */
+.barra-filtros__abrir {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 16px;
+  border: 1px solid #d9e2de;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(22, 79, 68, 0.05);
+  color: #164f44;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.barra-filtros__abrir svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.barra-filtros__abrir:hover { border-color: #1f6b5c; }
+
+.barra-filtros__abrir--abierto {
+  border-color: #164f44;
+  background: #164f44;
+  color: #fff;
+}
+
+.barra-filtros__flecha { width: 16px !important; height: 16px !important; transition: transform 0.15s ease; }
+.barra-filtros__abrir--abierto .barra-filtros__flecha { transform: rotate(180deg); }
+
+.barra-filtros__cuenta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #e6d194;
+  color: #0b3b33;
+  font-size: 12px;
+}
+
+/* ---------- Panel desplegable ---------- */
+.barra-filtros__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 340px;
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  padding: 20px;
+  box-sizing: border-box;
+  border: 1px solid #e4ebe8;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(11, 59, 51, 0.18);
+  animation: panel-filtros-entra 0.16s ease-out;
+}
+
+@keyframes panel-filtros-entra {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.barra-filtros__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.barra-filtros__grupo legend,
+.barra-filtros__titulo-grupo {
+  margin-bottom: 8px;
+  padding: 0;
+  color: #4d5652;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+/* Opciones como lista de pastillas pequeñas; el radio queda oculto pero accesible */
+.barra-filtros__opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.barra-filtros__opcion { position: relative; cursor: pointer; }
+
+.barra-filtros__opcion input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.barra-filtros__opcion span {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid #d9e2de;
+  border-radius: 999px;
+  color: #164f44;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.barra-filtros__opcion:hover span { border-color: #1f6b5c; }
+
+.barra-filtros__opcion input:checked + span {
+  border-color: #164f44;
+  background: #164f44;
+  color: #fff;
+}
+
+.barra-filtros__opcion input:focus-visible + span {
+  outline: 3px solid #e6d194;
+  outline-offset: 2px;
+}
+
+.barra-filtros__fecha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.barra-filtros__fecha input {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d9e2de;
+  border-radius: 10px;
+  color: #164f44;
+  font: inherit;
+  font-size: 14px;
+}
+
+.barra-filtros__fecha input:focus-visible { border-color: #1f6b5c; outline: 3px solid rgba(31, 107, 92, 0.15); }
+
+.barra-filtros__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid #edf1ef;
+}
+
+.barra-filtros__listo {
+  height: 38px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 999px;
+  background: #164f44;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.barra-filtros__listo:hover { background: #0b3b33; }
+
+.barra-filtros__enlace {
+  padding: 4px 2px;
+  border: none;
+  background: none;
+  color: #8a1538;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.barra-filtros__enlace:disabled { color: #9aa3a0; text-decoration: none; cursor: default; }
+
+/* ---------- Lo elegido, debajo de la barra ---------- */
+.barra-filtros__elegidos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barra-filtros__elegidos li > button:not(.barra-filtros__enlace) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 10px 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: #e4efeb;
+  color: #164f44;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.barra-filtros__elegidos li > button:not(.barra-filtros__enlace) span { font-size: 11px; opacity: 0.7; }
+.barra-filtros__elegidos li > button:not(.barra-filtros__enlace):hover { background: #d3e5de; }
+.barra-filtros__elegidos .barra-filtros__enlace { font-size: 13px; }
+
+.barra-filtros button:focus-visible {
+  outline: 3px solid #e6d194;
+  outline-offset: 2px;
+}
+
+/* ---------- Pastillas rápidas (Noticias, Eventos, Inicio) ---------- */
+.chips-filtro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid #d9e2de;
+  border-radius: 999px;
+  background: #fff;
+  color: #164f44;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.chip-filtro img { width: 16px; height: 16px; }
+.chip-filtro:hover { border-color: #1f6b5c; }
+
+.chip-filtro--activa,
+.chip-filtro--activa:hover {
+  border-color: #164f44;
+  background: #164f44;
+  color: #fff;
+}
+
+.chip-filtro--activa img { filter: brightness(0) invert(1); }
+
+.chip-filtro:focus-visible {
+  outline: 3px solid #e6d194;
+  outline-offset: 2px;
+}
+
+/* Sobre fondo verde o guinda */
+.chips-filtro--oscuro .chip-filtro {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.chips-filtro--oscuro .chip-filtro img { filter: brightness(0) invert(1); }
+.chips-filtro--oscuro .chip-filtro:hover { border-color: #e6d194; }
+
+.chips-filtro--oscuro .chip-filtro--activa {
+  border-color: #e6d194;
+  background: #e6d194;
+  color: #0b3b33;
+}
+
+.chips-filtro--oscuro .chip-filtro--activa img { filter: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-filtro,
+  .barra-filtros__opcion span,
+  .barra-filtros__flecha { transition: none; }
+  .barra-filtros__panel { animation: none; }
+}

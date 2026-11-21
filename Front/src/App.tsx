@@ -1,20 +1,22 @@
 import { lazy, Suspense } from "react";
-import RetornoAuth from "./pages/acceso/RetornoAuth";
+// Solo Inicio y el regreso de inicio de sesión van en el paquete principal; lo demás se descarga al abrirlo.
+import { EsqueletoPagina } from "./components/portal/Esqueleto";
+const RetornoAuth = lazy(() => import("./pages/acceso/RetornoAuth"));
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import Inicio from "./pages/publico/inicio/Inicio.tsx";
-import Login from "./pages/acceso/Login.tsx";
-import CuentaDeshabilitada from "./pages/acceso/CuentaDeshabilitada.tsx";
-import SesionIniciada from "./pages/acceso/SesionIniciada.tsx";
-import CrearCuenta from "./pages/acceso/CrearCuenta.tsx";
-import CorreoRegistrado from "./pages/acceso/CorreoRegistrado.tsx";
-import ConfirmarCorreo from "./pages/acceso/ConfirmarCorreo.tsx";
-import ConfirmarEnlaceVencido from "./pages/acceso/ConfirmarEnlaceVencido.tsx";
-import SolicitarEnlace from "./pages/acceso/recuperar/SolicitarEnlace.tsx";
-import RevisaTuCorreo from "./pages/acceso/recuperar/RevisaTuCorreo.tsx";
-import NuevaContrasena from "./pages/acceso/recuperar/NuevaContrasena.tsx";
-import ContrasenaActualizada from "./pages/acceso/recuperar/ContrasenaActualizada.tsx";
-import EnlaceVencido from "./pages/acceso/recuperar/EnlaceVencido.tsx";
-import RecuperacionAsistida from "./pages/acceso/recuperar/RecuperacionAsistida.tsx";
+const Login = lazy(() => import("./pages/acceso/Login.tsx"));
+const CuentaDeshabilitada = lazy(() => import("./pages/acceso/CuentaDeshabilitada.tsx"));
+const SesionIniciada = lazy(() => import("./pages/acceso/SesionIniciada.tsx"));
+const CrearCuenta = lazy(() => import("./pages/acceso/CrearCuenta.tsx"));
+const CorreoRegistrado = lazy(() => import("./pages/acceso/CorreoRegistrado.tsx"));
+const ConfirmarCorreo = lazy(() => import("./pages/acceso/ConfirmarCorreo.tsx"));
+const ConfirmarEnlaceVencido = lazy(() => import("./pages/acceso/ConfirmarEnlaceVencido.tsx"));
+const SolicitarEnlace = lazy(() => import("./pages/acceso/recuperar/SolicitarEnlace.tsx"));
+const RevisaTuCorreo = lazy(() => import("./pages/acceso/recuperar/RevisaTuCorreo.tsx"));
+const NuevaContrasena = lazy(() => import("./pages/acceso/recuperar/NuevaContrasena.tsx"));
+const ContrasenaActualizada = lazy(() => import("./pages/acceso/recuperar/ContrasenaActualizada.tsx"));
+const EnlaceVencido = lazy(() => import("./pages/acceso/recuperar/EnlaceVencido.tsx"));
+const RecuperacionAsistida = lazy(() => import("./pages/acceso/recuperar/RecuperacionAsistida.tsx"));
 
 const AltaAsistida = lazy(() => import("./pages/personal/AltaAsistida"));
 
@@ -42,7 +44,7 @@ const FormularioAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.
 const VistaPreviaAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.VistaPreviaAviso })));
 const DetalleAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.DetalleAviso })));
 const ResultadoAviso = lazy(() => import("./pages/admin/atencion/avisos/Avisos.tsx").then(m => ({ default: m.ResultadoAviso })));
-import AccesoPanel from "./pages/admin/AccesoPanel";
+const AccesoPanel = lazy(() => import("./pages/admin/AccesoPanel"));
 const EditorContenidos = lazy(() => import("./pages/admin/contenidos/EditorContenidos.tsx"));
 const NuevoContenido = lazy(() => import("./pages/admin/contenidos/NuevoContenido.tsx"));
 const RedactarNoticia = lazy(() => import("./pages/admin/contenidos/RedactarNoticia.tsx"));
@@ -68,11 +70,11 @@ const CalendarioPublico = lazy(() => import("./pages/publico/eventos/CalendarioA
 const Eventos = lazy(() => import("./pages/publico/eventos/Eventos.tsx"));
 const CuentaSuspendida = lazy(() => import("./pages/publico/sesion/EstadosSesion.tsx").then(m => ({ default: m.CuentaSuspendida })));
 const SesionCaducada = lazy(() => import("./pages/publico/sesion/EstadosSesion.tsx").then(m => ({ default: m.SesionCaducada })));
-const MiInscripcion = lazy(() => import("./pages/publico/eventos/MiInscripcion.tsx"));
 const Credencial = lazy(() => import("./pages/publico/credencial/Credencial.tsx"));
 const TramiteCredencial = lazy(() => import("./pages/publico/credencial/Tramite.tsx"));
 const NotificacionesUsuario = lazy(() => import("./pages/publico/notificaciones/Notificaciones.tsx"));
 const EspaciosPublico = lazy(() => import("./pages/publico/espacios/Espacios.tsx"));
+const SolicitarEspacio = lazy(() => import("./pages/publico/espacios/Solicitar.tsx"));
 const ProponerActividad = lazy(() => import("./pages/publico/proponer/Proponer.tsx"));
 const PropuestaEnviada = lazy(() => import("./pages/publico/proponer/Proponer.tsx").then(m => ({ default: m.PropuestaEnviada })));
 const DetallePropuestaUsuario = lazy(() => import("./pages/publico/proponer/Proponer.tsx").then(m => ({ default: m.DetallePropuesta })));
@@ -121,7 +123,6 @@ const CancelarActividad = lazy(() => import("./pages/admin/actividades/DetalleCa
 const DetalleCambio = lazy(() => import("./pages/admin/actividades/DetalleCambio.tsx").then(m => ({ default: m.DetalleCambio })));
 const Reprogramar = lazy(() => import("./pages/admin/actividades/DetalleCambio.tsx").then(m => ({ default: m.Reprogramar })));
 const ResultadoCambio = lazy(() => import("./pages/admin/actividades/DetalleCambio.tsx").then(m => ({ default: m.ResultadoCambio })));
-const FichaInscripcion = lazy(() => import("./pages/admin/actividades/GestionInscripcion.tsx").then(m => ({ default: m.FichaInscripcion })));
 const InscribirPersona = lazy(() => import("./pages/admin/actividades/GestionInscripcion.tsx").then(m => ({ default: m.InscribirPersona })));
 const ResultadoInscripcion = lazy(() => import("./pages/admin/actividades/GestionInscripcion.tsx").then(m => ({ default: m.ResultadoInscripcion })));
 
@@ -166,12 +167,15 @@ const EstadisticasAdmin = lazy(() => import("./pages/admin/administracion/Estadi
 const BitacoraAdmin = lazy(() => import("./pages/admin/administracion/Bitacora.tsx"));
 const DetalleMovimiento = lazy(() => import("./pages/admin/administracion/Bitacora.tsx").then(m => ({ default: m.DetalleMovimiento })));
 const ConfiguracionAdmin = lazy(() => import("./pages/admin/administracion/Configuracion.tsx"));
+const EstadosSistema = lazy(() => import("./pages/admin/EstadosSistema.tsx"));
+const VistaPreviaEstado = lazy(() => import("./pages/admin/EstadosSistema.tsx").then(m => ({ default: m.VistaPreviaEstado })));
+const NoEncontradaPanel = lazy(() => import("./pages/admin/NoEncontradaPanel.tsx"));
 const PerfilPropio = lazy(() => import("./pages/publico/perfil/Perfil"));
 
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<main className="confirmacion" role="status">Cargando pantalla...</main>}>
+      <Suspense fallback={<EsqueletoPagina />}>
       <Routes>
         <Route path="/" element={<Inicio />} />
 
@@ -245,6 +249,10 @@ function App() {
         <Route path="/admin/administracion/bitacora" element={<AccesoPanel><BitacoraAdmin /></AccesoPanel>} />
         <Route path="/admin/administracion/bitacora/:folio" element={<AccesoPanel><DetalleMovimiento /></AccesoPanel>} />
         <Route path="/admin/administracion/configuracion" element={<AccesoPanel><ConfiguracionAdmin /></AccesoPanel>} />
+        <Route path="/admin/administracion/estados" element={<AccesoPanel><EstadosSistema /></AccesoPanel>} />
+        <Route path="/admin/administracion/estados/:estado" element={<AccesoPanel><VistaPreviaEstado /></AccesoPanel>} />
+        {/* Cualquier otra dirección del panel: «Página no encontrada» dentro del panel (Figma 583:45979) */}
+        <Route path="/admin/*" element={<AccesoPanel libre><NoEncontradaPanel /></AccesoPanel>} />
         {/* Editor conectado a los borradores de T-054. */}
         <Route path="/admin/contenidos" element={<Navigate to="/admin/contenidos/editor" replace />} />
         <Route path="/admin/contenidos/editor" element={<AccesoPanel><EditorContenidos /></AccesoPanel>} />
@@ -281,13 +289,14 @@ function App() {
         <Route path="/eventos/todas" element={<TodasActividadesPublicas />} />
         <Route path="/eventos/calendario" element={<CalendarioPublico />} />
         <Route path="/eventos/:id" element={<Eventos />} />
-        <Route path="/eventos/:id/mi-inscripcion" element={<MiInscripcion />} />
+        <Route path="/eventos/:id/mi-inscripcion" element={<Navigate to="/mi-perfil/eventos" replace />} />
         <Route path="/credencial" element={<Credencial />} />
         <Route path="/credencial/solicitud" element={<TramiteCredencial vista="solicitud" />} />
         <Route path="/credencial/enviada" element={<TramiteCredencial vista="enviada" />} />
         <Route path="/credencial/seguimiento" element={<TramiteCredencial vista="seguimiento" />} />
         <Route path="/notificaciones" element={<NotificacionesUsuario />} />
         <Route path="/espacios" element={<EspaciosPublico />} />
+        <Route path="/espacios/solicitar" element={<SolicitarEspacio />} />
         <Route path="/espacios/enviada" element={<SolicitudEspacioEnviada />} />
         <Route path="/espacios/solicitud/:id" element={<GestionarSolicitudEspacio />} />
         <Route path="/proponer" element={<ProponerActividad />} />
@@ -357,7 +366,7 @@ function App() {
         <Route path="/admin/actividades/inscripciones/inscribir" element={<AccesoPanel><InscribirPersona /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio" element={<AccesoPanel><InscritosActividad /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio/cupo-ajustado" element={<AccesoPanel><ResultadoInscripcion tipo="cupo" /></AccesoPanel>} />
-        <Route path="/admin/actividades/inscripciones/:folio/:id" element={<AccesoPanel><FichaInscripcion /></AccesoPanel>} />
+        <Route path="/admin/actividades/inscripciones/:folio/:id" element={<AccesoPanel><InscritosActividad /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio/:id/inscrita" element={<AccesoPanel><ResultadoInscripcion tipo="inscrita" /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio/:id/ofrecido" element={<AccesoPanel><ResultadoInscripcion tipo="ofrecido" /></AccesoPanel>} />
         <Route path="/admin/actividades/inscripciones/:folio/:id/cancelada" element={<AccesoPanel><ResultadoInscripcion tipo="cancelada" /></AccesoPanel>} />

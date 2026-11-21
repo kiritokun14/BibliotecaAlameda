@@ -1,9 +1,12 @@
 import { useLecturasPublicadas } from "./publicados";
-import { EstadoPublicados } from "../../../servicios/EstadoPublicados";
-import { useState, type FormEvent } from "react";
+import { useCallback } from "react";
 import { useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
+import BarraFiltros from "../../../components/portal/BarraFiltros";
+import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 import "./Lecturas.css";
+import "../perfil/Perfil.css";
+import { EtiquetaPerfil } from "../perfil/piezas";
 import {
     FILTROS_VACIOS,
     GENEROS,
@@ -16,168 +19,76 @@ import {
     type Orden,
 } from "./datos";
 import { EncabezadoLecturas, EstadoLecturas, PestanasLecturas, TarjetaResena } from "./piezas";
-import iconoBuscar from "../../../assets/comun/iconos/accesos-buscar.svg";
-import iconoBuscarBlanco from "../../../assets/lecturas/buscar-blanco.svg";
-import iconoFiltros from "../../../assets/comun/iconos/filtro-todas.svg";
-import chevron from "../../../assets/comun/iconos/chevron-abajo.svg";
+import { iconoLibro } from "./iconos";
 
-// Lecturas y reseñas · Por autor (vista de visitante: solo consulta).
+const OPCIONES_ORDEN = Object.entries(ORDENES).map(([valor, texto]) => ({ valor, texto }));
+
+// Lecturas y reseñas · Lecturas (vista de visitante: solo consulta). Por tema se quitó (19 nov):
+// el Género del panel de «Filtros» hace lo mismo, y cada género dice cuántas reseñas tiene con la búsqueda actual.
 // La búsqueda y los filtros viven en la URL: /lecturas?q=rulfo&genero=novela&orden=titulo
+// Mientras llegan las reseñas se ven el encabezado, los filtros y el esqueleto de las tarjetas.
 function Lecturas() {
     const { datos, error, resenas } = useLecturasPublicadas();
     const [parametros, setParametros] = useSearchParams();
     const filtros = filtrosDesdeParametros(parametros);
     const resultado = filtrarResenas(resenas, filtros);
+    const cuantas = (genero: Genero | "") => (datos ? filtrarResenas(resenas, { ...filtros, genero }).length : undefined);
+    const opcionesGenero = [
+        { valor: "", texto: "Todos los géneros", cuenta: cuantas("") },
+        ...(Object.keys(GENEROS) as Genero[]).filter((g) => cuantas(g) !== 0 || g === filtros.genero).map((g) => ({ valor: g, texto: GENEROS[g], cuenta: cuantas(g) })),
+    ];
 
-    function aplicar(nuevos: FiltrosResenas) {
-        setParametros(parametrosDesdeFiltros(nuevos), { replace: true });
-    }
-
-    if (!datos || error) return <PaginaPublica><EstadoPublicados datos={datos} error={error} /></PaginaPublica>;
+    const aplicar = useCallback((cambios: Partial<FiltrosResenas>) => {
+        setParametros((previos) => parametrosDesdeFiltros({ ...filtrosDesdeParametros(previos), ...cambios }), { replace: true });
+    }, [setParametros]);
+    const buscar = useCallback((q: string) => aplicar({ q }), [aplicar]);
 
     return (
         <PaginaPublica>
             <EncabezadoLecturas
                 etiqueta="Lecturas y reseñas"
                 titulo={<>Un libro para <span>cada tarde</span></>}
-                texto="Reseñas bibliográficas escritas por el equipo de la biblioteca para que encuentres tu próxima lectura."
+                texto="Reseñas del equipo de la biblioteca para encontrar tu próxima lectura."
             />
 
-            <section className="lecturas-seccion">
+            <section className="lecturas-seccion lecturas-pagina">
                 <div className="lecturas-contenedor">
-                    <Buscador filtros={filtros} alAplicar={aplicar} />
+                    <BarraFiltros
+                        arriba={<PestanasLecturas />}
+                        etiquetaBusqueda="Buscar reseñas"
+                        marcador="Busca por autor, título o tema…"
+                        texto={filtros.q}
+                        alBuscar={buscar}
+                        grupos={[
+                            { etiqueta: "Género", opciones: opcionesGenero, activa: filtros.genero, alElegir: (v) => aplicar({ genero: v as Genero | "" }) },
+                            { etiqueta: "Ordenar por", opciones: OPCIONES_ORDEN, activa: filtros.orden, alElegir: (v) => aplicar({ orden: v as Orden }) },
+                        ]}
+                        alLimpiar={() => aplicar(FILTROS_VACIOS)}
+                    />
 
-                    <p className="lecturas-resumen" role="status">
-                        Mostrando {resultado.length} {resultado.length === 1 ? "reseña" : "reseñas"} de la biblioteca
-                    </p>
-
-                    <h2 className="lecturas-titulo">Reseñas de la biblioteca</h2>
-                    {resultado.length === 0 ? (
-                        <EstadoLecturas tipo="sin-resultados" alLimpiar={() => aplicar(FILTROS_VACIOS)} />
+                    {error ? (
+                        <EstadoLecturas tipo="error" />
+                    ) : !datos ? (
+                        <EsqueletoTarjetas libro cantidad={4} texto="Cargando reseñas…" />
                     ) : (
-                        <ul className="rejilla-resenas">
-                            {resultado.map((r) => <TarjetaResena key={r.id} resena={r} />)}
-                        </ul>
+                        <>
+                            {/* El conteo solo para lectores de pantalla (plantilla C) */}
+                            <p className="solo-lectores" role="status">
+                                {resultado.length} {resultado.length === 1 ? "reseña" : "reseñas"} de la biblioteca
+                            </p>
+                            <EtiquetaPerfil icono={iconoLibro}>Reseñas de la biblioteca</EtiquetaPerfil>
+                            {resultado.length === 0 ? (
+                                <EstadoLecturas tipo="sin-resultados" alLimpiar={() => aplicar(FILTROS_VACIOS)} />
+                            ) : (
+                                <ul className="rejilla-resenas">
+                                    {resultado.map((r) => <TarjetaResena key={r.id} resena={r} />)}
+                                </ul>
+                            )}
+                        </>
                     )}
                 </div>
             </section>
         </PaginaPublica>
-    );
-}
-
-// Tarjeta blanca: pestañas, "Buscar reseñas", Filtros y Buscar
-function Buscador({ filtros, alAplicar }: { filtros: FiltrosResenas; alAplicar: (f: FiltrosResenas) => void }) {
-    const [texto, setTexto] = useState(filtros.q);
-    const [abierto, setAbierto] = useState(false);
-    const [borrador, setBorrador] = useState(filtros);
-    const cantidad = (filtros.genero ? 1 : 0) + (filtros.orden !== "recientes" ? 1 : 0);
-
-    // Si la URL cambia por fuera (Quitar filtros, botón atrás), el cuadro de texto la sigue
-    const [qPrevio, setQPrevio] = useState(filtros.q);
-    if (filtros.q !== qPrevio) {
-        setQPrevio(filtros.q);
-        setTexto(filtros.q);
-    }
-
-    function buscar(e: FormEvent) {
-        e.preventDefault();
-        alAplicar({ ...filtros, q: texto });
-    }
-
-    function alternarFiltros() {
-        setBorrador(filtros);
-        setAbierto(!abierto);
-    }
-
-    return (
-        <div className="buscador-lecturas">
-            <PestanasLecturas />
-            <form className="buscador-lecturas__barra" role="search" onSubmit={buscar}>
-                <label className="buscador-lecturas__campo">
-                    <span className="buscador-lecturas__etiqueta">Buscar reseñas</span>
-                    <span className="buscador-lecturas__entrada">
-                        <img src={iconoBuscar} alt="" />
-                        <input
-                            type="search"
-                            value={texto}
-                            placeholder="Escribe un autor, título o tema…"
-                            onChange={(e) => setTexto(e.target.value)}
-                        />
-                    </span>
-                </label>
-                <button
-                    type="button"
-                    className={abierto ? "boton-filtros-lecturas boton-filtros-lecturas--abierto" : "boton-filtros-lecturas"}
-                    aria-expanded={abierto}
-                    aria-controls="filtros-lecturas"
-                    onClick={alternarFiltros}
-                >
-                    <img src={iconoFiltros} alt="" />
-                    Filtros
-                    {cantidad > 0 && <span className="boton-filtros-lecturas__cantidad">{cantidad}<span className="solo-lectores"> activos</span></span>}
-                    <img src={chevron} alt="" className="boton-filtros-lecturas__chevron" />
-                </button>
-                <button type="submit" className="boton-lectura">
-                    Buscar <img src={iconoBuscarBlanco} alt="" />
-                </button>
-            </form>
-
-            {abierto && (
-                <div className="filtros-lecturas" id="filtros-lecturas">
-                    <fieldset>
-                        <legend>Género</legend>
-                        <div className="filtros-lecturas__opciones">
-                            {([["", "Todos los géneros"], ...Object.entries(GENEROS)] as [Genero | "", string][]).map(([valor, nombre]) => (
-                                <label key={valor || "todos"} className="opcion-lectura">
-                                    <input
-                                        type="radio"
-                                        name="genero"
-                                        checked={borrador.genero === valor}
-                                        onChange={() => setBorrador({ ...borrador, genero: valor })}
-                                    />
-                                    <span>{nombre}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </fieldset>
-                    <fieldset>
-                        <legend>Ordenar por</legend>
-                        <div className="filtros-lecturas__opciones">
-                            {(Object.entries(ORDENES) as [Orden, string][]).map(([valor, nombre]) => (
-                                <label key={valor} className="opcion-lectura">
-                                    <input
-                                        type="radio"
-                                        name="orden"
-                                        checked={borrador.orden === valor}
-                                        onChange={() => setBorrador({ ...borrador, orden: valor })}
-                                    />
-                                    <span>{nombre}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </fieldset>
-                    <div className="filtros-lecturas__botones">
-                        <button
-                            type="button"
-                            className="filtros-lecturas__limpiar"
-                            onClick={() => setBorrador({ ...borrador, genero: "", orden: "recientes" })}
-                        >
-                            Limpiar filtros
-                        </button>
-                        <button
-                            type="button"
-                            className="boton-lectura"
-                            onClick={() => {
-                                setAbierto(false);
-                                alAplicar({ ...borrador, q: texto });
-                            }}
-                        >
-                            Aplicar filtros
-                        </button>
-                    </div>
-                </div>
-            )}
-        </div>
     );
 }
 

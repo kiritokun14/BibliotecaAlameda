@@ -5,7 +5,7 @@
    ========================================================= */
 
 .acerca {
-  padding-top: 32px;
+  padding-top: 40px; /* 40 px bajo el encabezado verde, igual en todas las páginas del portal */
   background: #f7f5f0;
 }
 
@@ -852,3 +852,7 @@ button.etapa__boton:hover { background: rgba(246, 238, 218, 0.35); }
 
 /* Separa el estado del pie cuando la sección está vacía */
 .acerca:has(> .estado-acerca) { padding-bottom: 96px; }
+
+@media (max-width: 700px) {
+  .tres-columnas, .cuatro-columnas, .dos-columnas, .galeria-acerca, .mision-vision { grid-template-columns: minmax(0, 1fr); }
+}

@@ -19,7 +19,7 @@ export type Lista = {
 };
 
 export const NOMBRE_MARCA: Record<Marca, string> = { presente: "Presente", ausente: "Ausente", sin: "Sin marcar" };
-export const QUIEN_PASA_LISTA = "Personal de Fomento a la lectura (ejemplo)";
+export const QUIEN_PASA_LISTA = "Personal de Fomento a la lectura";
 
 // AC-0099 ya cerrada (13 de 15); AC-0098 a medias
 function marcasDe(folio: string, presentes: number, ausentes: number): Record<string, Marca> {
@@ -35,7 +35,7 @@ function marcasDe(folio: string, presentes: number, ausentes: number): Record<st
 function iniciales(): Lista[] {
     return [
         { actividad: "AC-0099", marcas: marcasDe("AC-0099", 13, 2), notas: {}, extras: [], cerrada: { quien: QUIEN_PASA_LISTA, fecha: "2026-10-20T17:45:00" }, correcciones: [] },
-        { actividad: "AC-0098", marcas: marcasDe("AC-0098", 8, 2), notas: { "IN-0098-02": "Llegó tarde" }, extras: [{ id: "EX-0098-1", persona: "Persona sin inscripción (ejemplo)", contacto: "" }], correcciones: [] },
+        { actividad: "AC-0098", marcas: marcasDe("AC-0098", 8, 2), notas: { "IN-0098-02": "Llegó tarde" }, extras: [{ id: "EX-0098-1", persona: "Persona sin inscripción", contacto: "" }], correcciones: [] },
     ];
 }
 
@@ -152,7 +152,7 @@ export function corregir(folio: string, id: string, nueva: Marca, motivo: string
     guardarLista({
         ...l,
         marcas: { ...l.marcas, [id]: nueva },
-        correcciones: [...l.correcciones, { persona: persona.persona, de: anterior, a: nueva, motivo: motivo.trim(), fecha: new Date().toISOString(), quien: "Tú (ejemplo)" }],
+        correcciones: [...l.correcciones, { persona: persona.persona, de: anterior, a: nueva, motivo: motivo.trim(), fecha: new Date().toISOString(), quien: "Tú" }],
     });
 }
 

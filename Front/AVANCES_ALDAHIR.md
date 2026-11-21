@@ -4,7 +4,7 @@
 
 Este archivo explica a cualquier persona o agente qué se está haciendo en el frontend de Aldahir, qué ya está hecho y qué falta en cada tarjeta del sprint. Léelo completo antes de cambiar algo.
 
-> **Importante:** lo que va hasta el commit `bb00043` ya está en la rama. La entrega del 9 de noviembre (sección 4, al final) **todavía no tiene commit**. Antes de hacer otra cosa, revisa `git status` y pregunta a Aldahir si ya quiere hacer el commit.
+> **Importante:** desde el 9 de noviembre de 2026, `main` y `Aldahir` están en el mismo commit (`9a08789`): todo el trabajo de Aldahir y Roberto ya está en `main` (ver «Integración a main» en la sección 4). Antes de hacer otra cosa, revisa `git status` y actualiza con `git merge origin/main`.
 
 ---
 
@@ -23,7 +23,7 @@ Este archivo explica a cualquier persona o agente qué se está haciendo en el f
 cd Front
 npm run dev     # http://localhost:5173 (sin backend también funciona: se ve como visitante)
 npm run lint
-npm test        # vitest: 275 pruebas aprobadas y 1 omitida (9 nov 2026)
+npm test        # vitest: 310 pruebas aprobadas y 1 omitida (9 nov 2026, después de integrar a main)
 npm run build
 ```
 
@@ -74,7 +74,7 @@ npm run build
 
 ### Servicios y programas (`/servicios`, `/servicios/:id`) — terminado (HU-01)
 - Lista con grupos «Servicios» y «Programas»; tarjetas clicables (Credencial → `/credencial`, Agenda → `/espacios`, Actividades → `/eventos`, Visitas grupales → `/contacto` por ahora, Bibliocomunidad → `/servicios/bibliocomunidad`).
-- Detalle de Bibliocomunidad: ya no dice «Próximamente» ni pide credencial; su botón «Entrar a Bibliocomunidad» lleva al foro (9 nov 2026).
+- Detalle de Bibliocomunidad: se quedó la versión de main (textos «Club Alameda» y botón «Entrar al foro Club Alameda»). Ver «Bibliocomunidad descartada» en la sección 4.
 - Estados: cargando, **error al cargar** (con «Intentar de nuevo») y **contenido no disponible**.
 - **CA-01.2 resuelto en el frontend:** `soloPublicados` / `buscarPublicado` en `src/pages/servicios/datos.ts` filtran todo lo que no esté `publicado`. Hay un borrador de ejemplo (`/servicios/prestamo-a-domicilio`) que no aparece en la lista y por URL muestra «Contenido no disponible». Pruebas en `tests/servicios.test.ts`.
 - Para revisar estados sin backend (solo en desarrollo): `/servicios?simular=error` o `?simular=cargando`.
@@ -105,29 +105,45 @@ npm run build
 - Pruebas: `tests/contenidos.test.ts`.
 - **Parte 2 (Revisión y publicación, `560:17409`):** ya está conectada al backend y tiene el diseño del Editor (`pages/admin/revision/`, pruebas en `tests/revision.test.ts`).
 
-### Entrega del 9 de noviembre de 2026 (sin commit)
+### Entrega del 9 de noviembre de 2026 (commit `2d1d7ca`, ya en `main`)
 Informe completo: `docs/entrega-2026-11-09/INFORME.md`. Las capturas de esta entrega están en `docs/entrega-2026-11-09/capturas/`, con las referencias de Figma en `capturas/figma/`.
-- **Bibliocomunidad unificada:**
-  - El nombre «Bibliocomunidad» aparece en el portal y en el panel. El libro «Cuentos de la Alameda» no se tocó.
-  - En el panel hay una sola entrada: Participantes → Bibliocomunidad (`/admin/participantes/foro`), con las pestañas Respuestas, Normas y Personas silenciadas.
-  - La ruta anterior `/admin/atencion/bibliocomunidad` redirige a la nueva (`src/pages/admin/rutasAnteriores.ts`).
-  - Página pública `/club-alameda`: un visitante ve la vista de Figma A-01 (`280:1065`) y el acceso lo lleva al inicio de sesión. Con sesión se abre el foro.
-  - Se quitaron «Próximamente» y la exigencia de credencial.
 - **Resumen del panel:**
   - Las tarjetas tienen columnas iguales.
   - **Las prioridades y los botones «Abrir» y «Pasar lista» se ocultan si la cuenta no tiene permiso** para esa sección (`vistaEnlace` en `resumen/datos.ts`). Si no queda ninguna prioridad, no sale la franja.
 - **Fuentes del asistente (HU-31):**
   - Tiene ventanas de confirmación, filtro por tipo, búsqueda en la página y detalle. Las reglas por estado están en `comunidad/reglasFuentes.ts`.
   - Subir archivos, sincronizar y probar el asistente no tienen endpoint en el backend.
+- **Contraste:** las etiquetas doradas chicas sobre verde pasaron de `#e6d194` a `#f2e3b8` (4.96:1).
 - **Notificaciones:** se aclaró el texto de «Eliminar leídas». Para guardarlas por persona faltan los endpoints de `avisoNotificacion`.
 - **T-093:** la guía de validación está en `docs/entrega-2026-11-09/GUIA-VALIDACION-T093.md`.
   - **Está pendiente de validación con la biblioteca. No se cierra.**
   - No se crearon marcos nuevos en Figma.
-- **Pruebas nuevas:** `tests/unificacion.test.ts`.
+- **Pruebas nuevas:** `tests/unificacion.test.ts` (Fuentes y Resumen).
 - **Pendiente:**
-  - Capturas de Bibliocomunidad del panel, Avisos, Configuración y Fuentes. La cuenta de editor no tiene esos permisos: hace falta una cuenta de prueba autorizada.
+  - Capturas del panel de Avisos, Configuración y Fuentes. La cuenta de editor no tiene esos permisos: hace falta una cuenta de prueba autorizada.
   - Revisar el Resumen con una cuenta de acceso total.
-  - Decidir si la moderación de Participantes se conecta a `/v1/admin/bibliocomunidad` (hoy usa datos de ejemplo).
+
+### Bibliocomunidad descartada (9 de noviembre de 2026)
+Aldahir decidió que **su desarrollo de Bibliocomunidad ya no se hará**. En `main` se quedó la versión de Roberto, que está conectada al backend:
+- Foro público `/club-alameda` con datos reales (`useSesionForo`, `HiloPersistente`). Se quitó la vista de visitante de Aldahir (`BibliocomunidadVisitante`).
+- `/admin/atencion/bibliocomunidad` sigue con la pantalla de Atención de Roberto (solicitudes de interés). Se quitó la redirección a Participantes (`rutasAnteriores.ts` y su ruta en `App.tsx`).
+- `/admin/participantes/foro` usa `ModeracionForo` de Roberto; la versión de ejemplo quedó en `/admin/participantes/foro/demostracion`.
+- `servicios/datos.ts`, `DetalleServicio.tsx` y `perfil/datos.ts` volvieron a los textos de main.
+- Se quitaron las 3 pruebas «Unificación de Bibliocomunidad» de `tests/unificacion.test.ts`.
+- Las capturas `bibliocomunidad-*.png` y los párrafos de Bibliocomunidad en `docs/entrega-2026-11-09/` quedan solo como registro histórico.
+- **No propongas más trabajo de Bibliocomunidad** salvo que Aldahir lo pida.
+
+### Integración a `main` (9 de noviembre de 2026)
+- Roberto había **copiado** la rama `Aldahir` (hasta `bb00043`) en `main` con el commit `a4099a8`, sin hacer merge. Por eso git marcaba 33 conflictos falsos.
+- Se resolvió en la rama `integracion/2026-11-09`: `git merge -s ours bb00043` (registra que `main` ya lo tenía) y luego `git merge origin/Aldahir`. Solo quedó el conflicto de `ClubAlameda.tsx`, resuelto con la versión de main.
+- Verificado antes del commit: tsc y lint sin errores, 310 pruebas aprobadas y 1 omitida, y el build compila.
+- `main` avanzó por *fast-forward* hasta `9a08789`; Aldahir lo subió directo, sin pull request. Las ramas `integracion/2026-11-09` e `integracion/aldahir-main` se borraron.
+- Lo que Roberto agregó y ya está en `main`: pantallas conectadas (`GestionActividades`, `AtencionTramites`, `AvisosManuales`, `ModeracionForo`, `/mis-tramites`), los servicios `actividades`, `avisos`, `foro`, `moderacion` y `tramites`, y Sprint 4 (propuestas, espacios y agenda con datos reales). Las versiones de ejemplo de Aldahir quedaron en rutas `/demostracion`.
+- **Ramas que no entraron a `main`:**
+  - **Valeria:** su contenido ya está en `main` (más nuevo, desde `69dc047`). Falta que ella confirme; después se registra con `git merge -s ours origin/Valeria`.
+  - **Stephanie:** no se integra con merge. Su frontend es de la estructura vieja. Su backend lo revisan ella y Roberto.
+  - **boba:** no tiene contenido fuera de `main`.
+- **Pendiente:** revisar que las pantallas nuevas de Roberto tengan el diseño del Editor.
 
 ## 5. Pendientes por tarjeta del sprint
 

@@ -9,7 +9,10 @@ describe('Perfil · cuenta de persona menor de edad', () => {
     it('no muestra Mis propuestas ni Mis espacios', () => {
         expect(seccionesDe(true).map((s) => s.clave)).not.toContain('propuestas');
         expect(seccionesDe(true).map((s) => s.clave)).not.toContain('espacios');
-        expect(seccionesDe(false)).toHaveLength(9);
+        expect(seccionesDe(false)).toHaveLength(10);
+        // «Mis mensajes» (seguimiento de Contacto) está para adultos y menores
+        expect(seccionDeRuta('mensajes', true)).toBe('mensajes');
+        expect(seccionDeRuta('mensajes', false)).toBe('mensajes');
         expect(seccionDeRuta('espacios', true)).toBeNull();
         expect(seccionDeRuta('espacios', false)).toBe('espacios');
     });

@@ -27,7 +27,7 @@ function ActividadPublicada() {
                     tono="verde"
                     icono={iconoCheck}
                     titulo={a.nombre}
-                    linea={`Publicada ${cuandoConHora(a.publicadaEl ?? new Date().toISOString()).toLowerCase()} (ejemplo) · ${a.inscripcion ? "Inscripciones abiertas" : "Entrada libre"}`}
+                    linea={`Publicada ${cuandoConHora(a.publicadaEl ?? new Date().toISOString()).toLowerCase()} · ${a.inscripcion ? "Inscripciones abiertas" : "Entrada libre"}`}
                     chip={<Chip tono="verde">Publicada</Chip>}
                 />
                 <Tarjeta icono={iconoFlecha} titulo="¿Qué sigue?">

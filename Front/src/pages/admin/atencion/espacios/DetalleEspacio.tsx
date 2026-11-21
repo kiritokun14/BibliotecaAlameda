@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
+import { Bloque } from "../../../../components/portal/Esqueleto";
+import "../AtencionTramites.css";
 import PanelLayout from "../../PanelLayout";
-import { BotonOpcion, Chip, Dato, Datos, ListaCotejo, Tarjeta, type EventoHistorial } from "../../componentes";
+import { BotonOpcion, Chip, ListaCotejo, Tarjeta, type EventoHistorial } from "../../componentes";
 import { Ventana, VentanaFormulario } from "../../Ventana";
-import DetalleSolicitud, { TarjetaDecision, TarjetaResolucion, type TextosEstado } from "../Detalle";
+import DetalleSolicitud, { TarjetaDecision, TarjetaPersona, TarjetaResolucion, type TextosEstado } from "../Detalle";
 import { formatearFecha, type Nota } from "../datos";
 import { mensajeError } from "../../../../servicios/api";
 import {
-    aprobarEspacio, cancelarEspacioAprobado, detalleEspacio, diaLocal, horarioLocal, listarAreas, proponerEspacio,
+    aprobarEspacio, cancelarEspacioAprobado, detalleEspacio, detalleEspacioEnMemoria, diaLocal, horarioLocal, listarAreas, proponerEspacio,
     rechazarEspacio, type AreaEspacio, type SolicitudEspacioPersonal,
 } from "../../../../servicios/espacios";
 import { aSolicitudAdmin, vigente } from "./mapeo";
+import Flujo, { type Etapa, type IconoSiguiente } from "../Flujo";
 import tarjetaCalendario from "../../../../assets/admin/tarjeta-calendar.svg";
 import tarjetaCheck from "../../../../assets/admin/tarjeta-check.svg";
 import tarjetaLista from "../../../../assets/admin/bandeja-list.svg";
@@ -119,7 +122,8 @@ type Carga = { solicitud: SolicitudEspacioPersonal } | { error: string } | null;
 
 function DetalleEspacio() {
     const { folio = "" } = useParams();
-    const [carga, setCarga] = useState<Carga>(null);
+    // Si ya se abrió antes, se muestra al instante y se actualiza en segundo plano
+    const [carga, setCarga] = useState<Carga>(() => { const guardada = detalleEspacioEnMemoria(folio); return guardada ? { solicitud: guardada } : null; });
     const [intento, setIntento] = useState(0);
     const [areas, setAreas] = useState<AreaEspacio[]>([]);
     const [ventana, setVentana] = useState<VentanaAbierta>(null);
@@ -144,7 +148,7 @@ function DetalleEspacio() {
     if (!carga || "error" in carga) {
         return (
             <PanelLayout titulo="Atención" tema="contenidos">
-                {!carga ? <p role="status">Cargando la solicitud {folio}…</p> : (
+                {!carga ? <div className="contenidos-formulario" aria-busy="true" role="status"><span className="tr-oculto">Cargando la solicitud {folio}…</span><div className="at-columna"><Bloque clase="tr-esqueleto tr-esqueleto--alto" /><Bloque clase="tr-esqueleto tr-esqueleto--alto" /></div><Bloque clase="tr-esqueleto tr-esqueleto--alto" /></div> : (
                     <p role="alert">
                         {carga.error}{" "}
                         <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico"
@@ -220,32 +224,36 @@ function DetalleEspacio() {
     const principal = (
         <>
             <Tarjeta icono={tarjetaCalendario} titulo="Datos de la solicitud" subtitulo="Lo que escribió la persona al pedir el espacio.">
-                <Datos>
-                    <Dato etiqueta="TIPO">{api.tipo === "visita" ? "Visita guiada" : "Uso de un área"}</Dato>
-                    <Dato etiqueta="ÁREA SOLICITADA">{api.espacio?.nombre ?? "Sin área"}</Dato>
-                    <Dato etiqueta="FECHA">{formatearFecha(diaLocal(api.inicio))}</Dato>
-                    <Dato etiqueta="HORARIO">{horarioLocal(api.inicio, api.fin) || "Por confirmar"}</Dato>
-                    <Dato etiqueta="PERSONAS">{api.personas}</Dato>
-                    <Dato etiqueta="MOTIVO">{api.motivo}</Dato>
-                    {api.institucion && <Dato etiqueta="INSTITUCIÓN">{api.institucion}</Dato>}
-                    <Dato etiqueta="FOLIO">{api.folio}</Dato>
-                    <Dato etiqueta="PERSONA SOLICITANTE">{solicitud.persona}</Dato>
-                    <Dato etiqueta="CONTACTO">{solicitud.contacto}</Dato>
-                    <Dato etiqueta="ENVIADA">{formatearFecha(solicitud.enviada)}</Dato>
+                <div className="tr-datos">
+                    <div className="tr-datos__clave">
+                        <div><span>Fecha</span><strong>{formatearFecha(diaLocal(api.inicio))}</strong></div>
+                        <div><span>Horario</span><strong>{horarioLocal(api.inicio, api.fin) || "Por confirmar"}</strong></div>
+                        <div><span>Personas</span><strong>{api.personas}</strong></div>
+                    </div>
+                    <dl className="tr-datos__filas">
+                        <div><dt>Tipo</dt><dd>{api.tipo === "visita" ? "Visita guiada" : "Uso de un área"}</dd></div>
+                        <div><dt>Área solicitada</dt><dd>{api.espacio?.nombre ?? "Sin área"}</dd></div>
+                        {api.institucion && <div><dt>Institución</dt><dd>{api.institucion}</dd></div>}
+                        <div><dt>Enviada</dt><dd>{formatearFecha(solicitud.enviada)}</dd></div>
+                    </dl>
+                    {api.motivo && <div className="tr-datos__bloque"><p className="at-subtitulo">Motivo</p><p className="tr-datos__texto">{api.motivo}</p></div>}
                     {api.acuerdo && (
-                        <Dato etiqueta={estado === "aprobada" ? "LO APROBADO" : "LO ACORDADO CON LA PERSONA"}>
-                            {`${api.acuerdo.espacio?.nombre ?? "Sin área"} · ${formatearFecha(diaLocal(api.acuerdo.inicio))} · ${horarioLocal(api.acuerdo.inicio, api.acuerdo.fin)}`}
-                        </Dato>
+                        <div className="tr-datos__bloque tr-datos__bloque--nota">
+                            <p className="at-subtitulo">{estado === "aprobada" ? "Lo aprobado" : "Lo acordado con la persona"}</p>
+                            <p className="tr-datos__texto">{`${api.acuerdo.espacio?.nombre ?? "Sin área"} · ${formatearFecha(diaLocal(api.acuerdo.inicio))} · ${horarioLocal(api.acuerdo.inicio, api.acuerdo.fin)}`}</p>
+                        </div>
                     )}
                     {api.propuesta && (
-                        <Dato etiqueta="CAMBIO PROPUESTO">
-                            {`${api.propuesta.espacio?.nombre ?? "Sin área"} · ${formatearFecha(diaLocal(api.propuesta.inicio))} · ${horarioLocal(api.propuesta.inicio, api.propuesta.fin)}`}
-                        </Dato>
+                        <div className="tr-datos__bloque tr-datos__bloque--aviso">
+                            <p className="at-subtitulo">Cambio propuesto a la persona</p>
+                            <p className="tr-datos__texto">{`${api.propuesta.espacio?.nombre ?? "Sin área"} · ${formatearFecha(diaLocal(api.propuesta.inicio))} · ${horarioLocal(api.propuesta.inicio, api.propuesta.fin)}`}</p>
+                        </div>
                     )}
                     {estado === "aprobada" && resolucion?.condiciones && (
-                        <Dato etiqueta="CONDICIONES DE USO">{resolucion.condiciones}</Dato>
+                        <div className="tr-datos__bloque tr-datos__bloque--nota"><p className="at-subtitulo">Condiciones de uso</p><p className="tr-datos__texto">{resolucion.condiciones}</p></div>
                     )}
-                </Datos>
+                    <p className="tr-datos__folio">Folio: <span>{api.folio}</span></p>
+                </div>
             </Tarjeta>
 
             <Tarjeta
@@ -373,6 +381,8 @@ function DetalleEspacio() {
                 prefijo="SOLICITUD"
                 volver={{ texto: "Volver a solicitudes de espacios", ruta: RUTA }}
                 historial={historial(api)}
+                flujo={<Flujo {...flujoEspacio(api)} />}
+                persona={<TarjetaPersona nombre={solicitud.persona} telefono={api.solicitante.telefono} correo={api.solicitante.correo} />}
                 principal={principal}
                 decision={decision}
                 // TODO backend: las notas internas todavía no se guardan (solo duran mientras la página está abierta)
@@ -530,3 +540,28 @@ function DetalleEspacio() {
 }
 
 export default DetalleEspacio;
+
+// ---------- Etapas de la solicitud de espacio y siguiente paso ----------
+const ETAPAS_ESPACIO: Etapa[] = [
+    { id: "en_revision", texto: "Por revisar" },
+    { id: "requiere_correccion", texto: "Cambio propuesto", opcional: true },
+    { id: "aprobada", texto: "Aprobada" },
+];
+
+const SIGUIENTE_ESPACIO: Record<string, { titulo: string; texto: string; tono?: "verde" | "dorado" | "gris" | "guinda"; icono?: IconoSiguiente }> = {
+    en_revision: { titulo: "Verifica la disponibilidad y decide", texto: "Marca los puntos de disponibilidad y aprueba, propone otro espacio u horario, o rechaza la solicitud.", tono: "dorado" },
+    requiere_correccion: { titulo: "Esperando la respuesta de la persona", texto: "Propusiste un cambio. Cuando la persona lo acepte o lo rechace, verás el resultado aquí.", tono: "gris" },
+    aprobada: { titulo: "Espacio reservado", texto: "La solicitud está aprobada y el área queda apartada en la agenda. Si algo cambia, puedes cancelarla.", icono: "publicado" },
+    rechazada: { titulo: "Solicitud rechazada", texto: "El trámite quedó cerrado. La persona puede ver el motivo en su perfil.", tono: "guinda" },
+    cancelada: { titulo: "Reserva cancelada", texto: "La solicitud aprobada se canceló y el área quedó libre otra vez.", tono: "guinda" },
+};
+
+function flujoEspacio(api: SolicitudEspacioPersonal) {
+    const acciones = (api.historial ?? []).map((h) => h.accion);
+    const ocurridas = ["en_revision", api.estado];
+    if (acciones.includes("propuesta")) ocurridas.push("requiere_correccion");
+    if (acciones.includes("aprobacion")) ocurridas.push("aprobada");
+    const final = api.estado === "rechazada" || api.estado === "cancelada"
+        ? { id: api.estado, texto: api.estado === "rechazada" ? "Rechazada" : "Cancelada" } : undefined;
+    return { etapas: ETAPAS_ESPACIO, actual: api.estado, final, ocurridas, siguiente: SIGUIENTE_ESPACIO[api.estado] };
+}

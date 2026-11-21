@@ -5,6 +5,22 @@ from postgrest.exceptions import APIError
 from Back.main import app
 VERSION='2026-11-02T12:00:00.123456Z'
 class PerfilPropioTests(unittest.TestCase):
+ def test_preferencias_usan_sesion_y_version_sin_aceptar_otro_titular(self):
+  ruta='/perfil/preferencias-avisos'
+  datos={'canalPreferido':'whatsapp_manual','recibirAvisosComunidad':True,
+         'recibirAvisosActividades':False,'actualizadoEn':None}
+  self.assertEqual(self.http.get(ruta).status_code,401)
+  self.assertEqual(self.http.patch(ruta,headers=self.headers,json={**datos,'id':'otra-cuenta'}).status_code,422)
+  self.cliente.rpc.assert_not_called()
+  self.cliente.rpc.return_value.execute.return_value.data={**datos,'actualizadoEn':VERSION}
+  respuesta=self.http.patch(ruta,headers=self.headers,json=datos)
+  self.assertEqual(respuesta.status_code,200)
+  self.assertEqual(respuesta.headers['cache-control'],'private, no-store')
+  self.assertEqual(respuesta.json()['actualizadoEn'],VERSION)
+  self.cliente.rpc.assert_called_once_with('mis_preferencias_avisos',{'operacion':'guardar','datos':datos})
+  self.cliente.rpc.return_value.execute.side_effect=APIError({'code':'40001','message':'Versión vieja'})
+  self.assertEqual(self.http.patch(ruta,headers=self.headers,json=datos).status_code,409)
+
  def setUp(self):
   self.http=TestClient(app);p=patch('Back.contenidos.crear_cliente');self.crear=p.start();self.addCleanup(p.stop)
   self.cliente=self.crear.return_value;self.cliente.auth.get_user.return_value=Mock(user=Mock())

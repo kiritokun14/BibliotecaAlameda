@@ -274,34 +274,3 @@ describe('Asistencia', () => {
         expect(estadoLista('AC-0104').clave).toBe('cancelada');
     });
 });
-
-import { cambiarAcceso, obtenerEvidencia, pedirAcceso, puedeVer, registrarConsulta, reiniciarEvidencias, retirarEvidencia, revisarArchivo, subirEvidencia } from '../src/pages/admin/actividades/evidencias';
-
-describe('Evidencias privadas', () => {
-    beforeEach(() => reiniciarEvidencias());
-
-    it('solo PDF, JPG o PNG de hasta 10 MB', () => {
-        expect(revisarArchivo({ name: 'a.docx', size: 10, type: 'application/msword' })).toMatch(/PDF, JPG o PNG/);
-        expect(revisarArchivo({ name: 'a.pdf', size: 11 * 1024 * 1024, type: 'application/pdf' })).toMatch(/10 MB/);
-        expect(revisarArchivo({ name: 'a.pdf', size: 1024, type: 'application/pdf' })).toBeNull();
-    });
-
-    it('cada descarga queda registrada y lo restringido no se abre', () => {
-        registrarConsulta('EV-0061', 'Descargó');
-        expect(obtenerEvidencia('EV-0061')?.consultas.at(-1)?.accion).toBe('Descargó');
-        expect(puedeVer(obtenerEvidencia('EV-0058')!)).toBe(false);
-        expect(() => registrarConsulta('EV-0058', 'Consultó')).toThrow();
-        pedirAcceso('EV-0058');
-        expect(obtenerEvidencia('EV-0058')?.solicitada).toBe(true);
-    });
-
-    it('subir, cambiar acceso y retirar', () => {
-        const f = subirEvidencia({ actividad: 'AC-0098', actividadTexto: 'Club', tipo: 'Fotografía', archivo: 'x.jpg', tamano: 2, nota: '', acceso: 'personal' });
-        expect(f).toBe('EV-0062');
-        cambiarAcceso(f, 'coordinacion');
-        expect(puedeVer(obtenerEvidencia(f)!)).toBe(false);
-        expect(() => retirarEvidencia('EV-0061', ' ')).toThrow();
-        retirarEvidencia('EV-0061', 'Duplicada');
-        expect(obtenerEvidencia('EV-0061')?.retirada?.motivo).toBe('Duplicada');
-    });
-});

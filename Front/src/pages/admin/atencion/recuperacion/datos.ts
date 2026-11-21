@@ -19,14 +19,14 @@ export type ResultadoRecuperacion = "enviado" | "fallida";
 export type IntentoRecuperacion = { folio: string; cuentaId: string; persona: string; fecha: string; resultado: ResultadoRecuperacion; atendio: string };
 
 export const CUENTAS: CuentaRecuperacion[] = [
-    { id: "C-0214", nombre: "Persona usuaria A (ejemplo)", correo: "persona.a@correo.mx", credencial: "BSA-0099", creada: "2026-09-12", bloqueada: false },
-    { id: "C-0213", nombre: "Persona usuaria B (ejemplo)", correo: "lector.b@correo.mx", credencial: "Sin credencial", creada: "2026-08-03", bloqueada: false },
-    { id: "C-0211", nombre: "Persona usuaria D (ejemplo)", correo: "persona.d@correo.mx", credencial: "BSA-0071", creada: "2026-05-21", bloqueada: true },
+    { id: "C-0214", nombre: "Persona usuaria A", correo: "persona.a@correo.mx", credencial: "BSA-0099", creada: "2026-09-12", bloqueada: false },
+    { id: "C-0213", nombre: "Persona usuaria B", correo: "lector.b@correo.mx", credencial: "Sin credencial", creada: "2026-08-03", bloqueada: false },
+    { id: "C-0211", nombre: "Persona usuaria D", correo: "persona.d@correo.mx", credencial: "BSA-0071", creada: "2026-05-21", bloqueada: true },
 ];
 
 const HISTORIAL_EJEMPLO: IntentoRecuperacion[] = [
-    { folio: "RA-0016", cuentaId: "C-0213", persona: "Persona usuaria B (ejemplo)", fecha: "2026-11-07", resultado: "enviado", atendio: "Personal (ejemplo)" },
-    { folio: "RA-0015", cuentaId: "C-0211", persona: "Persona usuaria D (ejemplo)", fecha: "2026-11-05", resultado: "fallida", atendio: "Personal (ejemplo)" },
+    { folio: "RA-0016", cuentaId: "C-0213", persona: "Persona usuaria B", fecha: "2026-11-07", resultado: "enviado", atendio: "Personal" },
+    { folio: "RA-0015", cuentaId: "C-0211", persona: "Persona usuaria D", fecha: "2026-11-05", resultado: "fallida", atendio: "Personal" },
 ];
 
 // Lo que se revisa con la persona; los tres primeros son obligatorios para enviar el enlace
@@ -87,7 +87,7 @@ export function useHistorialRecuperacion() {
 }
 
 export function registrarIntento(cuenta: CuentaRecuperacion, resultado: ResultadoRecuperacion) {
-    const intento: IntentoRecuperacion = { folio: siguienteFolio(historial), cuentaId: cuenta.id, persona: cuenta.nombre, fecha: new Date().toISOString().slice(0, 10), resultado, atendio: "Tú (ejemplo)" };
+    const intento: IntentoRecuperacion = { folio: siguienteFolio(historial), cuentaId: cuenta.id, persona: cuenta.nombre, fecha: new Date().toISOString().slice(0, 10), resultado, atendio: "Tú" };
     historial = [intento, ...historial];
     try { sessionStorage.setItem(CLAVE, JSON.stringify(historial)); } catch { /* no pasa nada */ }
     escuchas.forEach((avisar) => avisar());

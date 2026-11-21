@@ -1,15 +1,12 @@
 import { Link } from "react-router";
 import AccesoLayout from "../../components/acceso/AccesoLayout";
 import Aviso from "../../components/acceso/Aviso";
-import iconoFlechaDer from "../../assets/comun/iconos/flecha-derecha.svg";
 
 // Se muestra cuando intentan crear una cuenta con un correo que ya existe
 function CorreoRegistrado() {
     return (
         <AccesoLayout
             titulo={<>Crea tu <span>cuenta</span></>}
-            texto="Regístrate para usar los servicios de la biblioteca."
-            beneficios={["Completa tus datos", "Confirma tu correo", "Inicia sesión y continúa"]}
         >
             <div className="tarjeta">
                 <div className="tarjeta__encabezado">
@@ -23,7 +20,6 @@ function CorreoRegistrado() {
 
                 <Link to="/iniciar-sesion" className="boton-principal">
                     Iniciar sesión
-                    <img src={iconoFlechaDer} alt="" />
                 </Link>
                 <Link to="/recuperar" className="boton-secundario">
                     Recuperar contraseña

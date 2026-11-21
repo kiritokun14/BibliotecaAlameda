@@ -6,6 +6,7 @@ import { Link } from "react-router";
 import { IconoFlechaIzq } from "./contenidos/piezas";
 import "./contenidos/Contenidos.css";
 import "./atencion/Atencion.css";
+import "./atencion/AtencionTramites.css";
 import iconoLock from "../../assets/admin/icono-lock.svg";
 import tarjetaClock from "../../assets/admin/tarjeta-clock.svg";
 import tarjetaUser from "../../assets/admin/tarjeta-user.svg";
@@ -17,13 +18,13 @@ import avisoX from "../../assets/admin/aviso-x.svg";
 
 type EncabezadoPaginaProps = {
     volver?: { texto: string; ruta: string }; // solo en pantallas internas (detalle, listado completo)
-    etiqueta: string;
+    etiqueta?: string; // ya no se muestra: repetía las migas y el título
     titulo: string;
     texto: string;
     accion?: ReactNode;
 };
 
-export function EncabezadoPagina({ volver, etiqueta, titulo, texto, accion }: EncabezadoPaginaProps) {
+export function EncabezadoPagina({ volver, titulo, texto, accion }: EncabezadoPaginaProps) {
     return (
         <div className={`contenidos-encabezado${volver ? " contenidos-encabezado--tarjeta" : ""}`}>
             <div>
@@ -33,7 +34,6 @@ export function EncabezadoPagina({ volver, etiqueta, titulo, texto, accion }: En
                         {volver.texto}
                     </Link>
                 )}
-                <p className="contenidos-etiqueta">{etiqueta}</p>
                 <h1>{titulo}</h1>
                 {texto && <p className="contenidos-encabezado__texto">{texto}</p>}
             </div>
@@ -169,10 +169,10 @@ export type EventoHistorial = { titulo: string; detalle: string; tipo: "hecho" |
 
 export function TarjetaHistorial({ eventos }: { eventos: EventoHistorial[] }) {
     return (
-        <Tarjeta icono={tarjetaClock} titulo="Historial">
-            <ol className="at-eventos">
+        <Tarjeta icono={tarjetaClock} titulo="Historial" subtitulo={`${eventos.length} ${eventos.length === 1 ? "movimiento registrado" : "movimientos registrados"}.`} className="tr-seguimiento">
+            <ol className="tr-eventos" tabIndex={0} aria-label="Historial de la solicitud">
                 {eventos.map((evento, indice) => (
-                    <li key={`${indice}-${evento.titulo}`} className={`at-eventos--${evento.tipo}`}>
+                    <li key={`${indice}-${evento.titulo}`} className={evento.tipo === "proceso" ? "tr-eventos--ultimo" : evento.tipo === "pendiente" ? "tr-eventos--pendiente" : "tr-eventos--hecho"}>
                         <strong>{evento.titulo}</strong>
                         <small>{evento.detalle}</small>
                     </li>

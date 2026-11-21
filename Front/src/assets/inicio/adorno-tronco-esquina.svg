@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="420" viewBox="0 0 440 420" fill="none">
+  <!-- Tronco que baja desde la esquina superior derecha de la portada, con lianas colgantes y flores doradas. -->
+  <defs>
+    <linearGradient id="corteza2" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#062b25"/><stop offset="1" stop-color="#124c41"/>
+    </linearGradient>
+  </defs>
+  <!-- Tronco diagonal: nace en la esquina (x = 440, y = 0) -->
+  <path d="M440 0 L 440 46 C 380 70, 320 96, 270 136 C 226 172, 196 210, 168 254 L 144 240
+           C 172 192, 206 150, 252 112 C 304 70, 366 36, 412 0 Z" fill="url(#corteza2)" fill-opacity=".85"/>
+  <g stroke="#2a7d6b" stroke-opacity=".5" stroke-width="2" stroke-linecap="round">
+    <path d="M420 24 C 360 50, 300 84, 256 126"/>
+    <path d="M240 150 C 214 176, 192 206, 170 240"/>
+  </g>
+  <!-- Ramita que sale hacia arriba -->
+  <path d="M300 104 C 290 76, 276 54, 254 36 C 250 33, 246 39, 250 42 C 270 60, 282 82, 290 110 Z" fill="#0b3b33" fill-opacity=".85"/>
+  <!-- Lianas colgantes -->
+  <g stroke="#1f6b5c" stroke-opacity=".75" stroke-width="2" stroke-linecap="round">
+    <path d="M360 52 C 362 110, 356 170, 364 230"/>
+    <path d="M300 96 C 300 160, 294 220, 300 300"/>
+    <path d="M228 168 C 228 220, 222 270, 228 330"/>
+    <path d="M182 230 C 182 280, 178 320, 182 372"/>
+  </g>
+  <!-- Hojas de las lianas -->
+  <g fill-opacity=".85">
+    <g fill="#2a7d6b">
+      <ellipse cx="352" cy="120" rx="12" ry="6" transform="rotate(-30 352 120)"/><ellipse cx="370" cy="160" rx="12" ry="6" transform="rotate(30 370 160)"/>
+      <ellipse cx="354" cy="204" rx="12" ry="6" transform="rotate(-30 354 204)"/><ellipse cx="292" cy="150" rx="13" ry="6" transform="rotate(-30 292 150)"/>
+      <ellipse cx="308" cy="196" rx="13" ry="6" transform="rotate(30 308 196)"/><ellipse cx="290" cy="246" rx="13" ry="6" transform="rotate(-30 290 246)"/>
+      <ellipse cx="236" cy="214" rx="12" ry="6" transform="rotate(30 236 214)"/><ellipse cx="220" cy="262" rx="12" ry="6" transform="rotate(-30 220 262)"/>
+      <ellipse cx="190" cy="282" rx="11" ry="5" transform="rotate(30 190 282)"/><ellipse cx="174" cy="326" rx="11" ry="5" transform="rotate(-30 174 326)"/>
+    </g>
+    <g fill="#1f6b5c">
+      <ellipse cx="248" cy="30" rx="30" ry="12" transform="rotate(-30 248 30)"/><ellipse cx="226" cy="44" rx="24" ry="10" transform="rotate(20 226 44)"/>
+      <ellipse cx="160" cy="250" rx="28" ry="12" transform="rotate(-40 160 250)"/><ellipse cx="136" cy="264" rx="22" ry="9" transform="rotate(10 136 264)"/>
+    </g>
+  </g>
+  <!-- Flores doradas al final de cada liana -->
+  <g fill="#f2e3b8" stroke="#c9a24a" stroke-width="1.5">
+    <circle cx="364" cy="236" r="8"/><circle cx="300" cy="306" r="9"/><circle cx="228" cy="336" r="8"/><circle cx="182" cy="378" r="7"/>
+  </g>
+  <g fill="#c9a24a"><circle cx="364" cy="236" r="3"/><circle cx="300" cy="306" r="3.5"/><circle cx="228" cy="336" r="3"/><circle cx="182" cy="378" r="2.5"/></g>
+</svg>

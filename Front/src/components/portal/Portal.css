@@ -17,18 +17,6 @@
 }
 
 /* ---------- Encabezado ---------- */
-.encabezado-portal__franja {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 9px var(--margen-portal);
-  background: #4a0e26;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-}
-
 .redes {
   display: flex;
   align-items: center;
@@ -197,4 +185,12 @@
   .pie-portal__contenido { gap: 40px; }
   .pie-portal__logos { padding-right: 40px; }
   .pie-portal__columnas { gap: 28px; }
+}
+
+@media (max-width: 700px) {
+  .pie-portal__contenido { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .pie-portal__columnas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+}
+@media (max-width: 400px) {
+  .pie-portal__columnas { grid-template-columns: minmax(0, 1fr); }
 }

@@ -56,7 +56,6 @@ function RedactarMemoria({ inicial }: { inicial?: Contenido }) {
                         <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
                         Volver a Mis contenidos
                     </Link>
-                    <p className="contenidos-etiqueta">Contenidos · Editor · Memoria pública{borrador.folio ? ` ${borrador.folio}` : " · pieza nueva"}</p>
                     <h1>Redactar pieza de Memoria pública</h1>
                     <p className="contenidos-encabezado__texto">Fotografías y piezas del archivo de memoria de la biblioteca. Los campos con * son obligatorios.</p>
                 </div>

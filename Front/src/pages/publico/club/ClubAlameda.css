@@ -187,3 +187,7 @@
 @media (max-width: 1400px) {
   .club-hilo { grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; }
 }
+
+@media (max-width: 900px) {
+  .club-temas, .club-hilo { grid-template-columns: minmax(0, 1fr); }
+}

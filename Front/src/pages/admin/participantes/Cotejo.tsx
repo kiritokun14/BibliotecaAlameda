@@ -14,7 +14,7 @@ import iconoXGuinda from "../../../assets/admin/actividades/resumen-x-guinda.svg
 import iconoXDorado from "../../../assets/admin/participantes/resumen-x-dorado.svg";
 import iconoCheck from "../../../assets/admin/contenidos/resumen-check.svg";
 import iconoIntercambio from "../../../assets/admin/participantes/tarjeta-intercambio.svg";
-import iconoRelojTarjeta from "../../../assets/admin/contenidos/tarjeta-reloj.svg";
+import iconoRelojTarjeta from "../../../assets/comun/iconos/reloj-blanco.svg";
 import iconoAlerta from "../../../assets/admin/actividades/resultado-alerta.svg";
 import vacioCheck from "../../../assets/admin/contenidos/vacio-check.svg";
 import vacioBuscar from "../../../assets/admin/contenidos/vacio-buscar.svg";
@@ -48,7 +48,7 @@ function Cotejo() {
                     insignia="Cotejo de credenciales"
                     titulo="Cotejos de"
                     resalte="hoy"
-                    subtitulo="Cuentas por vincular con su credencial de la biblioteca · cifras de ejemplo"
+                    subtitulo="Cuentas por vincular con su credencial de la biblioteca"
                     accesos={[
                         { icono: iconoReloj, numero: cuenta("pendientes"), titulo: "Por cotejar", texto: "Esperan revisión", enlace: "Cotejar", tono: "dorado", activo: filtro === "pendientes", alPresionar: () => elegir("pendientes") },
                         { icono: iconoXGuinda, numero: cuenta("diferencias"), titulo: "Con diferencias", texto: "Piden corrección", enlace: "Ver diferencias", tono: "guinda", activo: filtro === "diferencias", alPresionar: () => elegir("diferencias") },
@@ -93,7 +93,7 @@ function Cotejo() {
                     )}
                     {filas.length > 0 && (
                         <div className="cn-pie-tabla">
-                            <p>Mostrando {visibles.length} de {filas.length} (ejemplo)</p>
+                            <p>Mostrando {visibles.length} de {filas.length}</p>
                             <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
                         </div>
                     )}
@@ -128,7 +128,7 @@ function Historial({ cotejos }: { cotejos: TipoCotejo[] }) {
                                 filas={resueltos}
                                 clave={(c) => c.folio}
                             />
-                            <p className="cn-nota">{resueltos.length} registros (ejemplo)</p>
+                            <p className="cn-nota">{resueltos.length} registros</p>
                         </>
                     )}
                 </Tarjeta>

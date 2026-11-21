@@ -21,7 +21,9 @@ export default function Bitacora() {
     const [pagina, setPagina] = useState(0);
     const [exportado, setExportado] = useState("");
     const [errorExportar, setErrorExportar] = useState(false);
+    const [cargaRecuperada, setCargaRecuperada] = useState(false);
     const modo = simulacion(); // ?simular=error | vacia | error-exportar
+    const errorCarga = modo === "error" && !cargaRecuperada;
     const lista = modo === "vacia" ? [] : MOVIMIENTOS;
     const filtrados = filtrarBitacora(lista, f);
     const paginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
@@ -44,10 +46,10 @@ export default function Bitacora() {
 
     return (
         <Pantalla migas={[["Bitácora de cambios"]]}>
-            <EncabezadoPagina etiqueta="Administración · Bitácora de cambios" titulo="Bitácora de cambios" texto="Registro de quién hizo qué en el panel. Historial de solo lectura. Datos de ejemplo." />
+            <EncabezadoPagina etiqueta="Administración · Bitácora de cambios" titulo="Bitácora de cambios" texto="Registro de quién hizo qué en el panel. Historial de solo lectura." />
 
             <Resumen titulo="Movimientos registrados" tarjetas={[
-                { tono: "azul", icono: <IconoLista />, cifra: lista.length, titulo: "Movimientos", texto: "En todo el panel (ejemplo)." },
+                { tono: "azul", icono: <IconoLista />, cifra: lista.length, titulo: "Movimientos", texto: "En todo el panel." },
                 { tono: "gris", icono: <IconoReloj />, cifra: new Set(lista.map((m) => m.persona)).size, titulo: "Personas", texto: "Del personal." },
                 { tono: "guinda", icono: <IconoAviso />, cifra: lista.filter((m) => m.tipo === "Sensible").length, titulo: "Cambios sensibles", texto: "Permisos, cuentas y datos.", activa: f.tipo === "Sensible", alPresionar: () => cambiar("tipo", f.tipo === "Sensible" ? "todos" : "Sensible") },
             ]} />
@@ -76,8 +78,8 @@ export default function Bitacora() {
                 </section>
             )}
 
-            {modo === "error" ? (
-                <ErrorCarga titulo="No se pudo cargar la bitácora" texto="Revisa tu conexión e inténtalo de nuevo." />
+            {errorCarga ? (
+                <ErrorCarga titulo="No se pudo cargar la bitácora" texto="Revisa tu conexión e inténtalo de nuevo." alReintentar={() => setCargaRecuperada(true)} />
             ) : (
                 <section className="contenidos-lista" aria-labelledby="bt-lista-titulo">
                     <div className="contenidos-lista__cabecera">
@@ -118,7 +120,7 @@ export default function Bitacora() {
 
                     {filtrados.length > 0 && (
                         <div className="contenidos-lista__pie">
-                            <p aria-live="polite">Mostrando {visibles.length} de {filtrados.length} movimientos (ejemplo)</p>
+                            <p aria-live="polite">Mostrando {visibles.length} de {filtrados.length} movimientos</p>
                             <span />
                             <div className="contenidos-paginas" role="group" aria-label="Páginas">
                                 <button type="button" disabled={actual === 0} onClick={() => setPagina(actual - 1)}>‹ Anterior</button>

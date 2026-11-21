@@ -27,22 +27,22 @@ export type Cotejo = {
     resolucion?: { quien: string; fecha: string; detalle: string };
 };
 
-export const QUIEN_COTEJA = "Personal (ejemplo)";
+export const QUIEN_COTEJA = "Personal";
 export const DATOS_A_CORREGIR = ["Nombre", "Número de credencial", "Fecha de nacimiento", "Nombre y fecha de nacimiento", "Todos los datos"];
 
-const sistema = (d: Partial<DatosSistema> = {}): DatosSistema => ({ nombre: "Persona usuaria (ejemplo)", credencial: "Por confirmar", nacimiento: "Por confirmar", vigencia: "Vigente hasta 2027", vencida: false, adeudos: "Sin adeudos", ...d });
-const portal = (d: Partial<DatosPortal> = {}): DatosPortal => ({ nombre: "Persona usuaria (ejemplo)", credencial: "Por confirmar", nacimiento: "Por confirmar", ...d });
+const sistema = (d: Partial<DatosSistema> = {}): DatosSistema => ({ nombre: "Persona usuaria", credencial: "Por confirmar", nacimiento: "Por confirmar", vigencia: "Vigente hasta 2027", vencida: false, adeudos: "Sin adeudos", ...d });
+const portal = (d: Partial<DatosPortal> = {}): DatosPortal => ({ nombre: "Persona usuaria", credencial: "Por confirmar", nacimiento: "Por confirmar", ...d });
 
 const iniciales: Cotejo[] = [
-    { folio: "CT-0053", persona: "Persona usuaria H (ejemplo)", registro: "2026-10-27", portal: portal({ credencial: "BSA-0099 (ejemplo)" }), sistema: null, estado: "pendiente" },
-    { folio: "CT-0052", persona: "Persona usuaria I (ejemplo)", registro: "2026-10-27", portal: portal(), sistema: sistema({ vinculadaA: "otra cuenta del portal (ejemplo)" }), estado: "pendiente" },
-    { folio: "CT-0051", persona: "Persona usuaria A (ejemplo)", registro: "2026-10-26", portal: portal(), sistema: sistema(), estado: "pendiente" },
-    { folio: "CT-0050", persona: "Persona usuaria B (ejemplo)", registro: "2026-10-26", portal: portal(), sistema: sistema({ nombre: "Persona Usuaria B. (ejemplo)", nacimiento: "Por confirmar (distinta)" }), estado: "pendiente" },
-    { folio: "CT-0049", persona: "Persona usuaria C (ejemplo)", registro: "2026-10-25", portal: portal(), sistema: sistema({ vigencia: "Venció en septiembre de 2026", vencida: true }), estado: "pendiente" },
-    { folio: "CT-0048", persona: "Persona usuaria D (ejemplo)", registro: "2026-10-25", portal: portal(), sistema: sistema(), estado: "vinculada", resolucion: { quien: QUIEN_COTEJA, fecha: "2026-10-25", detalle: "Todos los datos coinciden." } },
-    { folio: "CT-0047", persona: "Persona usuaria E (ejemplo)", registro: "2026-10-24", portal: portal(), sistema: sistema(), estado: "vinculada", resolucion: { quien: QUIEN_COTEJA, fecha: "2026-10-24", detalle: "Todos los datos coinciden." } },
-    { folio: "CT-0046", persona: "Persona usuaria F (ejemplo)", registro: "2026-10-24", portal: portal(), sistema: null, estado: "rechazada", resolucion: { quien: QUIEN_COTEJA, fecha: "2026-10-24", detalle: "La credencial no existe en el sistema." } },
-    { folio: "CT-0045", persona: "Persona usuaria G (ejemplo)", registro: "2026-10-23", portal: portal(), sistema: sistema(), estado: "vinculada", resolucion: { quien: QUIEN_COTEJA, fecha: "2026-10-23", detalle: "Todos los datos coinciden." } },
+    { folio: "CT-0053", persona: "Persona usuaria H", registro: "2026-10-27", portal: portal({ credencial: "BSA-0099" }), sistema: null, estado: "pendiente" },
+    { folio: "CT-0052", persona: "Persona usuaria I", registro: "2026-10-27", portal: portal(), sistema: sistema({ vinculadaA: "otra cuenta del portal" }), estado: "pendiente" },
+    { folio: "CT-0051", persona: "Persona usuaria A", registro: "2026-10-26", portal: portal(), sistema: sistema(), estado: "pendiente" },
+    { folio: "CT-0050", persona: "Persona usuaria B", registro: "2026-10-26", portal: portal(), sistema: sistema({ nombre: "Persona Usuaria B.", nacimiento: "Por confirmar (distinta)" }), estado: "pendiente" },
+    { folio: "CT-0049", persona: "Persona usuaria C", registro: "2026-10-25", portal: portal(), sistema: sistema({ vigencia: "Venció en septiembre de 2026", vencida: true }), estado: "pendiente" },
+    { folio: "CT-0048", persona: "Persona usuaria D", registro: "2026-10-25", portal: portal(), sistema: sistema(), estado: "vinculada", resolucion: { quien: QUIEN_COTEJA, fecha: "2026-10-25", detalle: "Todos los datos coinciden." } },
+    { folio: "CT-0047", persona: "Persona usuaria E", registro: "2026-10-24", portal: portal(), sistema: sistema(), estado: "vinculada", resolucion: { quien: QUIEN_COTEJA, fecha: "2026-10-24", detalle: "Todos los datos coinciden." } },
+    { folio: "CT-0046", persona: "Persona usuaria F", registro: "2026-10-24", portal: portal(), sistema: null, estado: "rechazada", resolucion: { quien: QUIEN_COTEJA, fecha: "2026-10-24", detalle: "La credencial no existe en el sistema." } },
+    { folio: "CT-0045", persona: "Persona usuaria G", registro: "2026-10-23", portal: portal(), sistema: sistema(), estado: "vinculada", resolucion: { quien: QUIEN_COTEJA, fecha: "2026-10-23", detalle: "Todos los datos coinciden." } },
 ];
 
 let lista: Cotejo[] = iniciales;

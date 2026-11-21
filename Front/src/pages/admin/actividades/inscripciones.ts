@@ -40,13 +40,13 @@ function generar(folio: string, inscritos: number, espera: number, canceladas: n
     const lista: Inscripcion[] = [];
     const num = folio.slice(-4);
     for (let i = 0; i < inscritos; i++) {
-        lista.push({ id: `IN-${num}-${String(i + 1).padStart(2, "0")}`, actividad: folio, persona: `Persona inscrita ${LETRAS[i % 26]} (ejemplo)`, contacto: i % 4 === 3 ? "Teléfono por confirmar" : "Correo por confirmar", fecha: dia(Math.floor(i / 3)), estado: "confirmada", acompanantes: i % 5 === 0 ? 1 : 0, via: i % 6 === 5 ? "Personal de la biblioteca" : "Portal (cuenta de usuario)", notas: "" });
+        lista.push({ id: `IN-${num}-${String(i + 1).padStart(2, "0")}`, actividad: folio, persona: `Persona inscrita ${LETRAS[i % 26]}`, contacto: i % 4 === 3 ? "Teléfono por confirmar" : "Correo por confirmar", fecha: dia(Math.floor(i / 3)), estado: "confirmada", acompanantes: i % 5 === 0 ? 1 : 0, via: i % 6 === 5 ? "Personal de la biblioteca" : "Portal (cuenta de usuario)", notas: "" });
     }
     for (let i = 0; i < espera; i++) {
-        lista.push({ id: `IN-${num}-E${i + 1}`, actividad: folio, persona: `Persona en espera ${LETRAS[i]} (ejemplo)`, contacto: "Correo por confirmar", fecha: dia(5 + Math.floor(i / 2)), estado: "espera", acompanantes: 0, via: "Portal (cuenta de usuario)", notas: "" });
+        lista.push({ id: `IN-${num}-E${i + 1}`, actividad: folio, persona: `Persona en espera ${LETRAS[i]}`, contacto: "Correo por confirmar", fecha: dia(5 + Math.floor(i / 2)), estado: "espera", acompanantes: 0, via: "Portal (cuenta de usuario)", notas: "" });
     }
     for (let i = 0; i < canceladas; i++) {
-        lista.push({ id: `IN-${num}-C${i + 1}`, actividad: folio, persona: `Persona que canceló ${LETRAS[i]} (ejemplo)`, contacto: "Correo por confirmar", fecha: dia(2), estado: "cancelada", acompanantes: 0, via: "Portal (cuenta de usuario)", notas: "Canceló desde el portal." });
+        lista.push({ id: `IN-${num}-C${i + 1}`, actividad: folio, persona: `Persona que canceló ${LETRAS[i]}`, contacto: "Correo por confirmar", fecha: dia(2), estado: "cancelada", acompanantes: 0, via: "Portal (cuenta de usuario)", notas: "Canceló desde el portal." });
     }
     return lista;
 }

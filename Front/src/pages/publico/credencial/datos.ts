@@ -1,13 +1,13 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { consultarMisSolicitudes, type SolicitudCredencialBack } from "../perfil/solicitudes";
 import { sesionSimulada } from "../perfil/usarSesion";
+import { cancelarSolicitudCredencial, listarTramites, solicitarCredencial } from "../../../servicios/tramites";
 // Credencial · trámite de la persona con sesión iniciada (Figma A-02, 476:9983).
 // El estado se lee del backend real con GET /mis-solicitudes (solicitudes_credencial, la más reciente) cuando hay sesión.
-// TODO backend: todavía no hay servicio para crear la solicitud ni la corrección. Se espera:
-//   - GET  /credencial/mia          → estado del trámite (ver TramiteCredencial)
-//   - POST /credencial/solicitudes  → { tipo, horario, comentarios } y responde el trámite con su folio
-//   - POST /credencial/solicitudes/{folio}/correccion → { nombreIdentificacion, numeroIdentificacion }
-// Mientras, enviar o corregir solo cambia el estado en esta pestaña (se reinicia al recargar).
+// Enviar la solicitud usa el servicio real POST /credenciales/solicitudes (servicios/tramites.ts), así que al recargar
+// la página el estado sigue ahí (antes solo cambiaba en la pestaña y al recargar volvía a «Aún no tienes una solicitud»).
+// TODO backend: todavía no hay servicio para enviar la corrección:
+//   - POST /credenciales/solicitudes/{folio}/correccion → { nombreIdentificacion, numeroIdentificacion }
 
 export type EstadoCredencial = "sin-solicitud" | "en-revision" | "correccion" | "vigente" | "vencida";
 export type TipoTramite = "primera-vez" | "renovacion";
@@ -19,6 +19,7 @@ export type TramiteCredencial = {
     emision: string | null;    // AAAA-MM-DD; null = por confirmar
     vencimiento: string | null;
     motivoCorreccion: string | null;
+    solicitadaEl?: string | null; // fecha en que se envió (ISO)
 };
 
 export const textoTipo: Record<TipoTramite, string> = {
@@ -45,13 +46,13 @@ const vacio: TramiteCredencial = {
     estado: "sin-solicitud", tipo: "primera-vez", folio: null, emision: null, vencimiento: null, motivoCorreccion: null,
 };
 
-// Datos de ejemplo para cada estado (los textos con «(ejemplo)» vienen así de Figma).
+// Datos de ejemplo para cada estado (solo con ?simular=sesion).
 const ejemplos: Record<EstadoCredencial, TramiteCredencial> = {
     "sin-solicitud": vacio,
     "en-revision": { ...vacio, estado: "en-revision" },
     correccion: {
         ...vacio, estado: "correccion",
-        motivoCorreccion: "Los datos de tu solicitud no coinciden con tu identificación (ejemplo).",
+        motivoCorreccion: "Los datos de tu solicitud no coinciden con tu identificación.",
     },
     vigente: { ...vacio, estado: "vigente" },
     vencida: { ...vacio, estado: "vencida", vencimiento: "2026-10-02" },
@@ -70,7 +71,7 @@ export function verEjemplo(estado: EstadoCredencial) { establecer({ ...ejemplos[
 export function mapearCredencial(s: SolicitudCredencialBack | undefined, hoy = new Date()): TramiteCredencial {
     if (!s || s.estadoSolicitud === "cancelada") return vacio;
     const tipo: TipoTramite = s.tipoSolicitud === "renovacion" ? "renovacion" : "primera-vez";
-    const base = { ...vacio, tipo, folio: null };
+    const base = { ...vacio, tipo, folio: s.id ?? null, solicitadaEl: s.creadaEn ?? null };
     if (s.estadoSolicitud === "rechazada") return { ...base, estado: "correccion", motivoCorreccion: s.observaciones ?? "Revisa los datos de tu solicitud." };
     if (s.estadoSolicitud !== "atendida") return { ...base, estado: "en-revision" };
     const emision = (s.fechaCita ?? s.creadaEn).slice(0, 10);
@@ -80,14 +81,38 @@ export function mapearCredencial(s: SolicitudCredencialBack | undefined, hoy = n
     return { ...base, estado: vence < hoy ? "vencida" : "vigente", emision, vencimiento };
 }
 
+// Bug del 20 nov (Aldahir: «no se queda en la fase 3, se regresa a la fase 1»), corregido así:
+// 1. El estado se lee con GET /credenciales/solicitudes/me, la misma función de la base con la que se crea la solicitud
+//    (`/mis-solicitudes` lee la tabla directo y podía no traerla); si falla, se intenta `/mis-solicitudes`.
+// 2. Mientras no llega la respuesta, `listo` es falso y ninguna pantalla redirige ni muestra el paso 1 (antes, en ese
+//    instante el trámite parecía «sin solicitud» y el seguimiento mandaba a la información).
+// 3. Si el servidor todavía no refleja una solicitud recién enviada en esta pestaña, se conserva la que ya conocemos.
 let sincronizado = false;
+let listo = sesionSimulada;
+async function ultimaSolicitud(): Promise<SolicitudCredencialBack | undefined> {
+    try {
+        const r = await listarTramites("credencial", true);
+        const s = r.solicitudes[0];
+        return s && {
+            id: s.id, tipoSolicitud: s.tipoSolicitud === "renovacion" ? "renovacion" : "obtencion",
+            estadoSolicitud: s.estadoSolicitud as SolicitudCredencialBack["estadoSolicitud"],
+            fechaCita: s.fechaCita ?? null, observaciones: s.observaciones ?? null, creadaEn: s.creadaEn,
+        };
+    } catch {
+        return (await consultarMisSolicitudes()).solicitudes_credencial?.[0];
+    }
+}
 export async function sincronizarTramite() {
     if (sesionSimulada || sincronizado) return;
     sincronizado = true;
     try {
-        const h = await consultarMisSolicitudes();
-        establecer(mapearCredencial(h.solicitudes_credencial?.[0]));
+        const ultima = await ultimaSolicitud();
+        const nuevo = mapearCredencial(ultima);
+        const conocida = tramite.folio && tramite.estado !== "sin-solicitud" && ultima?.id !== tramite.folio;
+        establecer(nuevo.estado === "sin-solicitud" && conocida ? tramite : nuevo);
     } catch { sincronizado = false; } // sin sesión o sin servicio: se queda como está y se intenta en la siguiente pantalla
+    listo = true;
+    oyentes.forEach((o) => o());
 }
 
 function suscribir(o: () => void) { oyentes.add(o); return () => { oyentes.delete(o); }; }
@@ -95,6 +120,10 @@ function suscribir(o: () => void) { oyentes.add(o); return () => { oyentes.delet
 export function useTramite(): TramiteCredencial {
     useEffect(() => { void sincronizarTramite(); }, []);
     return useSyncExternalStore(suscribir, () => tramite, () => tramite);
+}
+// ¿Ya se sabe el estado real? Hasta entonces las pantallas muestran «Revisando…» y no redirigen.
+export function useTramiteListo(): boolean {
+    return useSyncExternalStore(suscribir, () => listo, () => listo);
 }
 
 export type SolicitudCredencial = {
@@ -111,8 +140,13 @@ export function validarSolicitud(s: SolicitudCredencial): ErroresSolicitud {
     return errores;
 }
 
-export function enviarSolicitud(s: SolicitudCredencial): TramiteCredencial {
-    establecer({ ...vacio, estado: "en-revision", tipo: s.tipo });
+// Envía la solicitud al servidor. Con la sesión de ejemplo (?simular=sesion) solo cambia la vista.
+export async function enviarSolicitud(s: SolicitudCredencial): Promise<TramiteCredencial> {
+    if (sesionSimulada) { establecer({ ...vacio, estado: "en-revision", tipo: s.tipo }); return consultarTramite(); }
+    const observaciones = [s.horario && `Horario preferido para el cotejo: ${s.horario}`, s.comentarios].filter(Boolean).join("\n");
+    const creada = await solicitarCredencial(s.tipo === "renovacion" ? "renovacion" : "obtencion", observaciones);
+    establecer({ ...vacio, estado: "en-revision", tipo: s.tipo, folio: creada.id, solicitadaEl: creada.creadaEn ?? new Date().toISOString() });
+    sincronizado = false; // la próxima pantalla vuelve a leer el estado real
     return consultarTramite();
 }
 
@@ -135,12 +169,39 @@ export function fechaLarga(fecha: string) {
     if (!anio || !mes || !dia) return fecha;
     return `${String(dia).padStart(2, "0")} de ${meses[mes - 1]} de ${anio}`;
 }
+// "2026-10-02" → "02 oct 2026" (para las fichas angostas del seguimiento)
+export function fechaCorta(fecha: string) {
+    const [anio, mes, dia] = fecha.slice(0, 10).split("-").map(Number);
+    if (!anio || !mes || !dia) return fecha;
+    return `${String(dia).padStart(2, "0")} ${meses[mes - 1].slice(0, 3)} ${anio}`;
+}
 
-// Paso activo del indicador «Información · Solicitud · Seguimiento» (4 = todos completos).
+// Paso del indicador «Información · Solicitud · Seguimiento» (4 = todos completos). Lo decide el estado del trámite,
+// no solo la pantalla: con una solicitud en proceso, las tres pantallas marcan 1 y 2 hechos y 3 en curso (19 nov).
+// Sin solicitud (o vencida, que empieza una renovación): información = 1 y solicitud = 2.
 export function pasoDelEstado(vista: "informacion" | "solicitud" | "seguimiento", estado: EstadoCredencial) {
-    if (vista === "informacion") return 1;
+    if (estado === "en-revision" || estado === "correccion") return 3;
+    if (estado === "vigente") return 4;
     if (vista === "solicitud") return 2;
-    return estado === "vigente" || estado === "vencida" ? 4 : 3;
+    return vista === "seguimiento" ? 3 : 1;
+}
+// ¿Se puede abrir el formulario? Solo sin solicitud o con la credencial vencida (así no se duplican solicitudes).
+export function puedeSolicitar(estado: EstadoCredencial) { return estado === "sin-solicitud" || estado === "vencida"; }
+
+// ---------- Cancelar la solicitud (la persona se equivocó o ya no la quiere) ----------
+// Solo mientras está en revisión o con corrección solicitada. Con la sesión de ejemplo solo cambia la vista.
+// TODO backend: POST /credenciales/solicitudes/{id}/cancelar (PARA_BACKEND.md); mientras no exista, el servidor responde
+// 404/405 y la pantalla pide hacerlo con el personal.
+export function puedeCancelar(estado: EstadoCredencial) { return estado === "en-revision" || estado === "correccion"; }
+export async function cancelarSolicitud(): Promise<TramiteCredencial> {
+    if (!puedeCancelar(tramite.estado)) throw new Error("Esta solicitud ya no se puede cancelar.");
+    if (!sesionSimulada) {
+        if (!tramite.folio) throw new Error("Tu solicitud todavía no tiene folio; intenta en un momento.");
+        await cancelarSolicitudCredencial(tramite.folio);
+        sincronizado = false;
+    }
+    establecer({ ...vacio });
+    return consultarTramite();
 }
 
 // Etapas del trámite (seguimiento y «Mi credencial» del perfil).
@@ -157,3 +218,39 @@ export const etapasCompletas: Etapa[] = [
     { titulo: "Cotejo presencial", texto: "La verificación se hizo en Préstamos.", estado: "hecho" },
     { titulo: "Credencial disponible", texto: "Tu credencial está validada y vigente.", estado: "hecho" },
 ];
+
+// ---------- Estado del trámite en palabras (Mi perfil › Mi credencial y la página pública de Credencial) ----------
+// chip y color = estado; accion = lo siguiente que puede hacer la persona; paso = etapa actual (0 a 3; 4 = todas hechas).
+export type ColorEstado = "gris" | "dorado" | "guinda" | "verde";
+export type DatosEstado = { chip: string; color: ColorEstado; titulo: string; texto: string; accion: { texto: string; ruta: string }; paso: number };
+export const estadosCredencial: Record<EstadoCredencial, DatosEstado> = {
+    "sin-solicitud": { chip: "Sin solicitud", color: "gris", titulo: "Aún no tienes credencial",
+        texto: "Solicítala en línea en pocos minutos. Después acudes a la biblioteca para el cotejo presencial y el personal la valida.",
+        accion: { texto: "Solicitar mi credencial", ruta: "/credencial/solicitud" }, paso: 0 },
+    "en-revision": { chip: "En revisión", color: "dorado", titulo: "Tu solicitud está en revisión",
+        texto: "El personal revisa tus datos. Te avisaremos en tus notificaciones cuando puedas acudir al cotejo presencial.",
+        accion: { texto: "Ver seguimiento", ruta: "/credencial/seguimiento" }, paso: 1 },
+    correccion: { chip: "Corrección solicitada", color: "guinda", titulo: "Corrige un dato de tu solicitud",
+        texto: "El personal pidió un ajuste antes de continuar. Revisa la observación y envía la corrección.",
+        accion: { texto: "Corregir mi solicitud", ruta: "/credencial/seguimiento" }, paso: 1 },
+    vigente: { chip: "Vigente", color: "verde", titulo: "Tu credencial está vigente",
+        texto: "Preséntala en la biblioteca para tus trámites. Con ella se activan tu progreso y tus recompensas.",
+        accion: { texto: "Ver mi credencial", ruta: "/credencial/seguimiento" }, paso: 4 },
+    vencida: { chip: "Vencida", color: "guinda", titulo: "Tu credencial venció",
+        texto: "Renuévala en línea; tu cuenta y tu historial de actividades se conservan.",
+        accion: { texto: "Solicitar renovación", ruta: "/credencial/solicitud?tipo=renovacion" }, paso: 4 },
+};
+
+// Los cuatro pasos del trámite, con quién hace cada uno.
+export const pasosCredencial = [
+    { titulo: "Solicitud en línea", texto: "Envías tu solicitud desde el portal.", quien: "Tú" },
+    { titulo: "Revisión del personal", texto: "La biblioteca revisa tu solicitud y tus datos.", quien: "Biblioteca" },
+    { titulo: "Cotejo presencial", texto: "Acudes a Préstamos con una identificación.", quien: "Tú y la biblioteca" },
+    { titulo: "Credencial validada", texto: "El personal la registra con vigencia de 2 años.", quien: "Biblioteca" },
+];
+export function etapasCredencial(paso: number): Etapa[] {
+    return pasosCredencial.map((p, i) => ({ titulo: p.titulo, texto: p.texto, estado: i < paso ? "hecho" : i === paso ? "actual" : "pendiente" }));
+}
+
+// Datos del trámite (fila de tarjetas de la página de Credencial). TODO backend: costo y tiempos los confirma la biblioteca.
+export const datosTramite = { costo: "Gratuito", revision: "3 a 5 días hábiles", vigencia: "2 años", cotejo: "En Préstamos, con identificación" };

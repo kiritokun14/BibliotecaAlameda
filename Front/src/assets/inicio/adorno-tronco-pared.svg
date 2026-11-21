@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="640" viewBox="0 0 460 640" fill="none">
+  <!-- Tronco que sale de la pared izquierda de la portada y se curva hacia arriba. -->
+  <defs>
+    <linearGradient id="corteza" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#062b25"/><stop offset=".55" stop-color="#0b3b33"/><stop offset="1" stop-color="#124c41"/>
+    </linearGradient>
+  </defs>
+  <!-- Tronco: entra desde la orilla izquierda (x = 0) a media altura y sube -->
+  <path d="M0 470 C 60 470, 120 460, 160 430 C 200 400, 214 350, 212 290 C 210 230, 222 170, 252 120 L 286 132
+           C 258 180, 250 236, 254 296 C 258 362, 240 424, 192 466 C 150 502, 80 522, 0 524 Z" fill="url(#corteza)" fill-opacity=".85"/>
+  <!-- Nudo y vetas -->
+  <ellipse cx="206" cy="372" rx="12" ry="18" fill="#062b25" fill-opacity=".8"/>
+  <ellipse cx="206" cy="372" rx="6" ry="9" fill="#1f6b5c" fill-opacity=".6"/>
+  <g stroke="#2a7d6b" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round">
+    <path d="M20 494 C 80 494, 130 480, 168 452"/>
+    <path d="M40 510 C 100 508, 150 492, 186 462"/>
+    <path d="M232 300 C 230 250, 236 200, 258 152"/>
+    <path d="M222 420 C 236 396, 240 360, 238 326"/>
+  </g>
+  <!-- Ramas -->
+  <g fill="#0b3b33" fill-opacity=".85">
+    <path d="M150 440 C 130 410, 104 392, 70 382 C 64 380, 62 388, 68 390 C 100 402, 124 420, 140 448 Z"/>
+    <path d="M236 230 C 270 206, 310 194, 356 192 C 364 192, 364 200, 356 202 C 314 206, 278 220, 244 246 Z"/>
+    <path d="M226 160 C 206 130, 182 110, 150 98 C 144 96, 140 104, 146 106 C 176 120, 198 140, 216 168 Z"/>
+  </g>
+  <!-- Copas de hojas -->
+  <g fill-opacity=".8">
+    <ellipse cx="62" cy="372" rx="36" ry="15" transform="rotate(-20 62 372)" fill="#1f6b5c"/>
+    <ellipse cx="90" cy="356" rx="28" ry="12" transform="rotate(-62 90 356)" fill="#2a7d6b"/>
+    <ellipse cx="40" cy="392" rx="26" ry="11" transform="rotate(14 40 392)" fill="#2a7d6b"/>
+    <ellipse cx="364" cy="184" rx="40" ry="16" transform="rotate(-14 364 184)" fill="#1f6b5c"/>
+    <ellipse cx="398" cy="206" rx="32" ry="13" transform="rotate(22 398 206)" fill="#2a7d6b"/>
+    <ellipse cx="340" cy="164" rx="28" ry="12" transform="rotate(-56 340 164)" fill="#2a7d6b"/>
+    <ellipse cx="146" cy="86" rx="38" ry="15" transform="rotate(-40 146 86)" fill="#1f6b5c"/>
+    <ellipse cx="174" cy="70" rx="30" ry="12" transform="rotate(-8 174 70)" fill="#2a7d6b"/>
+    <ellipse cx="270" cy="104" rx="44" ry="18" transform="rotate(-48 270 104)" fill="#1f6b5c"/>
+    <ellipse cx="304" cy="88" rx="34" ry="14" transform="rotate(-10 304 88)" fill="#2a7d6b"/>
+    <ellipse cx="248" cy="74" rx="30" ry="12" transform="rotate(-90 248 74)" fill="#2a7d6b"/>
+  </g>
+  <g fill="#c9a24a" fill-opacity=".85">
+    <circle cx="352" cy="196" r="6"/><circle cx="286" cy="96" r="5"/><circle cx="74" cy="378" r="5"/><circle cx="160" cy="80" r="4"/>
+  </g>
+</svg>

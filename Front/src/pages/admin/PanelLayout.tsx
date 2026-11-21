@@ -1,3 +1,5 @@
+import { precargarPanel } from "./precargaPanel";
+import { AvisosSistema, LimiteErrorPanel } from "./EstadosPanel";
 import "./PanelSolon.css";
 import { useContext, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router";
@@ -6,7 +8,7 @@ import { PiePortal } from "../../components/portal/Portal";
 import "./Panel.css";
 import { RESUMEN, SECCIONES_MENU, type SeccionMenu, type SubitemMenu } from "./menu";
 import { useNotificaciones } from "./notificaciones/datos";
-import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.png";
+import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.webp";
 import logoNayarit from "../../assets/comun/logos/logo-nayarit-blanco.png";
 import iconoLibro from "../../assets/admin/menu-book.svg";
 import iconoExpandir from "../../assets/admin/menu-expandir.svg";
@@ -90,7 +92,7 @@ function BarraLateral() {
 
             <span className="panel-lateral__espacio" />
 
-            <NavLink to={RESUMEN.ruta} className="panel-menu__item panel-menu__item--enlace">
+            <NavLink to={RESUMEN.ruta} className="panel-menu__item panel-menu__item--enlace" onMouseEnter={() => precargarPanel(RESUMEN.ruta)} onFocus={() => precargarPanel(RESUMEN.ruta)}>
                 <img src={enResumen ? RESUMEN.iconoActivo : RESUMEN.icono} alt="" />
                 <span>{RESUMEN.texto}</span>
             </NavLink>
@@ -150,7 +152,7 @@ function SeccionLateral({
                     {visibles.map(({ subitem, estado }) => (
                         <li key={subitem.ruta}>
                             {estado === "enlace" ? (
-                                <Link to={subitem.ruta}
+                                <Link to={subitem.ruta} onMouseEnter={() => precargarPanel(subitem.ruta)} onFocus={() => precargarPanel(subitem.ruta)}
                                     className={`panel-submenu__item${rutaActiva === subitem.ruta ? " active" : ""}`}
                                     aria-current={rutaActiva === subitem.ruta ? "page" : undefined}>{subitem.texto}</Link>
                             ) : (
@@ -183,13 +185,13 @@ function Cabecera({ titulo }: { titulo: string }) {
                 <img src={iconoCampana} alt="" />
                 {pendientes > 0 && <span className="panel-campana__insignia" aria-hidden="true">{pendientes > 9 ? "9+" : pendientes}</span>}
             </Link>
-            <span className="panel-cuenta">
+            <Link to="/mi-perfil" className="panel-cuenta" aria-label="Abrir mi perfil">
                 <span className="panel-cuenta__avatar"><img src={iconoUsuario} alt="" /></span>
                 <span>
                     <span className="panel-cuenta__nombre">{identidad?.correo ?? "Personal de la biblioteca"}</span>
                     <span className="panel-cuenta__rol">{identidad ? nombresRoles(identidad.acceso) : "Personal de la biblioteca"}</span>
                 </span>
-            </span>
+            </Link>
         </header>
     );
 }
@@ -198,6 +200,7 @@ type PanelLayoutProps = {
     titulo: string; // el de la cabecera blanca, p. ej. "Atención"
     children: ReactNode;
     tema?: string;
+    sinDemo?: boolean; // ya sin efecto: la franja «Datos de ejemplo» se quitó del panel
 };
 
 function PanelLayout({ titulo, children, tema }: PanelLayoutProps) {
@@ -211,8 +214,8 @@ function PanelLayout({ titulo, children, tema }: PanelLayoutProps) {
                     <Cabecera titulo={titulo} />
                     <div className="panel-desplazamiento" key={pathname}>
                         <main className="panel-contenido">
-                            {(pathname.includes("/demostracion") || ( !(["/admin/actividades/calendario", "/admin/actividades/visitas"].includes(pathname)) && !pathname.startsWith("/admin/participantes/foro") && !pathname.startsWith("/admin/atencion/avisos") && !pathname.startsWith("/admin/actividades/propuestas") && !pathname.startsWith("/admin/atencion/credenciales") && !pathname.startsWith("/admin/atencion/espacios") && !pathname.startsWith("/admin/atencion/propuestas") && !pathname.startsWith("/admin/atencion/bibliocomunidad") && !pathname.startsWith("/admin/contenidos/editor") && !pathname.startsWith("/admin/contenidos/revision") && !pathname.startsWith("/admin/atencion/contactos") && !pathname.startsWith("/admin/administracion/fuentes") && !pathname.startsWith("/personal/alta-asistida") && !pathname.startsWith("/admin/atencion/cuentas") && !pathname.startsWith("/admin/administracion/cuentas") )) && <p role="status" className="panel-nota">Demostración: estas acciones usan datos de ejemplo y no se guardan en la base de datos.</p>}
-                            {children}
+                            <AvisosSistema />
+                            <LimiteErrorPanel key={pathname}>{children}</LimiteErrorPanel>
                             <p className="panel-nota">Biblioteca Solón Argüello · Panel del personal</p>
                         </main>
                         <PiePortal />

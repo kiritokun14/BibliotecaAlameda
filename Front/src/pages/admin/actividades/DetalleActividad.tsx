@@ -25,10 +25,10 @@ function banda(a: Actividad) {
     const autorizo = a.autorizo ? `Autorizó: ${a.autorizo.quien} · ${fechaCorta(a.autorizo.fecha)}` : "";
     switch (a.estado) {
         case "aprobada": return { tono: "dorado" as const, icono: iconoReloj, titulo: "Aprobada · lista para publicar", linea: autorizo };
-        case "en-revision": return { tono: "dorado" as const, icono: iconoReloj, titulo: "En revisión · espera decisión", linea: "Coordinación revisa la propuesta (ejemplo)." };
+        case "en-revision": return { tono: "dorado" as const, icono: iconoReloj, titulo: "En revisión · espera decisión", linea: "Coordinación revisa la propuesta." };
         case "borrador": return { tono: "dorado" as const, icono: iconoLapiz, titulo: "Borrador · sin enviar", linea: "Complétala y envíala a revisión cuando esté lista." };
         case "publicada": return { tono: "verde" as const, icono: iconoCheck, titulo: "Publicada · visible en el portal", linea: `${a.publicadaEl ? `Publicada el ${fechaCorta(a.publicadaEl)}` : "Publicada"} · ${a.inscripcion ? "inscripciones abiertas" : "entrada libre"}` };
-        case "cancelada": return { tono: "guinda" as const, icono: iconoX, titulo: "Cancelada", linea: "Se avisó a las personas inscritas (ejemplo)." };
+        case "cancelada": return { tono: "guinda" as const, icono: iconoX, titulo: "Cancelada", linea: "Se avisó a las personas inscritas." };
         default: return { tono: "guinda" as const, icono: iconoX, titulo: "Archivada", linea: a.archivo ? `Motivo: ${a.archivo.motivo}` : "Ya no se muestra." };
     }
 }

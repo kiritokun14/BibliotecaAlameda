@@ -10,6 +10,7 @@ import "./Comunidad.css";
 import { mensajeError } from "../../../servicios/api";
 import { listarCasos, atenderContacto, registrarIntento, finalizarCaso, intentosCaso, type Caso, type ListaCasos, type Intento } from "../../../servicios/atencionComunidad";
 
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 const ESTADOS: Record<string, { texto: string; clase: string }> = {
     recibido: { texto: "Recibido", clase: "con_observaciones" },
     en_atencion: { texto: "En atención", clase: "por_autorizar" },
@@ -62,7 +63,6 @@ export default function AtencionComunidad({ bibliocomunidad = false }: { biblioc
 
             <div className="contenidos-encabezado">
                 <div>
-                    <p className="contenidos-etiqueta">Atención · {titulo}</p>
                     <h1>{titulo}</h1>
                     <p className="contenidos-encabezado__texto">Los casos y sus cambios se guardan en la base de datos.</p>
                 </div>
@@ -92,7 +92,7 @@ export default function AtencionComunidad({ bibliocomunidad = false }: { biblioc
                 </div>
 
                 <div className="contenidos-tabla comunidad-tabla" tabIndex={0} role="table" aria-label="Casos" aria-busy={!actual}>
-                    {!actual && <p role="status" className="contenidos-cargando">Cargando casos…</p>}
+                    {!actual && <EsqueletoLista texto="Cargando casos…" />}
                     <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
                         {["Folio", "Remitente", "Asunto", "Estado", "Acción"].map((t) => <span key={t} role="columnheader">{t}</span>)}
                     </div>
@@ -227,7 +227,7 @@ function Detalle({ caso, comunidad, alGuardar }: { caso: Caso; comunidad: boolea
                                 <p>Bitácora de llamadas, correos y visitas.</p>
                             </div>
                         </div>
-                        {intentos === null ? <p role="status" className="contenidos-cargando">Cargando bitácora…</p>
+                        {intentos === null ? <EsqueletoLista filas={2} texto="Cargando bitácora…" />
                             : intentos.length === 0 ? <p className="contenidos-nota">Sin intentos registrados.</p>
                             : (
                                 <ol className="at-eventos">

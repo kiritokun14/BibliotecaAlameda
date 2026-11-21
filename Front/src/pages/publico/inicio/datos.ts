@@ -1,8 +1,8 @@
 // Contenido de ejemplo de la página de Inicio (así viene en el diseño).
 // Cuando el backend esté listo, estos arreglos vendrán del servidor.
-import actividad1 from "../../../assets/comun/fotos/noticia-3.jpg";
-import actividad2 from "../../../assets/comun/fotos/noticia-2.jpg";
-import actividad3 from "../../../assets/comun/fotos/foto-biblioteca.jpg";
+import actividad1 from "../../../assets/comun/fotos/noticia-3.webp";
+import actividad2 from "../../../assets/comun/fotos/noticia-2.webp";
+import actividad3 from "../../../assets/comun/fotos/foto-biblioteca.webp";
 import { fechaLarga, filtrarNoticias, noticias as todasLasNoticias, type Categoria } from "../noticias/datos";
 
 // ---------- Lecturas ----------
@@ -27,7 +27,7 @@ export const libros: Libro[] = [
     { id: "lectura-1", titulo: "Cuentos de la Alameda", autoria: "Autoría de ejemplo", genero: "NARRATIVA", estilo: "narrativa" },
     { id: "lectura-2", titulo: "Historia breve de Nayarit", autoria: "Autoría de ejemplo", genero: "HISTORIA REGIONAL", estilo: "historia" },
     { id: "lectura-3", titulo: "Poemas para el camino", autoria: "Autoría de ejemplo", genero: "POESÍA", estilo: "poesia" },
-    { id: "lectura-4", titulo: "Guía de la hemeroteca", autoria: "Autoría de ejemplo", genero: "CONSULTA", estilo: "consulta", soloEnSala: true },
+    { id: "lectura-4", titulo: "Guía de la sala de consulta", autoria: "Autoría de ejemplo", genero: "CONSULTA", estilo: "consulta", soloEnSala: true },
     { id: "lectura-5", titulo: "Memorias de un lector", autoria: "Autoría de ejemplo", genero: "ENSAYO", estilo: "ensayo" },
     { id: "lectura-6", titulo: "Mitos del Nayar", autoria: "Autoría de ejemplo", genero: "NARRATIVA", estilo: "narrativa" },
     { id: "lectura-7", titulo: "Versos de la Alameda", autoria: "Autoría de ejemplo", genero: "POESÍA", estilo: "poesia" },

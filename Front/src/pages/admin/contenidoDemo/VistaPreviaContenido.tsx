@@ -88,7 +88,7 @@ export function PreviaContenido({ contenido, completa }: { contenido: Contenido;
         },
         resena: {
             marco: "Portada", pastilla: `${s("vista", "Por autor")} · ${s("genero", "Género por confirmar")}`,
-            linea: `Reseña del equipo · ${mes} (ejemplo)`,
+            linea: `Reseña del equipo · ${mes}`,
             datos: [["Libro", s("libro")], ["Autoría", s("autoria")], ["Género", s("genero")], ["Firmada por", s("firma")]],
         },
         acerca: {
@@ -98,7 +98,7 @@ export function PreviaContenido({ contenido, completa }: { contenido: Contenido;
         },
         memoria: {
             marco: s("tipoPieza", "Pieza"), pastilla: `Memoria pública · ${s("periodoTema", "Tema por confirmar")}`,
-            linea: `${s("fuente", "Fuente por confirmar")} · ${mes} (ejemplo)`,
+            linea: `${s("fuente", "Fuente por confirmar")} · ${mes}`,
             datos: [["Pieza", s("titulo")], ["Fuente", s("fuente")], ["Tipo", s("tipoPieza")], ["Registrada por", s("registradaPor")]],
         },
     }[contenido.tipo];
@@ -107,7 +107,7 @@ export function PreviaContenido({ contenido, completa }: { contenido: Contenido;
         <div className="cn-previa">
             <div className="cn-previa__fila">
                 {config.marco && (
-                    <div className="cn-previa__portada" role="img" aria-label={imagen ? `${config.marco}: ${imagen} (ejemplo)` : `Sin ${config.marco.toLowerCase()}`}>
+                    <div className="cn-previa__portada" role="img" aria-label={imagen ? `${config.marco}: ${imagen}` : `Sin ${config.marco.toLowerCase()}`}>
                         {imagen ? `${config.marco} · ${imagen}` : config.marco}
                     </div>
                 )}

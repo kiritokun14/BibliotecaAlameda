@@ -37,7 +37,7 @@ export type ConfigArea = {
     accionPendiente: string; // "Cotejar" / "Revisar"
     notaBandeja: string;
     textoVacio: string;
-    ejemplo?: boolean; // false cuando la lista ya viene del backend (quita los "(ejemplo)")
+    ejemplo?: boolean; // false cuando la lista ya viene del backend (quita los "")
 };
 
 type BandejaProps<T extends SolicitudBase> = {
@@ -54,7 +54,6 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
     const [filtro, setFiltro] = useState<Filtro>(vista === "bandeja" ? "pendiente" : "todas");
     const [busqueda, setBusqueda] = useState("");
     const [pagina, setPagina] = useState(0);
-    const ejemplo = config.ejemplo === false ? "" : " (ejemplo)";
 
     const cuenta = (estado: Estado) => solicitudes.filter((s) => s.estado === estado).length;
     const pendientes = cuenta("pendiente");
@@ -98,7 +97,7 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
         { tono: "azul", icono: <IconoCheck />, cantidad: resueltas, titulo: `Resueltas ${config.periodoResueltas}`, texto: "Aprobadas o rechazadas.", enlace: "Ver aprobadas", filtro: "aprobada" },
     ];
 
-    const columnasRejilla = `110px ${columnas.map((c) => (c.ancho ? `${c.ancho}px` : "minmax(160px, 1fr)")).join(" ")} 170px 100px`;
+    const columnasRejilla = `90px ${columnas.map((c) => (c.ancho ? `${c.ancho}px` : "minmax(140px, 1fr)")).join(" ")} 140px 90px`;
     const paginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA));
 
     return (
@@ -119,7 +118,7 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                         volver={{ texto: `Volver a ${config.titulo.toLowerCase()}`, ruta: config.ruta }}
                         etiqueta="Atención · Listado completo"
                         titulo={config.tituloTodas}
-                        texto={`Consulta el historial completo, con cualquier estado.${ejemplo ? " Datos de ejemplo." : ""}`}
+                        texto="Consulta el historial completo, con cualquier estado."
                     />
                 </>
             )}
@@ -229,7 +228,7 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                 {vista === "bandeja" ? (
                     <div className="contenidos-lista__pie">
                         <p>
-                            Mostrando {visibles.length} de {solicitudes.length} {config.sustantivo}{ejemplo}. {config.notaBandeja}
+                            Mostrando {visibles.length} de {solicitudes.length} {config.sustantivo}. {config.notaBandeja}
                         </p>
                         <Link to={`${config.ruta}/todas`} className="contenidos-boton contenidos-boton--oscuro">
                             Ver todas las {config.sustantivo}
@@ -239,7 +238,7 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                     filtradas.length > 0 && (
                         <div className="contenidos-lista__pie">
                             <p>
-                                Mostrando {inicio + 1} a {inicio + visibles.length} de {filtradas.length} {config.sustantivo}{ejemplo}
+                                Mostrando {inicio + 1} a {inicio + visibles.length} de {filtradas.length} {config.sustantivo}
                             </p>
                             <div className="contenidos-paginas" role="group" aria-label="Páginas">
                                 <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>‹ Anterior</button>

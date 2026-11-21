@@ -1,347 +1,447 @@
-import { useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router";
+// Actividades › Evidencias privadas (datos reales: servicios/evidencias.ts → Back/evidencias.py).
+// Lista (Figma 570:28876), subir (570:29352), detalle (570:30676), acceso restringido (570:31428) y resultados.
+// Diseño común del panel (docs/guia-diseno.md). Para que abra rápido: usa las piezas que el panel ya tiene cargadas
+// y recuerda la última respuesta de cada consulta (se muestra al instante y se actualiza en segundo plano).
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import "../contenidos/Contenidos.css";
-import "./EditorActividades.css";
-import "../contenidoDemo/Contenidos.css";
-import "./Actividades.css";
-import { BloqueResumen, Buscador, CampoTexto, Chip, Datos, Encabezado, EncabezadoTarjeta, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Resultado, Tabla, Tarjeta, Ventana } from "../contenidoDemo/piezas";
-import { clasesBoton, paginar } from "../contenidoDemo/utiles";
-import { fechaCorta, useActividades } from "./datos";
-import { hoyISO } from "./salas";
+import { AvisoResultado, Chip, EncabezadoPagina, EstadoVacio, Migas, Tarjeta } from "../componentes";
+import { Ventana } from "../Ventana";
+import { IconoAviso, IconoBandera, IconoDocumento, IconoLista, IconoMas } from "../contenidos/piezas";
+import { paginar } from "../contenidoDemo/utiles";
 import {
-    cambiarAcceso, NOMBRE_ACCESO, obtenerEvidencia, pedirAcceso, puedeVer, registrarConsulta, retirarEvidencia, revisarArchivo, subirEvidencia, TIPOS_EVIDENCIA, useEvidencias,
-    type Acceso, type Consulta, type Evidencia, type TipoEvidencia,
+    aEvidencia, aEvidenciaCompleta, CLAVE_LISTA, CLAVE_SESIONES, claveEvidencia, fechaLocal, horaDe, NOMBRE_ACCESO, revisarArchivo, TIPO_API, TIPOS_EVIDENCIA,
+    type Acceso, type Evidencia, type EvidenciaCompleta, type TipoEvidencia,
 } from "./evidencias";
-import iconoOjo from "../../../assets/admin/actividades/resumen-ojo.svg";
-import iconoX from "../../../assets/admin/actividades/resumen-x-guinda.svg";
-import iconoSubir from "../../../assets/admin/actividades/resumen-subir.svg";
-import iconoCaja from "../../../assets/admin/actividades/tarjeta-caja.svg";
+import { mensajeError } from "../../../servicios/api";
+import { consultarConMemoria, enMemoria } from "../../../servicios/consultas";
+import { diaLocal, hoyLocal } from "../../../servicios/espacios";
+import {
+    cambiarAccesoEvidencia, descargarEvidencia, listarEvidencias, listarSesionesEvidencia, obtenerEvidenciaApi, retirarEvidenciaApi,
+    solicitarAccesoEvidencia, subirEvidenciaApi, type EvidenciaDetalle, type EvidenciaResumen, type SesionEvidencia,
+} from "../../../servicios/evidencias";
+import { AccesosRapidos, CargandoFilas, CeldaDoble, ControlesLista, CuerpoLista, FILAS_POR_PAGINA, PieLista, SeccionLista, TablaLista } from "./PiezasLista";
 import iconoAviso from "../../../assets/admin/actividades/aviso-ojo.svg";
-import iconoLapiz from "../../../assets/admin/contenidos/tarjeta-lapiz.svg";
-import iconoReloj from "../../../assets/admin/contenidos/tarjeta-reloj.svg";
-import iconoResultadoOjo from "../../../assets/admin/actividades/resultado-ojo.svg";
-import iconoAlerta from "../../../assets/admin/actividades/resultado-alerta.svg";
-import iconoCheck from "../../../assets/admin/contenidos/resultado-check.svg";
-import iconoResultadoX from "../../../assets/admin/contenidos/resultado-x.svg";
-import vacioArchivo from "../../../assets/admin/actividades/vacio-archivo.svg";
-import vacioBuscar from "../../../assets/admin/contenidos/vacio-buscar.svg";
+import tarjetaInfo from "../../../assets/admin/tarjeta-info.svg";
+import tarjetaClock from "../../../assets/admin/tarjeta-clock.svg";
+import tarjetaCheck from "../../../assets/admin/tarjeta-check.svg";
+import modalCheck from "../../../assets/admin/modal-check.svg";
+import modalInfo from "../../../assets/admin/modal-info.svg";
+import modalAlerta from "../../../assets/admin/modal-alert.svg";
+import vacioCheck from "../../../assets/admin/vacio-check.svg";
+import vacioBuscar from "../../../assets/admin/vacio-search.svg";
 
 const BASE = "/admin/actividades/evidencias";
 type Filtro = "todas" | TipoEvidencia;
-const hora = (iso: string) => new Date(iso).toTimeString().slice(0, 5);
+
+// Consulta con memoria: si ya se pidió antes, se muestra lo guardado mientras llega la respuesta nueva
+function useCarga<T>(clave: string, cargar: () => Promise<T>) {
+    const [estado, setEstado] = useState<{ clave: string; datos?: T; error?: string } | null>(null);
+    const [intento, setIntento] = useState(0);
+    const ultima = useRef(cargar);
+    useEffect(() => { ultima.current = cargar; });
+    useEffect(() => {
+        let vigente = true;
+        consultarConMemoria(clave, () => ultima.current())
+            .then((datos) => { if (vigente) setEstado({ clave, datos }); }, (e) => { if (vigente) setEstado({ clave, error: mensajeError(e) }); });
+        return () => { vigente = false; };
+    }, [clave, intento]);
+    const actual = estado?.clave === clave ? estado : null;
+    const guardada = actual ? undefined : enMemoria<T>(clave);
+    return {
+        datos: actual?.datos ?? guardada,
+        error: actual?.error,
+        cargando: !actual && guardada === undefined,
+        reintentar: () => { setEstado(null); setIntento((x) => x + 1); },
+    };
+}
 
 function AvisoPrivado() {
     return (
-        <p className="ac-privado">
+        <p className="ac-privado" role="note">
             <img src={iconoAviso} alt="" />
             Estas evidencias son privadas: solo las ve el personal autorizado. No se publican en el portal y cada consulta queda registrada.
         </p>
     );
 }
 
-const chipAcceso = (e: Evidencia) => (e.retirada ? <Chip tono="gris" ancho={130}>Retirada</Chip> : puedeVer(e) ? <Chip tono="dorado" ancho={130}>Privada</Chip> : <Chip tono="guinda" ancho={130}>Restringida</Chip>);
+const chipAcceso = (e: Evidencia) => (e.retirada ? <Chip tono="gris">Retirada</Chip> : e.puedeVer ? <Chip tono="dorado">{e.acceso === "coordinacion" ? "Coordinación" : "Personal"}</Chip> : <Chip tono="guinda">Restringida</Chip>);
 
-// Evidencias privadas: lista (Figma 570:28876, sin evidencias 570:32261, sin resultados 570:32472)
+function ErrorCarga({ error, reintentar }: { error?: string; reintentar: () => void }) {
+    return <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar las evidencias" texto={error ?? "Inténtalo de nuevo."} accion={{ texto: "Reintentar", alPresionar: reintentar }} />;
+}
+
+// ---------- Lista ----------
 function Evidencias() {
-    const evidencias = useEvidencias().filter((e) => !e.retirada);
+    const carga = useCarga<EvidenciaResumen[]>(CLAVE_LISTA, listarEvidencias);
+    const evidencias = (carga.datos ?? []).map(aEvidencia).filter((e) => !e.retirada);
     const navigate = useNavigate();
     const [filtro, setFiltro] = useState<Filtro>("todas");
     const [busqueda, setBusqueda] = useState("");
+    const [accesoFiltro, setAccesoFiltro] = useState("");
     const [pagina, setPagina] = useState(0);
     const texto = busqueda.trim().toLowerCase();
-    const mes = hoyISO().slice(0, 7);
-    const filtradas = evidencias.filter((e) => (filtro === "todas" || e.tipo === filtro) && (!texto || e.folio.toLowerCase().includes(texto) || e.actividadTexto.toLowerCase().includes(texto))).sort((a, b) => b.folio.localeCompare(a.folio));
-    const { paginas, actual, visibles } = paginar(filtradas, pagina, 6);
+    const mes = hoyLocal().slice(0, 7);
+    const filtradas = evidencias.filter((e) => (filtro === "todas" || e.tipo === filtro) && (!accesoFiltro || (accesoFiltro === "restringida" ? !e.puedeVer : e.puedeVer && e.acceso === accesoFiltro)) && (!texto || e.folio.toLowerCase().includes(texto) || e.actividadTexto.toLowerCase().includes(texto))).sort((a, b) => b.folio.localeCompare(a.folio));
+    const { paginas, actual, visibles } = paginar(filtradas, pagina, FILAS_POR_PAGINA);
     const cuenta = (t: TipoEvidencia) => evidencias.filter((e) => e.tipo === t).length;
     const elegir = (f: Filtro) => { setFiltro(f); setPagina(0); };
+    const limpiar = () => { setBusqueda(""); setAccesoFiltro(""); elegir("todas"); };
+    const restringidas = evidencias.filter((e) => !e.puedeVer).length;
+    const delMes = evidencias.filter((e) => diaLocal(e.fecha).slice(0, 7) === mes).length;
 
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Actividades"], ["Evidencias privadas"], ["Lista"]]} />
-                <Encabezado etiqueta="Actividades · Evidencias" titulo="Evidencias privadas" texto="Fotos, listas firmadas e informes que respaldan las actividades." />
-                <BloqueResumen
-                    insignia="Evidencias privadas"
-                    titulo="Evidencias"
-                    resalte="guardadas"
-                    subtitulo="Archivos de actividades, solo para personal autorizado · cifras de ejemplo"
-                    accesos={[
-                        { icono: iconoOjo, numero: evidencias.length, titulo: "Guardadas", texto: "Solo personal autorizado", enlace: "Ver evidencias", tono: "verde", activo: filtro === "todas", alPresionar: () => elegir("todas") },
-                        { icono: iconoX, numero: evidencias.filter((e) => !puedeVer(e)).length, titulo: "Acceso restringido", texto: "Piden permiso para verlas", enlace: "Ver restringida", tono: "guinda", alPresionar: () => { const r = evidencias.find((e) => !puedeVer(e)); if (r) navigate(`${BASE}/${r.folio}`); } },
-                        { icono: iconoSubir, numero: evidencias.filter((e) => e.fecha.startsWith(mes)).length, titulo: "Subidas este mes", texto: "Listas, fotos y notas (ejemplo)", enlace: "Subir evidencia", tono: "dorado", alPresionar: () => navigate(`${BASE}/subir`) },
-                    ]}
-                />
-                <AvisoPrivado />
-                <div className="cn-acciones"><Link to={`${BASE}/subir`} className={clasesBoton("verde")}>Subir evidencia</Link></div>
-                <Tarjeta icono={iconoCaja} titulo="Evidencias guardadas">
-                    <div className="cn-barra">
-                        <Filtros
-                            etiqueta="Tipo de evidencia"
-                            valor={filtro}
-                            alCambiar={elegir}
-                            opciones={[
-                                { valor: "todas", texto: `Todas (${evidencias.length})` },
-                                { valor: "Fotografía", texto: `Fotografías (${cuenta("Fotografía")})` },
-                                { valor: "Lista firmada", texto: `Listas firmadas (${cuenta("Lista firmada")})` },
-                                { valor: "Informe", texto: `Informes (${cuenta("Informe")})` },
-                            ]}
-                        />
-                        <Buscador texto="Buscar por actividad o folio" valor={busqueda} alCambiar={(v) => { setBusqueda(v); setPagina(0); }} />
-                    </div>
-                    {evidencias.length === 0 ? (
-                        <EstadoVacio icono={vacioArchivo} titulo="Aún no hay evidencias" texto="Sube la primera lista firmada, foto o informe de una actividad." />
-                    ) : visibles.length === 0 ? (
-                        <EstadoVacio icono={vacioBuscar} titulo={texto ? `Sin resultados para «${busqueda.trim()}»` : "No hay evidencias de este tipo"} texto="Prueba con otra palabra o quita los filtros." accion={{ texto: "Limpiar filtros", alPresionar: () => { setBusqueda(""); elegir("todas"); } }} />
-                    ) : (
-                        <Tabla
-                            columnas={[
-                                { titulo: "FOLIO", ancho: 90, folio: true, celda: (e: Evidencia) => e.folio },
-                                { titulo: "ACTIVIDAD", fuerte: true, celda: (e: Evidencia) => e.actividadTexto },
-                                { titulo: "TIPO", ancho: 130, celda: (e: Evidencia) => e.tipo },
-                                { titulo: "SUBIÓ", ancho: 170, celda: (e: Evidencia) => e.subio },
-                                { titulo: "FECHA", ancho: 110, celda: (e: Evidencia) => fechaCorta(e.fecha) },
-                                { titulo: "ACCESO", ancho: 140, celda: chipAcceso },
-                                { titulo: "ACCIÓN", ancho: 80, celda: (e: Evidencia) => <Link to={`${BASE}/${e.folio}`} className="cn-enlace">Abrir →<span className="cn-solo-lectores"> {e.folio}</span></Link> },
-                            ]}
-                            filas={visibles}
-                            clave={(e) => e.folio}
-                        />
-                    )}
-                    {filtradas.length > 0 && (
-                        <div className="cn-pie-tabla">
-                            <p>Mostrando {visibles.length} de {filtradas.length} evidencias (ejemplo)</p>
-                            <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
-                        </div>
-                    )}
-                </Tarjeta>
-                <PieDatos />
-            </Pagina>
+            <Migas raiz="Actividades" pasos={[["Evidencias privadas"]]} />
+            <EncabezadoPagina etiqueta="Actividades · Evidencias" titulo="Evidencias privadas"
+                texto="Fotos, listas firmadas e informes que respaldan las actividades. Solo las ve el personal autorizado."
+                accion={<Link className="contenidos-boton contenidos-boton--oscuro" to={`${BASE}/subir`}>Subir evidencia</Link>} />
+            <AccesosRapidos accesos={[
+                { clave: "guardadas", icono: <IconoDocumento />, cifra: carga.cargando ? "…" : evidencias.length, titulo: "Guardadas", texto: "Archivos disponibles.", enlace: "Ver todas", tono: "azul", activo: filtro === "todas" && !texto, alPresionar: () => { setBusqueda(""); elegir("todas"); } },
+                { clave: "mes", icono: <IconoBandera />, cifra: carga.cargando ? "…" : delMes, titulo: "Subidas este mes", texto: "Listas, fotos e informes.", enlace: "Subir otra", tono: "gris", alPresionar: () => navigate(`${BASE}/subir`) },
+                { clave: "restringidas", icono: <IconoAviso />, cifra: carga.cargando ? "…" : restringidas, titulo: "Con acceso restringido", texto: "Solo Coordinación puede abrirlas.", tono: "guinda" },
+            ]} />
+            <AvisoPrivado />
+
+            <ControlesLista
+                etiqueta="Filtros de evidencias"
+                chips={{ etiqueta: "Tipo de evidencia", activa: filtro, alElegir: elegir, opciones: [
+                    { valor: "todas" as Filtro, texto: `Todas (${evidencias.length})` },
+                    { valor: "Fotografía" as Filtro, texto: `Fotografías (${cuenta("Fotografía")})` },
+                    { valor: "Lista firmada" as Filtro, texto: `Listas firmadas (${cuenta("Lista firmada")})` },
+                    { valor: "Informe" as Filtro, texto: `Informes (${cuenta("Informe")})` },
+                ] }}
+                busqueda={{ etiqueta: "Buscar por actividad o folio", marcador: "Actividad o folio…", texto: busqueda, alBuscar: (v) => { setBusqueda(v); setPagina(0); } }}
+                grupos={[{ etiqueta: "Quién puede verla", opciones: [{ valor: "", texto: "Cualquier acceso" }, { valor: "personal", texto: "Personal autorizado" }, { valor: "coordinacion", texto: "Solo Coordinación" }, { valor: "restringida", texto: "Restringidas para mí" }], activa: accesoFiltro, alElegir: (v) => { setAccesoFiltro(v); setPagina(0); } }]}
+                alLimpiar={limpiar}
+            />
+
+            <SeccionLista
+                id="evidencias-lista"
+                icono={<IconoLista />}
+                titulo="Evidencias guardadas"
+                texto="Más recientes primero."
+            >
+                <CuerpoLista>
+                {carga.cargando ? (
+                    <CargandoFilas texto="Cargando evidencias…" />
+                ) : carga.error && !carga.datos ? (
+                    <ErrorCarga error={carga.error} reintentar={carga.reintentar} />
+                ) : evidencias.length === 0 ? (
+                    <EstadoVacio icono={vacioCheck} titulo="Aún no hay evidencias" texto="Sube la primera lista firmada, foto o informe de una actividad." accion={{ texto: "Subir evidencia", alPresionar: () => navigate(`${BASE}/subir`) }} />
+                ) : visibles.length === 0 ? (
+                    <EstadoVacio icono={vacioBuscar} titulo={texto ? `Sin resultados para «${busqueda.trim()}»` : "No hay evidencias con estos filtros"} texto="Prueba con otra palabra o quita los filtros." accion={{ texto: "Quitar filtros", alPresionar: limpiar }} />
+                ) : (
+                    <TablaLista
+                        clase="ac-tabla--evidencias"
+                        etiqueta="Evidencias guardadas"
+                        filas={visibles}
+                        clave={(e) => e.folio}
+                        columnas={[
+                            { titulo: "Folio", folio: true, celda: (e) => e.folio },
+                            { titulo: "Actividad", celda: (e) => <CeldaDoble arriba={e.actividadTexto} abajo={e.tipo} /> },
+                            { titulo: "Subió", celda: (e) => <CeldaDoble arriba={e.subio} abajo={fechaLocal(e.fecha)} /> },
+                            { titulo: "Acceso", celda: chipAcceso },
+                            { titulo: "Acción", celda: (e) => <Link to={`${BASE}/${e.folio}`} className="contenidos-tabla__accion">{e.puedeVer ? "Abrir" : "Pedir acceso"} →<span className="tr-oculto"> {e.folio}</span></Link> },
+                        ]}
+                    />
+                )}
+                </CuerpoLista>
+                {filtradas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filtradas.length} evidencias`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
+            </SeccionLista>
         </PanelLayout>
     );
 }
 
-// Subir evidencia (Figma 570:29352) y error al subir (570:29801)
+// ---------- Subir evidencia (Figma 570:29352) y error al subir (570:29801) ----------
 export function SubirEvidencia() {
     const navigate = useNavigate();
-    const actividades = useActividades().filter((a) => a.estado === "publicada" || a.estado === "cancelada").sort((a, b) => b.fecha.localeCompare(a.fecha));
-    const [actividad, setActividad] = useState(actividades[0]?.folio ?? "");
+    const carga = useCarga<SesionEvidencia[]>(CLAVE_SESIONES, listarSesionesEvidencia);
+    const sesiones = carga.datos ?? [];
+    const [elegida, setElegida] = useState("");
     const [tipo, setTipo] = useState<TipoEvidencia>("Lista firmada");
-    const [archivo, setArchivo] = useState<{ nombre: string; tamano: number } | null>(null);
+    const [archivo, setArchivo] = useState<File | null>(null);
     const [problema, setProblema] = useState("");
     const [nota, setNota] = useState("");
     const [acceso, setAcceso] = useState<Acceso>("personal");
     const [errores, setErrores] = useState<Record<string, string>>({});
-    const a = actividades.find((x) => x.folio === actividad);
+    const [guardando, setGuardando] = useState(false);
+    const sesionId = elegida || sesiones[0]?.sesionId || "";
+    const tamano = (f: File) => Math.round((f.size / (1024 * 1024)) * 10) / 10 || 0.1;
 
-    function guardar() {
+    function elegirArchivo(f: File | undefined) {
+        if (!f) return;
+        setArchivo(f);
+        setProblema(revisarArchivo(f) ?? "");
+        setErrores((x) => ({ ...x, archivo: "" }));
+    }
+
+    async function guardar() {
         const e: Record<string, string> = {};
-        if (!a) e.actividad = "Elige la actividad.";
+        if (!sesionId) e.actividad = "Elige la actividad.";
         if (!archivo) e.archivo = "Elige el archivo.";
+        if (nota.trim().length > 500) e.nota = "La nota admite hasta 500 caracteres.";
         setErrores(e);
-        if (Object.keys(e).length || problema) return;
-        const folio = subirEvidencia({ actividad, actividadTexto: `${a!.nombre} · ${fechaCorta(a!.fecha).split(" ").slice(0, 2).join(" ")}`, tipo, archivo: archivo!.nombre, tamano: archivo!.tamano, nota, acceso });
-        navigate(`${BASE}/${folio}/guardada`);
+        if (Object.keys(e).length || problema || guardando) return;
+        setGuardando(true);
+        try {
+            const r = await subirEvidenciaApi({ sesionId, tipo: TIPO_API[tipo], acceso, nota, archivo: archivo! });
+            navigate(`${BASE}/${r.folio}/guardada`, { state: r });
+        } catch (error) {
+            setProblema(mensajeError(error));
+        } finally {
+            setGuardando(false);
+        }
     }
 
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Actividades"], ["Evidencias privadas", BASE], [problema ? "Error al subir" : "Subir evidencia"]]} />
-                <EncabezadoTarjeta volver={{ texto: "Volver a Evidencias privadas", ruta: BASE }} etiqueta="Evidencias privadas" titulo="Subir evidencia" texto="Respalda una actividad con un archivo privado." />
-                <AvisoPrivado />
-                {problema && <Resultado tono="guinda" icono={iconoAlerta} titulo="No se pudo subir el archivo" linea={problema} chip={<Chip tono="guinda">Error</Chip>} />}
-                <Tarjeta icono={iconoLapiz} titulo="Datos de la evidencia">
-                    <div className="cn-campos">
-                        <div className="cn-campos__fila">
-                            <CampoTexto id="ev-actividad" etiqueta="Actividad" obligatorio error={errores.actividad}>
-                                <select id="ev-actividad" className={`cn-control ${errores.actividad ? "cn-control--error" : ""}`} value={actividad} onChange={(e) => setActividad(e.target.value)}>
-                                    {actividades.length === 0 && <option value="">No hay actividades realizadas</option>}
-                                    {actividades.map((x) => <option key={x.folio} value={x.folio}>{x.nombre} · {fechaCorta(x.fecha)}</option>)}
-                                </select>
-                            </CampoTexto>
-                            <CampoTexto id="ev-tipo" etiqueta="Tipo de evidencia" obligatorio>
-                                <select id="ev-tipo" className="cn-control" value={tipo} onChange={(e) => setTipo(e.target.value as TipoEvidencia)}>{TIPOS_EVIDENCIA.map((t) => <option key={t}>{t}</option>)}</select>
-                            </CampoTexto>
-                        </div>
-                        <div className="cn-campo">
-                            <label className={`cn-archivo ac-archivo ${problema || errores.archivo ? "cn-archivo--error" : ""}`}>
-                                <input
-                                    type="file"
-                                    accept="application/pdf,image/jpeg,image/png"
-                                    aria-describedby="ev-archivo-ayuda"
-                                    onChange={(e) => {
-                                        const f = e.target.files?.[0];
-                                        if (!f) return;
-                                        // TODO backend: subir a almacenamiento privado; aquí solo se guarda el nombre y el tamaño
-                                        setArchivo({ nombre: f.name, tamano: Math.round((f.size / (1024 * 1024)) * 10) / 10 });
-                                        setProblema(revisarArchivo(f) ?? "");
-                                        setErrores((x) => ({ ...x, archivo: "" }));
-                                        e.target.value = "";
-                                    }}
-                                />
-                                <span aria-hidden="true" className="ac-archivo__flecha">↑</span>
-                                <strong>{archivo ? `${archivo.nombre} · ${archivo.tamano} MB` : "Arrastra el archivo aquí o elige uno"}</strong>
-                                <small id="ev-archivo-ayuda">PDF, JPG o PNG · máximo 10 MB</small>
-                            </label>
-                            {errores.archivo && <p className="cn-campo__error" role="alert">{errores.archivo}</p>}
-                        </div>
-                        <CampoTexto id="ev-nota" etiqueta="Nota (opcional)">
-                            <textarea id="ev-nota" className="cn-control cn-control--area" placeholder="Ej.: lista firmada por las personas asistentes." value={nota} onChange={(e) => setNota(e.target.value)} />
-                        </CampoTexto>
-                        <CampoTexto id="ev-acceso" etiqueta="Quién puede verla" ayuda="No se publica en el portal.">
-                            <select id="ev-acceso" className="cn-control" value={acceso} onChange={(e) => setAcceso(e.target.value as Acceso)} aria-describedby="ev-acceso-ayuda">
-                                <option value="personal">{NOMBRE_ACCESO.personal}</option>
-                                <option value="coordinacion">{NOMBRE_ACCESO.coordinacion}</option>
-                            </select>
-                        </CampoTexto>
-                    </div>
-                </Tarjeta>
-                <div className="cn-acciones">
-                    {problema ? (
-                        <label className={clasesBoton("verde")}>
-                            Elegir otro archivo
-                            <input type="file" className="cn-solo-lectores" accept="application/pdf,image/jpeg,image/png" onChange={(e) => { const f = e.target.files?.[0]; if (!f) return; setArchivo({ nombre: f.name, tamano: Math.round((f.size / (1024 * 1024)) * 10) / 10 }); setProblema(revisarArchivo(f) ?? ""); e.target.value = ""; }} />
+            <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], ["Subir evidencia"]]} />
+            <EncabezadoPagina volver={{ texto: "Volver a Evidencias privadas", ruta: BASE }} etiqueta="Actividades · Evidencias" titulo="Subir evidencia" texto="Respalda una actividad con un archivo privado." />
+            {problema && <AvisoResultado tono="error" titulo="No se pudo subir el archivo" texto={problema} chip="Error" />}
+
+            <div className="contenidos-formulario">
+                <div className="at-columna">
+                    <Tarjeta icono={tarjetaInfo} titulo="Archivo" subtitulo="PDF, JPG o PNG de hasta 10 MB.">
+                        <label className={`ac-archivo${problema || errores.archivo ? " ac-archivo--error" : ""}${archivo && !problema ? " ac-archivo--listo" : ""}`}>
+                            <input type="file" className="tr-oculto" accept="application/pdf,image/jpeg,image/png" aria-describedby="ev-archivo-ayuda"
+                                onChange={(e) => { elegirArchivo(e.target.files?.[0]); e.target.value = ""; }} />
+                            <span className="ac-archivo__icono" aria-hidden="true"><IconoMas /></span>
+                            <strong>{archivo ? archivo.name : "Elige el archivo"}</strong>
+                            <small id="ev-archivo-ayuda">{archivo ? `${tamano(archivo)} MB · haz clic para cambiarlo` : "Haz clic aquí para buscarlo en tu equipo"}</small>
                         </label>
-                    ) : (
-                        <button type="button" className={clasesBoton("verde")} onClick={guardar}>Guardar evidencia</button>
-                    )}
-                    <Link to={BASE} className={clasesBoton("suave")}>Cancelar</Link>
+                        {errores.archivo && <p className="contenidos-campo__error" role="alert">{errores.archivo}</p>}
+                        <div className="contenidos-campo">
+                            <label htmlFor="ev-nota">Nota (opcional)</label>
+                            <textarea id="ev-nota" rows={3} maxLength={500} placeholder="Ej.: lista firmada por las personas asistentes." value={nota} onChange={(e) => setNota(e.target.value)} />
+                            {errores.nota && <p className="contenidos-campo__error" role="alert">{errores.nota}</p>}
+                        </div>
+                    </Tarjeta>
                 </div>
-                <PieDatos />
-            </Pagina>
+                <aside className="contenidos-formulario__lateral">
+                    <Tarjeta icono={tarjetaCheck} titulo="Datos de la evidencia" subtitulo="A qué actividad pertenece y quién la ve.">
+                        <fieldset className="tr-campos" disabled={guardando}>
+                            <div className="contenidos-campo">
+                                <label htmlFor="ev-actividad">Actividad <span className="contenidos-campo__obligatorio">*</span></label>
+                                <select id="ev-actividad" value={sesionId} onChange={(e) => setElegida(e.target.value)} disabled={carga.cargando} aria-invalid={!!errores.actividad}>
+                                    {carga.cargando && <option value="">Cargando actividades…</option>}
+                                    {!carga.cargando && sesiones.length === 0 && <option value="">No hay actividades realizadas a tu cargo</option>}
+                                    {sesiones.map((x) => (
+                                        <option key={x.sesionId} value={x.sesionId}>{x.titulo} · {fechaLocal(x.inicio)} {horaDe(x.inicio)}{x.estado === "cancelada" ? " (cancelada)" : ""}</option>
+                                    ))}
+                                </select>
+                                {(errores.actividad || carga.error) && <p className="contenidos-campo__error" role="alert">{errores.actividad || carga.error}</p>}
+                            </div>
+                            <div className="contenidos-campo">
+                                <label htmlFor="ev-tipo">Tipo de evidencia</label>
+                                <div className="contenidos-filtros tr-decisiones" role="radiogroup" aria-label="Tipo de evidencia">
+                                    {TIPOS_EVIDENCIA.map((t) => (
+                                        <label key={t} className={`contenidos-filtro${tipo === t ? " contenidos-filtro--activo" : ""}`}>
+                                            <input id={t === tipo ? "ev-tipo" : undefined} type="radio" name="ev-tipo" className="tr-oculto" checked={tipo === t} onChange={() => setTipo(t)} />{t}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="contenidos-campo">
+                                <label htmlFor="ev-acceso">Quién puede verla</label>
+                                <select id="ev-acceso" value={acceso} onChange={(e) => setAcceso(e.target.value as Acceso)}>
+                                    <option value="personal">{NOMBRE_ACCESO.personal}</option>
+                                    <option value="coordinacion">{NOMBRE_ACCESO.coordinacion}</option>
+                                </select>
+                                <p className="contenidos-campo__ayuda">No se publica en el portal.</p>
+                            </div>
+                        </fieldset>
+                    </Tarjeta>
+                    <div className="tr-acciones">
+                        <button type="button" className="contenidos-boton contenidos-boton--oscuro" onClick={() => { setProblema(""); void guardar(); }} disabled={guardando || (!!problema && !!archivo && !!revisarArchivo(archivo))}>
+                            {guardando ? "Guardando…" : problema ? "Intentar de nuevo" : "Guardar evidencia"}
+                        </button>
+                        <Link to={BASE} className="contenidos-boton contenidos-boton--contorno">Cancelar</Link>
+                    </div>
+                </aside>
+            </div>
         </PanelLayout>
     );
 }
 
-// Detalle (570:30676), descargar (570:31135), cambiar acceso (570:31228), retirar (570:31329);
-// sin permiso: acceso restringido (570:31428)
+// ---------- Detalle (570:30676) con descargar, cambiar acceso y retirar; sin permiso: acceso restringido (570:31428) ----------
 export function DetalleEvidencia() {
-    const { folio } = useParams();
+    const { folio = "" } = useParams();
     const navigate = useNavigate();
-    useEvidencias();
+    const carga = useCarga<EvidenciaDetalle>(claveEvidencia(folio), () => obtenerEvidenciaApi(folio));
+    const [cambio, setCambio] = useState<EvidenciaCompleta | null>(null);
     const [ventana, setVentana] = useState<null | "descargar" | "acceso" | "retirar">(null);
     const [acceso, setAcceso] = useState<Acceso>("coordinacion");
     const [motivo, setMotivo] = useState("");
     const [error, setError] = useState("");
-    const e = obtenerEvidencia(folio);
-    if (!e) return <Navigate to={BASE} replace />;
-    const ruta = `${BASE}/${e.folio}`;
+    const [ocupado, setOcupado] = useState(false);
+    const e = cambio?.folio === folio ? cambio : carga.datos ? aEvidenciaCompleta(carga.datos) : undefined;
+    const ruta = `${BASE}/${folio}`;
+    const volver = { texto: "Volver a Evidencias privadas", ruta: BASE };
 
-    if (!puedeVer(e)) {
+    if (!e) {
         return (
             <PanelLayout titulo="Actividades" tema="contenidos">
-                <Pagina>
-                    <Migas pasos={[["Actividades"], ["Evidencias privadas", BASE], ["Acceso restringido"]]} />
-                    <EncabezadoTarjeta volver={{ texto: "Volver a Evidencias privadas", ruta: BASE }} etiqueta={`Evidencia ${e.folio}`} titulo="Acceso restringido" texto="Esta evidencia no está disponible con tu cuenta." />
-                    <Resultado tono="guinda" icono={iconoResultadoOjo} titulo={e.solicitada ? "Ya pediste acceso" : "No tienes permiso para abrirla"} linea={e.solicitada ? "Coordinación revisará tu solicitud. Te avisaremos en tus notificaciones." : "Solo Coordinación y Administración pueden verla. Puedes pedir acceso."} chip={<Chip tono="guinda">Restringida</Chip>} />
-                    <div className="cn-acciones">
-                        {!e.solicitada && <button type="button" className={clasesBoton("verde")} onClick={() => { pedirAcceso(e.folio); navigate(`${ruta}/solicitado`); }}>Pedir acceso</button>}
-                        <Link to={BASE} className={`${clasesBoton("contorno")} panel-regresar`}>Volver a Evidencias privadas</Link>
-                    </div>
-                    <PieDatos />
-                </Pagina>
+                <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [folio]]} />
+                <EncabezadoPagina volver={volver} etiqueta={`Evidencia ${folio}`} titulo="Evidencia" texto="Detalle de la evidencia privada." />
+                {carga.cargando ? <CargandoFilas texto="Cargando evidencia…" filas={3} /> : <ErrorCarga error={carga.error} reintentar={carga.reintentar} />}
+            </PanelLayout>
+        );
+    }
+
+    async function ejecutar(accion: () => Promise<EvidenciaDetalle>, despues?: (r: EvidenciaDetalle) => void) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError("");
+        try {
+            const r = await accion();
+            setCambio(aEvidenciaCompleta(r));
+            if (despues) despues(r);
+            else setVentana(null);
+        } catch (x) {
+            setError(mensajeError(x));
+        } finally {
+            setOcupado(false);
+        }
+    }
+
+    if (!e.puedeVer) {
+        return (
+            <PanelLayout titulo="Actividades" tema="contenidos">
+                <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], ["Acceso restringido"]]} />
+                <EncabezadoPagina volver={volver} etiqueta={`Evidencia ${e.folio}`} titulo="Acceso restringido" texto="Esta evidencia no está disponible con tu cuenta." />
+                <AvisoResultado tono={e.solicitada ? "espera" : "error"} titulo={e.solicitada ? "Ya pediste acceso" : "No tienes permiso para abrirla"}
+                    texto={e.solicitada ? "Coordinación verá tu solicitud en el registro de la evidencia." : "Solo Coordinación y Administración pueden verla. Puedes pedir acceso."}
+                    chip={e.solicitada ? "En revisión" : "Restringida"} />
+                {error && <div className="at-bloque at-bloque--error" role="alert"><strong>No se pudo pedir acceso</strong><p>{error}</p></div>}
+                <div className="tr-acciones">
+                    {!e.solicitada && <button type="button" className="contenidos-boton contenidos-boton--oscuro" disabled={ocupado} onClick={() => ejecutar(() => solicitarAccesoEvidencia(e.folio), (r) => navigate(`${ruta}/solicitado`, { state: r }))}>Pedir acceso</button>}
+                    <Link to={BASE} className="contenidos-boton contenidos-boton--contorno">Volver a Evidencias privadas</Link>
+                </div>
             </PanelLayout>
         );
     }
 
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Actividades"], ["Evidencias privadas", BASE], [ventana === "descargar" ? "Confirmar descarga" : ventana === "acceso" ? "Cambiar acceso" : ventana === "retirar" ? "Retirar evidencia" : "Detalle"]]} />
-                <EncabezadoTarjeta volver={{ texto: "Volver a Evidencias privadas", ruta: BASE }} etiqueta={`Evidencia ${e.folio}`} titulo={`${e.tipo} · ${e.actividadTexto.split(" · ")[0]}`} texto={`${fechaCorta(e.fecha)} · Subida por ${e.subio}.${e.retirada ? " Retirada." : ""}`} />
-                <AvisoPrivado />
-                <Tarjeta icono={iconoCaja} titulo="Datos del archivo">
-                    <Datos filas={[["Archivo", `${e.archivo} · ${e.tamano} MB`], ["Actividad", `${e.actividadTexto.split(" · ")[0]} · ${e.actividad}`], ["Tipo", e.tipo], ["Acceso", NOMBRE_ACCESO[e.acceso]], ["Nota", e.nota || "Sin nota"], ...(e.retirada ? [["Retirada", `${fechaCorta(e.retirada.fecha)} · ${e.retirada.motivo}`] as [string, string]] : [])]} />
-                </Tarjeta>
-                <Tarjeta icono={iconoReloj} titulo="Quién la ha consultado" subtitulo="Cada consulta queda registrada.">
-                    <Tabla
-                        columnas={[
-                            { titulo: "FECHA", ancho: 190, folio: true, celda: (c: Consulta) => `${fechaCorta(c.fecha)} · ${hora(c.fecha)}` },
-                            { titulo: "PERSONA", fuerte: true, celda: (c: Consulta) => c.persona },
-                            { titulo: "ACCIÓN", ancho: 260, celda: (c: Consulta) => c.accion },
-                        ]}
-                        filas={e.consultas}
-                        clave={(c) => c.fecha + c.accion}
-                    />
-                </Tarjeta>
-                {!e.retirada && (
-                    <div className="cn-acciones">
-                        <button type="button" className={clasesBoton("verde")} onClick={() => setVentana("descargar")}>Descargar</button>
-                        <button type="button" className={clasesBoton("contorno")} onClick={() => { setAcceso(e.acceso === "personal" ? "coordinacion" : "personal"); setVentana("acceso"); }}>Cambiar acceso</button>
-                        <button type="button" className={clasesBoton("contorno-guinda")} onClick={() => { setMotivo(""); setError(""); setVentana("retirar"); }}>Retirar evidencia</button>
-                    </div>
-                )}
-                <PieDatos />
-            </Pagina>
+            <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [e.folio]]} />
+            <EncabezadoPagina volver={volver} etiqueta={`Evidencia ${e.folio}`} titulo={`${e.tipo} · ${e.actividadTexto.split(" · ")[0]}`}
+                texto={`Subida por ${e.subio} el ${fechaLocal(e.fecha)}.`} accion={chipAcceso(e)} />
+            <AvisoPrivado />
+
+            <div className="contenidos-formulario">
+                <div className="at-columna">
+                    <Tarjeta icono={tarjetaInfo} titulo="Datos del archivo">
+                        <div className="tr-datos">
+                            <div className="tr-datos__clave">
+                                <div><span>Tipo</span><strong>{e.tipo}</strong></div>
+                                <div><span>Tamaño</span><strong>{e.tamano} MB</strong></div>
+                                <div><span>Acceso</span><strong>{e.acceso === "coordinacion" ? "Coordinación" : "Personal"}</strong></div>
+                            </div>
+                            <dl className="tr-datos__filas">
+                                <div><dt>Archivo</dt><dd>{e.archivo || "—"}</dd></div>
+                                <div><dt>Actividad</dt><dd>{e.actividadTexto}{e.actividad ? ` · ${e.actividad}` : ""}</dd></div>
+                                <div><dt>Quién puede verla</dt><dd>{NOMBRE_ACCESO[e.acceso]}</dd></div>
+                                {e.retiro && <div><dt>Retirada</dt><dd>{fechaLocal(e.retiro.fecha)} · {e.retiro.motivo}</dd></div>}
+                            </dl>
+                            <div className="tr-datos__bloque"><p className="at-subtitulo">Nota</p><p className="tr-datos__texto">{e.nota || "Sin nota."}</p></div>
+                            <p className="tr-datos__folio">Folio: <span>{e.folio}</span></p>
+                        </div>
+                    </Tarjeta>
+                </div>
+
+                <aside className="contenidos-formulario__lateral tr-lateral">
+                    {!e.retirada && (
+                        <Tarjeta variante="decision" icono={tarjetaCheck} titulo="Acciones" subtitulo="Todo queda registrado con tu nombre.">
+                            <button type="button" className="contenidos-boton contenidos-boton--ancho contenidos-boton--oscuro" onClick={() => { setError(""); setVentana("descargar"); }}>Descargar archivo</button>
+                            <button type="button" className="contenidos-boton contenidos-boton--ancho contenidos-boton--contorno" onClick={() => { setError(""); setAcceso(e.acceso === "personal" ? "coordinacion" : "personal"); setVentana("acceso"); }}>Cambiar quién la ve</button>
+                            <button type="button" className="contenidos-boton contenidos-boton--ancho at-boton--guinda" onClick={() => { setMotivo(""); setError(""); setVentana("retirar"); }}>Retirar evidencia</button>
+                            {error && !ventana && <div className="at-bloque at-bloque--error" role="alert"><strong>No se guardó</strong><p>{error}</p></div>}
+                        </Tarjeta>
+                    )}
+                    <Tarjeta icono={tarjetaClock} titulo="Quién la ha consultado" subtitulo={`${e.consultas.length} ${e.consultas.length === 1 ? "registro" : "registros"}.`} className="tr-seguimiento">
+                        {e.consultas.length ? (
+                            <ol className="tr-eventos" tabIndex={0} aria-label="Registro de consultas">
+                                {e.consultas.map((c, i) => (
+                                    <li key={c.fecha + c.accion + c.persona} className={i === e.consultas.length - 1 ? "tr-eventos--ultimo" : "tr-eventos--hecho"}>
+                                        <strong>{c.accion}</strong><small>{c.persona} · {fechaLocal(c.fecha)}, {horaDe(c.fecha)}</small>
+                                    </li>
+                                ))}
+                            </ol>
+                        ) : <p className="contenidos-campo__ayuda">Nadie la ha consultado todavía.</p>}
+                    </Tarjeta>
+                </aside>
+            </div>
 
             {ventana === "descargar" && (
-                <Ventana
-                    titulo="¿Descargar la evidencia?"
-                    texto="La descarga queda registrada con tu nombre y la fecha. No la compartas fuera del equipo autorizado."
-                    alCerrar={() => setVentana(null)}
-                    pie={<><button type="button" className={clasesBoton("contorno")} onClick={() => setVentana(null)}>Cancelar</button><button type="button" className={clasesBoton("verde")} onClick={() => { registrarConsulta(e.folio, "Descargó"); setVentana(null); }}>Descargar</button></>}
-                >
-                    <Datos variante="caja" filas={[["Archivo", e.archivo], ["Tamaño", `${e.tamano} MB`]]} />
-                    <p className="cn-nota">Datos de ejemplo: no se descarga ningún archivo real. TODO backend: enlace temporal firmado.</p>
-                </Ventana>
+                <Ventana tono="verde" icono={modalCheck} angosta titulo="¿Descargar la evidencia?"
+                    texto={`${e.archivo} · ${e.tamano} MB. La descarga queda registrada con tu nombre y la fecha. No la compartas fuera del equipo autorizado.`}
+                    textoConfirmar={ocupado ? "Descargando…" : "Descargar"} ocupada={ocupado} error={error}
+                    alConfirmar={() => ejecutar(async () => { await descargarEvidencia(e.folio, e.archivo || e.folio); return obtenerEvidenciaApi(e.folio); })}
+                    alCerrar={() => setVentana(null)} />
             )}
             {ventana === "acceso" && (
-                <Ventana
-                    titulo="Cambiar acceso"
-                    texto="Elige quién puede abrir esta evidencia."
-                    alCerrar={() => setVentana(null)}
-                    pie={<><button type="button" className={clasesBoton("contorno")} onClick={() => setVentana(null)}>Cancelar</button><button type="button" className={clasesBoton("verde")} onClick={() => { cambiarAcceso(e.folio, acceso); setVentana(null); }}>Guardar acceso</button></>}
-                >
-                    <Datos variante="caja" filas={[["Evidencia", e.folio], ["Acceso actual", NOMBRE_ACCESO[e.acceso]]]} />
-                    <CampoTexto id="ev-nuevo-acceso" etiqueta="Nuevo acceso" obligatorio ayuda="Aplica de inmediato.">
-                        <select id="ev-nuevo-acceso" className="cn-control" value={acceso} onChange={(x) => setAcceso(x.target.value as Acceso)}>
-                            <option value="personal">{NOMBRE_ACCESO.personal}</option>
-                            <option value="coordinacion">{NOMBRE_ACCESO.coordinacion}</option>
-                        </select>
-                    </CampoTexto>
+                <Ventana tono="dorado" icono={modalInfo} titulo="Cambiar quién la ve"
+                    texto={`Ahora: ${NOMBRE_ACCESO[e.acceso]}. Aplica de inmediato; si eliges Coordinación y no tienes ese permiso, dejarás de verla.`}
+                    textoConfirmar="Guardar acceso" ocupada={ocupado} error={error}
+                    alConfirmar={() => ejecutar(() => cambiarAccesoEvidencia(e.folio, acceso))}
+                    alCerrar={() => setVentana(null)}>
+                    <div className="contenidos-filtros tr-decisiones" role="radiogroup" aria-label="Nuevo acceso">
+                        {(["personal", "coordinacion"] as const).map((op) => (
+                            <label key={op} className={`contenidos-filtro${acceso === op ? " contenidos-filtro--activo" : ""}`}>
+                                <input type="radio" name="ev-nuevo-acceso" className="tr-oculto" checked={acceso === op} onChange={() => setAcceso(op)} />{NOMBRE_ACCESO[op]}
+                            </label>
+                        ))}
+                    </div>
                 </Ventana>
             )}
             {ventana === "retirar" && (
-                <Ventana
-                    titulo="¿Retirar la evidencia?"
-                    texto="Dejará de estar disponible para el personal. El registro de consultas se conserva."
-                    alCerrar={() => setVentana(null)}
-                    pie={<><button type="button" className={clasesBoton("contorno")} onClick={() => setVentana(null)}>Cancelar</button><button type="button" className={clasesBoton("guinda")} onClick={() => { if (!motivo.trim()) return setError("Escribe el motivo."); retirarEvidencia(e.folio, motivo); navigate(`${ruta}/retirada`); }}>Retirar evidencia</button></>}
-                >
-                    <Datos variante="caja" filas={[["Evidencia", e.folio], ["Archivo", e.archivo]]} />
-                    <CampoTexto id="ev-motivo" etiqueta="Motivo" obligatorio error={error}>
-                        <textarea id="ev-motivo" className={`cn-control cn-control--area ${error ? "cn-control--error" : ""}`} placeholder="Ej.: se subió por error." value={motivo} onChange={(x) => { setMotivo(x.target.value); setError(""); }} aria-invalid={!!error} />
-                    </CampoTexto>
+                <Ventana tono="guinda" icono={modalAlerta} titulo="¿Retirar la evidencia?"
+                    texto="Dejará de estar disponible para el personal. El archivo y el registro de consultas se conservan en privado."
+                    textoConfirmar="Retirar evidencia" ocupada={ocupado} error={error}
+                    alConfirmar={() => { if (!motivo.trim()) return setError("Escribe el motivo."); ejecutar(() => retirarEvidenciaApi(e.folio, motivo), (r) => navigate(`${ruta}/retirada`, { state: r })); }}
+                    alCerrar={() => setVentana(null)}>
+                    <div className="contenidos-campo">
+                        <label htmlFor="ev-motivo">Motivo <span className="contenidos-campo__obligatorio">*</span></label>
+                        <textarea id="ev-motivo" rows={3} maxLength={300} placeholder="Ej.: se subió por error." value={motivo} aria-invalid={!!error} onChange={(x) => { setMotivo(x.target.value); setError(""); }} />
+                    </div>
                 </Ventana>
             )}
         </PanelLayout>
     );
 }
 
-// Resultados: evidencia guardada (570:30261), acceso solicitado (570:31848), evidencia retirada (627:51773)
+// ---------- Resultados: guardada (570:30261), acceso solicitado (570:31848), retirada (627:51773) ----------
+// Usan la respuesta de la acción anterior; si se abre la dirección directo, se consulta la evidencia.
 export function ResultadoEvidencia({ tipo }: { tipo: "guardada" | "solicitado" | "retirada" }) {
-    const { folio } = useParams();
-    useEvidencias();
-    const e = obtenerEvidencia(folio);
-    if (!e) return <Navigate to={BASE} replace />;
+    const { folio = "" } = useParams();
+    const recibido = useLocation().state as EvidenciaDetalle | null;
+    const carga = useCarga<EvidenciaDetalle>(`resultado:${claveEvidencia(folio)}`, () => (recibido?.folio === folio ? Promise.resolve(recibido) : obtenerEvidenciaApi(folio)));
+    const datosRecibidos = recibido?.folio === folio ? recibido : carga.datos;
+    if (!datosRecibidos) {
+        return (
+            <PanelLayout titulo="Actividades" tema="contenidos">
+                <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [folio]]} />
+                {carga.cargando ? <CargandoFilas texto="Cargando evidencia…" filas={2} /> : <ErrorCarga error={carga.error} reintentar={carga.reintentar} />}
+            </PanelLayout>
+        );
+    }
+    const e = aEvidenciaCompleta(datosRecibidos);
     const datos = {
-        guardada: { titulo: "Evidencia guardada", texto: "Quedó guardada en privado. No se publica en el portal.", tono: "verde" as const, icono: iconoCheck, linea: `${e.archivo} · ${e.tamano} MB · ${NOMBRE_ACCESO[e.acceso]}`, chip: <Chip tono="dorado">Privada</Chip> },
-        solicitado: { titulo: "Acceso solicitado", texto: "Coordinación revisará tu solicitud.", tono: "dorado" as const, icono: iconoResultadoOjo, linea: "Te avisaremos en tus notificaciones (ejemplo).", chip: <Chip tono="dorado">En revisión</Chip> },
-        retirada: { titulo: "Evidencia retirada", texto: "Ya no está disponible para el personal. El registro se conserva.", tono: "guinda" as const, icono: iconoResultadoX, linea: `Motivo: ${e.retirada?.motivo ?? ""}`, chip: <Chip tono="gris">Retirada</Chip> },
+        guardada: { titulo: "Evidencia guardada", texto: "Quedó guardada en privado. No se publica en el portal.", tono: "exito" as const, linea: `${e.archivo} · ${e.tamano} MB · ${NOMBRE_ACCESO[e.acceso]}`, chip: "Privada" },
+        solicitado: { titulo: "Acceso solicitado", texto: "Coordinación revisará tu solicitud.", tono: "espera" as const, linea: "Tu solicitud quedó en el registro de la evidencia.", chip: "En revisión" },
+        retirada: { titulo: "Evidencia retirada", texto: "Ya no está disponible para el personal. El registro se conserva.", tono: "error" as const, linea: `Motivo: ${e.retiro?.motivo ?? ""}`, chip: "Retirada" },
     }[tipo];
     return (
         <PanelLayout titulo="Actividades" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Actividades"], ["Evidencias privadas", BASE], [datos.titulo]]} />
-                <Encabezado grande etiqueta={`Evidencia ${e.folio}`} titulo={datos.titulo} texto={datos.texto} />
-                <Resultado tono={datos.tono} icono={datos.icono} titulo={`${e.tipo} · ${e.actividadTexto}`} linea={datos.linea} chip={datos.chip} />
-                <div className="cn-acciones">
-                    <Link to={BASE} className={`${clasesBoton("verde")} panel-regresar`}>Volver a Evidencias privadas</Link>
-                    {tipo === "guardada" && <Link to={`${BASE}/subir`} className={clasesBoton("contorno")}>Subir otra evidencia</Link>}
-                </div>
-                <PieDatos />
-            </Pagina>
+            <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [datos.titulo]]} />
+            <EncabezadoPagina etiqueta={`Evidencia ${e.folio}`} titulo={datos.titulo} texto={datos.texto} />
+            <AvisoResultado tono={datos.tono} titulo={`${e.tipo} · ${e.actividadTexto}`} texto={datos.linea} chip={datos.chip} />
+            <div className="tr-acciones">
+                <Link to={BASE} className="contenidos-boton contenidos-boton--oscuro">Volver a Evidencias privadas</Link>
+                {tipo === "guardada" && <Link to={`${BASE}/subir`} className="contenidos-boton contenidos-boton--contorno">Subir otra evidencia</Link>}
+                {tipo === "guardada" && <Link to={`${BASE}/${e.folio}`} className="contenidos-boton contenidos-boton--contorno">Ver la evidencia</Link>}
+            </div>
         </PanelLayout>
     );
 }

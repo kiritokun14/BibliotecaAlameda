@@ -724,3 +724,9 @@ a.fuente-asistente:hover { background: #d3e5df; text-decoration: underline; }
   .sugerencia-asistente,
   .sugerencia-asistente__flecha { transition: none; }
 }
+
+@media (max-width: 600px) {
+  .panel-asistente--compacto { right: 8px; bottom: 8px; width: calc(100% - 16px); max-height: calc(100dvh - 16px); border-radius: 20px; }
+  .velo-asistente { padding: 8px; }
+  .actividades-asistente--dos { grid-template-columns: minmax(0, 1fr); }
+}

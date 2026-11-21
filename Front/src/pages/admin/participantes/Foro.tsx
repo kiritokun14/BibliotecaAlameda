@@ -73,7 +73,7 @@ function Cola() {
                     insignia="Moderación de Bibliocomunidad"
                     titulo="Moderación de"
                     resalte="hoy"
-                    subtitulo="Publicaciones reportadas y decisiones del día · cifras de ejemplo"
+                    subtitulo="Publicaciones reportadas y decisiones del día"
                     accesos={[
                         { icono: iconoXGuinda, numero: cuenta("reportadas"), titulo: "Reportadas", texto: "Esperan decisión", enlace: "Ver reportada", tono: "guinda", activo: filtro === "reportadas", alPresionar: () => elegir("reportadas") },
                         { icono: iconoCheckDorado, numero: cuenta("pendientes"), titulo: "Pendientes de aprobar", texto: "Primera respuesta", enlace: "Revisar", tono: "dorado", activo: filtro === "pendientes", alPresionar: () => elegir("pendientes") },
@@ -119,7 +119,7 @@ function Cola() {
                     )}
                     {filas.length > 0 && (
                         <div className="cn-pie-tabla">
-                            <p>Mostrando {visibles.length} de {filas.length} (ejemplo)</p>
+                            <p>Mostrando {visibles.length} de {filas.length}</p>
                             <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
                         </div>
                     )}
@@ -158,7 +158,7 @@ function Normas() {
                                 filas={filas}
                                 clave={(n) => String(n.numero)}
                             />
-                            <p className="cn-nota">{filas.length} normas (ejemplo)</p>
+                            <p className="cn-nota">{filas.length} normas</p>
                         </>
                     )}
                 </Tarjeta>
@@ -223,7 +223,7 @@ function Silenciadas() {
                                 filas={filas}
                                 clave={(s) => s.id}
                             />
-                            <p className="cn-nota">{filas.length === 1 ? "1 persona" : `${filas.length} personas`} (ejemplo)</p>
+                            <p className="cn-nota">{filas.length === 1 ? "1 persona" : `${filas.length} personas`}</p>
                         </>
                     )}
                 </Tarjeta>

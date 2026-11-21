@@ -49,9 +49,9 @@ const salasIniciales: Sala[] = [
 ];
 
 const bloqueosIniciales: Bloqueo[] = [
-    { id: "BL-0001", sala: "Sala B", fecha: hoyISO(), desde: "", hasta: "", motivo: "Mantenimiento de mobiliario (ejemplo)" },
-    { id: "BL-0002", sala: "Auditorio", fecha: hoyISO(), desde: "11:00", hasta: "15:00", motivo: "Mantenimiento de sonido (ejemplo)" },
-    { id: "BL-0003", sala: "Auditorio", fecha: enDias(7), desde: "", hasta: "", motivo: "Evento institucional (ejemplo)" },
+    { id: "BL-0001", sala: "Sala B", fecha: hoyISO(), desde: "", hasta: "", motivo: "Mantenimiento de mobiliario" },
+    { id: "BL-0002", sala: "Auditorio", fecha: hoyISO(), desde: "11:00", hasta: "15:00", motivo: "Mantenimiento de sonido" },
+    { id: "BL-0003", sala: "Auditorio", fecha: enDias(7), desde: "", hasta: "", motivo: "Evento institucional" },
 ];
 
 type Estado = { salas: Sala[]; bloqueos: Bloqueo[] };

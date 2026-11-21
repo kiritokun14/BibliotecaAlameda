@@ -7,15 +7,8 @@ import { VistaMenor } from "./CrearCuentaMenor";
 import { crearCuenta, type SolicitudRegistro } from "../../servicios/auth";
 import { calcularEdad, esCorreoValido, tieneDigitos, MENSAJE_CORREO, MENSAJE_OBLIGATORIO } from "../../servicios/validaciones";
 import { mensajeError } from "../../servicios/api";
-import iconoFlechaDer from "../../assets/comun/iconos/flecha-derecha.svg";
 import iconoCargando from "../../assets/comun/iconos/cargando.svg";
 import iconoErrorCampo from "../../assets/comun/iconos/error-campo.svg";
-
-const beneficiosCrearCuenta = [
-    "Completa tus datos",
-    "Confirma tu correo",
-    "Inicia sesión y continúa",
-];
 
 // Un solo objeto con todos los campos; cada <input> usa su id como "name"
 const datosIniciales = {
@@ -182,12 +175,14 @@ function CrearCuenta() {
 
     return (
         <AccesoLayout
+            ancho
             titulo={<>Crea tu <span>cuenta</span></>}
-            texto="Regístrate para usar los servicios de la biblioteca."
-            beneficios={beneficiosCrearCuenta}
         >
             <form className="tarjeta tarjeta--ancha" onSubmit={enviar} noValidate>
                 <div className="tarjeta__encabezado">
+                    <span className="acceso__insignia" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="4" /><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6" /></svg>
+                    </span>
                     <h2>Crear cuenta</h2>
                     <p>Completa tus datos. Los campos obligatorios están marcados.</p>
                 </div>
@@ -206,23 +201,23 @@ function CrearCuenta() {
                 )}
 
                 <p className="seccion">DATOS PERSONALES</p>
-                <div className="fila">
-                    <Campo id="nombre" etiqueta="Nombre(s)" placeholder="Escribe tu nombre"
+                <div className="fila fila--tres">
+                    <Campo id="nombre" etiqueta="Nombre(s)" placeholder="Tu nombre"
                         value={datos.nombre} onChange={cambiar} error={errores.nombre} required />
-                    <Campo id="primerApellido" etiqueta="Primer apellido" placeholder="Escribe tu primer apellido"
+                    <Campo id="primerApellido" etiqueta="Primer apellido" placeholder="Tu primer apellido"
                         value={datos.primerApellido} onChange={cambiar} error={errores.primerApellido} required />
-                </div>
-                <div className="fila">
                     <Campo id="segundoApellido" etiqueta="Segundo apellido" placeholder="Si lo tienes"
                         value={datos.segundoApellido} onChange={cambiar} />
-                    <Campo id="fechaNacimiento" etiqueta="Fecha de nacimiento" type="date"
-                        ayuda="Con ella calculamos si necesitas registrar a un responsable."
-                        value={datos.fechaNacimiento} onChange={cambiar} error={errores.fechaNacimiento} required />
                 </div>
-                <Campo id="telefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos"
-                    inputMode="numeric" maxLength={10}
-                    ayuda="Dato de contacto; no sustituye al correo."
-                    value={datos.telefono} onChange={cambiar} error={errores.telefono} required />
+                <div className="fila">
+                    <Campo id="fechaNacimiento" etiqueta="Fecha de nacimiento" type="date"
+                        ayuda="Para saber si necesitas un responsable."
+                        value={datos.fechaNacimiento} onChange={cambiar} error={errores.fechaNacimiento} required />
+                    <Campo id="telefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos"
+                        inputMode="numeric" maxLength={10}
+                        ayuda="Dato de contacto; no sustituye al correo."
+                        value={datos.telefono} onChange={cambiar} error={errores.telefono} required />
+                </div>
 
                 <p className="seccion">DOMICILIO</p>
                 <div className="fila">
@@ -257,31 +252,37 @@ function CrearCuenta() {
                                 value={datos.tutorApellidos} onChange={cambiar} error={errores.tutorApellidos} required />
                         </div>
                         <div className="fila">
+                            <CampoSelect id="tutorRelacion" etiqueta="Relación con la persona menor"
+                                opciones={["Madre", "Padre", "Tutor o tutora"]}
+                                value={datos.tutorRelacion} onChange={cambiar} error={errores.tutorRelacion} required />
                             <Campo id="tutorTelefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos"
                                 inputMode="numeric" maxLength={10}
                                 value={datos.tutorTelefono} onChange={cambiar} error={errores.tutorTelefono} required />
-                            <Campo id="tutorCorreo" etiqueta="Correo electrónico" type="email"
-                                placeholder="responsable@ejemplo.mx"
-                                ayuda="Solo es un contacto; no recibe acceso a tu cuenta."
-                                value={datos.tutorCorreo} onChange={cambiar} error={errores.tutorCorreo} required />
                         </div>
-                        <CampoSelect id="tutorRelacion" etiqueta="Relación con la persona menor"
-                            opciones={["Madre", "Padre", "Tutor o tutora"]} ayuda="Madre, padre o tutor."
-                            value={datos.tutorRelacion} onChange={cambiar} error={errores.tutorRelacion} required />
+                        <Campo id="tutorCorreo" etiqueta="Correo electrónico" type="email"
+                            placeholder="responsable@ejemplo.mx"
+                            ayuda="Solo es un contacto; no recibe acceso a tu cuenta."
+                            value={datos.tutorCorreo} onChange={cambiar} error={errores.tutorCorreo} required />
                         <p className="seccion">DOMICILIO DEL RESPONSABLE</p>
                         <label className="casilla">
                             <input type="checkbox" checked={mismoDomicilio} onChange={e => setMismoDomicilio(e.target.checked)} />
                             El responsable vive en el mismo domicilio que la persona menor.
                         </label>
-                        {!mismoDomicilio && <div className="campos">
-                            <Campo id="tutorCalle" etiqueta="Calle" value={datos.tutorCalle} onChange={cambiar} error={errores.tutorCalle} required />
-                            <Campo id="tutorNumeroExterior" etiqueta="Número exterior" value={datos.tutorNumeroExterior} onChange={cambiar} error={errores.tutorNumeroExterior} required />
-                            <Campo id="tutorNumeroInterior" etiqueta="Número interior (opcional)" value={datos.tutorNumeroInterior} onChange={cambiar} error={errores.tutorNumeroInterior} />
-                            <Campo id="tutorColonia" etiqueta="Colonia o localidad" value={datos.tutorColonia} onChange={cambiar} error={errores.tutorColonia} required />
-                            <Campo id="tutorCodigoPostal" etiqueta="Código postal" value={datos.tutorCodigoPostal} onChange={cambiar} error={errores.tutorCodigoPostal} required />
-                            <Campo id="tutorMunicipio" etiqueta="Municipio" value={datos.tutorMunicipio} onChange={cambiar} error={errores.tutorMunicipio} required />
+                        {!mismoDomicilio && <>
+                            <div className="fila">
+                                <Campo id="tutorCalle" etiqueta="Calle" placeholder="Nombre de la calle" value={datos.tutorCalle} onChange={cambiar} error={errores.tutorCalle} required />
+                                <Campo id="tutorNumeroExterior" etiqueta="Número exterior" placeholder="Número o «sin número»" value={datos.tutorNumeroExterior} onChange={cambiar} error={errores.tutorNumeroExterior} required />
+                            </div>
+                            <div className="fila">
+                                <Campo id="tutorNumeroInterior" etiqueta="Número interior" placeholder="Si existe" value={datos.tutorNumeroInterior} onChange={cambiar} error={errores.tutorNumeroInterior} />
+                                <Campo id="tutorColonia" etiqueta="Colonia o localidad" placeholder="Escribe la colonia o localidad" value={datos.tutorColonia} onChange={cambiar} error={errores.tutorColonia} required />
+                            </div>
+                            <div className="fila">
+                                <Campo id="tutorCodigoPostal" etiqueta="Código postal" placeholder="5 dígitos" value={datos.tutorCodigoPostal} onChange={cambiar} error={errores.tutorCodigoPostal} required />
+                                <Campo id="tutorMunicipio" etiqueta="Municipio" placeholder="Escribe el municipio" value={datos.tutorMunicipio} onChange={cambiar} error={errores.tutorMunicipio} required />
+                            </div>
                             <Campo id="tutorEstado" etiqueta="Estado" value={datos.tutorEstado} onChange={cambiar} error={errores.tutorEstado} required />
-                        </div>}
+                        </>}
                     </>
                 )}
 
@@ -298,14 +299,20 @@ function CrearCuenta() {
                         value={datos.confirmarContrasena} onChange={cambiar} error={errores.confirmarContrasena} />
                 </div>
 
-                <div className="casilla-con-error">
-                    <label className="casilla">
+                {/* TODO: enlazar el aviso de privacidad cuando la biblioteca entregue el texto definitivo */}
+                <div className="privacidad-con-error">
+                    <label className={`privacidad${aceptaPrivacidad ? " privacidad--aceptada" : ""}${errores.privacidad ? " privacidad--error" : ""}`}>
                         <input
                             type="checkbox"
                             checked={aceptaPrivacidad}
                             onChange={(e) => setAceptaPrivacidad(e.target.checked)}
+                            aria-describedby="privacidad-detalle"
+                            aria-invalid={errores.privacidad ? true : undefined}
                         />
-                        He leído el aviso de privacidad (texto por confirmar)
+                        <span className="privacidad__textos">
+                            <strong>He leído el aviso de privacidad</strong>
+                            <span id="privacidad-detalle">Tus datos se usan solo para tu cuenta y los servicios de la biblioteca.</span>
+                        </span>
                     </label>
                     {errores.privacidad && (
                         <p className="campo__error">
@@ -317,7 +324,7 @@ function CrearCuenta() {
 
                 <button type="submit" className="boton-principal" disabled={enviando}>
                     {enviando ? "Creando tu cuenta…" : "Crear cuenta"}
-                    <img src={enviando ? iconoCargando : iconoFlechaDer} className={enviando ? "girando" : undefined} alt="" />
+                    {enviando && <img src={iconoCargando} className="girando" alt="" />}
                 </button>
                 {enviando && (
                     <p className="nota-enviando" role="status">

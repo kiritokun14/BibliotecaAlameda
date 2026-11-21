@@ -21,6 +21,7 @@ import modalInfo from "../../../assets/admin/modal-info.svg";
 import vacioBuscar from "../../../assets/admin/vacio-search.svg";
 import vacioCheck from "../../../assets/admin/vacio-check.svg";
 
+import { EsqueletoDetalle, EsqueletoLista } from "../../../components/portal/Esqueleto";
 const RUTA = "/admin/administracion/cuentas";
 const POR_PAGINA = 10;
 
@@ -53,7 +54,7 @@ function ConCuenta({ miga, children }: { miga: string; children: (c: CuentaResum
     const { datos, error, cargando, recargar } = useCarga(id, () => verCuenta(id));
     return (
         <Pantalla migas={[["Cuentas y permisos", RUTA], [miga]]}>
-            {cargando && <p className="contenidos-cargando" role="status">Cargando cuenta…</p>}
+            {cargando && <EsqueletoDetalle texto="Cargando cuenta…" />}
             {error && <ErrorCarga texto={error} alReintentar={recargar} />}
             {datos && children(datos, recargar)}
         </Pantalla>
@@ -122,7 +123,7 @@ export default function CuentasPermisos() {
                 ) : (
                     <>
                         <Pestanas etiqueta="Filtrar cuentas" valor={filtro} alCambiar={setFiltro} opciones={[{ valor: "personal", texto: "Personal" }, { valor: "todas", texto: `Todas (${total})` }, { valor: "suspendidas", texto: "Suspendidas o bloqueadas" }]} />
-                        {lista.cargando && <p className="contenidos-cargando" role="status">Cargando cuentas…</p>}
+                        {lista.cargando && <EsqueletoLista texto="Cargando cuentas…" />}
                         {lista.error && <ErrorCarga texto={lista.error} alReintentar={lista.recargar} />}
                         {lista.datos && (visibles.length === 0 ? (
                             busqueda
