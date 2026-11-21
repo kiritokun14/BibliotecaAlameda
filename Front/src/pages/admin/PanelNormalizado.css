@@ -1,0 +1,111 @@
+/* ============================================================
+   PANEL · NORMALIZACIÓN CON EL PORTAL (21 nov 2026, primera pasada)
+   Se carga después de Panel.css (PanelLayout). Lleva al panel las reglas del portal (AGENTS §2, §3 y §5):
+   sin mayúsculas, títulos de sección en pastilla dorada, tarjetas con franja de color arriba, filtros segmentados,
+   botones que suben 2 px, campos con aro dorado y foco dorado. Pendiente: revisar pantalla por pantalla.
+   ============================================================ */
+
+/* 1. Sin mayúsculas sostenidas (las fechas de los bloques de día conservan su mes en mayúsculas pequeñas) */
+body .panel :is(.estado-panel__etiqueta, .estados-previa strong, table.cn-tabla th, .panel-nota--demo strong, .panel-pie__etiqueta,
+  .sin-permiso__etiqueta, .ac-cupo-sesion__cifras span, .ac-ficha__etiqueta, .cal-sala__datos dt, .cal-semana__cabecera span,
+  .ad-grupo__titulo, .at-dato__etiqueta, .at-nota__autor, .at-persona small, .at-subtitulo, .tr-datos__clave span, .tr-telefono small,
+  .cn-etiqueta, .cn-franja, .cn-subtitulo, .contenidos-etiqueta, .contenidos-previa__franja, .contenidos-tabla__fila--titulos, .rv-subtitulo) {
+  text-transform: none;
+  letter-spacing: 0;
+}
+body .panel .panel-marca__subtitulo { letter-spacing: 0; font-size: 11px; }
+body .panel .cn-pagina > a:first-child::before { content: none; }
+/* «Volver a …» solo con texto, sin la flecha de su círculo */
+body .panel .panel-contenido :is(.contenidos-volver__circulo, .cn-volver__circulo, .boton-volver__circulo) { display: none; }
+
+/* 2. Títulos de sección: la etiqueta en pastilla dorada del portal (EtiquetaPerfil) en lugar de la franja guinda */
+body .panel .panel-contenido :is(.contenidos-resumen h2, .cn-resumen__titular h2, .sin-permiso__barra, .estado-panel__barra, .resumen-prioridades__titular) {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  width: auto;
+  min-height: 0;
+  margin: 0 !important;
+  padding: 5px 14px 5px 6px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f6eeda, #f2e3b8);
+  box-shadow: inset 0 0 0 1px #e6d194;
+  color: #6b4f12;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 700;
+}
+body .panel .panel-contenido .resumen-prioridades__titular h2 { color: #6b4f12; font-size: 13px; line-height: 20px; }
+/* Los títulos de texto van en línea (no flex): así la palabra resaltada en su <span> conserva su espacio */
+body .panel .panel-contenido :is(.contenidos-resumen h2, .cn-resumen__titular h2) { display: inline-block; align-self: flex-start; }
+body .panel .panel-contenido :is(.contenidos-resumen h2, .cn-resumen__titular h2, .resumen-prioridades__titular)::before {
+  content: "";
+  display: inline-block;
+  flex: none;
+  margin-right: 8px;
+  vertical-align: -6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 3px, transparent 3.5px), #164f44;
+}
+body .panel .panel-contenido :is(.contenidos-resumen h2, .cn-resumen__titular h2) span { color: inherit; }
+body .panel .panel-contenido :is(.sin-permiso__barra, .estado-panel__barra) > span { width: 22px; height: 22px; border-radius: 50%; background: #164f44; color: #fff; }
+body .panel .panel-contenido :is(.sin-permiso__barra, .estado-panel__barra) svg { width: 12px; height: 12px; }
+body .panel .panel-contenido .estado-panel__franja { padding: 0; background: none; color: #161a1d; font-size: 25px; line-height: 34px; font-weight: 600; }
+
+/* 3. Tarjetas con franja de color arriba (sin franjas al costado) */
+body .panel .panel-contenido :is(.contenidos-panel, .tarjeta-panel, .resumen-tarjeta, .resumen-indicador, .resumen-capacidades, .resumen-reglas,
+  .cn-tarjeta, .estado-panel__tarjeta, .contenidos-resumen__tarjeta, .cn-acceso, .resumen-prioridad, .avisos-tarjeta) {
+  background-image: linear-gradient(var(--franja, #1f6b5c), var(--franja, #1f6b5c));
+  background-repeat: no-repeat;
+  background-size: 100% 4px;
+  background-position: top;
+}
+body .panel .panel-contenido .contenidos-lista {
+  background-image: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
+  background-repeat: no-repeat;
+  background-size: 100% 4px;
+}
+body .panel .panel-contenido :is(.contenidos-panel--estado, .tarjeta-panel--decision, .avisos-tarjeta) { --franja: #c9a24a; }
+body .panel .panel-contenido .contenidos-resumen__tarjeta { --franja: var(--tono, #1f6b5c); }
+body .panel .panel-contenido .resumen-prioridad--rosa { --franja: #9b2247; }
+body .panel .panel-contenido .resumen-prioridad--dorado { --franja: #c9a24a; }
+body .panel .panel-contenido .avisos-tarjeta { border-left: 1px solid #e2ded5; }
+body .panel .panel-contenido .avisos-tarjeta--fallido { --franja: #9b2247; }
+body .panel .panel-contenido .resumen-prioridad { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+body .panel .panel-contenido a.resumen-prioridad:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(11, 59, 51, 0.12); }
+body .panel .panel-contenido .resumen-prioridad__abrir { color: #164f44; font-size: 13px; font-weight: 700; text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease; }
+body .panel .panel-contenido a.resumen-prioridad:hover .resumen-prioridad__abrir { text-decoration-color: #c9a24a; }
+
+/* 4. Filtros segmentados: una pastilla blanca con las opciones; la elegida en verde con sombra */
+body .panel .panel-contenido .contenidos-filtros:not(.tr-decisiones):not(.ac-marcar) { gap: 4px; padding: 4px; border: 1px solid #e2ded5; border-radius: 22px; background: #fff; }
+body .panel .panel-contenido .contenidos-filtros:not(.tr-decisiones):not(.ac-marcar) .contenidos-filtro { height: 34px; border-color: transparent; background: transparent; transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; }
+body .panel .panel-contenido .contenidos-filtros:not(.tr-decisiones):not(.ac-marcar) .contenidos-filtro:not(.contenidos-filtro--activo):hover { background: #e4efeb; color: #164f44; transform: translateY(-2px); }
+body .panel .panel-contenido .contenidos-filtros:not(.tr-decisiones):not(.ac-marcar) .contenidos-filtro.contenidos-filtro--activo,
+body .panel .panel-contenido .contenidos-filtros:not(.tr-decisiones):not(.ac-marcar) .contenidos-filtro.contenidos-filtro--activo:hover,
+body .panel .panel-contenido .contenidos-filtros .contenidos-filtro.contenidos-filtro--activo { border-color: #164f44; background: #164f44; color: #fff; box-shadow: 0 6px 14px rgba(22, 79, 68, 0.22); }
+
+/* 5. Botones: una sola animación (suben 2 px con sombra y regresan al presionar); foco dorado */
+body .panel :is(.contenidos-boton, .boton-panel, .boton-resumen, .cn-boton, .boton-opcion) { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
+body .panel :is(.contenidos-boton, .boton-panel, .boton-resumen, .cn-boton, .boton-opcion):not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(11, 59, 51, 0.16); }
+body .panel :is(.contenidos-boton, .boton-panel, .boton-resumen, .cn-boton, .boton-opcion):not(:disabled):active { transform: none; box-shadow: none; }
+body .panel .panel-contenido :is(a, button, summary):focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+
+/* 6. Campos: al enfocar, borde verde y aro dorado suave */
+body .panel .panel-contenido :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  border-color: #164f44 !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(230, 209, 148, 0.55) !important;
+}
+
+/* 7. Menú lateral: la sección activa con la rayita dorada, como el menú del perfil */
+body .panel .panel-lateral a.panel-menu__item.active,
+body .panel .panel-lateral a.panel-submenu__item.active { box-shadow: inset 3px 0 #e6d194; }
+
+@media (prefers-reduced-motion: reduce) {
+  body .panel *, body .panel *::before { transition: none !important; }
+  body .panel .panel-contenido a.resumen-prioridad:hover,
+  body .panel :is(.contenidos-boton, .boton-panel, .boton-resumen, .cn-boton, .boton-opcion):hover { transform: none; }
+}

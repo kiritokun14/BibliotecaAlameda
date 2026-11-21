@@ -32,18 +32,18 @@ function MisContenidos() {
     }
 
     const columnas: Columna<Contenido>[] = [
-        { titulo: "FOLIO", ancho: 100, folio: true, celda: (c) => c.folio },
-        { titulo: "TÍTULO", fuerte: true, celda: (c) => tituloDe(c.tipo, c.valores) },
-        { titulo: "TIPO", ancho: 120, celda: (c) => nombreTipo(c.tipo) },
-        { titulo: "AUTORÍA", ancho: 110, celda: () => YO },
-        { titulo: "ESTADO", ancho: 160, celda: (c) => <ChipEstado estado={c.estado} /> },
-        { titulo: "ACTUALIZADO", ancho: 110, celda: (c) => cuandoSeActualizo(c.actualizado) },
+        { titulo: "Folio", ancho: 100, folio: true, celda: (c) => c.folio },
+        { titulo: "Título", fuerte: true, celda: (c) => tituloDe(c.tipo, c.valores) },
+        { titulo: "Tipo", ancho: 120, celda: (c) => nombreTipo(c.tipo) },
+        { titulo: "Autoría", ancho: 110, celda: () => YO },
+        { titulo: "Estado", ancho: 160, celda: (c) => <ChipEstado estado={c.estado} /> },
+        { titulo: "Actualizado", ancho: 110, celda: (c) => cuandoSeActualizo(c.actualizado) },
         {
-            titulo: "ACCIÓN",
+            titulo: "Acción",
             ancho: 100,
             celda: (c) => (
                 <Link to={`/admin/contenidos/demostracion/${c.folio}`} className="cn-enlace">
-                    {c.estado === "borrador" ? "Editar" : c.estado === "observaciones" ? "Corregir" : "Ver"} →<span className="cn-solo-lectores"> {c.folio}</span>
+                    {c.estado === "borrador" ? "Editar" : c.estado === "observaciones" ? "Corregir" : "Ver"}<span className="cn-solo-lectores"> {c.folio}</span>
                 </Link>
             ),
         },

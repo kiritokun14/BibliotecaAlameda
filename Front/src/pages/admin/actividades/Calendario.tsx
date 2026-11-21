@@ -299,7 +299,7 @@ function Salas({ salas, hoy, actividades, hayFiltros, alLimpiar, alVerDia }: { s
                         <span className="cal-sala__breve">{s.capacidad} personas · {s.ubicacion || "ubicación por confirmar"}</span>
                         <span className="cal-sala__pie">
                             <span>{enSemana} {enSemana === 1 ? "actividad" : "actividades"} esta semana</span>
-                            <span className="cal-sala__ver">Ver detalles →</span>
+                            <span className="cal-sala__ver">Ver detalles</span>
                         </span>
                     </button>
                 ))}

@@ -119,7 +119,7 @@ function BandejaActividades() {
                             { titulo: 'Sesión', celda: f => <CeldaDoble arriba={dia(f.sesion.inicio)} abajo={`${hora(f.sesion.inicio)} · hora de Tepic`} /> },
                             { titulo: 'Cupo', celda: f => <CeldaCupo cupo={cupos[f.sesion.id]} /> },
                             { titulo: 'Estado', celda: f => <CeldaDoble arriba={<Chip tono={TONO_SESION[f.sesion.estado] ?? 'gris'}>{NOMBRE_SESION[f.sesion.estado] ?? f.sesion.estado}</Chip>} abajo={f.sesion.registroAbierto ? 'Registro abierto' : 'Registro cerrado'} /> },
-                            { titulo: 'Acción', celda: f => <Link to={`${BASE}/${f.sesion.id}`} className="contenidos-tabla__accion">Ver inscritos →<span className="tr-oculto"> {f.actividad.titulo}</span></Link> },
+                            { titulo: 'Acción', celda: f => <Link to={`${BASE}/${f.sesion.id}`} className="contenidos-tabla__accion">Ver inscritos<span className="tr-oculto"> {f.actividad.titulo}</span></Link> },
                         ]}
                     />
                 )}

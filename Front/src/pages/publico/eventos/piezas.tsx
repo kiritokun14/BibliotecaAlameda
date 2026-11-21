@@ -36,14 +36,17 @@ export function BarraEventos({ filtro, alElegir, vista }: { filtro: FiltroCatego
 // ---------- «Participa»: tarjeta verde junto a la destacada ----------
 // Con sesión invita a proponer una actividad (Proponer · Mis propuestas) y lleva a Mis actividades; sin sesión explica
 // qué se puede hacer con una cuenta (inscribirse y proponer) con «Iniciar sesión» y «Crear cuenta».
-export function TarjetaParticipa({ sesion }: { sesion: boolean }) {
+// horizontal: franja a todo lo ancho (insignia y textos a la izquierda, botones a la derecha), para el calendario.
+export function TarjetaParticipa({ sesion, horizontal = false }: { sesion: boolean; horizontal?: boolean }) {
     return (
-        <section className="evento-participa" aria-labelledby="titulo-participa">
+        <section className={`evento-participa${horizontal ? " evento-participa--horizontal" : ""}`} aria-labelledby="titulo-participa">
             <span className="evento-participa__insignia" aria-hidden="true"><img src={estrella} alt="" /></span>
-            <h2 id="titulo-participa">{sesion ? "¿Tienes una idea para la biblioteca?" : "Participa con tu cuenta"}</h2>
-            <p>{sesion
-                ? "Propón un taller, un club o un evento. El personal revisa tu propuesta y te responde en tu cuenta."
-                : "Con una cuenta te inscribes a las actividades con cupo y puedes proponer las tuyas."}</p>
+            <div className="evento-participa__textos">
+                <h2 id="titulo-participa">{sesion ? "¿Tienes una idea para la biblioteca?" : "Participa con tu cuenta"}</h2>
+                <p>{sesion
+                    ? "Propón un taller, un club o un evento. El personal revisa tu propuesta y te responde en tu cuenta."
+                    : "Con una cuenta te inscribes a las actividades con cupo y puedes proponer las tuyas."}</p>
+            </div>
             <div className="evento-participa__acciones">
                 {sesion ? <>
                     <Link to="/proponer" className="perfil-boton evento-participa__principal">Proponer una actividad</Link>
@@ -79,7 +82,6 @@ export function DestacadaEvento({ actividad: a }: { actividad: ActividadAgenda }
             <img className="noticia-principal__circulo noticia-principal__circulo--2" src={circuloChico} alt="" />
             <span className="noticia-principal__imagen">
                 <img src={a.imagen} alt="" />
-                <span className="evento-imagen-nota">Imagen ilustrativa</span>
             </span>
             <span className="noticia-principal__textos">
                 <span className="noticia-principal__meta">

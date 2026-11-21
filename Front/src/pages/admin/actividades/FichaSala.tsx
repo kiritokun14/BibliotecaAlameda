@@ -45,16 +45,16 @@ export function FichaSala() {
                     ) : (
                         <Tabla
                             columnas={[
-                                { titulo: "FECHA", ancho: 130, folio: true, celda: (b: Bloqueo) => fechaCorta(b.fecha) },
-                                { titulo: "HORARIO", ancho: 160, celda: (b: Bloqueo) => <strong>{horarioBloqueo(b)}</strong> },
-                                { titulo: "MOTIVO", celda: (b: Bloqueo) => b.motivo },
+                                { titulo: "Fecha", ancho: 130, folio: true, celda: (b: Bloqueo) => fechaCorta(b.fecha) },
+                                { titulo: "Horario", ancho: 160, celda: (b: Bloqueo) => <strong>{horarioBloqueo(b)}</strong> },
+                                { titulo: "Motivo", celda: (b: Bloqueo) => b.motivo },
                                 {
-                                    titulo: "ACCIÓN",
+                                    titulo: "Acción",
                                     ancho: 160,
                                     celda: (b: Bloqueo) => (
                                         <span className="cn-acciones">
                                             <Link to={`${BASE_CALENDARIO}/bloqueos/${b.id}/editar`} className="cn-enlace">Editar<span className="cn-solo-lectores"> bloqueo del {fechaCorta(b.fecha)}</span></Link>
-                                            <button type="button" className="cn-enlace" onClick={() => setQuitando(b)}>Quitar →<span className="cn-solo-lectores"> bloqueo del {fechaCorta(b.fecha)}</span></button>
+                                            <button type="button" className="cn-enlace" onClick={() => setQuitando(b)}>Quitar<span className="cn-solo-lectores"> bloqueo del {fechaCorta(b.fecha)}</span></button>
                                         </span>
                                     ),
                                 },

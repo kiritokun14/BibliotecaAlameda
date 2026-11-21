@@ -1,8 +1,8 @@
 // Contenido de ejemplo de la página de Inicio (así viene en el diseño).
 // Cuando el backend esté listo, estos arreglos vendrán del servidor.
-import actividad1 from "../../../assets/comun/fotos/noticia-3.webp";
-import actividad2 from "../../../assets/comun/fotos/noticia-2.webp";
-import actividad3 from "../../../assets/comun/fotos/foto-biblioteca.webp";
+import actividad1 from "../../../assets/comun/fotos/actividad-taller.webp";
+import actividad2 from "../../../assets/comun/fotos/actividad-club.webp";
+import actividad3 from "../../../assets/comun/fotos/actividad-evento.webp";
 import { fechaLarga, filtrarNoticias, noticias as todasLasNoticias, type Categoria } from "../noticias/datos";
 
 // ---------- Lecturas ----------

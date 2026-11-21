@@ -5,7 +5,7 @@ import { actividadPublicaEnMemoria, consultarActividadPublica, type ActividadPub
 import { mensajeError } from '../../../servicios/api';
 import { sesionesDeAgenda } from '../../../servicios/agendaPublica';
 import { fechaCompleta } from './datosAgenda';
-import { useSesion, sesionSimulada } from '../perfil/usarSesion';
+import { useSesion } from '../perfil/usarSesion';
 import { EtiquetaPerfil, TarjetaPerfil } from '../perfil/piezas';
 import { iconosSeccion } from '../perfil/iconos';
 import { Chip } from '../credencial/piezas';
@@ -22,6 +22,7 @@ import './Agenda.css';
 import circulo1 from '../../../assets/comun/iconos/encabezado-circulo-1.svg';
 import circulo2 from '../../../assets/comun/iconos/encabezado-circulo-2.svg';
 import tarjetaLista from '../../../assets/perfil/tarjeta-lista.svg';
+import iconoReloj from '../../../assets/contacto/dato-reloj.svg';
 
 // Detalle de una actividad (plantilla C «Página de detalle», como Noticias y Memoria; Aldahir, 20 nov 2026).
 // Franja compacta con el tipo y la próxima fecha en pastilla y el nombre → la foto montada sobre la franja, el texto,
@@ -172,8 +173,9 @@ function DondeEs({ espacio }: { espacio: string }) {
     );
 }
 
-// Sesiones: tarjeta del catálogo con su cabecera; dentro, cada sesión como tarjeta de lista (bloque de fecha, día y
-// horario, lugar, estado y «Mi inscripción», que abre la inscripción en el lugar). Aquí es donde se inscribe la persona.
+// Sesiones: tarjeta del catálogo con su cabecera; dentro, cada sesión en su tarjeta (Aldahir, 20 nov: «mejora la etiqueta
+// de sesión»): bloque de fecha con el día de la semana | la fecha con su estado y, debajo, horario, lugar y cupo en tres
+// datos con su ícono | el botón. «Mi inscripción» abre la inscripción en el lugar: aquí es donde se inscribe la persona.
 function Sesiones({ actividad: a, usuario, seleccion, alElegir }: {
     actividad: ActividadPublica; usuario: string | null | undefined; seleccion?: string; alElegir: (id?: string) => void;
 }) {
@@ -184,29 +186,39 @@ function Sesiones({ actividad: a, usuario, seleccion, alElegir }: {
         <div className="detalle-evento__sesiones" id="sesiones">
             <TarjetaPerfil color="verde" icono={tarjetaLista} titulo={a.sesiones.length === 1 ? 'Sesión' : 'Sesiones'} texto={texto}>
                 {a.sesiones.length === 0 && <p className="detalle-evento__nota">La biblioteca publicará pronto la fecha y el horario.</p>}
-                <ul className="perfil-solicitudes">
+                <ul className="evento-sesiones">
                     {a.sesiones.map(s => {
                         const [dia, mes] = diaYMes(s.fecha);
+                        const semana = SEMANA[new Date(`${s.fecha.slice(0, 10)}T12:00:00`).getDay()];
+                        const lugar = zonaPorNombreEspacio(s.espacio)?.nombre ?? s.espacio.replace(/\s*\(provisional\)/i, '');
                         const estado = ESTADO_SESION[s.estado] ?? { texto: 'Programada', tono: 'verde' as const };
                         const abierta = seleccion === s.id;
                         const chip = s.estado === 'programada' && a.inscripcion ? (s.registroAbierto ? 'Inscripción abierta' : 'Registro cerrado') : estado.texto;
                         return (
-                            <li key={s.id} className={`perfil-solicitud perfil-solicitud--con-panel perfil-solicitud--${estado.tono === 'guinda' ? 'gris' : estado.tono}`}>
-                                <span className={`perfil-evento__fecha${s.estado === 'cancelada' ? ' perfil-evento__fecha--guinda' : ''}`} aria-hidden="true"><strong>{dia}</strong>{mes}</span>
-                                <div className="perfil-solicitud__textos">
-                                    <strong>{fechaCompleta(s.fecha)}</strong>
-                                    <span>{s.inicio} a {s.fin} h · {s.espacio} · {s.cupo} lugares</span>
+                            <li key={s.id} className={`evento-sesion evento-sesion--${estado.tono}${abierta ? ' evento-sesion--abierta' : ''}`}>
+                                <div className="evento-sesion__fila">
+                                    <span className="evento-sesion__fecha" aria-hidden="true"><small>{semana}</small><strong>{dia}</strong>{mes}</span>
+                                    <div className="evento-sesion__textos">
+                                        <div className="evento-sesion__cabeza">
+                                            <div className="evento-sesion__titulo">
+                                                <strong>{fechaCompleta(s.fecha)}</strong>
+                                                <Chip color={estado.tono === 'guinda' ? 'gris' : estado.tono}>{chip}</Chip>
+                                            </div>
+                                            {a.inscripcion && usuario && s.estado !== 'cancelada' && (
+                                                <button type="button" className={`perfil-boton perfil-boton--chico${abierta ? ' perfil-boton--contorno' : ''}`} aria-expanded={abierta}
+                                                    onClick={() => alElegir(abierta ? undefined : s.id)}>{abierta ? 'Cerrar' : 'Mi inscripción'}</button>
+                                            )}
+                                            {a.inscripcion && usuario === null && s.estado === 'programada' && s.registroAbierto &&
+                                                <Link className="perfil-boton perfil-boton--chico" to="/iniciar-sesion">Inicia sesión</Link>}
+                                        </div>
+                                        <dl className="evento-sesion__datos">
+                                            <div style={{ '--icono': `url("${iconoReloj}")` } as CSSProperties}><dt>Horario</dt><dd>{s.inicio} a {s.fin} h</dd></div>
+                                            <div style={{ '--icono': `url("${iconosSeccion.espacios}")` } as CSSProperties}><dt>Lugar</dt><dd>{lugar}</dd></div>
+                                            <div style={{ '--icono': `url("${iconosSeccion.datos}")` } as CSSProperties}><dt>Cupo</dt><dd>{s.cupo} lugares</dd></div>
+                                        </dl>
+                                    </div>
                                 </div>
-                                <Chip color={estado.tono === 'guinda' ? 'gris' : estado.tono}>{chip}</Chip>
-                                <span className="perfil-solicitud__acciones">
-                                    {a.inscripcion && usuario && !sesionSimulada && s.estado !== 'cancelada' && (
-                                        <button type="button" className={`perfil-boton perfil-boton--chico${abierta ? ' perfil-boton--contorno' : ''}`} aria-expanded={abierta}
-                                            onClick={() => alElegir(abierta ? undefined : s.id)}>{abierta ? 'Cerrar' : 'Mi inscripción'}</button>
-                                    )}
-                                    {a.inscripcion && usuario === null && s.estado === 'programada' && s.registroAbierto &&
-                                        <Link className="perfil-boton perfil-boton--chico" to="/iniciar-sesion">Inicia sesión</Link>}
-                                </span>
-                                {abierta && usuario && <div className="perfil-solicitud__panel"><InscripcionSesion key={`${usuario}:${s.id}`} sesion={s.id} /></div>}
+                                {abierta && usuario && <div className="evento-sesion__panel"><InscripcionSesion key={`${usuario}:${s.id}`} sesion={s.id} /></div>}
                             </li>
                         );
                     })}
@@ -220,6 +232,7 @@ const ESTADO_SESION: Record<string, { texto: string; tono: 'verde' | 'gris' | 'g
     programada: { texto: 'Programada', tono: 'verde' }, en_curso: { texto: 'En curso', tono: 'dorado' },
     finalizada: { texto: 'Finalizada', tono: 'gris' }, cancelada: { texto: 'Cancelada', tono: 'guinda' },
 };
+const SEMANA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 function diaYMes(fecha: string): [string, string] {
     const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);

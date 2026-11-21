@@ -3,40 +3,27 @@ import { Link } from "react-router";
 import "./Asistente.css";
 import { LIMITE_PREGUNTA, PREGUNTAS_SUGERIDAS, type Conversacion, type Mensaje } from "./conversacion";
 import type { RespuestaAsistente } from "./servicio";
+import { EtiquetaPerfil } from "../../pages/publico/perfil/piezas";
 import cabeceraCirculo1 from "../../assets/asistente/cabecera-circulo-1.svg";
 import cabeceraCirculo2 from "../../assets/asistente/cabecera-circulo-2.svg";
 import expandidoCirculo1 from "../../assets/asistente/expandido-circulo-1.svg";
 import expandidoCirculo2 from "../../assets/asistente/expandido-circulo-2.svg";
-import bienvenidaCirculo from "../../assets/asistente/bienvenida-circulo.svg";
-import bienvenidaGrande1 from "../../assets/asistente/bienvenida-grande-circulo-1.svg";
-import bienvenidaGrande2 from "../../assets/asistente/bienvenida-grande-circulo-2.svg";
-import lateralCirculo from "../../assets/asistente/lateral-circulo.svg";
 import libroDorado from "../../assets/asistente/libro-dorado.svg";
 import libroChico from "../../assets/asistente/libro-chico.svg";
 import puntoEnLinea from "../../assets/asistente/punto-en-linea.svg";
 import iconoMas from "../../assets/asistente/nueva-consulta.svg";
-import iconoMasChico from "../../assets/asistente/mas-chico.svg";
-import iconoMasVerde from "../../assets/asistente/boton-mas-verde.svg";
 import iconoExpandir from "../../assets/asistente/expandir.svg";
-import iconoContraer from "../../assets/asistente/contraer.svg";
 import iconoMinimizar from "../../assets/asistente/minimizar.svg";
 import iconoCerrar from "../../assets/asistente/cerrar.svg";
-import iconoCerrarChico from "../../assets/asistente/cerrar-chico.svg";
 import iconoBuscar from "../../assets/asistente/sugerencia-buscar.svg";
-import iconoFlecha from "../../assets/asistente/sugerencia-flecha.svg";
-import iconoEnviar from "../../assets/asistente/enviar.svg";
-import iconoArchivo from "../../assets/asistente/fuente-archivo.svg";
 import escribiendo from "../../assets/asistente/escribiendo.svg";
 import iconoInfo from "../../assets/asistente/aviso-info.svg";
 import iconoAlerta from "../../assets/asistente/aviso-alerta.svg";
 import iconoCandado from "../../assets/asistente/aviso-candado.svg";
-import iconoCorreo from "../../assets/asistente/boton-correo.svg";
 import iconoCheck from "../../assets/asistente/enviada-check.svg";
-import iconoReintentar from "../../assets/comun/iconos/reintentar-blanco.svg";
 import temaLibro from "../../assets/asistente/tema-libro.svg";
 import temaCalendario from "../../assets/asistente/tema-calendario.svg";
 import temaPersona from "../../assets/comun/iconos/persona-verde.svg";
-import notaInfo from "../../assets/asistente/nota-info.svg";
 
 type Modo = "compacto" | "expandido";
 
@@ -146,9 +133,7 @@ export default function PanelAsistente({ modo, conversacion, alExpandir, alContr
                                 maxLength={LIMITE_PREGUNTA}
                                 autoComplete="off"
                             />
-                            <button type="submit" className="entrada-asistente__enviar" disabled={!texto.trim() || ocupado} aria-label="Enviar pregunta">
-                                <img src={iconoEnviar} alt="" />
-                            </button>
+                            <button type="submit" className="entrada-asistente__enviar" disabled={!texto.trim() || ocupado}>Enviar</button>
                         </div>
                         <p className="entrada-asistente__nota">Las respuestas se basan en la información publicada por la biblioteca.</p>
                     </form>
@@ -200,12 +185,10 @@ function Cabecera({
 
             {expandido ? (
                 <div className="cabecera-asistente__botones">
-                    {conConversacion && (
-                        <BotonTexto icono={iconoMasChico} alPresionar={alNuevaConsulta} desactivado={ocupado}>Nueva consulta</BotonTexto>
-                    )}
-                    <BotonTexto icono={iconoContraer} alPresionar={alContraer}>Contraer</BotonTexto>
-                    <BotonTexto icono={iconoContraer} alPresionar={alMinimizar}>Minimizar</BotonTexto>
-                    <BotonTexto icono={iconoCerrarChico} alPresionar={alCerrar}>Cerrar</BotonTexto>
+                    {conConversacion && <BotonTexto alPresionar={alNuevaConsulta} desactivado={ocupado}>Nueva consulta</BotonTexto>}
+                    <BotonTexto alPresionar={alContraer}>Contraer</BotonTexto>
+                    <BotonTexto alPresionar={alMinimizar}>Minimizar</BotonTexto>
+                    <BotonTexto alPresionar={alCerrar}>Cerrar</BotonTexto>
                 </div>
             ) : (
                 <div className="cabecera-asistente__botones">
@@ -230,10 +213,10 @@ function BotonIcono({ icono, etiqueta, alPresionar, desactivado }: { icono: stri
     );
 }
 
-function BotonTexto({ icono, alPresionar, desactivado, children }: { icono: string; alPresionar: () => void; desactivado?: boolean; children: string }) {
+// Botones de la ventana grande: solo texto (AGENTS §2)
+function BotonTexto({ alPresionar, desactivado, children }: { alPresionar: () => void; desactivado?: boolean; children: string }) {
     return (
         <button type="button" className="boton-cabecera-asistente boton-cabecera-asistente--texto" onClick={alPresionar} disabled={desactivado}>
-            <img src={icono} alt="" />
             {children}
         </button>
     );
@@ -249,10 +232,9 @@ function BarraLateral() {
     ];
     return (
         <aside className="lateral-asistente">
-            <img className="lateral-asistente__circulo" src={lateralCirculo} alt="" />
-            <p className="sobretitulo-asistente"><span className="punto-dorado" />SOBRE EL ASISTENTE</p>
+            <EtiquetaPerfil icono={temaLibro}>Sobre el asistente</EtiquetaPerfil>
             <h3>Pregunta con tus propias palabras</h3>
-            <p className="lateral-asistente__texto">Puedo orientarte sobre estos temas con la información publicada en el portal:</p>
+            <p className="lateral-asistente__texto">Te oriento sobre estos temas con la información publicada en el portal:</p>
             <ul className="lateral-asistente__temas">
                 {temas.map((tema) => (
                     <li key={tema.texto}>
@@ -262,8 +244,7 @@ function BarraLateral() {
                 ))}
             </ul>
             <p className="lateral-asistente__nota">
-                <img src={notaInfo} alt="" />
-                Tu conversación se conserva al contraer o minimizar el asistente. Para empezar de cero, usa «Nueva consulta».
+                Tu conversación se conserva al contraer o minimizar el asistente. Para empezar de cero, usa Nueva consulta.
             </p>
         </aside>
     );
@@ -275,28 +256,21 @@ function Bienvenida({ expandido, alElegir }: { expandido: boolean; alElegir: (pr
     return (
         <>
             <div className={`bienvenida-asistente${expandido ? " bienvenida-asistente--grande" : ""}`}>
-                {expandido ? (
-                    <>
-                        <img className="bienvenida-asistente__circulo bienvenida-asistente__circulo--1" src={bienvenidaGrande1} alt="" />
-                        <img className="bienvenida-asistente__circulo bienvenida-asistente__circulo--2" src={bienvenidaGrande2} alt="" />
-                    </>
-                ) : (
-                    <img className="bienvenida-asistente__circulo bienvenida-asistente__circulo--1" src={bienvenidaCirculo} alt="" />
-                )}
-                <p className="sobretitulo-asistente"><span className="punto-dorado" />BIENVENIDA</p>
-                <h3>Hola, ¿en qué te puedo ayudar?</h3>
-                <p className="bienvenida-asistente__texto">
-                    Te oriento sobre los servicios, las actividades y los trámites de la biblioteca, con la información publicada en este portal.
-                </p>
+                <span className="bienvenida-asistente__insignia" aria-hidden="true"><img src={libroDorado} alt="" /></span>
+                <div className="bienvenida-asistente__textos">
+                    <h3>Hola, ¿en qué te puedo ayudar?</h3>
+                    <p className="bienvenida-asistente__texto">
+                        Te oriento sobre los servicios, las actividades y los trámites de la biblioteca, con la información publicada en este portal.
+                    </p>
+                </div>
             </div>
-            <p className="etiqueta-sugerencias">PREGUNTAS SUGERIDAS</p>
+            <EtiquetaPerfil icono={iconoBuscar}>Preguntas sugeridas</EtiquetaPerfil>
             <ul className="sugerencias-asistente">
                 {PREGUNTAS_SUGERIDAS.map((pregunta) => (
                     <li key={pregunta}>
                         <button type="button" className="sugerencia-asistente" onClick={() => alElegir(pregunta)}>
-                            <span className="sugerencia-asistente__icono"><img src={iconoBuscar} alt="" /></span>
+                            <span className="sugerencia-asistente__icono" aria-hidden="true"><img src={iconoBuscar} alt="" /></span>
                             <span className="sugerencia-asistente__texto">{pregunta}</span>
-                            <img className="sugerencia-asistente__flecha" src={iconoFlecha} alt="" />
                         </button>
                     </li>
                 ))}
@@ -339,14 +313,14 @@ function MensajeConversacion({
 
     if (mensaje.estado === "error") {
         return (
-            <BurbujaAsistente variante="aviso">
+            <BurbujaAsistente variante="error">
                 <Aviso icono={iconoAlerta} titulo="El asistente no está disponible" />
                 <p className="burbuja-asistente__texto burbuja-asistente__texto--aviso">
                     No se pudo completar tu consulta. Inténtalo de nuevo en unos minutos o escríbenos desde Contacto.
                 </p>
                 <div className="burbuja-asistente__acciones">
                     <button type="button" className="boton-asistente boton-asistente--verde" onClick={() => conversacion.reintentar(mensaje.id)} disabled={conversacion.ocupado}>
-                        Reintentar <img src={iconoReintentar} alt="" />
+                        Reintentar
                     </button>
                     <Link to="/contacto" className="boton-asistente boton-asistente--contorno" onClick={alAbrirFuente}>Ir a Contacto</Link>
                 </div>
@@ -380,7 +354,7 @@ function Respuesta({
                     </p>
                     <div className="burbuja-asistente__acciones">
                         <button type="button" className="boton-asistente boton-asistente--verde" onClick={conversacion.hablarConPersonal} disabled={conversacion.ocupado}>
-                            Hablar con el personal <img src={iconoCorreo} alt="" />
+                            Hablar con el personal
                         </button>
                         <button type="button" className="boton-asistente boton-asistente--contorno" onClick={alReformular}>
                             Reformular mi pregunta
@@ -408,7 +382,7 @@ function Respuesta({
                         Te responderán por correo. {respuesta.folio ? `Folio: ${respuesta.folio}.` : "Folio por asignar."}
                     </p>
                     <button type="button" className="boton-asistente boton-asistente--contorno boton-asistente--chico" onClick={conversacion.nuevaConsulta}>
-                        Nueva consulta <img src={iconoMasVerde} alt="" />
+                        Nueva consulta
                     </button>
                 </BurbujaAsistente>
             );
@@ -436,16 +410,16 @@ function Respuesta({
                     )}
                     {respuesta.cierre && <p className="burbuja-asistente__texto">{respuesta.cierre}</p>}
                     <div className="fuentes-asistente">
-                        <p>FUENTES</p>
+                        <p>Fuentes</p>
                         <ul>
                             {respuesta.fuentes.map((fuente) => (
                                 <li key={fuente.titulo}>
                                     {fuente.ruta ? (
                                         <Link to={fuente.ruta} className="fuente-asistente" onClick={alAbrirFuente}>
-                                            <img src={iconoArchivo} alt="" />{fuente.titulo}
+                                            {fuente.titulo}
                                         </Link>
                                     ) : (
-                                        <span className="fuente-asistente"><img src={iconoArchivo} alt="" />{fuente.titulo}</span>
+                                        <span className="fuente-asistente">{fuente.titulo}</span>
                                     )}
                                 </li>
                             ))}
@@ -456,7 +430,7 @@ function Respuesta({
     }
 }
 
-function BurbujaAsistente({ variante, children }: { variante?: "aviso" | "exito"; children: ReactNode }) {
+function BurbujaAsistente({ variante, children }: { variante?: "aviso" | "error" | "exito"; children: ReactNode }) {
     return (
         <div className="mensaje-asistente">
             <span className="mensaje-asistente__avatar"><img src={libroChico} alt="" /></span>

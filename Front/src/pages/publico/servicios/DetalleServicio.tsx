@@ -80,7 +80,7 @@ function DetalleServicio() {
             <section className="servicios-seccion servicios-seccion--crema">
                 <div className="programa-columnas">
                     <div className="programa-requisitos">
-                        <p className="programa-sobretitulo">REQUISITOS PREVISTOS</p>
+                        <p className="programa-sobretitulo">Requisitos previstos</p>
                         <h2>Así será el club</h2>
                         <ul>
                             {detalle.requisitos.map((requisito) => (
@@ -94,7 +94,7 @@ function DetalleServicio() {
                         </ul>
                     </div>
                     <div className="programa-actividades">
-                        <p className="programa-sobretitulo programa-sobretitulo--guinda">ACTIVIDADES DEL CLUB</p>
+                        <p className="programa-sobretitulo programa-sobretitulo--guinda">Actividades del club</p>
                         <ul>
                             {detalle.actividades.map((actividad) => (
                                 <li key={actividad}>
@@ -109,7 +109,7 @@ function DetalleServicio() {
 
             {id === "bibliocomunidad" && <SolicitudBibliocomunidad />}
             <section className="servicios-seccion servicios-seccion--verde programa-aviso">
-                <span className="tarjeta-servicio__proximamente">{id === "bibliocomunidad" ? "REGISTRO DE INTERÉS DISPONIBLE" : "PRÓXIMAMENTE"}</span>
+                <span className="tarjeta-servicio__proximamente">{id === "bibliocomunidad" ? "Registro de interés disponible" : "Próximamente"}</span>
                 <h2>{id === "bibliocomunidad" ? "La incorporación requiere confirmación" : detalle.aviso.titulo}</h2>
                 <p>{id === "bibliocomunidad" ? "Puedes dejar tu interés mediante el formulario. El personal revisará tu solicitud y te contactará; el envío no equivale a una inscripción al club." : detalle.aviso.texto}</p>
                 {id === "bibliocomunidad" && (

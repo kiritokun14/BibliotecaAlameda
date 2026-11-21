@@ -78,6 +78,7 @@ const SolicitarEspacio = lazy(() => import("./pages/publico/espacios/Solicitar.t
 const ProponerActividad = lazy(() => import("./pages/publico/proponer/Proponer.tsx"));
 const PropuestaEnviada = lazy(() => import("./pages/publico/proponer/Proponer.tsx").then(m => ({ default: m.PropuestaEnviada })));
 const DetallePropuestaUsuario = lazy(() => import("./pages/publico/proponer/Proponer.tsx").then(m => ({ default: m.DetallePropuesta })));
+const EditarPropuestaUsuario = lazy(() => import("./pages/publico/proponer/Proponer.tsx").then(m => ({ default: m.EditarPropuesta })));
 const ClubAlameda = lazy(() => import("./pages/publico/club/ClubAlameda.tsx"));
 const HiloClub = lazy(() => import("./pages/publico/club/ClubAlameda.tsx").then(m => ({ default: m.HiloClub })));
 const SolicitudEspacioEnviada = lazy(() => import("./pages/publico/espacios/SolicitudEspacio.tsx").then(m => ({ default: m.SolicitudEnviada })));
@@ -301,6 +302,7 @@ function App() {
         <Route path="/proponer" element={<ProponerActividad />} />
         <Route path="/proponer/enviada" element={<PropuestaEnviada />} />
         <Route path="/proponer/:id" element={<DetallePropuestaUsuario />} />
+        <Route path="/proponer/:id/editar" element={<EditarPropuestaUsuario />} />
         <Route path="/club-alameda" element={<ClubAlameda />} />
         <Route path="/club-alameda/:tema" element={<HiloClub />} />
         <Route path="/lecturas" element={<Lecturas />} />

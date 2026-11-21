@@ -22,6 +22,7 @@ import cuadriculaBlanca from "../../../assets/noticias/vista-cuadricula-blanca.s
 import cuadriculaVerde from "../../../assets/noticias/vista-cuadricula-verde.svg";
 import listaBlanca from "../../../assets/noticias/vista-lista-blanca.svg";
 import listaVerde from "../../../assets/noticias/vista-lista-verde.svg";
+import iconoCalendario from "../../../assets/eventos/vista-calendario.svg";
 
 // Eventos · todas las actividades (/eventos/todas), como «Todas las noticias» (Aldahir, 20 nov 2026).
 // Franja compacta → panel de «Filtros» (búsqueda, tipo, horario, inscripción y día) → «Actividades» con la vista
@@ -45,7 +46,7 @@ export default function TodasActividades() {
     return (
         <PaginaPublica>
             <EncabezadoNoticias etiqueta="Eventos" icono={iconosSeccion.eventos} compacto
-                titulo={<>Todas las <span>actividades</span></>} texto="Próximas y pasadas, ordenadas por fecha. Busca por tema, tipo, horario o día." />
+                titulo={<>Todas las <span>actividades</span></>} texto="Las próximas actividades, ordenadas por fecha. Busca por tema, tipo, horario o día." />
 
             <section className="noticias-seccion noticias-seccion--archivo noticias-pagina eventos-pagina">
                 <div className="noticias-contenedor">
@@ -83,7 +84,7 @@ export default function TodasActividades() {
                                         </button>
                                     );
                                 })}
-                                <Link to="/eventos/calendario" className="selector-vista__opcion">Calendario</Link>
+                                <Link to="/eventos/calendario" className="selector-vista__opcion"><img src={iconoCalendario} alt="" />Calendario</Link>
                             </div>
                         </div>
                     </div>

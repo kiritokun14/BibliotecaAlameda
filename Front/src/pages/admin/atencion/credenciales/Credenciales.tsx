@@ -34,9 +34,9 @@ const configCredenciales: ConfigArea = {
 };
 
 const columnas: Columna<Credencial>[] = [
-    { titulo: "PERSONA SOLICITANTE", celda: (s) => <CeldaDoble arriba={s.persona} abajo="" /> },
-    { titulo: "TIPO DE CUENTA", ancho: 170, celda: (s) => s.tipoCuenta },
-    { titulo: "ENVIADA", ancho: 150, celda: (s) => formatearFecha(s.enviada) },
+    { titulo: "Persona solicitante", celda: (s) => <CeldaDoble arriba={s.persona} abajo="" /> },
+    { titulo: "Tipo de cuenta", ancho: 170, celda: (s) => s.tipoCuenta },
+    { titulo: "Enviada", ancho: 150, celda: (s) => formatearFecha(s.enviada) },
 ];
 
 function Credenciales({ vista }: { vista: "bandeja" | "todas" }) {

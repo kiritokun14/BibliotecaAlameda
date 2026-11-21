@@ -36,7 +36,7 @@ export function AccesosRapidos({ titulo = "Accesos rápidos", accesos }: { titul
                         <div className="contenidos-resumen__fila">
                             <span className="contenidos-resumen__icono">{a.icono}</span>
                             {a.enlace && a.alPresionar && (
-                                <button type="button" className="contenidos-resumen__enlace" aria-pressed={a.activo} onClick={a.alPresionar}>{a.enlace} →</button>
+                                <button type="button" className="contenidos-resumen__enlace" aria-pressed={a.activo} onClick={a.alPresionar}>{a.enlace}</button>
                             )}
                         </div>
                         <p className="contenidos-resumen__cifra">{a.cifra}</p>

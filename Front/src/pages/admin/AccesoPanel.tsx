@@ -65,7 +65,7 @@ export default function AccesoPanel({ children, libre = false }: { children: Rea
     const identidad = resultado.identidad;
     // Sin ningún permiso del panel no hay a dónde llevarla: pantalla completa
     if (!identidad || !tienePanel(identidad.acceso)) return (
-        <PantallaEstado tono="guinda" icono={<IconoCandado />} etiqueta="SIN ACCESO" titulo="Tu cuenta no entra al panel"
+        <PantallaEstado tono="guinda" icono={<IconoCandado />} etiqueta="Sin acceso" titulo="Tu cuenta no entra al panel"
             texto={resultado.error ?? 'Tu cuenta no tiene permisos del panel del personal.'}>
             <Link to="/">Volver al portal</Link>
             <Link to="/contacto" className="pantalla-estado__secundario">Pedir ayuda</Link>

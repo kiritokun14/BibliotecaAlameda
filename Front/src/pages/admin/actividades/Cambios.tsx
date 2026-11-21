@@ -92,7 +92,7 @@ function Cambios() {
                                 { titulo: "Programada", celda: (c) => <CeldaDoble arriba={`${fechaCorta(c.antes.fecha)} · ${c.antes.hora}`} abajo={c.antes.sala} /> },
                                 { titulo: "Inscritos", celda: (c) => c.inscritos },
                                 { titulo: "Estado", celda: (c) => <Chip tono={tonoChip(c)}>{NOMBRE_ESTADO_CAMBIO[c.estado]}</Chip> },
-                                { titulo: "Acción", celda: (c) => <Link to={`${BASE_CAMBIOS}/${c.folio}`} className="contenidos-tabla__accion">{c.estado === "pendiente" ? "Revisar" : "Abrir"} →<span className="tr-oculto"> {c.folio}</span></Link> },
+                                { titulo: "Acción", celda: (c) => <Link to={`${BASE_CAMBIOS}/${c.folio}`} className="contenidos-tabla__accion">{c.estado === "pendiente" ? "Revisar" : "Abrir"}<span className="tr-oculto"> {c.folio}</span></Link> },
                             ]}
                         />
                     )}

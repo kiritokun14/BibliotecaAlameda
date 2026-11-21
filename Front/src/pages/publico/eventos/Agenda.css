@@ -860,22 +860,6 @@ a.agenda-boton:hover { filter: brightness(0.95); }
 .detalle-real__pie .agenda-boton { text-decoration: none; }
 
 /* ---------- Mi inscripción en una sesión (InscripcionSesion.tsx) ---------- */
-.insc-sesion { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid #efebe2; }
-.insc-sesion__estado { display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; margin: 0; padding: 7px 14px; border-radius: 999px; font-size: 14px; }
-.insc-sesion__estado span { width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
-.insc-sesion__estado--verde { background: #e4efeb; color: #164f44; }
-.insc-sesion__estado--dorado { background: #f6eeda; color: #8a6414; }
-.insc-sesion__estado--guinda { background: #f6eaee; color: #9b2247; }
-.insc-sesion__estado--gris { background: #f1efea; color: #4d4d4d; }
-.insc-sesion__texto { margin: 0; color: #4d4d4d; font-size: 15px; line-height: 22px; }
-.insc-sesion__botones { display: flex; flex-wrap: wrap; gap: 10px; }
-.insc-sesion__botones .agenda-boton { height: 44px; }
-.insc-sesion__cancelar { border-color: #9b2247; color: #9b2247; }
-.insc-sesion__confirmar { display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border: 1px solid #bfd9d0; border-radius: 16px; background: #e4efeb; }
-.insc-sesion__confirmar--cancelar { border-color: #e8c3cf; background: #f6eaee; }
-.insc-sesion__confirmar p { margin: 0; color: #161a1d; font-size: 15px; line-height: 22px; }
-.insc-sesion__error { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border: 1px solid #e8c3cf; border-radius: 16px; background: #f6eaee; }
-.insc-sesion__error p { margin: 0; color: #9b2247; font-size: 14px; font-weight: 700; }
 
 @media (prefers-reduced-motion: reduce) { .detalle-real__sesion { transition: none; } }
 @media (max-width: 900px) {

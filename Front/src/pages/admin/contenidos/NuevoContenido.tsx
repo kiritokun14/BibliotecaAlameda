@@ -39,12 +39,12 @@ function NuevoContenido() {
                         <p>{tipo.descripcion}</p>
                         {tipo.ruta ? (
                             <Link to={tipo.ruta} className="contenidos-boton contenidos-boton--principal contenidos-boton--chico" aria-label={`Elegir ${tipo.nombre}`}>
-                                Elegir →
+                                Elegir
                             </Link>
                         ) : (
                             // TODO: formulario de este tipo
                             <button type="button" className="contenidos-boton contenidos-boton--principal contenidos-boton--chico" aria-label={`Elegir ${tipo.nombre}`}>
-                                Elegir →
+                                Elegir
                             </button>
                         )}
                     </li>

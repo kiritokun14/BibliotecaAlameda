@@ -18,7 +18,6 @@ import {
     type TonoEstado,
     vistaEnlace,
 } from "./datos";
-import flechaChica from "../../../assets/admin/resumen-flecha.svg";
 import iconoArchivo from "../../../assets/admin/resumen/file-guinda.svg";
 import iconoLista from "../../../assets/admin/resumen/list-dorado.svg";
 import iconoUsuarios from "../../../assets/admin/resumen/users-verde.svg";
@@ -107,7 +106,7 @@ export default function Resumen() {
                         <div className="resumen-indicador">
                             <div className="resumen-indicador__cabecera">
                                 <span className="resumen-indicador__icono"><img src={iconoArchivoVerde} alt="" /></span>
-                                <p>CONTENIDOS EN REVISIÓN</p>
+                                <p>Contenidos en revisión</p>
                             </div>
                             <p className="resumen-indicador__cifra">3</p>
                             <p className="resumen-indicador__texto">Esperan autorización del administrador</p>
@@ -166,7 +165,7 @@ function TarjetaPrioridad({ prioridad }: { prioridad: Prioridad }) {
                 <span className="resumen-prioridad__detalle">{prioridad.detalle}</span>
             </span>
             <span className="resumen-prioridad__accion">
-                <span className={`resumen-prioridad__flecha resumen-prioridad__flecha--${prioridad.fondo}`}><img src={flechaChica} alt="" /></span>
+                <span className="resumen-prioridad__abrir" aria-hidden="true">Abrir</span>
                 <ChipEstado tono={prioridad.chip.tono}>{prioridad.chip.texto}</ChipEstado>
             </span>
         </Enlace>
@@ -240,13 +239,13 @@ function TablaPendientes() {
                 </colgroup>
                 <thead>
                     <tr>
-                        <th scope="col">FOLIO</th>
-                        <th scope="col">ASUNTO</th>
-                        <th scope="col">ÁREA</th>
-                        <th scope="col">RESPONSABLE</th>
-                        <th scope="col">VENCE</th>
-                        <th scope="col">ESTADO</th>
-                        <th scope="col">ACCIÓN</th>
+                        <th scope="col">Folio</th>
+                        <th scope="col">Asunto</th>
+                        <th scope="col">Área</th>
+                        <th scope="col">Responsable</th>
+                        <th scope="col">Vence</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Acción</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -260,7 +259,7 @@ function TablaPendientes() {
                             <td><ChipEstado tono={p.estado.tono}>{p.estado.texto}</ChipEstado></td>
                             <td>
                                 <Enlace ruta={p.ruta} className="boton-resumen boton-resumen--contorno boton-resumen--fila">
-                                    Abrir →<span className="solo-lectores"> {p.folio}</span>
+                                    Abrir<span className="solo-lectores"> {p.folio}</span>
                                 </Enlace>
                             </td>
                         </tr>
@@ -276,7 +275,7 @@ function TablaPendientes() {
                 <p aria-live="polite">Mostrando {visibles.length} de {filtrados.length} pendientes · ordenados por vencimiento</p>
                 {filtrados.length > FILAS_INICIALES && (
                     <button type="button" className="resumen-enlace" onClick={() => setTodos((t) => !t)} aria-expanded={todos}>
-                        {todos ? "Ver menos" : "Ver todos los pendientes →"}
+                        {todos ? "Ver menos" : "Ver todos los pendientes"}
                     </button>
                 )}
             </div>

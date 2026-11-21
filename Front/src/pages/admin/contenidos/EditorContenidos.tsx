@@ -79,7 +79,7 @@ function TarjetaResumen({ tono, icono, cifra, titulo, texto, enlace, alPresionar
             <div className="contenidos-resumen__fila">
                 <span className="contenidos-resumen__icono">{icono}</span>
                 <button type="button" className="contenidos-resumen__enlace" onClick={alPresionar}>
-                    {enlace} →
+                    {enlace}
                 </button>
             </div>
             <p className="contenidos-resumen__cifra">{cifra}</p>
@@ -253,12 +253,12 @@ function EditorContenidos() {
                             <span role="cell">{formatoFecha.format(new Date(c.actualizadoEn))}</span>
                             <span role="cell">
                                 {c.estadoPantalla === "con_observaciones" ? (
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/corregir`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion} →</Link>
+                                    <Link to={`/admin/contenidos/editor/${c.folio}/corregir`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion}</Link>
                                 ) : c.estadoPantalla === "borrador" ? (
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/editar`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion} →</Link>
+                                    <Link to={`/admin/contenidos/editor/${c.folio}/editar`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion}</Link>
                                 ) : (
                                     // TODO: pantalla para ver un contenido enviado o publicado
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/ver`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion} →</Link>
+                                    <Link to={`/admin/contenidos/editor/${c.folio}/ver`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion}</Link>
                                 )}
                             </span>
                         </div>

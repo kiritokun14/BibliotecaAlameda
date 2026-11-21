@@ -108,7 +108,7 @@ function Asistencia() {
                                 celda: (a) => {
                                     const e = estadoLista(a.folio, new Date(), listas).clave;
                                     if (e === "cancelada") return <span className="ac-sin-accion">—</span>;
-                                    return <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="contenidos-tabla__accion">{e === "cerrada" ? "Ver lista" : e === "pendiente" ? "Pasar lista" : "Ver inscritos"} →<span className="tr-oculto"> {a.nombre}</span></Link>;
+                                    return <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="contenidos-tabla__accion">{e === "cerrada" ? "Ver lista" : e === "pendiente" ? "Pasar lista" : "Ver inscritos"}<span className="tr-oculto"> {a.nombre}</span></Link>;
                                 },
                             },
                         ]}
@@ -234,7 +234,7 @@ export function PasarLista() {
                                                 ))}
                                             </span>
                                         )}
-                                        {cerrada && !p.extra && <button type="button" className="contenidos-tabla__accion ac-boton-texto" onClick={() => abrirCorreccion(p.id, p.persona)}>Corregir →<span className="tr-oculto"> {p.persona}</span></button>}
+                                        {cerrada && !p.extra && <button type="button" className="contenidos-tabla__accion ac-boton-texto" onClick={() => abrirCorreccion(p.id, p.persona)}>Corregir<span className="tr-oculto"> {p.persona}</span></button>}
                                     </div>
                                 </li>
                             );

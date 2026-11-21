@@ -9,9 +9,9 @@ import whatsappGrande from "../../assets/portal/red-whatsapp-30.svg";
 // Encabezado y pie institucionales del portal público (Inicio, Catálogo, Servicios...).
 // Las pantallas de acceso no los usan: llevan sus propios logos sobre la foto (AccesoLayout).
 
-// TODO: la biblioteca debe confirmar las cuentas oficiales; mientras tanto no enlazan a ningún lado
-const redes = [
-    { nombre: "Facebook", iconoGrande: facebookGrande },
+// Facebook es la página oficial (Aldahir, 21 nov 2026). TODO: confirmar Instagram y WhatsApp; mientras tanto no enlazan.
+const redes: { nombre: string; iconoGrande: string; enlace?: string }[] = [
+    { nombre: "Facebook", iconoGrande: facebookGrande, enlace: "https://www.facebook.com/BibliotecaSolonArguello" },
     { nombre: "Instagram", iconoGrande: instagramGrande },
     { nombre: "WhatsApp", iconoGrande: whatsappGrande },
 ];
@@ -101,7 +101,11 @@ export function PiePortal() {
                         <ul className="redes redes--grandes">
                             {redes.map((red) => (
                                 <li key={red.nombre}>
-                                    <img src={red.iconoGrande} alt={red.nombre} />
+                                    {red.enlace ? (
+                                        <a href={red.enlace} target="_blank" rel="noopener noreferrer" aria-label={`${red.nombre} de la biblioteca (se abre en otra pestaña)`}>
+                                            <img src={red.iconoGrande} alt="" />
+                                        </a>
+                                    ) : <img src={red.iconoGrande} alt={red.nombre} />}
                                 </li>
                             ))}
                         </ul>

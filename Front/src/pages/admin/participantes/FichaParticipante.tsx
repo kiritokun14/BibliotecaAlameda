@@ -68,10 +68,10 @@ export function FichaParticipante() {
                 <Tarjeta icono={iconoCasilla} titulo="Actividades que cuentan">
                     <Tabla
                         columnas={[
-                            { titulo: "FECHA", ancho: 120, folio: true, celda: (x: Avance) => fechaCorta(x.fecha) },
-                            { titulo: "ACTIVIDAD", fuerte: true, celda: (x: Avance) => x.actividad },
-                            { titulo: "PUNTOS", ancho: 80, celda: (x: Avance) => `+${x.puntos}` },
-                            { titulo: "ORIGEN", ancho: 200, celda: (x: Avance) => (x.motivo ? `${x.origen} · ${x.motivo}` : x.origen) },
+                            { titulo: "Fecha", ancho: 120, folio: true, celda: (x: Avance) => fechaCorta(x.fecha) },
+                            { titulo: "Actividad", fuerte: true, celda: (x: Avance) => x.actividad },
+                            { titulo: "Puntos", ancho: 80, celda: (x: Avance) => `+${x.puntos}` },
+                            { titulo: "Origen", ancho: 200, celda: (x: Avance) => (x.motivo ? `${x.origen} · ${x.motivo}` : x.origen) },
                         ]}
                         filas={p.avances}
                         clave={(x) => x.id}

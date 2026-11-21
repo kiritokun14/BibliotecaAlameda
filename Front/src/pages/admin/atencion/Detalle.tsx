@@ -130,19 +130,19 @@ export function TarjetaResolucion({ estado, resolucion, rutaBandeja, extra, deci
                     {aprobada ? "Aprobada" : resolucion?.cancelada ? "Cancelada" : "Rechazada"}
                 </Chip>
             </p>
-            <Dato etiqueta="DECIDIÓ" alto>
+            <Dato etiqueta="Decidió" alto>
                 {decidio}
             </Dato>
-            <Dato etiqueta="FECHA" alto>
+            <Dato etiqueta="Fecha" alto>
                 {resolucion?.fecha ?? "Hoy"}
             </Dato>
             {resolucion?.motivo && (
-                <Dato etiqueta="MOTIVO" alto>
+                <Dato etiqueta="Motivo" alto>
                     {resolucion.motivo}
                 </Dato>
             )}
             {resolucion?.condiciones && (
-                <Dato etiqueta="CONDICIONES" alto>
+                <Dato etiqueta="Condiciones" alto>
                     {resolucion.condiciones}
                 </Dato>
             )}

@@ -17,8 +17,10 @@ import "./Agenda.css";
 // Eventos · calendario (/eventos/calendario), con la misma página que la agenda (Aldahir, 20 nov 2026).
 // Franja compacta → la barra de la agenda (tipos de actividad | «Ver como: Lista · Calendario»; el tipo también filtra
 // el mes) → «Mes anterior · mes · Mes siguiente» → el mes en tarjeta blanca | el día elegido en tarjeta verde con sus
-// actividades y, debajo, «Participa». Sin contadores visibles.
+// actividades (si son varias, su lista se desplaza por dentro) → «Participa» en franja a todo lo ancho. Sin contadores.
 const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+// «LUNES» → «Lunes» (sin mayúsculas sostenidas)
+const sinMayusculas = (t: string) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
 
 export default function CalendarioActividades() {
     const sesion = useSesion();
@@ -90,7 +92,7 @@ export default function CalendarioActividades() {
                             <div className="evento-calendario__lateral">
                                 <aside className="evento-calendario__dia" aria-live="polite" key={dia?.fecha ?? "sin-dia"}>
                                     {dia ? <>
-                                        <p className="evento-calendario__semana">{diaLargo(dia.fecha).semana}</p>
+                                        <p className="evento-calendario__semana">{sinMayusculas(diaLargo(dia.fecha).semana)}</p>
                                         <h3>{diaLargo(dia.fecha).texto}</h3>
                                         <ul>
                                             {dia.actividades.map((a) => (
@@ -111,10 +113,10 @@ export default function CalendarioActividades() {
                                         <p className="evento-calendario__lugar">{filtro === "todas" ? "Cambia de mes para ver otras fechas." : "Elige otro tipo o cambia de mes."}</p>
                                     </>}
                                 </aside>
-                                <TarjetaParticipa sesion={!!sesion} />
                             </div>
                         </div>
                     )}
+                    <TarjetaParticipa sesion={!!sesion} horizontal />
                 </div>
             </section>
         </PaginaPublica>

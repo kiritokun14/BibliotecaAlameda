@@ -22,12 +22,12 @@ const RUTA = "/admin/atencion/propuestas";
 
 const textos: TextosEstado = {
     pendiente: {
-        etiqueta: "POR REVISAR",
+        etiqueta: "Por revisar",
         titulo: "Revisión de la propuesta",
         texto: "Evalúa espacio, fechas y material, y decide si se aprueba, se piden cambios o se rechaza.",
     },
     observaciones: {
-        etiqueta: "CON OBSERVACIONES",
+        etiqueta: "Con observaciones",
         titulo: "Esperando respuesta de la persona",
         texto: "Dejaste observaciones. Cuando la persona corrija y reenvíe, la propuesta vuelve a Por revisar.",
         aviso: {
@@ -38,7 +38,7 @@ const textos: TextosEstado = {
         },
     },
     aprobada: {
-        etiqueta: "APROBADA",
+        etiqueta: "Aprobada",
         titulo: "Propuesta aprobada y publicada",
         texto: "La propuesta ya aparece en Eventos. Aquí puedes consultar sus datos y el historial.",
         aviso: {
@@ -49,7 +49,7 @@ const textos: TextosEstado = {
         },
     },
     rechazada: {
-        etiqueta: "RECHAZADA",
+        etiqueta: "Rechazada",
         titulo: "Propuesta rechazada",
         texto: "La propuesta no se aprobó. Aquí puedes consultar el motivo y el historial.",
         aviso: {
@@ -141,17 +141,17 @@ function DetallePropuesta() {
         <>
             <Tarjeta icono={tarjetaEstrella} titulo={propuesta.titulo} subtitulo="Propuesta enviada por la persona usuaria.">
                 <Datos>
-                    <Dato etiqueta="TIPO DE PROPUESTA">
+                    <Dato etiqueta="Tipo de propuesta">
                         {propuesta.tipo === "Evento" ? "Evento (actividad puntual)" : "Club (actividad recurrente)"}
                     </Dato>
-                    <Dato etiqueta="PÚBLICO">{propuesta.publico}</Dato>
-                    <Dato etiqueta="PARTICIPANTES ESTIMADOS">{propuesta.participantes}</Dato>
-                    <Dato etiqueta="FECHA PROPUESTA">{fechaPropuesta(propuesta)}</Dato>
-                    <Dato etiqueta="HORARIO PROPUESTO">{propuesta.horario || "Por confirmar"}</Dato>
-                    <Dato etiqueta="ESPACIO SUGERIDO">{propuesta.espacio}</Dato>
-                    <Dato etiqueta="MATERIAL">{propuesta.material}</Dato>
-                    <Dato etiqueta="RESPONSABLE">{propuesta.persona}</Dato>
-                    <Dato etiqueta="CONTACTO">{propuesta.contacto}</Dato>
+                    <Dato etiqueta="Público">{propuesta.publico}</Dato>
+                    <Dato etiqueta="Participantes estimados">{propuesta.participantes}</Dato>
+                    <Dato etiqueta="Fecha propuesta">{fechaPropuesta(propuesta)}</Dato>
+                    <Dato etiqueta="Horario propuesto">{propuesta.horario || "Por confirmar"}</Dato>
+                    <Dato etiqueta="Espacio sugerido">{propuesta.espacio}</Dato>
+                    <Dato etiqueta="Material">{propuesta.material}</Dato>
+                    <Dato etiqueta="Responsable">{propuesta.persona}</Dato>
+                    <Dato etiqueta="Contacto">{propuesta.contacto}</Dato>
                 </Datos>
             </Tarjeta>
 

@@ -1,7 +1,6 @@
 /* =========================================================
-   SERVICIOS Y PROGRAMAS (HU-01)
-   Reutiliza de las páginas públicas: .encabezado-publico, .etiqueta-inicio,
-   .punto-dorado y .solo-lectores. Aquí solo va lo propio.
+   SERVICIOS Y PROGRAMAS (HU-01) · base de los estados y del detalle de un programa
+   La lista (21 nov 2026) va en el bloque «SERVICIOS Y PROGRAMAS» de Detalles.css.
    ========================================================= */
 
 .servicios-seccion {
@@ -14,114 +13,7 @@
 .servicios-seccion--crema { background: #f7f5f0; }
 .servicios-seccion--verde { background: #e4efeb; }
 
-.servicios-grupo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
-  width: 100%;
-  max-width: 1200px;
-}
-
-/* ---------- Título de grupo: "Servicios 3" ---------- */
-.servicios-grupo__titulo {
-  display: flex;
-  align-self: flex-start;
-  align-items: center;
-  gap: 14px;
-  color: #161a1d;
-  font-size: 36px;
-  line-height: 42px;
-  letter-spacing: -0.72px;
-}
-
-.servicios-grupo__cantidad {
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: #f6eeda;
-  color: #6b4f12;
-  font-size: 13px;
-  letter-spacing: 0;
-}
-
-/* ---------- Tarjetas ---------- */
-.servicios-tarjetas {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.tarjeta-servicio {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 14px;
-  min-height: 340px;
-  padding: 30px;
-  overflow: hidden;
-  box-sizing: border-box;
-  border-radius: 30px;
-  background: #fff;
-  box-shadow: 0 10px 14px rgba(22, 79, 68, 0.09);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Las tarjetas que llevan a otra página se levantan al pasar el mouse */
-.tarjeta-servicio--con-enlace:hover,
-.tarjeta-servicio--con-enlace:focus-within {
-  transform: translateY(-5px);
-  box-shadow: 0 18px 30px rgba(22, 79, 68, 0.18);
-}
-
-.tarjeta-servicio--con-enlace:focus-within {
-  outline: 3px solid #c9a24a;
-  outline-offset: 3px;
-}
-
-.tarjeta-servicio > * { position: relative; }
-
-.tarjeta-servicio__icono {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 60px;
-  border-radius: 999px;
-  background: #e4efeb;
-}
-
-.tarjeta-servicio__icono img {
-  width: 27px;
-  height: 27px;
-}
-
-.tarjeta-servicio--programa .tarjeta-servicio__icono { background: #f6eeda; }
-
-.tarjeta-servicio__tipo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-top: 4px;
-  color: #164f44;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.tarjeta-servicio__punto {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #1f6b5c;
-}
-
-.tarjeta-servicio--programa .tarjeta-servicio__tipo { color: #6b4f12; }
-.tarjeta-servicio--programa .tarjeta-servicio__punto { background: #c9a24a; }
-
+/* Pastilla «Próximamente» del detalle de un programa */
 .tarjeta-servicio__proximamente {
   padding: 4px 11px;
   border-radius: 999px;
@@ -129,120 +21,6 @@
   color: #6b4f12;
   font-size: 11px;
   font-weight: 700;
-}
-
-.tarjeta-servicio h3 {
-  color: #161a1d;
-  font-size: 26px;
-  line-height: 32px;
-  letter-spacing: -0.26px;
-}
-
-.tarjeta-servicio__descripcion {
-  color: #4d4d4d;
-  font-size: 17px;
-  line-height: 26px;
-}
-
-.tarjeta-servicio__enlace {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 8px;
-  color: #164f44;
-  font-size: 16px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.tarjeta-servicio__enlace img {
-  width: 18px;
-  height: 18px;
-  transition: transform 0.2s ease;
-}
-
-.tarjeta-servicio:hover .tarjeta-servicio__enlace img { transform: translateX(3px); }
-
-/* Hace que toda la tarjeta sea clicable */
-.tarjeta-servicio__enlace::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-}
-
-.tarjeta-servicio > .tarjeta-servicio__enlace { position: static; }
-.tarjeta-servicio__enlace:focus-visible { outline: none; }
-
-/* Tarjeta destacada (verde) */
-.tarjeta-servicio--destacada {
-  background: linear-gradient(125deg, #0b3b33 0%, #1f6b5c 71%);
-  box-shadow: 0 18px 44px rgba(22, 79, 68, 0.28);
-}
-
-.tarjeta-servicio--destacada .tarjeta-servicio__icono { background: rgba(255, 255, 255, 0.14); }
-.tarjeta-servicio--destacada .tarjeta-servicio__tipo { color: #f2e3b8; }
-.tarjeta-servicio--destacada .tarjeta-servicio__punto { background: #e6d194; }
-.tarjeta-servicio--destacada h3 { color: #fff; }
-.tarjeta-servicio--destacada .tarjeta-servicio__descripcion { color: #e4efeb; }
-.tarjeta-servicio--destacada .tarjeta-servicio__enlace { color: #f2e3b8; }
-
-.tarjeta-servicio > .tarjeta-servicio__circulo {
-  position: absolute;
-  pointer-events: none;
-}
-
-.tarjeta-servicio__circulo--1 { top: -90px; right: -120px; width: 260px; height: 260px; }
-.tarjeta-servicio__circulo--2 { bottom: -70px; left: -60px; width: 150px; height: 150px; }
-
-/* Tarjeta "Próximamente" (dorada) */
-.tarjeta-servicio--proximamente {
-  border: 1px solid #e6d194;
-  background: #f6eeda;
-  box-shadow: none;
-}
-
-.tarjeta-servicio--proximamente .tarjeta-servicio__proximamente { background: #fff; }
-
-/* ---------- Nota de datos de ejemplo ---------- */
-.nota-servicios {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 22px 11px 18px;
-  border-radius: 999px;
-  background: #f6eeda;
-  color: #6b4f12;
-  font-size: 14px;
-}
-
-.nota-servicios img {
-  width: 18px;
-  height: 18px;
-}
-
-/* ---------- Cargando ---------- */
-.servicios-cargando {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 80px 0;
-  color: #164f44;
-  font-size: 17px;
-  font-weight: 500;
-}
-
-.servicios-cargando__punto {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: #c9a24a;
-  animation: servicios-latido 1s ease-in-out infinite;
-}
-
-@keyframes servicios-latido {
-  0%, 100% { opacity: 0.35; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1); }
 }
 
 /* ---------- Contenido no disponible / error ---------- */
@@ -494,18 +272,6 @@
   outline-offset: 3px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .tarjeta-servicio,
-  .tarjeta-servicio__enlace img,
-  .servicios-cargando__punto {
-    animation: none;
-    transition: none;
-  }
-}
-
 /* Bibliocomunidad: botón al foro Club Alameda junto a «Volver» */
 .programa-aviso__botones { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 
-@media (max-width: 700px) {
-  .servicios-tarjetas { grid-template-columns: minmax(0, 1fr); }
-}

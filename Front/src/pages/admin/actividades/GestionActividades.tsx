@@ -93,7 +93,7 @@ function Lista({ lista }: { lista: ActividadGestion[] }) {
                     <article key={t.estado} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${t.tono}${filtro === t.estado ? ' at-tarjeta--activa' : ''}`}>
                         <div className="contenidos-resumen__fila">
                             <span className="contenidos-resumen__icono">{t.icono}</span>
-                            <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.estado} onClick={() => setFiltro(filtro === t.estado ? '' : t.estado)}>{t.enlace} →</button>
+                            <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.estado} onClick={() => setFiltro(filtro === t.estado ? '' : t.estado)}>{t.enlace}</button>
                         </div>
                         <p className="contenidos-resumen__cifra">{cuenta(t.estado)}</p>
                         <p className="contenidos-resumen__titulo">{t.titulo}</p>
@@ -136,7 +136,7 @@ function Lista({ lista }: { lista: ActividadGestion[] }) {
                             <span role="cell">{a.fecha || 'Sin programar'}</span>
                             <span role="cell">{a.inscritos}{a.cupo ? ` de ${a.cupo}` : ''}</span>
                             <span role="cell"><Chip tono={TONO[a.estado] ?? 'gris'}>{estados[a.estado] ?? a.estado}</Chip></span>
-                            <span role="cell"><Link to={`${BASE}/${a.folio}`} className="contenidos-tabla__accion">{a.estado === 'en-revision' || a.estado === 'aprobada' ? 'Revisar' : 'Abrir'} →<span className="tr-oculto"> {a.folio}</span></Link></span>
+                            <span role="cell"><Link to={`${BASE}/${a.folio}`} className="contenidos-tabla__accion">{a.estado === 'en-revision' || a.estado === 'aprobada' ? 'Revisar' : 'Abrir'}<span className="tr-oculto"> {a.folio}</span></Link></span>
                         </div>
                     ))}
                 </div>
@@ -334,7 +334,7 @@ function Detalle({ actividad: a, alRecargar, alCambiarSesion }: { actividad: Act
                                         <small>{s.inicio} a {s.fin} · {s.espacio || 'Sin espacio'} · cupo {s.cupo}</small>
                                     </span>
                                     <Chip tono={s.estado === 'programada' ? 'verde' : s.estado === 'cancelada' ? 'guinda' : 'gris'}>{NOMBRE_SESION[s.estado] ?? s.estado}</Chip>
-                                    {a.inscripcion && s.estado !== 'cancelada' && <Link to={`/admin/actividades/inscripciones/${s.id}`} className="contenidos-tabla__accion">Inscripciones →</Link>}
+                                    {a.inscripcion && s.estado !== 'cancelada' && <Link to={`/admin/actividades/inscripciones/${s.id}`} className="contenidos-tabla__accion">Inscripciones</Link>}
                                 </div>
                                 {cambiable && <CambioSesion actividad={a} sesion={s} alGuardar={alCambiarSesion} />}
                             </li>;

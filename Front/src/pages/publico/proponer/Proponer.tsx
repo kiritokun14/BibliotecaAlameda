@@ -1,321 +1,441 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router";
-import PaginaPublica from "../../../components/portal/PaginaPublica";
-import { EncabezadoNoticias } from "../noticias/piezas";
-import "../noticias/Noticias.css";
-import { Chip, Nota } from "../credencial/piezas";
-import "../credencial/CredencialSesion.css";
-import { useSesion, usePerfil } from "../perfil/usarSesion";
-import { nombreCompleto } from "../perfil/datos";
-import { separarAreas } from "../espacios/datos";
-import { fechaHoyTepic, registrarPropuestaUsuario } from "../../../servicios/propuestasUsuario";
-import { consultarTramite, type SolicitudAtencion } from "../../../servicios/tramites";
-import { useCuentaTramites } from "../../../servicios/useCuentaTramites";
-import { mensajeError } from "../../../servicios/api";
-import { FichaTramite, FormularioPropuesta } from "../tramites/piezas";
-
-import {
-    propuestaVacia, publicos, validarPropuesta,
-    type DatosPropuesta, type ErroresPropuesta,
-} from "./datos";
-import "./Proponer.css";
-import radioMarcado from "../../../assets/credencial/radio.svg";
-import infoDorado from "../../../assets/credencial/info-dorado.svg";
-import checkEnviada from "../../../assets/credencial/enviada-check.svg";
-import estrella from "../../../assets/perfil/tarjeta-estrella.svg";
-import libro from "../../../assets/credencial/libro.svg";
-import calendario from "../../../assets/perfil/evento-calendario-verde.svg";
-import usuario from "../../../assets/perfil/tarjeta-usuario.svg";
-import enviar from "../../../assets/perfil/tarjeta-enviar.svg";
-
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
+import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
-// Proponer una actividad con sesión (Figma A-02, 476:29029 formulario, 476:29255 enviado,
-// 476:29488 con observaciones, 543:15773 no aprobada).
-const regresoEventos = { texto: "Volver a Eventos y actividades", ruta: "/eventos" };
-const regresoPropuestas = { texto: "Volver a Mis propuestas", ruta: "/mi-perfil/propuestas" };
+import { ErrorServicio, mensajeError } from "../../../servicios/api";
+import { editarPropuestaUsuario, fechaHoyTepic, registrarPropuestaUsuario } from "../../../servicios/propuestasUsuario";
+import { cancelarPropuestaPropia, consultarTramite, type SolicitudAtencion } from "../../../servicios/tramites";
+import { useCuentaTramites } from "../../../servicios/useCuentaTramites";
+import { sesionSimulada, useSesion, usePerfil } from "../perfil/usarSesion";
+import { nombreCompleto } from "../perfil/datos";
+import { TarjetaPerfil } from "../perfil/piezas";
+import { Campo } from "../perfil/secciones";
+import { iconosSeccion } from "../perfil/iconos";
+import { AyudaTramite, Chip, PasosTramite, RutaCredencial } from "../credencial/piezas";
+import { separarAreas } from "../espacios/datos";
+import { HORARIO } from "../espacios/datosSesion";
+import PedirSesion from "../sesion/PedirSesion";
+import {
+    cancelarPropuestaSimulada, estadoDePropuesta, etapasPropuesta, guardarPropuestaSimulada, pasosPropuesta, pasosRutaPropuesta,
+    propuestaDesdeSolicitud, propuestaSimulada, propuestaVacia, publicos, puedeCancelar, puedeEditar, rutasPropuesta,
+    textosPropuesta, validarPropuesta, type DatosPropuesta, type ErroresPropuesta, type TipoPropuesta,
+} from "./datos";
+import "../contacto/Contacto.css";
+import "../perfil/Perfil.css";
+import "../credencial/CredencialSesion.css";
+import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
+import tarjetaEstrella from "../../../assets/perfil/tarjeta-estrella.svg";
+import notaInfo from "../../../assets/perfil/nota-info.svg";
+import notaInfoDorada from "../../../assets/perfil/nota-info-dorada.svg";
 
-function SinSesion() {
-    return (
-        <PaginaPublica>
-            <div className="cred-estado">
-                <h1>Inicia sesión para proponer una actividad</h1>
-                <p>Con tu cuenta puedes proponer eventos o clubes y dar seguimiento a tus propuestas.</p>
-                <Link className="boton-visitante" to="/iniciar-sesion">Iniciar sesión</Link>
-            </div>
-        </PaginaPublica>
-    );
-}
+// Propuestas de actividades con la plantilla C «Página de trámite», como Credencial y Espacios (Aldahir, 20 y 21 nov 2026).
+//   /proponer             → pasos «Tu propuesta · Seguimiento» → formulario (qué, la actividad, cuándo y dónde,
+//                           responsable y confirmaciones) | «Qué pasa con tu propuesta» + ayuda (acompaña al bajar).
+//   /proponer/:id         → seguimiento: el estado (chip, qué pasa, folio, tipo y fecha, observaciones, «Editar propuesta»
+//                           y «Cancelar propuesta» con confirmación en el lugar) y la ruta de cuatro pasos | resumen + ayuda.
+//   /proponer/:id/editar  → el mismo formulario ya lleno; al guardar vuelve al seguimiento con el aviso.
+// Al enviar se va directo al seguimiento con el aviso de que quedó registrada (sin pantalla aparte de «enviada»).
+// Fecha y horario, si se indican, dentro del horario de la biblioteca. Con ?simular=sesion, la propuesta vive en memoria.
+const PAGINA = "contacto-seccion contacto-seccion--crema cred-pagina pro-pagina";
+type Aviso = { enviada?: boolean; editada?: boolean };
 
-function Seccion({ icono, titulo, dorado, children }: { icono: string; titulo: string; dorado?: boolean; children: ReactNode }) {
-    return (
-        <section className="cred-tarjeta proponer-seccion">
-            <div className="proponer-seccion__cabecera">
-                <span className={dorado ? "proponer-icono--dorado" : undefined}><img src={icono} alt="" /></span>
-                <h2>{titulo}</h2>
-            </div>
-            {children}
-        </section>
-    );
-}
-
-function Campo({ id, etiqueta, error, obligatorio = false, children }: { id: string; etiqueta: string; error?: string; obligatorio?: boolean; children: ReactNode }) {
-    return (
-        <div className="cred-campo">
-            <label htmlFor={`pro-${id}`}>{etiqueta}{obligatorio && <span className="proponer-obligatorio">(obligatorio)</span>}</label>
-            {children}
-            {error && <p id={`pro-${id}-error`} className="cred-error-campo proponer-error">{error}</p>}
-        </div>
-    );
-}
-
-// ---------- Formulario ----------
 export default function Proponer() {
     const sesion = useSesion();
     const [intento, reintentar] = useState(0);
     const carga = usePerfil(sesion, intento);
-    if (sesion === null) return <SinSesion />;
-    if (!carga) return <PaginaPublica><div className="proponer-esqueleto"><EsqueletoDetalle texto="Cargando tu propuesta…" /></div></PaginaPublica>;
-    if ("error" in carga) return <PaginaPublica><div className="cred-estado"><p role="alert">{carga.error}</p><button type="button" onClick={() => reintentar(v => v + 1)}>Reintentar</button></div></PaginaPublica>;
-    return <Formulario key={carga.perfil.id} responsable={nombreCompleto(carga.perfil)} telefono={carga.perfil.telefono} />;
+    if (sesion === null) {
+        return <PaginaPublica><PedirSesion titulo="Inicia sesión para proponer una actividad" texto="Con tu cuenta propones eventos o clubes y sigues su revisión." /></PaginaPublica>;
+    }
+    return (
+        <PaginaPublica>
+            <EncabezadoPublico icono={iconosSeccion.propuestas} etiqueta="Propuestas" titulo={<>Propón una <span>actividad</span></>}
+                texto="Cuéntanos tu idea. Proponer no la aprueba ni reserva el espacio: el personal la revisa y te responde." />
+            <section className={PAGINA}>
+                <div className="contacto-pila">
+                    <PasosTramite nombres={pasosPropuesta} rutas={rutasPropuesta()} actual={1} pagina={1} />
+                    {!carga ? <section className="esp-mapa esp-seguimiento__carga"><EsqueletoDetalle texto="Cargando tus datos…" /></section>
+                        : "error" in carga ? (
+                            <section className="esp-mapa esp-seguimiento__carga">
+                                <div className="perfil-vacio perfil-vacio--eventos">
+                                    <h2>No pudimos cargar tus datos</h2><p role="alert">{carga.error}</p>
+                                    <div className="perfil-acciones perfil-acciones--centro"><button type="button" className="perfil-boton" onClick={() => reintentar((v) => v + 1)}>Reintentar</button></div>
+                                </div>
+                            </section>
+                        ) : <Formulario key={carga.perfil.id} inicial={propuestaVacia(nombreCompleto(carga.perfil), carga.perfil.telefono)} />}
+                </div>
+            </section>
+        </PaginaPublica>
+    );
 }
 
-function Formulario({ responsable, telefono }: { responsable: string; telefono: string }) {
+// ---------- Editar una propuesta ----------
+export function EditarPropuesta() {
+    const { id } = useParams();
+    const sesion = useSesion();
+    const [version, setVersion] = useState(0);
+    const { solicitud: s, error, cargando } = usePropuestaReal(id, version);
+    if (sesion === null) {
+        return <PaginaPublica><PedirSesion titulo="Inicia sesión para editar tu propuesta" texto="Tus propuestas están en tu cuenta." /></PaginaPublica>;
+    }
+    if (s && !puedeEditar(estadoDePropuesta(s), sesionSimulada)) return <Navigate to={`/proponer/${encodeURIComponent(s.id)}`} replace />;
+    return (
+        <PaginaPublica>
+            <EncabezadoPublico icono={iconosSeccion.propuestas} etiqueta="Propuestas" titulo={<>Edita tu <span>propuesta</span></>}
+                texto="Cambia lo que necesites; al guardar, tu propuesta vuelve a revisión." />
+            <section className={PAGINA}>
+                <div className="contacto-pila">
+                    <PasosTramite nombres={pasosPropuesta} rutas={rutasPropuesta(id)} actual={2} pagina={1} />
+                    {s ? <Formulario key={s.actualizadoEn ?? s.id} inicial={propuestaDesdeSolicitud(s)} anterior={s} />
+                        : cargando && !error ? <section className="esp-mapa esp-seguimiento__carga"><EsqueletoDetalle texto="Cargando tu propuesta…" /></section>
+                        : <NoAbre error={error} reintentar={() => setVersion((v) => v + 1)} />}
+                </div>
+            </section>
+        </PaginaPublica>
+    );
+}
+
+function Formulario({ inicial, anterior }: { inicial: DatosPropuesta; anterior?: SolicitudAtencion }) {
     const navegar = useNavigate();
-    const [datos, setDatos] = useState<DatosPropuesta>(() => propuestaVacia(responsable, telefono));
+    const [datos, setDatos] = useState<DatosPropuesta>(inicial);
     const [errores, setErrores] = useState<ErroresPropuesta>({});
     const bloqueo = useRef(false);
-    const montado = useRef(true);
     const [guardando, setGuardando] = useState(false);
-    const [errorEnvio, setErrorEnvio] = useState('');
+    const [errorEnvio, setErrorEnvio] = useState("");
     const hoy = fechaHoyTepic();
-    useEffect(() => { montado.current = true; return () => { montado.current = false; }; }, []);
     const { solicitables } = separarAreas();
     const cambiar = <K extends keyof DatosPropuesta>(campo: K, valor: DatosPropuesta[K]) => setDatos((d) => ({ ...d, [campo]: valor }));
-    const invalido = (c: keyof DatosPropuesta) => (errores[c] ? { "aria-invalid": true, "aria-describedby": `pro-${c}-error` } : {});
+    const editando = !!anterior;
 
-    async function enviarFormulario(e: FormEvent) {
+    function enviar(e: FormEvent) {
         e.preventDefault();
         if (bloqueo.current) return;
         const encontrados = validarPropuesta(datos, hoy);
         setErrores(encontrados);
         const primero = Object.keys(encontrados)[0];
         if (primero) { document.getElementById(`pro-${primero}`)?.focus(); return; }
-        bloqueo.current = true; setGuardando(true); setErrorEnvio('');
-        try {
-            const p = await registrarPropuestaUsuario(datos);
-            if (montado.current) navegar(`/proponer/enviada?id=${p.id}`);
-        } catch (error) {
-            if (montado.current) setErrorEnvio(mensajeError(error));
-        } finally {
-            bloqueo.current = false;
-            if (montado.current) setGuardando(false);
-        }
+        bloqueo.current = true; setGuardando(true); setErrorEnvio("");
+        const pedir = sesionSimulada ? Promise.resolve(guardarPropuestaSimulada(datos, anterior))
+            : anterior ? editarPropuestaUsuario(datos, anterior) : registrarPropuestaUsuario(datos);
+        const aviso: Aviso = editando ? { editada: true } : { enviada: true };
+        pedir.then((p) => navegar(`/proponer/${encodeURIComponent(p.id)}`, { state: aviso }))
+            .catch((error) => {
+                const codigo = error instanceof ErrorServicio ? error.estado : 0;
+                setErrorEnvio(codigo === 409 ? "Tu propuesta cambió de estado mientras la editabas. Vuelve al seguimiento para ver cómo va." : mensajeError(error));
+                bloqueo.current = false; setGuardando(false);
+            });
     }
 
+    const tipos: { valor: TipoPropuesta; titulo: string; texto: string }[] = [
+        { valor: "evento", titulo: "Un evento", texto: "Una actividad en una fecha: presentación, charla, taller." },
+        { valor: "club", titulo: "Un club", texto: "Un grupo que se reúne con regularidad." },
+    ];
+    const casilla = (campo: "abiertaAlPublico" | "sinFinesDeLucro" | "acepta", texto: string) => (
+        <>
+            <label className="cred-casilla">
+                <input id={`pro-${campo}`} type="checkbox" checked={datos[campo]} onChange={(e) => cambiar(campo, e.target.checked)}
+                    aria-invalid={errores[campo] && !datos[campo] ? true : undefined} aria-describedby={errores[campo] && !datos[campo] ? `pro-${campo}-error` : undefined} />
+                {texto}
+            </label>
+            {errores[campo] && !datos[campo] && <p id={`pro-${campo}-error`} className="cred-error-campo">{errores[campo]}</p>}
+        </>
+    );
+
     return (
-        <PaginaPublica>
-            <EncabezadoNoticias regreso={regresoEventos} etiqueta="PROPUESTA" titulo={<>Propón un evento <span>o club</span></>}
-                texto="Cuéntanos tu idea. Proponer no aprueba ni reserva: el personal la revisa y te responde." />
-            <div className="proponer-cuerpo">
-                <form className="proponer-formulario" onSubmit={enviarFormulario} noValidate aria-busy={guardando}>
-                    {errorEnvio && <p role="alert">{errorEnvio}</p>}
-                    <fieldset className="proponer-campos" disabled={guardando}>
-                    <Seccion icono={estrella} titulo="Tipo de propuesta" dorado>
-                        <div className="cred-opciones" role="radiogroup" aria-label="Tipo de propuesta">
-                            {([["evento", "Evento", "Una actividad puntual"], ["club", "Club", "Un grupo que se reúne con regularidad"]] as const).map(([v, t, x]) => (
-                                <label key={v} className={`cred-opcion${datos.tipo === v ? " cred-opcion--elegida" : ""}`}>
-                                    <input type="radio" name="tipo" checked={datos.tipo === v} onChange={() => cambiar("tipo", v)} />
-                                    <span className="cred-opcion__radio" aria-hidden="true">{datos.tipo === v && <img src={radioMarcado} alt="" />}</span>
-                                    <span className="cred-opcion__textos"><strong>{t}</strong>{x}</span>
-                                </label>
-                            ))}
+        <div className="contacto-columnas contacto-columnas--nuevo">
+            <form className="formulario-contacto cred-formulario esp-formulario" onSubmit={enviar} noValidate aria-labelledby="titulo-propuesta" aria-busy={guardando}>
+                <h2 id="titulo-propuesta" className="formulario-contacto__titulo">{editando ? "Edita tu propuesta" : "Tu propuesta"}</h2>
+
+                <fieldset className="cred-grupo" disabled={guardando}>
+                    <legend className="cred-grupo__titulo">¿Qué propones?</legend>
+                    <div className="perfil-opciones cred-opciones-tipo">
+                        {tipos.map((o) => (
+                            <label key={o.valor} className={`perfil-opcion${datos.tipo === o.valor ? " perfil-opcion--activa" : ""}`}>
+                                <input type="radio" name="tipo" value={o.valor} checked={datos.tipo === o.valor} onChange={() => cambiar("tipo", o.valor)} />
+                                <strong>{o.titulo}</strong>
+                                <span>{o.texto}</span>
+                            </label>
+                        ))}
+                    </div>
+                </fieldset>
+
+                <fieldset className="cred-grupo" disabled={guardando}>
+                    <legend className="cred-grupo__titulo">La actividad</legend>
+                    <Campo id="pro-titulo" etiqueta="Nombre" valor={datos.titulo} alCambiar={(v) => cambiar("titulo", v)} maximo={150}
+                        marcador="Ej. Club de cómic de los viernes" error={errores.titulo} icono={iconosSeccion.eventos} />
+                    <div className="perfil-campo">
+                        <label htmlFor="pro-descripcion">De qué trata<span>(obligatorio)</span></label>
+                        <textarea id="pro-descripcion" rows={3} maxLength={1000} value={datos.descripcion} placeholder="Qué harán, cómo será cada sesión y qué necesitan"
+                            onChange={(e) => cambiar("descripcion", e.target.value)} aria-invalid={errores.descripcion ? true : undefined}
+                            aria-describedby={errores.descripcion ? "pro-descripcion-error" : undefined} />
+                        {errores.descripcion && <p id="pro-descripcion-error" className="perfil-campo__error">{errores.descripcion}</p>}
+                    </div>
+                    <div className="perfil-fila">
+                        <div className="perfil-campo">
+                            <label htmlFor="pro-publico">Para quién<span>(obligatorio)</span></label>
+                            <select id="pro-publico" value={datos.publico} onChange={(e) => cambiar("publico", e.target.value)}
+                                aria-invalid={errores.publico ? true : undefined} aria-describedby={errores.publico ? "pro-publico-error" : undefined}>
+                                <option value="">Selecciona una opción</option>
+                                {publicos.map((p) => <option key={p}>{p}</option>)}
+                            </select>
+                            {errores.publico && <p id="pro-publico-error" className="perfil-campo__error">{errores.publico}</p>}
                         </div>
-                    </Seccion>
-                    <Seccion icono={libro} titulo="La actividad">
-                        <Campo id="titulo" etiqueta="Título de la propuesta" obligatorio error={errores.titulo}>
-                            <input id="pro-titulo" placeholder="Nombre de tu evento o club" maxLength={150} value={datos.titulo} onChange={(e) => cambiar("titulo", e.target.value)} {...invalido("titulo")} />
-                        </Campo>
-                        <Campo id="descripcion" etiqueta="Descripción" obligatorio error={errores.descripcion}>
-                            <textarea id="pro-descripcion" rows={3} placeholder="Describe de qué trata y qué se hará" maxLength={1000} value={datos.descripcion}
-                                onChange={(e) => cambiar("descripcion", e.target.value)} {...invalido("descripcion")} />
-                        </Campo>
-                        <div className="cred-fila">
-                            <Campo id="publico" etiqueta="Público al que va dirigido" obligatorio error={errores.publico}>
-                                <select id="pro-publico" value={datos.publico} onChange={(e) => cambiar("publico", e.target.value)} {...invalido("publico")}>
-                                    <option value="">Selecciona una opción</option>
-                                    {publicos.map((p) => <option key={p}>{p}</option>)}
-                                </select>
-                            </Campo>
-                            <Campo id="participantes" etiqueta="Número estimado de participantes" obligatorio error={errores.participantes}>
-                                <input id="pro-participantes" inputMode="numeric" placeholder="Ej. 20" maxLength={3} value={datos.participantes}
-                                    onChange={(e) => cambiar("participantes", e.target.value.replace(/\D/g, ""))} {...invalido("participantes")} />
-                            </Campo>
+                        <Campo id="pro-participantes" etiqueta="Personas que esperas" valor={datos.participantes} modoTeclado="numeric" maximo={3}
+                            marcador="Ej. 20" alCambiar={(v) => cambiar("participantes", v.replace(/\D/g, ""))} error={errores.participantes} icono={iconosSeccion.datos} />
+                    </div>
+                </fieldset>
+
+                <fieldset className="cred-grupo" disabled={guardando}>
+                    <legend className="cred-grupo__titulo">Cuándo y dónde <span className="pro-opcional">(opcional; el personal lo confirma)</span></legend>
+                    <div className="perfil-fila esp-fila-tres">
+                        <Campo id="pro-fecha" etiqueta="Fecha" tipo="date" obligatorio={false} valor={datos.fecha} alCambiar={(v) => cambiar("fecha", v)}
+                            error={errores.fecha} icono={iconosSeccion.eventos} ayuda={errores.fecha ? undefined : HORARIO.texto} />
+                        <Campo id="pro-horaInicio" etiqueta="Desde" tipo="time" obligatorio={false} valor={datos.horaInicio} alCambiar={(v) => cambiar("horaInicio", v)} error={errores.horaInicio} />
+                        <Campo id="pro-horaFin" etiqueta="Hasta" tipo="time" obligatorio={false} valor={datos.horaFin} alCambiar={(v) => cambiar("horaFin", v)} error={errores.horaFin} />
+                    </div>
+                    <div className="perfil-fila">
+                        <div className="perfil-campo">
+                            <label htmlFor="pro-espacio">Espacio que te gustaría<span>(opcional)</span></label>
+                            <select id="pro-espacio" value={datos.espacio} onChange={(e) => cambiar("espacio", e.target.value)}>
+                                <option value="">Que lo sugiera la biblioteca</option>
+                                {solicitables.map((a) => <option key={a.id} value={a.nombre}>{a.nombre}</option>)}
+                            </select>
                         </div>
-                    </Seccion>
-                    <Seccion icono={calendario} titulo="Fecha, lugar y material">
-                        <div className="cred-fila">
-                            <Campo id="fecha" etiqueta="Fecha propuesta" error={errores.fecha}>
-                                <input id="pro-fecha" type="date" min={hoy} value={datos.fecha} onChange={(e) => cambiar("fecha", e.target.value)} {...invalido("fecha")} />
-                            </Campo>
-                            <div className="cred-campo">
-                                <label htmlFor="pro-horaInicio">Horario propuesto</label>
-                                <div className="proponer-horario">
-                                    <input id="pro-horaInicio" type="time" aria-label="Hora de inicio" value={datos.horaInicio} onChange={(e) => cambiar("horaInicio", e.target.value)} />
-                                    <span>a</span>
-                                    <input id="pro-horaFin" type="time" aria-label="Hora de término" value={datos.horaFin} onChange={(e) => cambiar("horaFin", e.target.value)} {...invalido("horaFin")} />
-                                </div>
-                                {errores.horaFin && <p id="pro-horaFin-error" className="cred-error-campo proponer-error">{errores.horaFin}</p>}
-                            </div>
-                        </div>
-                        <div className="cred-fila">
-                            <Campo id="espacio" etiqueta="Espacio sugerido">
-                                <select id="pro-espacio" value={datos.espacio} onChange={(e) => cambiar("espacio", e.target.value)}>
-                                    <option value="">Selecciona un área</option>
-                                    {solicitables.map((a) => <option key={a.id} value={a.nombre}>{a.nombre}</option>)}
-                                </select>
-                            </Campo>
-                            <Campo id="material" etiqueta="Material que necesitas">
-                                <input id="pro-material" placeholder="Libros, proyector, sillas…" maxLength={300} value={datos.material} onChange={(e) => cambiar("material", e.target.value)} />
-                            </Campo>
-                        </div>
-                    </Seccion>
-                    <Seccion icono={usuario} titulo="Responsable">
-                        <div className="cred-fila">
-                            <Campo id="responsable" etiqueta="Nombre de la persona responsable" obligatorio error={errores.responsable}>
-                                <input id="pro-responsable" placeholder="Nombre completo" maxLength={200} value={datos.responsable} onChange={(e) => cambiar("responsable", e.target.value)} {...invalido("responsable")} />
-                            </Campo>
-                            <Campo id="telefono" etiqueta="Teléfono de contacto" obligatorio error={errores.telefono}>
-                                <input id="pro-telefono" type="tel" inputMode="numeric" placeholder="10 dígitos" maxLength={10} value={datos.telefono}
-                                    onChange={(e) => cambiar("telefono", e.target.value.replace(/\D/g, ""))} {...invalido("telefono")} />
-                            </Campo>
-                        </div>
-                    </Seccion>
-                    {(['abiertaAlPublico', 'sinFinesDeLucro'] as const).map(campo => <div key={campo}>
-                        <label className="cred-casilla"><input id={`pro-${campo}`} type="checkbox" checked={datos[campo]} onChange={e => cambiar(campo, e.target.checked)} {...invalido(campo)} />
-                            {campo === 'abiertaAlPublico' ? 'Confirmo que la actividad será abierta al público.' : 'Confirmo que la actividad será sin fines de lucro.'}
-                        </label>
-                        {errores[campo] && <p id={`pro-${campo}-error`} className="cred-error-campo">{errores[campo]}</p>}
-                    </div>)}
-                    <label className="cred-casilla">
-                        <input id="pro-acepta" type="checkbox" checked={datos.acepta} onChange={(e) => cambiar("acepta", e.target.checked)} {...invalido("acepta")} />
-                        Entiendo que enviar la propuesta no la aprueba ni reserva el espacio.
-                    </label>
-                    {errores.acepta && <p id="pro-acepta-error" className="cred-error-campo">{errores.acepta}</p>}
-                    <div><button type="submit" className="proponer-enviar">{guardando ? 'Enviando…' : 'Enviar propuesta'} <img src={enviar} alt="" /></button></div>
-                    </fieldset>
-                </form>
-                <aside className="cred-tarjeta proponer-lateral">
-                    <h2>¿Qué pasa con tu propuesta?</h2>
-                    <ol className="cred-mini-pasos">
-                        <li><span>1</span><div><strong>La envías</strong>Queda registrada como propuesta.</div></li>
-                        <li><span>2</span><div><strong>El personal la revisa</strong>Evalúa espacio, fechas y material.</div></li>
-                        <li><span>3</span><div><strong>El personal decide</strong>Aprueba, pide cambios o rechaza.</div></li>
-                        <li><span>4</span><div><strong>La biblioteca programa y publica</strong>La aprobación no publica ni reserva automáticamente.</div></li>
-                    </ol>
-                    <Nota color="dorada" icono={infoDorado}>Puedes dar seguimiento a tus propuestas desde tu Perfil. Los cambios o cancelaciones se solicitan, no se aplican directamente.</Nota>
-                </aside>
+                        <Campo id="pro-material" etiqueta="Material que necesitas" obligatorio={false} valor={datos.material} maximo={300}
+                            marcador="Proyector, sillas, mesas…" alCambiar={(v) => cambiar("material", v)} />
+                    </div>
+                </fieldset>
+
+                <fieldset className="cred-grupo" disabled={guardando}>
+                    <legend className="cred-grupo__titulo">Quién la organiza</legend>
+                    <div className="perfil-fila">
+                        <Campo id="pro-responsable" etiqueta="Persona responsable" valor={datos.responsable} maximo={200} alCambiar={(v) => cambiar("responsable", v)}
+                            error={errores.responsable} icono={iconosSeccion.datos} />
+                        <Campo id="pro-telefono" etiqueta="Teléfono" tipo="tel" modoTeclado="numeric" maximo={10} valor={datos.telefono}
+                            marcador="10 dígitos" alCambiar={(v) => cambiar("telefono", v.replace(/\D/g, ""))} error={errores.telefono} />
+                    </div>
+                    {casilla("abiertaAlPublico", "La actividad será abierta al público.")}
+                    {casilla("sinFinesDeLucro", "La actividad será sin fines de lucro.")}
+                    {casilla("acepta", "Entiendo que enviar la propuesta no la aprueba ni reserva el espacio.")}
+                </fieldset>
+
+                {errorEnvio && <p className="cred-error-campo" role="alert">{editando ? "No pudimos guardar tus cambios: " : "No pudimos enviar tu propuesta: "}{errorEnvio}</p>}
+                <div className="perfil-acciones">
+                    <button type="submit" className="perfil-boton" disabled={guardando}>
+                        {guardando ? (editando ? "Guardando…" : "Enviando…") : (editando ? "Guardar cambios" : "Enviar propuesta")}
+                    </button>
+                    {anterior
+                        ? <Link to={`/proponer/${encodeURIComponent(anterior.id)}`} className="perfil-boton perfil-boton--contorno">Volver al seguimiento</Link>
+                        : <Link to="/eventos" className="perfil-boton perfil-boton--contorno">Volver a Eventos</Link>}
+                </div>
+                <p className="solo-lectores" role="status">{guardando ? "Guardando, espera un momento." : ""}</p>
+            </form>
+
+            <div className="contacto-lateral pro-lateral">
+                <TarjetaPerfil color="verde" icono={tarjetaLista} titulo={editando ? "Al guardar tus cambios" : "Qué pasa con tu propuesta"}>
+                    {editando ? (
+                        <ol className="cred-mini-pasos">
+                            <li><span>1</span><div><strong>Se conserva tu folio</strong>Es la misma propuesta, con tus cambios.</div></li>
+                            <li><span>2</span><div><strong>Vuelve a revisión</strong>El personal la revisa de nuevo.</div></li>
+                            <li><span>3</span><div><strong>Te responde</strong>Te avisaremos en tus notificaciones.</div></li>
+                        </ol>
+                    ) : (
+                        <ol className="cred-mini-pasos">
+                            <li><span>1</span><div><strong>La envías</strong>Recibes un folio para seguirla.</div></li>
+                            <li><span>2</span><div><strong>El personal la revisa</strong>Espacio, fechas y material.</div></li>
+                            <li><span>3</span><div><strong>Te responde</strong>La aprueba, pide cambios o no la aprueba.</div></li>
+                            <li><span>4</span><div><strong>Se publica</strong>La biblioteca la programa en la agenda.</div></li>
+                        </ol>
+                    )}
+                    <div className="perfil-nota perfil-nota--dorada">
+                        <img src={notaInfoDorada} alt="" />
+                        <p>Las actividades del portal son abiertas al público y sin fines de lucro.</p>
+                    </div>
+                </TarjetaPerfil>
+                <AyudaTramite compacta texto="El personal te orienta con tu propuesta." />
             </div>
-        </PaginaPublica>
+        </div>
     );
 }
 
-// ---------- Propuesta enviada ----------
+// /proponer/enviada (de antes): ya no hay pantalla aparte; con id va a su seguimiento
 export function PropuestaEnviada() {
     const [parametros] = useSearchParams();
-    const { solicitud: propuesta, error, cargando } = usePropuestaReal(parametros.get("id") ?? undefined);
-    if (!propuesta) return <PaginaPublica><div className="cred-estado"><p role={error ? 'alert' : 'status'}>{error || (cargando ? 'Comprobando tu propuesta…' : 'Inicia sesión para consultar tu propuesta.')}</p><Link to="/mi-perfil/propuestas">Volver a mis propuestas</Link></div></PaginaPublica>;
-    return (
-        <PaginaPublica>
-            <EncabezadoNoticias regreso={regresoEventos} etiqueta="PROPUESTA" titulo={<>Propón un evento <span>o club</span></>}
-                texto="Tu propuesta queda registrada para revisión." />
-            <div className="proponer-cuerpo proponer-cuerpo--una">
-                <section className="cred-tarjeta proponer-enviada">
-                    <span className="proponer-enviada__icono"><img src={checkEnviada} alt="" /></span>
-                    <h2>Propuesta enviada</h2>
-                    <p className="cred-texto">Tu propuesta quedó registrada. Enviarla no la aprueba ni reserva el espacio: el personal la revisará y te responderá.</p>
-                    <div className="proponer-enviada__chips">
-                        <Chip color="gris">{`Folio: ${propuesta.id}`}</Chip>
-                        <Chip color="dorado">Consulta el estado actual en el seguimiento</Chip>
-                    </div>
-                    <p className="proponer-suave">Puedes consultar el estado y las observaciones desde Mis propuestas.</p>
-                    <div className="cred-acciones">
-                        <Link to="/mi-perfil/propuestas" className="boton-visitante">Ver mis propuestas</Link>
-                        <Link to="/eventos" className="boton-visitante cred-boton-contorno">Volver a Eventos y actividades</Link>
-                    </div>
-                </section>
-            </div>
-        </PaginaPublica>
-    );
+    const id = parametros.get("id");
+    const aviso: Aviso = { enviada: true };
+    return <Navigate to={id ? `/proponer/${encodeURIComponent(id)}` : "/mi-perfil/propuestas"} replace state={aviso} />;
 }
 
-// La respuesta se mantiene asociada a la cuenta actual; no se reutilizan ejemplos.
+// La respuesta se mantiene asociada a la cuenta actual; con la sesión de ejemplo, la propuesta en memoria.
 function usePropuestaReal(id?: string, version = 0) {
     const usuario = useCuentaTramites();
     const clave = JSON.stringify([usuario, id, version]);
     const [resultado, setResultado] = useState<{ clave: string; solicitud?: SolicitudAtencion; error?: string }>();
     useEffect(() => {
-        if (!usuario || !id) return;
+        if (sesionSimulada || !usuario || !id) return;
         let vigente = true;
-        consultarTramite('propuesta', id).then(solicitud => { if (vigente) setResultado({ clave, solicitud }); })
-            .catch(error => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
+        consultarTramite("propuesta", id).then((solicitud) => { if (vigente) setResultado({ clave, solicitud }); })
+            .catch((error) => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
         return () => { vigente = false; };
     }, [usuario, id, clave]);
+    if (sesionSimulada) {
+        const s = propuestaSimulada();
+        return { solicitud: s && s.id === id ? s : undefined, error: s && s.id === id ? undefined : "No encontramos esta propuesta. Revisa tus propuestas en Mi perfil.", cargando: false };
+    }
     const actual = resultado?.clave === clave ? resultado : undefined;
-    return { solicitud: actual?.solicitud, error: !id ? 'No se indicó una propuesta.' : actual?.error,
+    return { solicitud: actual?.solicitud, error: !id ? "No se indicó una propuesta." : actual?.error,
         cargando: usuario === undefined || !!usuario && !!id && !actual };
 }
 
-export function DetallePropuesta() {
-    const { id } = useParams();
-    const [version, setVersion] = useState(0);
-    const { solicitud, error, cargando } = usePropuestaReal(id, version);
-    return <PaginaPublica>
-        <EncabezadoNoticias regreso={regresoPropuestas} etiqueta="MIS PROPUESTAS" titulo={solicitud?.tituloPropuesta || 'Seguimiento de propuesta'} texto="Consulta la revisión y las observaciones registradas por la biblioteca." />
-        <div className="proponer-cuerpo proponer-cuerpo--una">
-            {!solicitud ? (cargando && !error ? <EsqueletoDetalle texto="Cargando propuesta…" /> : <p role={error ? 'alert' : 'status'}>{error || 'Inicia sesión para consultar tu propuesta.'}</p>) :
-                <section className="cred-tarjeta proponer-seccion">
-                    <FichaTramite solicitud={solicitud} />
-                    {['borrador', 'requiere_correccion'].includes(solicitud.estadoRevision ?? '') &&
-                        <FormularioPropuesta key={solicitud.actualizadoEn} anterior={solicitud} alGuardar={() => setVersion(v => v + 1)} />}
-                </section>}
-            <Link to="/mi-perfil/propuestas">Volver a mis propuestas</Link>
-        </div>
-    </PaginaPublica>;
+function NoAbre({ error, reintentar }: { error?: string; reintentar: () => void }) {
+    return (
+        <section className="esp-mapa esp-seguimiento__carga">
+            <div className="perfil-vacio perfil-vacio--eventos">
+                <h2>No pudimos abrir tu propuesta</h2>
+                <p role="alert">{error}</p>
+                <div className="perfil-acciones perfil-acciones--centro">
+                    <button type="button" className="perfil-boton" onClick={reintentar}>Reintentar</button>
+                    <Link to="/mi-perfil/propuestas" className="perfil-boton perfil-boton--contorno">Ir a Mis propuestas</Link>
+                </div>
+            </div>
+        </section>
+    );
 }
 
-// «Propuesta no aprobada» y «Solicitud de espacio no aprobada» (Figma 543:15773 y 543:15939).
-export function NoAprobada({ etiqueta, titulo, folio, tipo, regreso }: {
-    etiqueta: string; titulo: string; folio: string; tipo: "propuesta" | "espacio"; regreso: { texto: string; ruta: string };
-}) {
-    const queEs = tipo === "propuesta" ? "la propuesta fue evaluada y no fue aprobada" : "la solicitud fue evaluada y no fue aprobada";
+// ---------- Seguimiento de una propuesta ----------
+export function DetallePropuesta() {
+    const { id } = useParams();
+    const sesion = useSesion();
+    const aviso = (useLocation().state as Aviso | null) ?? {};
+    const [version, setVersion] = useState(0);
+    const { solicitud: s, error, cargando } = usePropuestaReal(id, version);
+    if (sesion === null) {
+        return <PaginaPublica><PedirSesion titulo="Inicia sesión para ver tu propuesta" texto="El seguimiento de tus propuestas está en tu cuenta." /></PaginaPublica>;
+    }
+    const estado = s ? estadoDePropuesta(s) : "en_revision";
     return (
         <PaginaPublica>
-            <EncabezadoNoticias regreso={regreso} etiqueta={etiqueta} titulo={titulo} texto={`Folio ${folio} · ${queEs}.`} />
-            <div className="proponer-cuerpo">
-                <div className="proponer-formulario">
-                    <section className="cred-tarjeta proponer-seccion">
-                        <h2>Mensaje de la biblioteca</h2>
-                        <p className="cred-texto">
-                            Tu {tipo === "propuesta" ? "propuesta" : "solicitud de espacio"} fue evaluada y no fue aprobada. Para conocer el motivo y darle
-                            seguimiento, acude personalmente a la biblioteca con tu folio. Este mensaje es automático (ejemplo).
-                        </p>
-                    </section>
-                    <section className="cred-tarjeta proponer-seccion">
-                        <h2>Qué hacer ahora</h2>
-                        <ol className="cred-mini-pasos">
-                            <li><span>1</span><div>Acude con tu folio {folio} a la biblioteca.</div></li>
-                            <li><span>2</span><div>Pregunta en atención por el motivo de la decisión.</div></li>
-                            <li><span>3</span><div>{tipo === "propuesta" ? "Si lo deseas, puedes volver a proponer la actividad." : "Si lo deseas, puedes solicitar el espacio de nuevo con otra fecha."}</div></li>
-                        </ol>
-                        <p className="proponer-suave">Horario de atención: por confirmar con la biblioteca.</p>
-                    </section>
+            <EncabezadoPublico icono={iconosSeccion.propuestas} etiqueta="Propuestas" titulo={<>Seguimiento de tu <span>propuesta</span></>}
+                texto="En qué va tu propuesta; las observaciones del personal se reflejan aquí." />
+            <section className={PAGINA}>
+                <div className="contacto-pila">
+                    <PasosTramite nombres={pasosPropuesta} rutas={rutasPropuesta(id)} actual={estado === "aprobada" ? 3 : 2} pagina={2} />
+                    {!s ? (cargando && !error ? <section className="esp-mapa esp-seguimiento__carga"><EsqueletoDetalle texto="Cargando tu propuesta…" /></section>
+                        : <NoAbre error={error} reintentar={() => setVersion((v) => v + 1)} />) : (
+                        <div className="contacto-columnas contacto-columnas--nuevo">
+                            <div className="cred-principal">
+                                <EstadoPropuesta solicitud={s} aviso={aviso} alCambiar={() => setVersion((v) => v + 1)} />
+                                <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo avanza tu propuesta"
+                                    texto={estado === "aprobada" ? "Solo falta que la biblioteca la publique." : "Te avisaremos en tus notificaciones de cada cambio."}>
+                                    <RutaCredencial pasos={pasosRutaPropuesta} etapas={etapasPropuesta(estado)} />
+                                </TarjetaPerfil>
+                            </div>
+                            <div className="contacto-lateral pro-lateral">
+                                <TarjetaPerfil color="verde" icono={tarjetaEstrella} titulo="Tu propuesta">
+                                    <dl className="pro-resumen">
+                                        <div><dt>Público</dt><dd>{s.publicoDirigido || "Por definir"}</dd></div>
+                                        <div><dt>Espacio</dt><dd>{s.necesidadEspacio || "Por acordar"}</dd></div>
+                                        <div><dt>Fecha</dt><dd>{s.diasSolicitados || "Por acordar"}</dd></div>
+                                        <div><dt>Horario</dt><dd>{s.horarioSolicitado || "Por acordar"}</dd></div>
+                                    </dl>
+                                    {s.descripcion && <p className="pro-resumen__texto">{s.descripcion.split("\n\nDatos de la propuesta:")[0]}</p>}
+                                </TarjetaPerfil>
+                                <AyudaTramite compacta texto="El personal te orienta con tu propuesta." />
+                            </div>
+                        </div>
+                    )}
                 </div>
-                <aside className="cred-tarjeta proponer-lateral">
-                    <p className="cred-sobretitulo">ESTADO</p>
-                    <Chip color="guinda">No aprobada</Chip>
-                    <p className="cred-texto">Esta decisión no se aclara en línea: acude presencialmente a la biblioteca.</p>
-                </aside>
-            </div>
+            </section>
         </PaginaPublica>
+    );
+}
+
+// El estado: insignia con el tipo, chip, qué pasa, fichas Folio · Tipo · Enviada, avisos, observaciones y lo que se puede hacer
+function EstadoPropuesta({ solicitud: s, aviso, alCambiar }: { solicitud: SolicitudAtencion; aviso: Aviso; alCambiar: () => void }) {
+    const estado = estadoDePropuesta(s);
+    const t = textosPropuesta[estado];
+    const editar = puedeEditar(estado, sesionSimulada);
+    const enviadaEl = s.creadaEn ? new Date(s.creadaEn).toLocaleDateString("es-MX", { timeZone: "America/Mazatlan", day: "2-digit", month: "short", year: "numeric" }).replace(".", "") : "Por confirmar";
+    const botonEditar = editar && <Link to={`/proponer/${encodeURIComponent(s.id)}/editar`} className="perfil-boton perfil-boton--chico">Editar propuesta</Link>;
+    return (
+        <section className="esp-estado pro-estado" aria-labelledby="titulo-estado-propuesta">
+            <div className="esp-estado__visual pro-estado__visual">
+                <span className="pro-estado__insignia"><img src={tarjetaEstrella} alt="" /></span>
+                <p><strong>{s.tituloPropuesta || "Tu propuesta"}</strong>{s.tipoPropuesta || "Actividad"}</p>
+            </div>
+            <div className="esp-estado__textos">
+                <Chip color={t.color}>{t.chip}</Chip>
+                <h2 id="titulo-estado-propuesta">{t.titulo}</h2>
+                <p>{t.texto}</p>
+                <dl className="perfil-datos perfil-datos--tres">
+                    <div className="perfil-dato"><dt>Folio</dt><dd>{s.id.slice(0, 8).toUpperCase()}</dd></div>
+                    <div className="perfil-dato"><dt>Tipo</dt><dd>{s.tipoPropuesta || "Actividad"}</dd></div>
+                    <div className="perfil-dato"><dt>Enviada</dt><dd>{enviadaEl}</dd></div>
+                </dl>
+                {estado === "en_revision" && (aviso.enviada || aviso.editada) && (
+                    <p className="perfil-nota cred-aviso" role="status">
+                        <img src={notaInfo} alt="" />
+                        {aviso.editada
+                            ? <span><strong>Guardamos tus cambios.</strong> Tu propuesta volvió a revisión con el mismo folio.</span>
+                            : <span><strong>Tu propuesta quedó registrada.</strong> Ya está en revisión; aquí verás cada cambio.</span>}
+                    </p>
+                )}
+                {s.observacionesInstitucionales && estado !== "cancelada" && (
+                    <div className="perfil-nota perfil-nota--guinda"><p><strong>Observaciones del personal</strong>{s.observacionesInstitucionales}</p></div>
+                )}
+                {puedeCancelar(estado) ? <CancelarPropuesta solicitud={s} alCancelar={alCambiar}>{botonEditar}</CancelarPropuesta>
+                    : botonEditar ? <div className="perfil-acciones">{botonEditar}</div> : null}
+                {(estado === "rechazada" || estado === "cancelada" || estado === "aprobada") && (
+                    <div className="perfil-acciones">
+                        {estado !== "aprobada" && <Link to="/proponer" className="perfil-boton perfil-boton--chico">Proponer otra actividad</Link>}
+                        <Link to="/mi-perfil/propuestas" className={`perfil-boton perfil-boton--chico${estado !== "aprobada" ? " perfil-boton--contorno" : ""}`}>Mis propuestas</Link>
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
+
+// Cancelar en el lugar, como «Cancelar solicitud» de Credencial: el botón guinda se vuelve una nota rosa con la pregunta,
+// qué pasa y «Sí, cancelar» · «No, conservarla»; abre y cierra animando su alto. `children` va junto al botón (Editar).
+function CancelarPropuesta({ solicitud: s, alCancelar, children }: { solicitud: SolicitudAtencion; alCancelar: () => void; children?: ReactNode }) {
+    const [confirmando, setConfirmando] = useState(false);
+    const [cerrando, setCerrando] = useState(false);
+    const [cancelando, setCancelando] = useState(false);
+    const [error, setError] = useState("");
+    function cancelar() {
+        setCancelando(true); setError("");
+        const pedir = sesionSimulada ? Promise.resolve(cancelarPropuestaSimulada()) : cancelarPropuestaPropia(s);
+        pedir.then(() => { setCancelando(false); setConfirmando(false); alCancelar(); })
+            .catch((e) => {
+                setCancelando(false);
+                const codigo = e instanceof ErrorServicio ? e.estado : 0;
+                setError(codigo === 404 || codigo === 405 || codigo === 422 // la base aún no tiene la operación (PARA_BACKEND.md, punto 8)
+                    ? "Por ahora no se puede cancelar en línea. Llama al 311 212 8989 o escribe a la biblioteca con tu folio y el personal la cancela."
+                    : codigo === 409 ? "Tu propuesta ya cambió de estado y no se puede cancelar. Recarga la página para ver cómo va."
+                    : mensajeError(e));
+            });
+    }
+    if (!confirmando) {
+        return (
+            <div key="boton" className="perfil-acciones">
+                {children}
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={() => setConfirmando(true)}>Cancelar propuesta</button>
+            </div>
+        );
+    }
+    return (
+        <div key="confirmacion" className={`perfil-nota perfil-nota--guinda cred-cancelar${cerrando ? " cred-cancelar--cerrando" : ""}`} role="group" aria-labelledby="titulo-cancelar-propuesta">
+            <p><strong id="titulo-cancelar-propuesta">¿Cancelar tu propuesta?</strong>
+                El personal ya no la revisará. Si después cambias de opinión, puedes proponerla de nuevo.</p>
+            {error && <p className="cred-error-campo" role="alert">{error}</p>}
+            <div className="perfil-acciones">
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={cancelar} disabled={cancelando}>
+                    {cancelando ? "Cancelando…" : "Sí, cancelar"}
+                </button>
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno"
+                    onClick={() => { setCerrando(true); window.setTimeout(() => { setConfirmando(false); setCerrando(false); setError(""); }, 300); }}
+                    disabled={cancelando}>No, conservarla</button>
+            </div>
+        </div>
     );
 }

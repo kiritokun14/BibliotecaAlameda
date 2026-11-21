@@ -224,6 +224,23 @@ hoy `public.espacio` solo tiene tres provisionales (`sala-lectura`, `sala-usos-m
 - **Frontend:** `Front/src/pages/publico/espacios/datos.ts` (zonas y espacios del mapa, con su `slug`), `MapaBiblioteca.tsx`,
   `Espacios.tsx` (paso 1) y `Solicitar.tsx` (paso 2). Para verlo sin backend: `/espacios?simular=sesion`.
 
+## 8. Propuestas: la persona edita y cancela su propia propuesta — prioridad media (Aldahir, 21 nov 2026)
+
+En **Seguimiento de tu propuesta** (`/proponer/:id`) hay dos botones nuevos: «Editar propuesta» (abre `/proponer/:id/editar`, el mismo
+formulario ya lleno) y «Cancelar propuesta» (confirmación en el lugar, igual que en Credencial). Hoy la base no deja hacer todo:
+
+- **Editar mientras está `en_revision`:** `privado.atencion_solicitudes`, operación `corregir`, solo acepta `borrador` y
+  `requiere_correccion` (`55000` si no). Pedido: aceptar también `en_revision` cuando lo hace la persona titular, siempre que el personal
+  no haya resuelto (mismo `PUT /propuestas/{id}/corregir` con `actualizadoEn`; `409` si cambió). Queda en `en_revision` y se anota en el historial.
+  Cuando exista, en el frontend se cambia `EDITAR_EN_REVISION = true` en `Front/src/pages/publico/proponer/datos.ts` (hoy el botón solo sale con cambios pedidos o en borrador).
+- **Cancelar:** no existe. Pedido: `POST /propuestas/{id}/cancelar` con `{ "actualizadoEn": "<fecha>" }` → `200` con la propuesta en
+  `cancelada`. Solo la titular (`403` si no), solo desde `borrador`, `en_revision` o `requiere_correccion` (`409` si ya se aprobó,
+  rechazó o canceló), `404` si no existe, `401` sin sesión. En el historial: `accion = 'cancelar'`, nota «La persona canceló su propuesta desde el portal.».
+  Mientras no exista, el botón responde `404` y la pantalla dice «Por ahora no se puede cancelar en línea…» con el teléfono.
+- **Frontend:** `cancelarPropuestaPropia` (`Front/src/servicios/tramites.ts`), `editarPropuestaUsuario` (`servicios/propuestasUsuario.ts`),
+  `puedeEditar`, `puedeCancelar` y `propuestaDesdeSolicitud` (`proponer/datos.ts`), `EditarPropuesta` y `CancelarPropuesta` (`proponer/Proponer.tsx`).
+  Para verlo sin backend: `/proponer?simular=sesion`, enviar, y en el seguimiento usar los dos botones.
+
 ## Cómo probar
 
 - **Backend local:** `.\.venv\Scripts\python.exe -m uvicorn Back.main:app --reload` desde la raíz (puerto 8000).

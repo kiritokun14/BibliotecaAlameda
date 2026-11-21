@@ -105,13 +105,13 @@ function Cola() {
                     ) : (
                         <Tabla
                             columnas={[
-                                { titulo: "FOLIO", ancho: 80, folio: true, celda: (p: Publicacion) => p.folio },
-                                { titulo: "RESPUESTA", fuerte: true, celda: (p: Publicacion) => `«${recortar(p.texto)}»` },
-                                { titulo: "AUTOR", celda: (p: Publicacion) => p.autor },
-                                { titulo: "REPORTES", ancho: 80, celda: (p: Publicacion) => p.reportes },
-                                { titulo: "MOTIVO", ancho: 140, celda: (p: Publicacion) => p.motivo },
-                                { titulo: "ESTADO", ancho: 120, celda: (p: Publicacion) => <Chip tono={TONO_PUBLICACION[p.estado]} ancho={110}>{NOMBRE_ESTADO_PUBLICACION[p.estado]}</Chip> },
-                                { titulo: "ACCIÓN", ancho: 80, celda: (p: Publicacion) => <Link to={`${BASE_FORO}/${p.folio}`} className="cn-enlace">{accion(p)} →<span className="cn-solo-lectores"> {p.folio}</span></Link> },
+                                { titulo: "Folio", ancho: 80, folio: true, celda: (p: Publicacion) => p.folio },
+                                { titulo: "Respuesta", fuerte: true, celda: (p: Publicacion) => `«${recortar(p.texto)}»` },
+                                { titulo: "Autor", celda: (p: Publicacion) => p.autor },
+                                { titulo: "Reportes", ancho: 80, celda: (p: Publicacion) => p.reportes },
+                                { titulo: "Motivo", ancho: 140, celda: (p: Publicacion) => p.motivo },
+                                { titulo: "Estado", ancho: 120, celda: (p: Publicacion) => <Chip tono={TONO_PUBLICACION[p.estado]} ancho={110}>{NOMBRE_ESTADO_PUBLICACION[p.estado]}</Chip> },
+                                { titulo: "Acción", ancho: 80, celda: (p: Publicacion) => <Link to={`${BASE_FORO}/${p.folio}`} className="cn-enlace">{accion(p)}<span className="cn-solo-lectores"> {p.folio}</span></Link> },
                             ]}
                             filas={visibles}
                             clave={(p) => p.folio}
@@ -151,9 +151,9 @@ function Normas() {
                             <Tabla
                                 columnas={[
                                     { titulo: "N.º", ancho: 70, folio: true, celda: (n: Norma) => n.numero },
-                                    { titulo: "NORMA", ancho: 230, fuerte: true, celda: (n: Norma) => n.nombre },
-                                    { titulo: "DESCRIPCIÓN", celda: (n: Norma) => n.descripcion },
-                                    { titulo: "SANCIÓN SUGERIDA", ancho: 200, celda: (n: Norma) => n.sancion },
+                                    { titulo: "Norma", ancho: 230, fuerte: true, celda: (n: Norma) => n.nombre },
+                                    { titulo: "Descripción", celda: (n: Norma) => n.descripcion },
+                                    { titulo: "Sanción sugerida", ancho: 200, celda: (n: Norma) => n.sancion },
                                 ]}
                                 filas={filas}
                                 clave={(n) => String(n.numero)}
@@ -214,11 +214,11 @@ function Silenciadas() {
                         <>
                             <Tabla
                                 columnas={[
-                                    { titulo: "PERSONA", folio: true, celda: (s: Silencio) => s.persona },
-                                    { titulo: "MOTIVO", ancho: 260, fuerte: true, celda: (s: Silencio) => s.motivo },
-                                    { titulo: "HASTA", ancho: 130, celda: (s: Silencio) => fechaCorta(s.hasta) },
-                                    { titulo: "POR", ancho: 170, celda: (s: Silencio) => s.por },
-                                    { titulo: "ACCIÓN", ancho: 110, celda: (s: Silencio) => <button type="button" className="cn-enlace" onClick={() => setElegido(s)}>Restaurar →<span className="cn-solo-lectores"> {s.persona}</span></button> },
+                                    { titulo: "Persona", folio: true, celda: (s: Silencio) => s.persona },
+                                    { titulo: "Motivo", ancho: 260, fuerte: true, celda: (s: Silencio) => s.motivo },
+                                    { titulo: "Hasta", ancho: 130, celda: (s: Silencio) => fechaCorta(s.hasta) },
+                                    { titulo: "Por", ancho: 170, celda: (s: Silencio) => s.por },
+                                    { titulo: "Acción", ancho: 110, celda: (s: Silencio) => <button type="button" className="cn-enlace" onClick={() => setElegido(s)}>Restaurar<span className="cn-solo-lectores"> {s.persona}</span></button> },
                                 ]}
                                 filas={filas}
                                 clave={(s) => s.id}

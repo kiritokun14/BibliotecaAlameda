@@ -166,7 +166,7 @@ export default function Fuentes() {
                             <span role="cell">{f.version}</span>
                             <span role="cell"><Estado estado={f.estadoFuente} /></span>
                             <span role="cell">{f.activa ? "Sí" : "No"}</span>
-                            <span role="cell"><button type="button" className="contenidos-tabla__accion" disabled={guardando} onClick={() => setSeleccion(f)}>Abrir →<span className="solo-lectores"> {f.tituloFuente}</span></button></span>
+                            <span role="cell"><button type="button" className="contenidos-tabla__accion" disabled={guardando} onClick={() => setSeleccion(f)}>Abrir<span className="solo-lectores"> {f.tituloFuente}</span></button></span>
                         </div>
                     ))}
                     {actual?.error && <p className="contenidos-error" role="alert">{actual.error}</p>}

@@ -76,7 +76,7 @@ export default function Avisos() {
                         <article key={t.filtro} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${t.tono}${filtro === t.filtro ? " at-tarjeta--activa" : ""}`}>
                             <div className="contenidos-resumen__fila">
                                 <span className="contenidos-resumen__icono"><IconoReloj /></span>
-                                <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.filtro} onClick={() => elegir(t.filtro)}>Ver →</button>
+                                <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.filtro} onClick={() => elegir(t.filtro)}>Ver</button>
                             </div>
                             <p className="contenidos-resumen__cifra">{contarAvisos(lista, t.filtro as EstadoAviso)}</p>
                             <p className="contenidos-resumen__titulo">{t.titulo}</p>
@@ -124,7 +124,7 @@ export default function Avisos() {
                                 <span role="cell"><EstadoChip estado={a.estado} /></span>
                                 <span role="cell">
                                     <Link to={a.estado === "borrador" ? `${RUTA}/${a.folio}/editar` : `${RUTA}/${a.folio}`} className="contenidos-tabla__accion">
-                                        {a.estado === "borrador" ? "Editar" : a.estado === "archivado" ? "Ver" : "Abrir"} →<span className="solo-lectores"> {a.folio}</span>
+                                        {a.estado === "borrador" ? "Editar" : a.estado === "archivado" ? "Ver" : "Abrir"}<span className="solo-lectores"> {a.folio}</span>
                                     </Link>
                                 </span>
                             </div>
