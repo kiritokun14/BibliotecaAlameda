@@ -34,7 +34,7 @@ export function FichaSala() {
                     volver={{ texto: "Volver a Calendario y salas", ruta: `${BASE_CALENDARIO}?vista=salas` }}
                     etiqueta="Sala"
                     titulo={sala.nombre}
-                    texto={`Capacidad ${sala.capacidad} personas · ${sala.ubicacion} (ejemplo).${sala.habilitada ? "" : " Sala deshabilitada."}`}
+                    texto={`Capacidad ${sala.capacidad} personas · ${sala.ubicacion}.${sala.habilitada ? "" : " Sala deshabilitada."}`}
                 />
                 <Tarjeta icono={iconoCasa} titulo="Datos de la sala">
                     <Datos filas={[["Capacidad", `${sala.capacidad} personas`], ["Equipo", sala.equipo], ["Horario de uso", horarioUso(sala)], ["Accesibilidad", sala.accesibilidad]]} />

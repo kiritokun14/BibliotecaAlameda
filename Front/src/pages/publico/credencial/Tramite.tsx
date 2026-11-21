@@ -1,46 +1,52 @@
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
-import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
-import PaginaPublica from "../../../components/portal/PaginaPublica";
-import { EncabezadoVisitante, SeccionVisitante } from "../../../components/portal/Visitante";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router";
+import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import type { PerfilPropio } from "../../../servicios/perfil";
-import { mensajeError } from "../../../servicios/api";
+import { ErrorServicio, mensajeError } from "../../../servicios/api";
 import { sesionSimulada, useSesion, usePerfil } from "../perfil/usarSesion";
 import { consultarDomicilio, formatearFecha, nombreCompleto } from "../perfil/datos";
-import { Chip, DatoCred, EtapasTramite, Nota, PasosTramite, SelectorEstados, TarjetaCredencial } from "./piezas";
+import { Dato, TarjetaPerfil } from "../perfil/piezas";
+import { Campo } from "../perfil/secciones";
+import { iconosSeccion } from "../perfil/iconos";
+import { EstadoCredencial, PasosTramite, RutaCredencial, SelectorEstados } from "./piezas";
 import {
-    enviarCorreccion, useTramite, etapasEnRevision, enviarSolicitud, fechaLarga, horariosCotejo, pasoDelEstado, textoTipo,
-    validarCorreccion, validarSolicitud, verEjemplo, type ErroresSolicitud, type TipoTramite, type TramiteCredencial,
+    cancelarSolicitud, enviarCorreccion, enviarSolicitud, estadosCredencial, etapasCredencial, fechaCorta, horariosCotejo, pasoDelEstado,
+    puedeCancelar, puedeSolicitar,
+    useTramite, validarCorreccion, validarSolicitud, verEjemplo, type ErroresSolicitud, type TipoTramite, type TramiteCredencial,
 } from "./datos";
-import "./Credencial.css";
+import "../contacto/Contacto.css";
+import "../perfil/Perfil.css";
 import "./CredencialSesion.css";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import radioMarcado from "../../../assets/credencial/radio.svg";
-import infoVerde from "../../../assets/credencial/info-verde.svg";
-import infoSeguimiento from "../../../assets/credencial/seg-info.svg";
-import infoDorado from "../../../assets/credencial/info-dorado.svg";
-import usuarioDorado from "../../../assets/credencial/usuario-dorado.svg";
-import checkEnviada from "../../../assets/credencial/enviada-check.svg";
+import iconoTelefono from "../../../assets/inicio/contacto-telefono.svg";
 import checkLista from "../../../assets/credencial/lista-check.svg";
-import alertaGuinda from "../../../assets/credencial/alerta-guinda.svg";
-import alertaDorada from "../../../assets/credencial/alerta-dorada.svg";
-
+import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
+import tarjetaUsuario from "../../../assets/perfil/tarjeta-usuario.svg";
+import tarjetaCandado from "../../../assets/perfil/tarjeta-candado.svg";
+import notaInfo from "../../../assets/perfil/nota-info.svg";
+import notaInfoDorada from "../../../assets/perfil/nota-info-dorada.svg";
 import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
-// Credencial con sesión iniciada (Figma A-02, 476:9983): solicitud, solicitud enviada y seguimiento.
+import PedirSesion from "../sesion/PedirSesion";
+
+// Credencial con sesión (plantilla C, como la página de información; Aldahir, 19 nov 2026):
+//   /credencial/solicitud   → formulario (tipo, datos de la cuenta en fichas, cotejo) | qué pasa al enviar + ayuda;
+//   /credencial/seguimiento → el trámite por estados y sus cuatro pasos (o la corrección) | qué llevar al cotejo + ayuda.
+// Al enviar, la solicitud lleva directo al seguimiento, ya «En revisión», con el aviso de su folio (19 nov; antes había
+// una pantalla aparte de «Solicitud enviada»: /credencial/enviada ahora redirige al seguimiento). Mientras está en revisión
+// o con corrección, la persona puede cancelarla.
 type Vista = "solicitud" | "enviada" | "seguimiento";
+const ic = { persona: iconosSeccion.datos, fecha: iconosSeccion.eventos, correo: iconosSeccion.mensajes, lugar: iconosSeccion.espacios, telefono: iconoTelefono };
 
 export default function Tramite({ vista }: { vista: Vista }) {
     const usuario = useSesion();
     const carga = usePerfil(usuario);
     const tramite = useTramite();
+    // Al llegar desde otra pantalla del trámite (tras enviar), la página entra sin esperas: no parpadea.
+    const sigue = (useLocation().state as { enviada?: boolean } | null)?.enviada === true;
 
     if (usuario === null) {
         return (
             <PaginaPublica>
-                <div className="cred-estado">
-                    <h1>Inicia sesión para continuar con tu credencial</h1>
-                    <p>Solicitarla, dar seguimiento a tu solicitud y renovarla se hace con tu cuenta.</p>
-                    <Link className="boton-visitante" to="/iniciar-sesion">Iniciar sesión <img src={flechaBlanca} alt="" /></Link>
-                </div>
+                <PedirSesion titulo="Inicia sesión para continuar con tu credencial" texto="Solicitarla, dar seguimiento a tu solicitud y renovarla se hace con tu cuenta." />
             </PaginaPublica>
         );
     }
@@ -51,7 +57,7 @@ export default function Tramite({ vista }: { vista: Vista }) {
                     {carga ? <>
                         <h1>No se pudieron cargar tus datos</h1>
                         <p role="alert">{carga.error}</p>
-                        <Link className="boton-visitante" to={carga.ingresar ? "/iniciar-sesion" : "/credencial"}>
+                        <Link className="perfil-boton" to={carga.ingresar ? "/iniciar-sesion" : "/credencial"}>
                             {carga.ingresar ? "Iniciar sesión" : "Volver a información"}
                         </Link>
                     </> : <EsqueletoDetalle texto="Cargando tu solicitud…" />}
@@ -66,50 +72,61 @@ export default function Tramite({ vista }: { vista: Vista }) {
         return <Navigate to="/credencial" replace />;
     }
 
-    const elegirEjemplo = (e: TramiteCredencial["estado"]) => verEjemplo(e);
+    if (vista === "enviada") return <Navigate to="/credencial/seguimiento" replace state={{ enviada: true }} />;
+    // Con una solicitud en proceso o la credencial vigente no se abre otro formulario: se va a su seguimiento
+    if (vista === "solicitud" && !puedeSolicitar(tramite.estado)) return <Navigate to="/credencial/seguimiento" replace />;
+
     const estado = tramite.estado === "sin-solicitud" && vista !== "solicitud" ? "en-revision" : tramite.estado;
     const encabezado = textosEncabezado(vista, estado);
 
-    let contenido: ReactNode;
-    if (vista === "solicitud") contenido = <Solicitud perfil={perfil} />;
-    else if (vista === "enviada") contenido = <Enviada tramite={tramite} />;
-    else if (estado === "correccion") contenido = <Correccion tramite={tramite} />;
-    else if (estado === "vigente" || estado === "vencida") contenido = <MiCredencial tramite={{ ...tramite, estado }} titular={nombreCompleto(perfil)} />;
-    else contenido = <Seguimiento tramite={tramite} titular={nombreCompleto(perfil)} />;
+    const contenido = vista === "solicitud"
+        ? <Solicitud perfil={perfil} />
+        : <Seguimiento tramite={{ ...tramite, estado }} titular={nombreCompleto(perfil)} />;
 
     return (
         <PaginaPublica>
-            <EncabezadoVisitante regreso={{ texto: "Volver a información", ruta: "/credencial" }} etiqueta="CREDENCIAL"
-                titulo={encabezado.titulo} texto={encabezado.texto} />
-            <PasosTramite actual={pasoDelEstado(vista === "solicitud" ? "solicitud" : "seguimiento", estado)} />
-            {vista === "seguimiento" && sesionSimulada && <SelectorEstados actual={estado} alElegir={elegirEjemplo} />}
-            <SeccionVisitante fondo="crema">{contenido}</SeccionVisitante>
+            <EncabezadoPublico icono={iconosSeccion.credencial} etiqueta="Credencial" titulo={encabezado.titulo} texto={encabezado.texto} />
+            <section className={`contacto-seccion contacto-seccion--crema cred-pagina cred-pagina--tramite${sigue ? " cred-pagina--sigue" : ""}`}>
+                <div className="contacto-pila">
+                    <PasosTramite actual={pasoDelEstado(vista === "solicitud" ? "solicitud" : "seguimiento", estado)}
+                        pagina={vista === "solicitud" ? 2 : 3} solicitar={puedeSolicitar(tramite.estado)} />
+                    {vista === "seguimiento" && sesionSimulada && <SelectorEstados actual={estado} alElegir={verEjemplo} />}
+                    {contenido}
+                </div>
+            </section>
         </PaginaPublica>
     );
 }
 
 function textosEncabezado(vista: Vista, estado: TramiteCredencial["estado"]): { titulo: ReactNode; texto: string } {
     if (vista === "solicitud") return { titulo: <>Solicitar <span>credencial</span></>,
-        texto: "Confirma tus datos y envía tu solicitud. El personal de la biblioteca la recibirá y podrás seguir su avance." };
-    if (vista === "enviada") return { titulo: <>Solicitud <span>enviada</span></>,
-        texto: "Registramos tu solicitud de credencial. El personal de la biblioteca la revisará y podrás seguir su avance." };
-    if (estado === "correccion") return { titulo: <>Mi <span>credencial</span></>, texto: "Estado de tu solicitud de credencial." };
-    if (estado === "vigente") return { titulo: <>Mi <span>credencial</span></>, texto: "Tu credencial está validada y vigente." };
-    if (estado === "vencida") return { titulo: <>Mi <span>credencial</span></>, texto: "Tu credencial dura 2 años." };
-    return { titulo: <>Seguimiento de tu <span>credencial</span></>,
-        texto: "Consulta en qué etapa va tu trámite. El personal revisa tu solicitud y actualiza su estado; los cambios se reflejan aquí." };
+        texto: "Confirma tus datos y envía tu solicitud; el personal la revisará y podrás seguir su avance." };
+    if (estado === "vigente" || estado === "vencida") return { titulo: <>Mi <span>credencial</span></>, texto: "Tu credencial y sus fechas." };
+    return { titulo: <>Seguimiento de tu <span>credencial</span></>, texto: "En qué etapa va tu trámite; los cambios del personal se reflejan aquí." };
 }
 
-// ---------- Solicitud ----------
-function CampoLectura({ id, etiqueta, valor }: { id: string; etiqueta: string; valor: string }) {
+// Columna derecha de las tres vistas: una tarjeta propia de la vista y la tarjeta verde de ayuda que toma el alto restante
+// compacta: en la solicitud (columna izquierda más baja), la ayuda va sin insignia ni texto para caber a 1366 × 768.
+function Lateral({ children, compacta = false }: { children: ReactNode; compacta?: boolean }) {
     return (
-        <div className="cred-campo">
-            <label htmlFor={id}>{etiqueta}<span>(obligatorio)</span></label>
-            <input id={id} value={valor} readOnly />
+        <div className="contacto-lateral">
+            {children}
+            <section className={`contacto-seguimiento cred-ayuda${compacta ? " cred-ayuda--compacta" : ""}`} aria-labelledby="titulo-ayuda-credencial">
+                <span className="contacto-seguimiento__insignia" aria-hidden="true" />
+                <h2 id="titulo-ayuda-credencial">¿Necesitas ayuda?</h2>
+                <p>El personal te orienta con tu trámite.</p>
+                <ul className="cred-ayuda__canales">
+                    <li><span>Horario</span><strong>Lunes a viernes, de 8:00 a 19:30 h</strong></li>
+                    <li><span>En la biblioteca</span><strong>Pide apoyo en Préstamos</strong></li>
+                    <li><span>Correo</span><a href="mailto:bp0165@dgb.gob.mx">bp0165@dgb.gob.mx</a></li>
+                </ul>
+                <a href="tel:+523112128989" className="perfil-boton perfil-boton--guardar">Llamar al 311 212 8989</a>
+            </section>
         </div>
     );
 }
 
+// ---------- Solicitud ----------
 function Solicitud({ perfil }: { perfil: PerfilPropio }) {
     const navegar = useNavigate();
     const [parametros] = useSearchParams();
@@ -135,7 +152,7 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
         bloqueo.current = true; setEnviando(true); setErrorEnvio("");
         // Se registra en el servidor; si falla, lo escrito se conserva para reintentar
         enviarSolicitud(datos)
-            .then(() => navegar("/credencial/enviada"))
+            .then(() => navegar("/credencial/seguimiento", { state: { enviada: true } }))
             .catch((error) => { setErrorEnvio(mensajeError(error)); bloqueo.current = false; setEnviando(false); });
     }
 
@@ -145,204 +162,202 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
     ];
 
     return (
-        <div className="cred-columnas">
-            <form className="cred-tarjeta cred-formulario" onSubmit={enviar} noValidate>
-                <fieldset className="cred-grupo">
-                    <legend className="cred-subtitulo"><span>1</span>Tipo de trámite</legend>
-                    <div className="cred-opciones">
+        <div className="contacto-columnas contacto-columnas--nuevo">
+            <form className="formulario-contacto cred-formulario" onSubmit={enviar} noValidate aria-labelledby="titulo-solicitud" aria-busy={enviando}>
+                <h2 id="titulo-solicitud" className="formulario-contacto__titulo">Tu solicitud</h2>
+
+                <fieldset className="cred-grupo" disabled={enviando}>
+                    <legend className="cred-grupo__titulo">Tipo de trámite</legend>
+                    <div className="perfil-opciones cred-opciones-tipo">
                         {opciones.map((o) => (
-                            <label key={o.valor} className={`cred-opcion${tipo === o.valor ? " cred-opcion--elegida" : ""}`}>
+                            <label key={o.valor} className={`perfil-opcion${tipo === o.valor ? " perfil-opcion--activa" : ""}`}>
                                 <input type="radio" name="tipo" value={o.valor} checked={tipo === o.valor} onChange={() => setTipo(o.valor)} />
-                                <span className="cred-opcion__radio" aria-hidden="true">{tipo === o.valor && <img src={radioMarcado} alt="" />}</span>
-                                <span className="cred-opcion__textos"><strong>{o.titulo}</strong>{o.texto}</span>
+                                <strong>{o.titulo}</strong>
+                                <span>{o.texto}</span>
                             </label>
                         ))}
                     </div>
                 </fieldset>
 
-                <fieldset className="cred-grupo">
-                    <legend className="cred-subtitulo"><span>2</span>Confirma tus datos</legend>
-                    <Nota color="verde" icono={infoVerde}>
-                        Estos datos vienen de tu cuenta. Si algo está mal, corrígelo en tu <Link to="/mi-perfil/datos/editar">perfil</Link> antes de enviar.
-                    </Nota>
-                    <div className="cred-fila">
-                        <CampoLectura id="cred-nombres" etiqueta="Nombre(s)" valor={perfil.nombres} />
-                        <CampoLectura id="cred-apellidos" etiqueta="Apellidos" valor={[perfil.primerApellido, perfil.segundoApellido].filter(Boolean).join(" ")} />
+                <section className="cred-grupo" aria-labelledby="titulo-tus-datos">
+                    <h3 id="titulo-tus-datos" className="cred-grupo__titulo">Tus datos</h3>
+                    <dl className="perfil-datos">
+                        <Dato etiqueta="Nombre completo" valor={nombreCompleto(perfil)} icono={ic.persona} ancho={2} />
+                        <Dato etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} icono={ic.fecha} />
+                        <Dato etiqueta="Teléfono" valor={perfil.telefono} icono={ic.telefono} />
+                        <Dato etiqueta="Correo electrónico" valor={perfil.correo} icono={ic.correo} ancho={2} />
+                        <Dato etiqueta="Domicilio" icono={ic.lugar} ancho={2}
+                            valor={[[domicilio.calle, domicilio.numeroExterior].filter(Boolean).join(" "), domicilio.colonia, domicilio.codigoPostal && `C. P. ${domicilio.codigoPostal}`].filter(Boolean).join(", ")} />
+                    </dl>
+                    <div className="perfil-nota">
+                        <img src={notaInfo} alt="" />
+                        <p>Vienen de tu cuenta. Si algo está mal, corrígelo en <Link to="/mi-perfil/datos/editar">Mis datos</Link> antes de enviar.</p>
                     </div>
-                    <div className="cred-fila">
-                        <CampoLectura id="cred-fecha" etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} />
-                        <CampoLectura id="cred-telefono" etiqueta="Teléfono" valor={perfil.telefono} />
-                    </div>
-                    <CampoLectura id="cred-correo" etiqueta="Correo electrónico" valor={perfil.correo} />
-                    <div className="cred-fila">
-                        <CampoLectura id="cred-calle" etiqueta="Calle" valor={[domicilio.calle, domicilio.numeroExterior].filter(Boolean).join(" ")} />
-                        <CampoLectura id="cred-colonia" etiqueta="Colonia o localidad" valor={domicilio.colonia} />
-                    </div>
-                    <div className="cred-fila cred-fila--corta">
-                        <CampoLectura id="cred-cp" etiqueta="Código postal" valor={domicilio.codigoPostal} />
-                    </div>
-                </fieldset>
+                </section>
 
                 <fieldset className="cred-grupo" disabled={enviando}>
-                    <legend className="cred-subtitulo"><span>3</span>Cotejo presencial</legend>
-                    <div className="cred-campo">
-                        <label htmlFor="cred-horario">Horario preferido para acudir a Préstamos (opcional)</label>
-                        <select id="cred-horario" value={horario} onChange={(e) => setHorario(e.target.value)}>
-                            <option value="">Selecciona una opción</option>
-                            {horariosCotejo.map((h) => <option key={h} value={h}>{h}</option>)}
-                        </select>
-                    </div>
-                    <div className="cred-campo">
-                        <label htmlFor="cred-comentarios">Comentarios para el personal (opcional)</label>
-                        <input id="cred-comentarios" value={comentarios} maxLength={500} placeholder="Escribe si necesitas apoyo o tienes alguna duda"
-                            onChange={(e) => setComentarios(e.target.value)} aria-invalid={errores.comentarios ? true : undefined} />
-                        {errores.comentarios && <p className="cred-error-campo">{errores.comentarios}</p>}
+                    <legend className="cred-grupo__titulo">Cotejo presencial</legend>
+                    <div className="perfil-fila">
+                        <div className="perfil-campo">
+                            <label htmlFor="cred-horario">Horario para acudir a Préstamos<span>(opcional)</span></label>
+                            <select id="cred-horario" value={horario} onChange={(e) => setHorario(e.target.value)}>
+                                <option value="">Selecciona una opción</option>
+                                {horariosCotejo.map((h) => <option key={h} value={h}>{h}</option>)}
+                            </select>
+                        </div>
+                        <Campo id="cred-comentarios" etiqueta="Comentarios para el personal" obligatorio={false} valor={comentarios}
+                            alCambiar={setComentarios} maximo={500} marcador="Si necesitas apoyo o tienes una duda" error={errores.comentarios} />
                     </div>
                     <label className="cred-casilla">
                         <input id="cred-aceptaCotejo" type="checkbox" checked={aceptaCotejo} onChange={(e) => setAceptaCotejo(e.target.checked)}
-                            aria-invalid={errores.aceptaCotejo && !aceptaCotejo ? true : undefined} />
+                            aria-invalid={errores.aceptaCotejo && !aceptaCotejo ? true : undefined}
+                            aria-describedby={errores.aceptaCotejo && !aceptaCotejo ? "cred-aceptaCotejo-error" : undefined} />
                         Entiendo que debo acudir a Préstamos para el cotejo presencial; enviar la solicitud no valida mi credencial.
                     </label>
-                    {errores.aceptaCotejo && !aceptaCotejo && <p className="cred-error-campo">{errores.aceptaCotejo}</p>}
+                    {errores.aceptaCotejo && !aceptaCotejo && <p id="cred-aceptaCotejo-error" className="cred-error-campo">{errores.aceptaCotejo}</p>}
                     <label className="cred-casilla">
                         <input id="cred-aceptaAviso" type="checkbox" checked={aceptaAviso} onChange={(e) => setAceptaAviso(e.target.checked)}
-                            aria-invalid={errores.aceptaAviso && !aceptaAviso ? true : undefined} />
-                        Acepto el aviso de privacidad (texto por confirmar).
+                            aria-invalid={errores.aceptaAviso && !aceptaAviso ? true : undefined}
+                            aria-describedby={errores.aceptaAviso && !aceptaAviso ? "cred-aceptaAviso-error" : undefined} />
+                        Acepto el aviso de privacidad.
                     </label>
-                    {errores.aceptaAviso && !aceptaAviso && <p className="cred-error-campo">{errores.aceptaAviso}</p>}
+                    {errores.aceptaAviso && !aceptaAviso && <p id="cred-aceptaAviso-error" className="cred-error-campo">{errores.aceptaAviso}</p>}
                 </fieldset>
 
                 {errorEnvio && <p className="cred-error-campo" role="alert">No pudimos enviar tu solicitud: {errorEnvio}</p>}
-                <div className="cred-acciones">
-                    <button type="submit" className="boton-visitante" disabled={enviando}>
-                        {enviando ? "Enviando…" : "Enviar solicitud"} <img src={flechaBlanca} alt="" />
-                    </button>
-                    <Link to="/credencial" className="boton-visitante cred-boton-contorno">Volver a información</Link>
+                <div className="perfil-acciones">
+                    <button type="submit" className="perfil-boton" disabled={enviando}>{enviando ? "Enviando…" : "Enviar solicitud"}</button>
+                    <Link to="/credencial" className="perfil-boton perfil-boton--contorno">Volver a información</Link>
                 </div>
+                <p className="solo-lectores" role="status">{enviando ? "Enviando, espera un momento." : ""}</p>
             </form>
 
-            <aside className="cred-lateral cred-lateral--fijo">
-                <div className="cred-tarjeta cred-tarjeta--verde">
-                    <p className="cred-sobretitulo cred-sobretitulo--verde">QUÉ PASA AL ENVIAR</p>
+            <Lateral compacta>
+                <TarjetaPerfil color="verde" icono={tarjetaLista} titulo="Qué pasa al enviar">
                     <ol className="cred-mini-pasos">
-                        <li><span>1</span><div><strong>Se registra tu solicitud</strong>Recibirás un folio para identificarla.</div></li>
-                        <li><span>2</span><div><strong>El personal la ve en su panel</strong>Un responsable de Préstamos la revisa.</div></li>
-                        <li><span>3</span><div><strong>Tú sigues el avance</strong>El estado cambia en la sección Seguimiento.</div></li>
+                        <li><span>1</span><div><strong>Se registra tu solicitud</strong>Recibes un folio para identificarla.</div></li>
+                        <li><span>2</span><div><strong>El personal la revisa</strong>Un responsable de Préstamos la ve en su panel.</div></li>
+                        <li><span>3</span><div><strong>Sigues su avance</strong>El estado cambia en el seguimiento.</div></li>
                     </ol>
-                    <Nota color="dorada" icono={usuarioDorado}>
-                        Si eres menor de 18 años, el personal también usará los datos de tu madre, padre o tutor registrados en tu cuenta.
-                    </Nota>
-                </div>
-                <div className="cred-tarjeta cred-ayuda">
-                    <h3>¿Necesitas ayuda?</h3>
-                    <p>Pide apoyo al personal en la biblioteca o llama al <a href="tel:+523112128989">311 212 8989</a>, de lunes a viernes de 8:00 a 19:30 h.</p>
-                </div>
-            </aside>
+                    <div className="perfil-nota perfil-nota--dorada">
+                        <img src={notaInfoDorada} alt="" />
+                        <p>Si eres menor de 18 años, el personal también usará los datos de tu madre, padre o tutor.</p>
+                    </div>
+                </TarjetaPerfil>
+            </Lateral>
         </div>
     );
 }
 
-// ---------- Solicitud enviada ----------
-function Enviada({ tramite }: { tramite: TramiteCredencial }) {
-    return (
-        <div className="cred-tarjeta cred-confirmacion">
-            <div className="cred-tramite__encabezado">
-                <span className="cred-tramite__icono cred-tramite__icono--verde"><img src={checkEnviada} alt="" /></span>
-                <div className="cred-tramite__textos">
-                    <Chip color="verde">Solicitud enviada</Chip>
-                    <h2>Tu solicitud quedó registrada</h2>
-                    <p>El personal de Préstamos la verá en su panel. Cuando termine la revisión, te pediremos acudir a la biblioteca.</p>
-                </div>
-            </div>
-            <dl className="cred-datos cred-datos--fila">
-                <DatoCred etiqueta="FOLIO" valor={tramite.folio ?? "Por asignar"} />
-                <DatoCred etiqueta="TIPO DE TRÁMITE" valor={textoTipo[tramite.tipo]} />
-                <DatoCred etiqueta="ESTADO" valor="En revisión" />
-            </dl>
-            <Nota color="dorada" icono={infoDorado}>Acude a Préstamos para el cotejo presencial. Enviar la solicitud no valida tu credencial.</Nota>
-            <div className="cred-acciones">
-                <Link to="/credencial/seguimiento" className="boton-visitante">Ver seguimiento <img src={flechaBlanca} alt="" /></Link>
-                <Link to="/" className="boton-visitante cred-boton-contorno">Volver al inicio</Link>
-            </div>
-        </div>
-    );
-}
-
-// ---------- Seguimiento · en revisión ----------
-// Arriba, el estado en grande con su avance; debajo, las etapas. El resumen queda fijo a la derecha al bajar.
+// ---------- Seguimiento (en revisión, corrección, vigente o vencida) ----------
 function folioCorto(folio: string | null) {
     return folio ? folio.slice(0, 8).toUpperCase() : "Por asignar";
 }
 
 function Seguimiento({ tramite, titular }: { tramite: TramiteCredencial; titular: string }) {
-    const hechas = etapasEnRevision.filter((e) => e.estado === "hecho").length;
-    const avance = Math.round(((hechas + 0.5) / etapasEnRevision.length) * 100);
+    const datos = estadosCredencial[tramite.estado];
+    const emitida = tramite.estado === "vigente" || tramite.estado === "vencida";
+    const recienEnviada = (useLocation().state as { enviada?: boolean } | null)?.enviada === true && tramite.estado === "en-revision";
     return (
-        <div className="cred-columnas cred-columnas--seguimiento">
-            <div className="cred-seguimiento-principal">
-                <section className="cred-tarjeta cred-estado" aria-labelledby="titulo-estado">
-                    <div className="cred-estado__cabecera">
-                        <span className="cred-estado__icono" aria-hidden="true"><span className="cred-estado__pulso" /></span>
-                        <div className="cred-estado__textos">
-                            <Chip color="dorado">En revisión</Chip>
-                            <h2 id="titulo-estado">Tu solicitud está en revisión</h2>
-                            <p>El personal de Préstamos está revisando tus datos. Cuando termine, te pediremos acudir a la biblioteca para el cotejo.</p>
+        <div className="contacto-columnas contacto-columnas--nuevo">
+            <div className="cred-principal">
+                <EstadoCredencial datos={datos} titular={titular} tramite={tramite} nivel={2}>
+                    {!emitida && (
+                        <dl className="perfil-datos perfil-datos--tres">
+                            <Dato etiqueta="Folio" valor={folioCorto(tramite.folio)} />
+                            <Dato etiqueta="Trámite" valor={tramite.tipo === "renovacion" ? "Renovación" : "Primera vez"} />
+                            <Dato etiqueta="Enviada" valor={tramite.solicitadaEl ? fechaCorta(tramite.solicitadaEl) : "Por confirmar"} />
+                        </dl>
+                    )}
+                    {recienEnviada && (
+                        <p className="perfil-nota cred-aviso" role="status">
+                            <img src={notaInfo} alt="" />
+                            <span><strong>Tu solicitud quedó registrada.</strong> Ya está en proceso; aquí verás cada cambio.</span>
+                        </p>
+                    )}
+                    {tramite.estado === "vencida" && (
+                        <div className="perfil-acciones">
+                            <Link to="/credencial/solicitud?tipo=renovacion" className="perfil-boton">Solicitar renovación</Link>
                         </div>
-                    </div>
-                    <div className="cred-avance" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={avance}
-                        aria-label={`Avance del trámite: etapa ${hechas + 1} de ${etapasEnRevision.length}`}>
-                        <div className="cred-avance__barra"><span style={{ width: `${avance}%` }} /></div>
-                        <p>Etapa {hechas + 1} de {etapasEnRevision.length}</p>
-                    </div>
-                    <dl className="cred-estado__datos">
-                        <div><dt>Folio</dt><dd title={tramite.folio ?? undefined}>{folioCorto(tramite.folio)}</dd></div>
-                        <div><dt>Trámite</dt><dd>{textoTipo[tramite.tipo]}</dd></div>
-                        <div><dt>Enviada</dt><dd>{tramite.solicitadaEl ? fechaLarga(tramite.solicitadaEl) : "—"}</dd></div>
-                    </dl>
-                </section>
-
-                <section className="cred-tarjeta cred-seguimiento" aria-labelledby="titulo-etapas">
-                    <p className="cred-sobretitulo" id="titulo-etapas">ETAPAS DEL TRÁMITE</p>
-                    <EtapasTramite etapas={etapasEnRevision} />
-                </section>
-
-                <Nota color="verde" icono={infoSeguimiento}>
-                    ¿Qué sigue? Te avisaremos en tus notificaciones cuando debas acudir a Préstamos para el cotejo presencial.
-                </Nota>
-                <div className="cred-acciones">
-                    <Link to="/contacto" className="boton-visitante">Contactar a la biblioteca <img src={flechaBlanca} alt="" /></Link>
-                    <Link to="/credencial" className="boton-visitante cred-boton-contorno">Ver requisitos</Link>
-                </div>
+                    )}
+                    {puedeCancelar(tramite.estado) && <CancelarSolicitud folio={folioCorto(tramite.folio)} />}
+                </EstadoCredencial>
+                {tramite.estado === "correccion" ? <Correccion /> : (
+                    <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo avanza tu trámite"
+                        texto={emitida ? "Terminaste los cuatro pasos." : "Te avisaremos en tus notificaciones cuando debas acudir al cotejo."}>
+                        <RutaCredencial etapas={etapasCredencial(datos.paso)} />
+                    </TarjetaPerfil>
+                )}
             </div>
 
-            <aside className="cred-lateral cred-lateral--fijo">
-                <div className="cred-tarjeta cred-tarjeta--verde">
-                    <p className="cred-sobretitulo cred-sobretitulo--verde">RESUMEN DE LA SOLICITUD</p>
-                    <dl className="cred-datos">
-                        <DatoCred etiqueta="SOLICITANTE" valor={titular} />
-                        <DatoCred etiqueta="REVISA" valor="Personal de Préstamos" />
-                        <DatoCred etiqueta="VIGENCIA" valor="2 años desde que se valide" />
-                    </dl>
-                </div>
-                <div className="cred-tarjeta">
-                    <p className="cred-sobretitulo">PARA EL COTEJO LLEVA</p>
+            <Lateral>
+                <TarjetaPerfil color="dorada" icono={tarjetaUsuario} titulo={emitida ? "Con tu credencial puedes" : "Para el cotejo lleva"}>
                     <ul className="cred-lista">
-                        <li><img src={checkLista} alt="" />Tus datos de contacto actualizados en tu perfil</li>
-                        <li><img src={checkLista} alt="" />Una identificación para el cotejo presencial</li>
+                        {(emitida
+                            ? ["Solicitar espacios de la biblioteca desde el portal.", "Registrar tu progreso de participación.", "Conservar tu cuenta e historial aunque venza."]
+                            : ["Una identificación oficial.", "Tus datos de contacto al día en tu perfil."]
+                        ).map((t) => <li key={t}><img src={checkLista} alt="" />{t}</li>)}
                     </ul>
-                </div>
-            </aside>
+                </TarjetaPerfil>
+            </Lateral>
+        </div>
+    );
+}
+
+// ---------- Cancelar la solicitud ----------
+// Primero un botón guinda; al pulsarlo, la confirmación en una nota rosa (se puede arrepentir). Al cancelar, vuelve a
+// la información con el aviso de que se canceló. Si el servidor aún no permite cancelar, se explica cómo hacerlo con el personal.
+function CancelarSolicitud({ folio }: { folio: string }) {
+    const navegar = useNavigate();
+    const [confirmando, setConfirmando] = useState(false);
+    const [cerrando, setCerrando] = useState(false); // «No, conservarla»: la nota se recoge (0.3 s) antes de volver al botón
+    const [cancelando, setCancelando] = useState(false);
+    const [error, setError] = useState("");
+    function cancelar() {
+        setCancelando(true); setError("");
+        cancelarSolicitud()
+            .then(() => navegar("/credencial", { state: { cancelada: true } }))
+            .catch((e) => {
+                setCancelando(false);
+                const codigo = e instanceof ErrorServicio ? e.estado : 0;
+                setError(codigo === 405 || codigo === 422 // la base aún no tiene la operación (falta cancelacion_credencial_propia.sql)
+                    ? "Por ahora no se puede cancelar en línea. Llama al 311 212 8989 o pide al personal de Préstamos que la cancele."
+                    : codigo === 409 ? "Tu solicitud ya cambió de estado y no se puede cancelar. Recarga la página para ver cómo va."
+                    : mensajeError(e));
+            });
+    }
+    if (!confirmando) {
+        return (
+            <div key="boton" className="perfil-acciones">
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={() => setConfirmando(true)}>
+                    Cancelar solicitud
+                </button>
+            </div>
+        );
+    }
+    return (
+        <div key="confirmacion" className={`perfil-nota perfil-nota--guinda cred-cancelar${cerrando ? " cred-cancelar--cerrando" : ""}`} role="group" aria-labelledby="titulo-cancelar">
+            <p><strong id="titulo-cancelar">{folio === "Por asignar" ? "¿Cancelar tu solicitud?" : `¿Cancelar tu solicitud ${folio}?`}</strong>
+                El personal ya no la revisará. Si después la necesitas, puedes solicitarla de nuevo.</p>
+            {error && <p className="cred-error-campo" role="alert">{error}</p>}
+            <div className="perfil-acciones">
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={cancelar} disabled={cancelando}>
+                    {cancelando ? "Cancelando…" : "Sí, cancelar"}
+                </button>
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno"
+                    onClick={() => { setCerrando(true); window.setTimeout(() => { setConfirmando(false); setCerrando(false); setError(""); }, 300); }}
+                    disabled={cancelando}>No, conservarla</button>
+            </div>
         </div>
     );
 }
 
 // ---------- Corrección solicitada ----------
-function Correccion({ tramite }: { tramite: TramiteCredencial }) {
-    const navegar = useNavigate();
+// TODO backend: POST /credenciales/solicitudes/{folio}/correccion (ver datos.ts); por ahora solo regresa el trámite a revisión.
+function Correccion() {
     const [nombre, setNombre] = useState("");
     const [numero, setNumero] = useState("");
     const [errores, setErrores] = useState<{ nombre?: string; numero?: string }>({});
-    const [enviada, setEnviada] = useState(false);
     function enviar(e: FormEvent) {
         e.preventDefault();
         const encontrados = validarCorreccion({ nombre, numero });
@@ -351,87 +366,26 @@ function Correccion({ tramite }: { tramite: TramiteCredencial }) {
             document.getElementById(encontrados.nombre ? "cor-nombre" : "cor-numero")?.focus();
             return;
         }
-        setEnviada(true);
-        enviarCorreccion();
+        enviarCorreccion(); // el trámite vuelve a «En revisión»
     }
-    if (enviada) return null; // al enviar, el trámite vuelve a «En revisión»
     return (
-        <div className="cred-columnas">
-            <form className="cred-tarjeta cred-correccion" onSubmit={enviar} noValidate>
-                <Chip color="dorado">Cotejo pendiente</Chip>
-                <Nota color="guinda" icono={alertaGuinda} rol="alert">
-                    El personal pidió una corrección. {tramite.motivoCorreccion} Corrígelos para continuar. No se pierde tu solicitud.
-                </Nota>
-                <h2>Corregir solicitud</h2>
-                <div className="cred-campo">
-                    <label htmlFor="cor-nombre">Nombre como aparece en tu identificación<span>(obligatorio)</span></label>
-                    <input id="cor-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ejemplo: Ana López"
-                        maxLength={200} required aria-invalid={errores.nombre ? true : undefined} aria-describedby={errores.nombre ? "cor-nombre-error" : undefined} />
-                    {errores.nombre && <p id="cor-nombre-error" className="cred-error-campo">{errores.nombre}</p>}
+        <form className="perfil-tarjeta perfil-tarjeta--rosa cred-correccion" onSubmit={enviar} noValidate aria-labelledby="titulo-correccion">
+            <div className="perfil-tarjeta__cabecera">
+                <span className="perfil-tarjeta__icono"><img src={tarjetaCandado} alt="" /></span>
+                <div>
+                    <h3 id="titulo-correccion">Corregir solicitud</h3>
+                    <p>Escribe tus datos como aparecen en tu identificación. Tu solicitud no se pierde.</p>
                 </div>
-                <div className="cred-campo">
-                    <label htmlFor="cor-numero">Número de identificación<span>(obligatorio)</span></label>
-                    <input id="cor-numero" value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="Ejemplo: INE ****1234"
-                        maxLength={40} required aria-invalid={errores.numero ? true : undefined} aria-describedby={errores.numero ? "cor-numero-error" : undefined} />
-                    {errores.numero && <p id="cor-numero-error" className="cred-error-campo">{errores.numero}</p>}
-                </div>
-                <div className="cred-acciones">
-                    <button type="submit" className="boton-visitante">Enviar corrección <img src={flechaBlanca} alt="" /></button>
-                    <button type="button" className="boton-visitante cred-boton-contorno" onClick={() => navegar("/credencial")}>Cancelar</button>
-                </div>
-            </form>
-            <aside className="cred-lateral cred-lateral--fijo">
-                <div className="cred-tarjeta cred-tarjeta--verde">
-                    <p className="cred-sobretitulo cred-sobretitulo--verde">QUÉ SIGUE</p>
-                    <p className="cred-texto">Al enviar la corrección, el personal de Préstamos la revisará y hará el cotejo cuando acudas a la biblioteca.</p>
-                </div>
-            </aside>
-        </div>
-    );
-}
-
-// ---------- Credencial vigente o vencida ----------
-function MiCredencial({ tramite, titular }: { tramite: TramiteCredencial; titular: string }) {
-    const vencida = tramite.estado === "vencida";
-    return (
-        <div className="cred-columnas cred-columnas--mitad">
-            <TarjetaCredencial titular={titular} vencida={vencida} emision={tramite.emision} />
-            <div className="cred-lateral">
-                {vencida ? (
-                    <div className="cred-tarjeta cred-vencida">
-                        <Chip color="guinda">Vencida</Chip>
-                        <h2>Tu credencial venció</h2>
-                        <p>
-                            Venció el {tramite.vencimiento ? fechaLarga(tramite.vencimiento) : "—"} (ejemplo). Puedes solicitar la renovación en línea
-                            y acudir a que el personal la coteje.
-                        </p>
-                        <Nota color="dorada" icono={alertaDorada}>Mientras no renueves, algunos servicios en sala pueden no estar disponibles.</Nota>
-                        <div className="cred-acciones">
-                            <Link to="/credencial/solicitud?tipo=renovacion" className="boton-visitante">Solicitar renovación <img src={flechaBlanca} alt="" /></Link>
-                        </div>
-                    </div>
-                ) : <>
-                    <div className="cred-tarjeta">
-                        <p className="cred-sobretitulo">ESTADO DE TU CREDENCIAL</p>
-                        <Chip color="verde">Vigente</Chip>
-                        <dl className="cred-datos">
-                            <DatoCred etiqueta="VIGENCIA" valor="2 años desde la emisión" />
-                            <DatoCred etiqueta="FECHA DE EMISIÓN" valor={tramite.emision ? fechaLarga(tramite.emision) : "Por confirmar"} />
-                        </dl>
-                    </div>
-                    <div className="cred-tarjeta cred-tarjeta--verde">
-                        <p className="cred-sobretitulo cred-sobretitulo--verde">CON TU CREDENCIAL PUEDES</p>
-                        <ul className="cred-lista">
-                            <li><img src={checkLista} alt="" />Solicitar espacios de la biblioteca desde el portal.</li>
-                            <li><img src={checkLista} alt="" />Registrar tu progreso de participación y, cuando existan, recompensas.</li>
-                            <li><img src={checkLista} alt="" />Conservar tu cuenta e historial aunque la credencial venza.</li>
-                        </ul>
-                    </div>
-                    <div className="cred-acciones">
-                        <Link to="/credencial/seguimiento" className="boton-visitante cred-boton-contorno">Ver seguimiento de mi solicitud</Link>
-                    </div>
-                </>}
             </div>
-        </div>
+            <div className="perfil-fila">
+                <Campo id="cor-nombre" etiqueta="Nombre como aparece en tu identificación" valor={nombre} alCambiar={setNombre}
+                    marcador="Ana López García" maximo={200} error={errores.nombre} icono={ic.persona} />
+                <Campo id="cor-numero" etiqueta="Número de identificación" valor={numero} alCambiar={setNumero}
+                    marcador="INE ****1234" maximo={40} error={errores.numero} icono={iconosSeccion.credencial} />
+            </div>
+            <div className="perfil-acciones">
+                <button type="submit" className="perfil-boton">Enviar corrección</button>
+            </div>
+        </form>
     );
 }

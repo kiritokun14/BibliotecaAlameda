@@ -104,7 +104,7 @@ function Progreso() {
                 )}
                 {filas.length > 0 && (
                     <div className="cn-pie-tabla">
-                        <p>Mostrando {visibles.length} de {filas.length} (ejemplo)</p>
+                        <p>Mostrando {visibles.length} de {filas.length}</p>
                         <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
                     </div>
                 )}
@@ -154,7 +154,7 @@ function Progreso() {
                                 filas={filas}
                                 clave={(r) => r.id}
                             />
-                            <p className="cn-nota">{filas.length} recompensas (ejemplo)</p>
+                            <p className="cn-nota">{filas.length} recompensas</p>
                         </>
                     )}
                 </Tarjeta>
@@ -184,7 +184,7 @@ function Progreso() {
                                 filas={filas}
                                 clave={(e) => e.id}
                             />
-                            <p className="cn-nota">{filas.length} entregas (ejemplo)</p>
+                            <p className="cn-nota">{filas.length} entregas</p>
                         </>
                     )}
                 </Tarjeta>
@@ -203,9 +203,9 @@ function Progreso() {
                         insignia="Progreso y recompensas"
                         titulo="Resumen del"
                         resalte="programa"
-                        subtitulo="Metas, avances y recompensas de participantes · cifras de ejemplo"
+                        subtitulo="Metas, avances y recompensas de participantes"
                         accesos={[
-                            { icono: iconoCheck, numero: participantes.length, titulo: "Participantes activos", texto: "Con cuenta (ejemplo)", enlace: "", tono: "verde" },
+                            { icono: iconoCheck, numero: participantes.length, titulo: "Participantes activos", texto: "Con cuenta", enlace: "", tono: "verde" },
                             { icono: iconoCheck, numero: cumplidasMes, titulo: "Metas cumplidas", texto: "Este mes", enlace: "Ver metas", tono: "verde", alPresionar: () => ir("reglas") },
                             { icono: iconoReloj, numero: porEntregar, titulo: "Recompensas por entregar", texto: "Pendientes", enlace: "Ver recompensas", tono: "dorado", alPresionar: () => ir("recompensas") },
                             { icono: iconoArchivo, numero: ajustesMes, titulo: "Ajustes manuales", texto: "Este mes", enlace: "Ver ficha", tono: "guinda", alPresionar: () => { const p = participantes.find((x) => x.avances.some((a) => a.origen === "Ajuste manual")); if (p) navigate(`${BASE_PROGRESO}/${p.folio}`); } },

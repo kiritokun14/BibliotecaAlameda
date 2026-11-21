@@ -6,8 +6,6 @@ import circuloChico from "../../../assets/acerca/circulo-chico.svg";
 import texturaLibros from "../../../assets/acerca/textura-libros.svg";
 import texturaRama from "../../../assets/acerca/textura-rama.svg";
 import texturaCredencial from "../../../assets/acerca/textura-credencial.svg";
-import iconoLibro from "../../../assets/comun/iconos/lecturas-libro.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 
 // Piezas que comparten las pestañas de "Acerca de"
 
@@ -63,24 +61,16 @@ export function SeccionAcerca({
     );
 }
 
-// Sección de «Acerca de» que todavía no tiene información publicada
+// Sección de «Acerca de» que todavía no tiene información publicada (vacío importante del catálogo, con insignia)
 export function SinInformacion({ seccion, otra }: { seccion: string; otra: { texto: string; ruta: string } }) {
     return (
-        <div className="estado-acerca" role="status">
-            <span className="estado-acerca__anillo">
-                <span className="estado-acerca__icono">
-                    <img src={iconoLibro} alt="" />
-                </span>
-            </span>
-            <p className="estado-acerca__etiqueta">SIN INFORMACIÓN PUBLICADA</p>
-            <h2>{seccion} todavía no tiene información</h2>
-            <p className="estado-acerca__texto">La biblioteca está preparando este contenido. Mientras tanto, puedes conocer otra sección o escribirnos si tienes dudas.</p>
-            <div className="estado-acerca__botones">
-                <Link to={otra.ruta} className="boton-acerca boton-acerca--verde">
-                    {otra.texto}
-                    <img src={flechaBlanca} alt="" />
-                </Link>
-                <Link to="/contacto" className="boton-acerca boton-acerca--contorno">Ir a Contacto</Link>
+        <div className="perfil-vacio perfil-vacio--eventos" role="status">
+            <span className="perfil-vacio__insignia" aria-hidden="true" />
+            <p><strong>{seccion} todavía no tiene información</strong>
+                La biblioteca está preparando este contenido. Mientras tanto, puedes conocer otra sección o escribirnos si tienes dudas.</p>
+            <div className="perfil-acciones perfil-acciones--centro">
+                <Link to={otra.ruta} className="perfil-boton">{otra.texto}</Link>
+                <Link to="/contacto" className="perfil-boton perfil-boton--contorno">Ir a Contacto</Link>
             </div>
         </div>
     );

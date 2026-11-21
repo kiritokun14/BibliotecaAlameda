@@ -1,7 +1,7 @@
 // Lecturas, reseñas y memoria pública (vista de visitante, basada en el Actor 2 de Figma).
 // Todo es de solo lectura: el visitante consulta, filtra y abre el detalle.
 // TODO backend: GET /resenas y GET /memoria (solo contenido PUBLICADO y no privado);
-// los filtros de la URL usan los mismos nombres que la API: q, genero, orden, tema, anio.
+// los filtros de la URL usan los mismos nombres que la API: Lecturas q, genero, orden; Memoria q, anio, tema, orden.
 import fotoSala from "../../../assets/comun/fotos/foto-biblioteca.webp";
 import fotoTaller from "../../../assets/comun/fotos/noticia-3.webp";
 import fotoPasillo from "../../../assets/comun/fotos/noticia-2.webp";
@@ -35,7 +35,7 @@ export type Resena = {
     genero: Genero;
     anio: number; // año de publicación del libro
     color: ColorPortada;
-    recomendada?: boolean; // en "Por tema" se marca como RECOMENDADA
+    recomendada?: boolean; // su tarjeta dice «Recomendada»
     titulo: string; // título de la reseña: "Un pueblo hecho de voces"
     resaltado?: string; // parte del título en dorado
     publicada: string; // AAAA-MM-DD
@@ -143,7 +143,7 @@ export const memorias: Memoria[] = [
     {
         id: "visita-escolar-al-archivo", titulo: "Visita escolar al archivo", resaltado: "al archivo", anio: 2024,
         imagen: fotoPasillo, temas: ["historia-regional", "infantil"], estado: "publicado",
-        entrada: "Estudiantes de primaria conocieron el archivo histórico y los periódicos antiguos de la hemeroteca.",
+        entrada: "Estudiantes de primaria conocieron el archivo histórico y el fondo regional de la biblioteca.",
         cuerpo: ["Registro autorizado para difusión. Datos de ejemplo."],
     },
     {
@@ -177,7 +177,7 @@ export function abrir<T extends { id: string; estado: Estado; privado?: boolean 
     return { tipo: "ok", item };
 }
 
-// ---------- Filtros "Por autor" ----------
+// ---------- Filtros de Lecturas ----------
 export type Orden = "recientes" | "antiguas" | "titulo";
 
 export const ORDENES: Record<Orden, string> = {
@@ -192,7 +192,7 @@ export const FILTROS_VACIOS: FiltrosResenas = { q: "", genero: "", orden: "recie
 
 const sinAcentos = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-// Búsqueda de Por tema y Memoria pública: el texto aparece en alguno de los campos, sin importar acentos ni mayúsculas
+// Búsqueda de Memoria pública: el texto aparece en alguno de los campos, sin importar acentos ni mayúsculas
 export function coincideBusqueda(busqueda: string, ...campos: (string | undefined)[]): boolean {
     const q = sinAcentos(busqueda.trim());
     return !q || campos.some((c) => c && sinAcentos(c).includes(q));
@@ -203,7 +203,7 @@ export function filtrarResenas(lista: Resena[], filtros: FiltrosResenas): Resena
     const resultado = visibles(lista).filter((r) => {
         if (filtros.genero && r.genero !== filtros.genero) return false;
         if (!texto) return true;
-        return sinAcentos(`${r.libro} ${r.autoria} ${r.titulo} ${GENEROS[r.genero]}`).includes(texto);
+        return sinAcentos(`${r.libro} ${r.autoria} ${r.titulo} ${r.entrada} ${GENEROS[r.genero]}`).includes(texto);
     });
     if (filtros.orden === "titulo") return resultado.sort((a, b) => a.libro.localeCompare(b.libro, "es"));
     const signo = filtros.orden === "antiguas" ? 1 : -1;
@@ -229,25 +229,6 @@ export function parametrosDesdeFiltros(f: FiltrosResenas): URLSearchParams {
     return p;
 }
 
-// ---------- "Por tema" ----------
-export type ItemTema = { tipo: "resena"; item: Resena } | { tipo: "memoria"; item: Memoria };
-
-export function porTema(tema: Genero | "", listaResenas = resenas, listaMemorias = memorias): ItemTema[] {
-    const r: ItemTema[] = visibles(listaResenas)
-        .filter((x) => !tema || x.genero === tema)
-        .map((item) => ({ tipo: "resena", item }));
-    const m: ItemTema[] = visibles(listaMemorias)
-        .filter((x) => !tema || x.temas.includes(tema))
-        .map((item) => ({ tipo: "memoria", item }));
-    // Alterna reseña y memoria, como en el diseño
-    const mezcla: ItemTema[] = [];
-    for (let i = 0; i < Math.max(r.length, m.length); i++) {
-        if (r[i]) mezcla.push(r[i]);
-        if (m[i]) mezcla.push(m[i]);
-    }
-    return mezcla;
-}
-
 // ---------- Memoria pública ----------
 export function aniosDeMemoria(lista = memorias): number[] {
     return [...new Set(visibles(lista).map((m) => m.anio))].sort((a, b) => b - a);
@@ -257,6 +238,26 @@ export function memoriaPorAnio(anio: number | null, lista = memorias): Memoria[]
     return visibles(lista)
         .filter((m) => anio === null || m.anio === anio)
         .sort((a, b) => b.anio - a.anio);
+}
+
+// ---------- Búsqueda, orden y temas de Memoria pública ----------
+// La búsqueda de un registro revisa todo lo que la persona puede recordar de él: título, entrada,
+// su texto completo, su año y sus temas.
+export function buscaEnMemoria(q: string, m: Memoria): boolean {
+    return coincideBusqueda(q, m.titulo, m.entrada, m.cuerpo.join(" "), String(m.anio), ...m.temas.map((t) => GENEROS[t]));
+}
+
+export type OrdenMemoria = "recientes" | "antiguos";
+export const ORDENES_MEMORIA: Record<OrdenMemoria, string> = { recientes: "Más recientes", antiguos: "Más antiguos" };
+
+export function ordenarMemoria(lista: Memoria[], orden: OrdenMemoria): Memoria[] {
+    const signo = orden === "antiguos" ? 1 : -1;
+    return [...lista].sort((a, b) => signo * (a.anio - b.anio));
+}
+
+// Temas presentes en los registros, en el orden del catálogo
+export function temasDeMemoria(lista: Memoria[]): Genero[] {
+    return (Object.keys(GENEROS) as Genero[]).filter((g) => lista.some((m) => m.temas.includes(g)));
 }
 
 // "2026-10-12" → "12 de octubre de 2026"; "oct 2026"

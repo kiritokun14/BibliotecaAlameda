@@ -102,11 +102,10 @@ function Migas({ pasos }: { pasos: [string, string?][] }) {
     );
 }
 
-function Encabezado({ etiqueta, titulo, texto, accion, tarjeta }: { etiqueta: string; titulo: string; texto?: string; accion?: ReactNode; tarjeta?: boolean }) {
+function Encabezado({ titulo, texto, accion, tarjeta }: { etiqueta?: string; titulo: string; texto?: string; accion?: ReactNode; tarjeta?: boolean }) {
     return (
         <div className={`contenidos-encabezado${tarjeta ? " contenidos-encabezado--tarjeta" : ""}`}>
             <div>
-                <p className="contenidos-etiqueta">{etiqueta}</p>
                 <h1>{titulo}</h1>
                 {texto && <p className="contenidos-encabezado__texto">{texto}</p>}
             </div>

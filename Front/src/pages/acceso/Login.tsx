@@ -1,19 +1,13 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { IconoLibro } from "../../components/portal/PantallaEstado";
 import AccesoLayout from "../../components/acceso/AccesoLayout";
 import Aviso from "../../components/acceso/Aviso";
 import { Campo, CampoContrasena } from "../../components/acceso/Campo";
 import { iniciarSesion } from "../../servicios/auth";
 import { esCorreoValido, MENSAJE_CORREO } from "../../servicios/validaciones";
-import iconoFlechaDer from "../../assets/comun/iconos/flecha-derecha.svg";
 import iconoCargando from "../../assets/comun/iconos/cargando.svg";
 import { mensajeError } from "../../servicios/api";
-
-const beneficios = [
-    "Solicitar tu credencial",
-    "Inscribirte a actividades",
-    "Solicitar espacios",
-];
 
 type Errores = { correo?: string; contrasena?: string };
 
@@ -63,13 +57,12 @@ function Login() {
     return (
         <AccesoLayout
             titulo={<>Inicia <span>sesión</span></>}
-            texto="Entra para consultar tu credencial, tus actividades y tus solicitudes."
-            beneficios={beneficios}
         >
             <form className="tarjeta" onSubmit={enviar} noValidate>
                 <div className="tarjeta__encabezado">
+                    <span className="acceso__insignia" aria-hidden="true"><IconoLibro /></span>
                     <h2>Iniciar sesión</h2>
-                    <p>Usa el correo con el que te registraste.</p>
+                    <p>Entra para consultar tu credencial, tus actividades y tus solicitudes.</p>
                 </div>
 
                 {errorServicio && <Aviso tipo="error" titulo="No pudimos conectar">{errorServicio}</Aviso>}
@@ -130,7 +123,7 @@ function Login() {
 
                 <button type="submit" className="boton-principal" disabled={enviando}>
                     {enviando ? "Iniciando sesión…" : "Iniciar sesión"}
-                    <img src={enviando ? iconoCargando : iconoFlechaDer} className={enviando ? "girando" : undefined} alt="" />
+                    {enviando && <img src={iconoCargando} className="girando" alt="" />}
                 </button>
                 {enviando && (
                     <p className="nota-enviando" role="status">

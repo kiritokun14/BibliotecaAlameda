@@ -115,7 +115,7 @@ export function FichaParticipante() {
                     alCerrar={() => setVentana(null)}
                     pie={<><button type="button" className={clasesBoton("contorno")} onClick={() => setVentana(null)}>Cancelar</button><button type="button" className={clasesBoton("verde")} disabled={ocupado || recompensa?.existencias === 0} onClick={() => void entregar()}>{ocupado ? "Entregando…" : fallo ? "Reintentar" : "Entregar"}</button></>}
                 >
-                    <Datos variante="caja" filas={[["Persona", p.nombre], ["Recompensa", recompensa?.nombre ?? "—"], ["Existencias", recompensa?.existencias === null ? "Sin límite" : `${recompensa?.existencias} (ejemplo)`]]} />
+                    <Datos variante="caja" filas={[["Persona", p.nombre], ["Recompensa", recompensa?.nombre ?? "—"], ["Existencias", recompensa?.existencias === null ? "Sin límite" : `${recompensa?.existencias}`]]} />
                     {fallo && (
                         <div className="cn-aviso cn-aviso--chico" role="alert">
                             <span className="cn-aviso__x" aria-hidden="true">✕</span>

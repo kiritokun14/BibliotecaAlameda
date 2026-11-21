@@ -4,7 +4,6 @@ export type Area = { id: string; nombre: string; solicitable: boolean; nota?: st
 
 export const areas: Area[] = [
     { id: "sala-lectura-general", nombre: "Sala de lectura general", solicitable: true },
-    { id: "hemeroteca-regional", nombre: "Hemeroteca regional", solicitable: true },
     { id: "sala-consulta", nombre: "Sala de consulta", solicitable: true },
     { id: "area-actividades", nombre: "Área de actividades y usos múltiples", solicitable: true },
     { id: "sala-computo", nombre: "Sala de cómputo", solicitable: true },

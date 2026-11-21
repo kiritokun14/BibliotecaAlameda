@@ -30,10 +30,10 @@ export const NOMBRE_ESTADO: Record<EstadoAviso, string> = {
 };
 
 export const EJEMPLO: Aviso[] = [
-    { folio: "AV-0013", titulo: "Horario especial de fin de año", tipo: "Horario", mensaje: "Del 1 al 31 de diciembre abrimos de 9:00 a 14:00.", desde: "2026-12-01", hasta: "2026-12-31", donde: "Inicio", estado: "programado", publico: "Personal (ejemplo)" },
-    { folio: "AV-0012", titulo: "Cierre por mantenimiento el sábado", tipo: "Cierre", mensaje: "La biblioteca permanecerá cerrada el sábado 31 de octubre por mantenimiento.", desde: "2026-10-20", hasta: "2026-10-31", donde: "Todo el portal", estado: "publicado", publico: "Personal (ejemplo)" },
-    { folio: "AV-0011", titulo: "Nuevo catálogo en línea", tipo: "Informativo", mensaje: "Ya puedes consultar el catálogo de la biblioteca desde el portal.", desde: "2026-10-15", hasta: "2026-11-15", donde: "Inicio", estado: "publicado", publico: "Personal (ejemplo)" },
-    { folio: "AV-0010", titulo: "Taller cancelado por lluvia", tipo: "Cancelación", mensaje: "El taller de dibujo del 12 de octubre se canceló por lluvia.", desde: "2026-10-12", hasta: "2026-10-12", donde: "Eventos", estado: "archivado", publico: "Personal (ejemplo)" },
+    { folio: "AV-0013", titulo: "Horario especial de fin de año", tipo: "Horario", mensaje: "Del 1 al 31 de diciembre abrimos de 9:00 a 14:00.", desde: "2026-12-01", hasta: "2026-12-31", donde: "Inicio", estado: "programado", publico: "Personal" },
+    { folio: "AV-0012", titulo: "Cierre por mantenimiento el sábado", tipo: "Cierre", mensaje: "La biblioteca permanecerá cerrada el sábado 31 de octubre por mantenimiento.", desde: "2026-10-20", hasta: "2026-10-31", donde: "Todo el portal", estado: "publicado", publico: "Personal" },
+    { folio: "AV-0011", titulo: "Nuevo catálogo en línea", tipo: "Informativo", mensaje: "Ya puedes consultar el catálogo de la biblioteca desde el portal.", desde: "2026-10-15", hasta: "2026-11-15", donde: "Inicio", estado: "publicado", publico: "Personal" },
+    { folio: "AV-0010", titulo: "Taller cancelado por lluvia", tipo: "Cancelación", mensaje: "El taller de dibujo del 12 de octubre se canceló por lluvia.", desde: "2026-10-12", hasta: "2026-10-12", donde: "Eventos", estado: "archivado", publico: "Personal" },
 ];
 
 // ---------- Reglas puras (pruebas en tests/avisosAtencion.test.ts) ----------
@@ -131,7 +131,7 @@ export function guardarBorrador(valores: ValoresAviso, folio?: string) {
 }
 
 export function publicarAviso(folio: string) {
-    guardar(actuales.map((a) => (a.folio === folio ? { ...a, estado: estadoAlPublicar(a.desde, hoyIso()), publico: "Tú (ejemplo)" } : a)));
+    guardar(actuales.map((a) => (a.folio === folio ? { ...a, estado: estadoAlPublicar(a.desde, hoyIso()), publico: "Tú" } : a)));
 }
 
 export function retirarAviso(folio: string, motivo: string) {

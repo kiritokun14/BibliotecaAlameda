@@ -34,7 +34,8 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 19 | `correcciones_integracion_espacios.sql` | Permisos, versiones y horario de Tepic para solicitudes de espacios | T-076 |
 | 20 | `publicacion_propuestas.sql` | Vincular una propuesta aprobada con su actividad y publicarla sin duplicados | T-075 / T-055 |
 | 21 | `evidencias_actividades.sql` | Evidencias privadas de actividades: bucket privado, folio, nivel de acceso, retiro y registro de consultas | HU-21 / BDLAG-95 |
-| 22 | `datos_prueba.sql` | **Opcional.** Datos ficticios de prueba | T-026 |
+| 22 | `cancelacion_credencial_propia.sql` | La persona titular cancela su propia solicitud de credencial (operación `cancelar`) | T-072 |
+| 23 | `datos_prueba.sql` | **Opcional.** Datos ficticios de prueba | T-026 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
@@ -63,6 +64,7 @@ administración de cuentas sin dejar registros. Se pueden ejecutar después del 
 
 `pruebas_publicacion_propuestas.sql` comprueba publicación, permisos, cupo, vínculos, reintentos y conflictos de horario con `ROLLBACK`, después del paso 20.
 `pruebas_evidencias_actividades.sql` (también con `ROLLBACK`) comprueba permisos por actividad, acceso de Coordinación, registro de consultas, retiro y que las listas firmadas nunca se publiquen, después del paso 21.
+`pruebas_cancelacion_credencial_propia.sql` (también con `ROLLBACK`) comprueba que solo la persona titular cancela su solicitud de credencial, después del paso 22.
 
 En CECANbd ya se aplicaron los pasos 18 a 20; no hace falta repetirlos para ejecutar el proyecto contra esa base compartida.
 

@@ -7,7 +7,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import "./BarraFiltros.css";
 
-export type OpcionFiltro<T extends string> = { valor: T; texto: string; icono?: string };
+export type OpcionFiltro<T extends string> = { valor: T; texto: string; icono?: string; cuenta?: number }; // cuenta: cuántos hay (en el panel)
 
 // Fila de pastillas de una sola elección (filtros rápidos de Noticias, Eventos e Inicio)
 export function ChipsFiltro<T extends string>({
@@ -140,6 +140,10 @@ export default function BarraFiltros({
 
                 {abierto && (
                     <div className="barra-filtros__panel" id={`${id}-panel`} role="group" aria-label="Filtros">
+                        <div className="barra-filtros__cabecera">
+                            <strong>Filtrar resultados</strong>
+                            <span>Elige una o varias opciones; la lista se actualiza al momento.</span>
+                        </div>
                         {grupos.map((g) => (
                             <fieldset key={g.etiqueta} className="barra-filtros__grupo">
                                 <legend>{g.etiqueta}</legend>
@@ -148,7 +152,7 @@ export default function BarraFiltros({
                                         <label key={o.valor} className="barra-filtros__opcion">
                                             <input type="radio" name={`${id}-${g.etiqueta}`} checked={g.activa === o.valor}
                                                 onChange={() => g.alElegir(o.valor)} />
-                                            <span>{o.texto}</span>
+                                            <span>{o.texto}{o.cuenta !== undefined && <small className="barra-filtros__cuenta-opcion">{o.cuenta}</small>}</span>
                                         </label>
                                     ))}
                                 </div>

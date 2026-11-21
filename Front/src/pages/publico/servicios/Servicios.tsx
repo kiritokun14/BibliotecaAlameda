@@ -5,8 +5,6 @@ import "./Servicios.css";
 import { obtenerServicios, type Servicio, type TipoContenido } from "./datos";
 import { CargandoServicios, EstadoServicios } from "./piezas";
 import { iconos } from "./iconos";
-import flechaVerde from "../../../assets/servicios/flecha-verde.svg";
-import flechaDorada from "../../../assets/servicios/flecha-dorada.svg";
 import iconoInfo from "../../../assets/comun/iconos/nota-info.svg";
 import circulo1 from "../../../assets/servicios/circulo-tarjeta-1.svg";
 import circulo2 from "../../../assets/servicios/circulo-tarjeta-2.svg";
@@ -128,7 +126,6 @@ function TarjetaServicio({ servicio }: { servicio: Servicio }) {
                 <Link to={servicio.accion.ruta} className="tarjeta-servicio__enlace">
                     {servicio.accion.texto}
                     <span className="solo-lectores">: {servicio.titulo}</span>
-                    <img src={servicio.destacado ? flechaDorada : flechaVerde} alt="" />
                 </Link>
             )}
         </li>

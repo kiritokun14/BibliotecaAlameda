@@ -1,15 +1,12 @@
 import { Link } from "react-router";
 import AccesoLayout from "../../../components/acceso/AccesoLayout";
 import Aviso from "../../../components/acceso/Aviso";
-import iconoFlechaDer from "../../../assets/comun/iconos/flecha-derecha.svg";
 
 // Para quien ya no puede abrir el correo de su cuenta
 function RecuperacionAsistida() {
     return (
         <AccesoLayout
-            etiqueta="RECUPERAR ACCESO"
             titulo={<>¿No tienes acceso a tu <span>correo</span>?</>}
-            texto="El personal puede ayudarte a recuperar tu cuenta."
         >
             <div className="tarjeta">
                 <div className="tarjeta__encabezado">
@@ -30,11 +27,10 @@ function RecuperacionAsistida() {
                 {/* TODO: la página de Contacto todavía no existe */}
                 <Link to="/contacto" className="boton-principal">
                     Ir a Contacto
-                    <img src={iconoFlechaDer} alt="" />
                 </Link>
 
-                <Link to="/iniciar-sesion" className="enlace enlace--suelto">
-                    ← Volver a iniciar sesión
+                <Link to="/iniciar-sesion" className="enlace-volver">
+                    Volver a iniciar sesión
                 </Link>
 
                 <p className="tarjeta__ayuda">

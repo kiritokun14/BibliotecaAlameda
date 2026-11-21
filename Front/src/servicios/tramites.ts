@@ -47,6 +47,9 @@ export function consultarTramite(tipo: TipoTramite, id: string) { return consult
 export function solicitarCredencial(tipoSolicitud: string, observaciones: string) {
     return pedir<SolicitudAtencion>('credencial', '', { method: 'POST', body: JSON.stringify({ tipoSolicitud, observaciones: observaciones.trim() || null }) });
 }
+export function cancelarSolicitudCredencial(id: string) {
+    return pedir<SolicitudAtencion>('credencial', `/${encodeURIComponent(id)}/cancelar`, { method: 'POST' });
+}
 export const puedeCorregirPropuesta = (s: SolicitudAtencion) => !s.actividadId && ['borrador', 'en_revision', 'requiere_correccion', 'aprobada'].includes(s.estadoRevision ?? '');
 export const puedeCancelarPropuesta = (s: SolicitudAtencion) => !s.actividadId && ['borrador', 'en_revision', 'requiere_correccion'].includes(s.estadoRevision ?? '');
 export function enviarPropuesta(datos: DatosPropuesta, anterior?: SolicitudAtencion, motivoCambio?: string) {

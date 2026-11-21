@@ -21,7 +21,6 @@ import libroGris from "../../../assets/club/escritura.svg";
 import alertaGuinda from "../../../assets/credencial/alerta-guinda.svg";
 import checkEnviada from "../../../assets/credencial/enviada-check.svg";
 import infoVerde from "../../../assets/credencial/info-verde.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 
 import { EsqueletoArticulo, EsqueletoLista } from "../../../components/portal/Esqueleto";
 // Club Alameda · foro de la Bibliocomunidad (HU-26). Figma A-02: 759:93132 inicio, 759:93772 detalle de un hilo.
@@ -95,7 +94,7 @@ function TarjetaTema({ tema, respuestas, ultimaActividad }: { tema: Tema; respue
             <h3>{tema.titulo}</h3>
             <p className="club-tema__descripcion">{tema.descripcion}</p>
             <p className="club-tema__meta">{textoRespuestas(respuestas)} · Última actividad: {actividadRelativa(ultimaActividad)}</p>
-            <span className="club-tema__entrar">Entrar a la conversación →</span>
+            <span className="club-tema__entrar">Entrar a la conversación</span>
         </Link>
     );
 }
@@ -144,7 +143,7 @@ function HiloPersistente({ slug, sesion }: { slug: string; sesion: string | null
                         <section className="club-responder club-responder--sin-sesion">
                             <h2>Tu lectura también cuenta</h2>
                             <p>Inicia sesión para responder y reportar publicaciones. Puedes leer las conversaciones sin cuenta.</p>
-                            <Link className="club-boton" to="/iniciar-sesion">Iniciar sesión <img src={flechaBlanca} alt="" /></Link>
+                            <Link className="club-boton" to="/iniciar-sesion">Iniciar sesión</Link>
                         </section>
                     ) : sesion === undefined ? <p role="status">Comprobando sesión…</p> : (
                         <FormularioRespuesta key={tema.slug} tema={tema.slug} alGuardar={actualizar} />

@@ -1,31 +1,27 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link, useNavigate } from "react-router";
-import PaginaPublica from "../../../components/portal/PaginaPublica";
-import { SeccionVisitante } from "../../../components/portal/Visitante";
+import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import { AvisosActividad } from "./AvisosActividad";
 import { useSesion } from "../perfil/usarSesion";
 import AvisosCambiosActividad from "./AvisosCambiosActividad";
 import { filtrar, nombreArea, notificaciones, sinLeer, useNotificaciones, type Area, type Filtro } from "./datos";
-import "../../../components/portal/Visitante.css";
+import { Chip } from "../credencial/piezas";
+import "../credencial/CredencialSesion.css";
+import "../perfil/Perfil.css";
 import "./Notificaciones.css";
-import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
-import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import flechaVerde from "../../../assets/inicio/lecturas-flecha-verde.svg";
-import iconoArchivo from "../../../assets/admin/resumen/file-verde.svg";
-import iconoCalendario from "../../../assets/perfil/fila-calendario.svg";
-import iconoInfo from "../../../assets/notificaciones/tipo-info.svg";
-import puntoSinLeer from "../../../assets/notificaciones/punto-sin-leer.svg";
-import verFlecha from "../../../assets/notificaciones/ver-flecha.svg";
-import marcarCheck from "../../../assets/notificaciones/marcar-check.svg";
-import eliminarX from "../../../assets/notificaciones/eliminar-x.svg";
 import quitarX from "../../../assets/notificaciones/quitar-x.svg";
 import modalX from "../../../assets/notificaciones/modal-x.svg";
-import vacioCampana from "../../../assets/notificaciones/vacio-campana.svg";
+import PedirSesion from "../sesion/PedirSesion";
+import { EtiquetaPerfil } from "../perfil/piezas";
+import iconoAccesos from "../../../assets/inicio/etiqueta-accesos.svg";
+import { iconosSeccion } from "../perfil/iconos";
 
-// Notificaciones de la persona con sesión (Figma A-02, 476:13270): lista, vacío y confirmar eliminar leídas.
+// Notificaciones de la persona con sesión (Figma A-02, 476:13270), armadas con el catálogo de piezas del perfil:
+// panel de lista con filtros segmentados, tarjetas de lista (dorado = sin leer, gris = leída), vacío con insignia
+// y tarjeta lateral «Cómo te avisamos».
 const iconoArea: Record<Area, string> = {
-    propuesta: iconoArchivo, espacios: iconoArchivo, credencial: iconoArchivo, actividades: iconoCalendario, avisos: iconoInfo,
+    propuesta: iconosSeccion.propuestas, espacios: iconosSeccion.espacios, credencial: iconosSeccion.credencial,
+    actividades: iconosSeccion.eventos, avisos: iconosSeccion.avisos,
 };
 
 export default function Notificaciones() {
@@ -39,7 +35,7 @@ export default function Notificaciones() {
     const visibles = filtrar(lista, filtro);
     const hayLeidas = lista.some((n) => n.leida);
     const filtros: { valor: Filtro; texto: string }[] = [
-        { valor: "todas", texto: "Todas" }, { valor: "no-leidas", texto: `No leídas (${pendientes})` },
+        { valor: "todas", texto: "Todas" }, { valor: "no-leidas", texto: "No leídas" },
         { valor: "credencial", texto: "Credencial" }, { valor: "actividades", texto: "Actividades" }, { valor: "avisos", texto: "Avisos" },
     ];
     const cerrarModal = useCallback(() => setConfirmar(false), []);
@@ -47,101 +43,129 @@ export default function Notificaciones() {
     if (sesion === null) {
         return (
             <PaginaPublica>
-                <div className="notif-estado">
-                    <h1>Inicia sesión para ver tus notificaciones</h1>
-                    <p>Aquí verás los cambios en tus solicitudes, tus inscripciones y los avisos de la biblioteca.</p>
-                    <Link className="boton-visitante" to="/iniciar-sesion">Iniciar sesión <img src={flechaBlanca} alt="" /></Link>
-                </div>
+                <PedirSesion titulo="Inicia sesión para ver tus notificaciones" texto="Aquí verás los cambios en tus solicitudes, tus inscripciones y los avisos de la biblioteca." />
             </PaginaPublica>
         );
     }
 
     return (
         <PaginaPublica>
+            <EncabezadoPublico etiqueta="Notificaciones" titulo={<>Tus <span>notificaciones</span></>} icono={iconosSeccion.avisos}
+                texto="Aquí ves los cambios en tus solicitudes, las actividades nuevas y los avisos de la biblioteca." />
 
-            <section className="encabezado-visitante">
-                <img className="encabezado-visitante__circulo encabezado-visitante__circulo--1" src={circulo1} alt="" />
-                <img className="encabezado-visitante__circulo encabezado-visitante__circulo--2" src={circulo2} alt="" />
-                <div className="encabezado-visitante__contenido">
-                    <span className="etiqueta-inicio"><span className="punto-dorado" />NOTIFICACIONES</span>
-                    <h1>Tus <span>notificaciones</span></h1>
-                    <p>Aquí ves los cambios en tus solicitudes, las actividades nuevas y los avisos de la biblioteca.</p>
-                </div>
-            </section>
-
-            <SeccionVisitante fondo="crema">
-                <div className="notif-columnas">
-                    <div className="notif-lista">
-                        {sesion && sesion !== "simulado" ? <><AvisosActividad key={sesion} /><AvisosCambiosActividad usuario={sesion} /></> : sesion === "simulado" ? <>
-                        <div className="notif-filtros" role="group" aria-label="Filtrar notificaciones">
-                            {filtros.map((f) => (
-                                <button key={f.valor} type="button" className={`notif-filtro${filtro === f.valor ? " notif-filtro--activo" : ""}`}
-                                    aria-pressed={filtro === f.valor} onClick={() => setFiltro(f.valor)}>{f.texto}</button>
-                            ))}
-                        </div>
-
-                        {lista.length > 0 && (
-                            <div className="notif-acciones">
-                                <button type="button" className="notif-accion" disabled={!pendientes}
-                                    onClick={() => { notificaciones.marcarTodas(); setAviso("Marcaste todas como leídas."); }}>
-                                    Marcar todas como leídas <img src={marcarCheck} alt="" />
-                                </button>
-                                <button type="button" className="notif-accion notif-accion--guinda" disabled={!hayLeidas} onClick={() => setConfirmar(true)}>
-                                    Eliminar las leídas <img src={eliminarX} alt="" />
-                                </button>
+            <div className="notif-cuerpo" style={{ "--icono-seccion": `url("${iconosSeccion.avisos}")` } as CSSProperties}>
+                <div className="notif-principal">
+                    {sesion && sesion !== "simulado" ? <><AvisosActividad key={sesion} /><AvisosCambiosActividad usuario={sesion} /></> : sesion === "simulado" ? (
+                        <section className="perfil-panel" aria-label="Tus notificaciones">
+                            <div className="notif-barra">
+                                <div className="perfil-filtros" role="group" aria-label="Filtrar notificaciones">
+                                    {filtros.map((f) => (
+                                        <button key={f.valor} type="button" aria-pressed={filtro === f.valor}
+                                            className={`perfil-filtro${filtro === f.valor ? " perfil-filtro--activo" : ""}`} onClick={() => setFiltro(f.valor)}>
+                                            {f.texto}<span className="perfil-filtro__cuenta">{filtrar(lista, f.valor).length}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                {lista.length > 0 && (
+                                    <div className="notif-barra__acciones">
+                                        <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" disabled={!pendientes}
+                                            onClick={() => { notificaciones.marcarTodas(); setAviso("Marcaste todas como leídas."); }}>
+                                            Marcar todas como leídas
+                                        </button>
+                                        <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno notif-boton-quitar" disabled={!hayLeidas}
+                                            onClick={() => setConfirmar(true)}>
+                                            Eliminar las leídas
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                        <p className="notif-anuncio" role="status">{aviso}</p>
+                            <p className="notif-anuncio" role="status">{aviso}</p>
 
-                        {visibles.length ? (
-                            <ul className="notif-tarjetas">
-                                {visibles.map((n) => (
-                                    <li key={n.id} className={`notif-tarjeta${n.area === "avisos" ? " notif-tarjeta--aviso" : ""}${n.leida ? " notif-tarjeta--leida" : ""}`}>
-                                        <span className="notif-tarjeta__icono"><img src={iconoArea[n.area]} alt="" /></span>
-                                        <div className="notif-tarjeta__textos">
-                                            <p className="notif-tarjeta__area">
-                                                {nombreArea[n.area]}{!n.leida && <img src={puntoSinLeer} alt="Sin leer" />}
-                                            </p>
-                                            <h2>{n.titulo}</h2>
-                                            <p>{n.texto}</p>
-                                            <small>{n.cuando}</small>
+                            {visibles.length ? (
+                                <ul className="perfil-solicitudes">
+                                    {visibles.map((n) => (
+                                        <li key={n.id} className={`perfil-solicitud perfil-solicitud--${n.leida ? "gris" : "dorado"} notif-item`}>
+                                            <span className="perfil-lista__icono"><img src={iconoArea[n.area]} alt="" /></span>
+                                            <div className="perfil-solicitud__textos">
+                                                <strong>{n.titulo}</strong>
+                                                <span>{n.texto}</span>
+                                                <small className="notif-item__meta">{nombreArea[n.area]} · {n.cuando}</small>
+                                            </div>
+                                            {!n.leida && <Chip color="dorado">Sin leer</Chip>}
                                             {n.accion && (
-                                                <button type="button" className="notif-tarjeta__ver"
+                                                <button type="button" className={`perfil-boton perfil-boton--chico${n.leida ? " perfil-boton--contorno" : ""}`}
                                                     onClick={() => { notificaciones.marcarLeida(n.id); navegar(n.accion!.ruta); }}>
-                                                    {n.accion.texto} <img src={verFlecha} alt="" />
+                                                    {n.accion.texto}
                                                 </button>
                                             )}
-                                        </div>
-                                        <button type="button" className="notif-tarjeta__quitar" aria-label={`Eliminar notificación: ${n.titulo}`}
-                                            onClick={() => { notificaciones.quitar(n.id); setAviso("Notificación eliminada."); }}>
-                                            <img src={quitarX} alt="" />
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <div className="notif-vacio">
-                                <span><img src={vacioCampana} alt="" /></span>
-                                <h2>{lista.length ? "No hay notificaciones en este filtro" : "Aún no tienes notificaciones"}</h2>
-                                <p>Cuando haya cambios en tus solicitudes o avisos de la biblioteca, aparecerán aquí.</p>
-                            </div>
-                        )}
-                    </> : <p role="status">Verificando tu sesión…</p>}
-                    </div>
-
-                    <aside className="notif-lateral">
-                        <div className="notif-como">
-                            <p className="notif-como__titulo">CÓMO TE AVISAMOS</p>
-                            <p>Aquí aparecen los cambios y cancelaciones de las sesiones en las que tienes una inscripción.</p>
-                            <Link to="/mi-perfil/avisos" className="boton-visitante notif-boton-contorno">
-                                Configurar mis avisos <img src={flechaVerde} alt="" />
-                            </Link>
-                            {lista.length > 0 && <p className="notif-como__nota">Eliminar una notificación solo la quita de esta lista. No cancela tu solicitud ni tu inscripción.</p>}
-                        </div>
-                        {sesion === "simulado" && <p className="notif-ejemplo">Ejemplos de contenido para revisar el diseño.</p>}
-                    </aside>
+                                            <button type="button" className="notif-item__quitar" aria-label={`Eliminar notificación: ${n.titulo}`}
+                                                onClick={() => { notificaciones.quitar(n.id); setAviso("Notificación eliminada."); }}>
+                                                <img src={quitarX} alt="" />
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
+                            {visibles.length > 0 && (
+                                <p className="notif-pie">Eliminar una notificación solo la quita de esta lista; tu solicitud o tu inscripción siguen igual.{sesion === "simulado" && " Ejemplos de contenido para revisar el diseño."}</p>
+                            )}
+                            {!visibles.length && (
+                                <div className="perfil-vacio perfil-vacio--eventos perfil-vacio--panel">
+                                    <span className="perfil-vacio__insignia" aria-hidden="true" />
+                                    <p><strong>{lista.length ? "No hay notificaciones en este filtro" : "Estás al día"}</strong>
+                                        {lista.length ? "Prueba con otro filtro." : "Cuando haya cambios en tus solicitudes o avisos de la biblioteca, aparecerán aquí."}</p>
+                                </div>
+                            )}
+                        </section>
+                    ) : <p role="status">Verificando tu sesión…</p>}
                 </div>
-            </SeccionVisitante>
+
+                <aside className="notif-lateral">
+                    {/* Resumen: cuántas faltan por leer y de qué áreas (solo cuando hay lista local) */}
+                    {sesion === "simulado" && lista.length > 0 && (
+                        <section className="notif-resumen" aria-labelledby="notif-resumen-titulo">
+                            <EtiquetaPerfil id="notif-resumen-titulo" icono={iconosSeccion.resumen}>Resumen</EtiquetaPerfil>
+                            <p className="notif-resumen__cifra"><strong>{pendientes}</strong>sin leer de {lista.length}</p>
+                            <div className="notif-resumen__barra" role="progressbar" aria-valuemin={0} aria-valuemax={lista.length}
+                                aria-valuenow={lista.length - pendientes} aria-label="Notificaciones leídas">
+                                <span style={{ width: `${Math.round(((lista.length - pendientes) / lista.length) * 100)}%` }} />
+                            </div>
+                            <ul className="notif-resumen__areas">
+                                {(["credencial", "actividades", "propuesta", "espacios", "avisos"] as Area[]).map((a) => {
+                                    const total = lista.filter((n) => n.area === a).length;
+                                    return total ? <li key={a}><span className={`notif-resumen__punto notif-resumen__punto--${a}`} />{nombreArea[a]}<strong>{total}</strong></li> : null;
+                                })}
+                            </ul>
+                        </section>
+                    )}
+
+                    {/* Cómo te avisamos: centrada, con insignia grande */}
+                    <section className="notif-como-tarjeta" aria-labelledby="notif-como-titulo">
+                        <span className="notif-como-tarjeta__insignia" aria-hidden="true" />
+                        <h2 id="notif-como-titulo">Cómo te avisamos</h2>
+                        <p>Aquí aparecen los cambios de tus solicitudes y de las sesiones en las que tienes una inscripción. Elige qué avisos recibir y por dónde.</p>
+                        <Link to="/mi-perfil/avisos" className="perfil-boton perfil-boton--guardar">Configurar mis avisos</Link>
+                    </section>
+
+                    {/* Atajos a los trámites de los que llegan avisos */}
+                    <nav className="notif-atajos" aria-labelledby="notif-atajos-titulo">
+                        <EtiquetaPerfil id="notif-atajos-titulo" icono={iconoAccesos}>Tus trámites</EtiquetaPerfil>
+                        <ul>
+                            {[
+                                { texto: "Mis eventos", ruta: "/mi-perfil/eventos", icono: iconosSeccion.eventos },
+                                { texto: "Mi credencial", ruta: "/mi-perfil/credencial", icono: iconosSeccion.credencial },
+                                { texto: "Mis propuestas", ruta: "/mi-perfil/propuestas", icono: iconosSeccion.propuestas },
+                                { texto: "Mis espacios", ruta: "/mi-perfil/espacios", icono: iconosSeccion.espacios },
+                            ].map((a) => (
+                                <li key={a.ruta}>
+                                    <Link to={a.ruta} className="perfil-rapido"><span className="perfil-rapido__icono"><img src={a.icono} alt="" /></span>{a.texto}</Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+
+                </aside>
+            </div>
 
             {confirmar && <ModalEliminarLeidas alCancelar={cerrarModal}
                 alConfirmar={() => { notificaciones.quitarLeidas(); setConfirmar(false); setAviso("Se eliminaron las notificaciones leídas."); }} />}

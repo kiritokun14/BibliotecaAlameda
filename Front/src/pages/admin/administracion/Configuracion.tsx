@@ -57,7 +57,7 @@ export default function Configuracion() {
 
     return (
         <Pantalla migas={[["Configuración del portal"], [PESTANAS.find((p) => p.valor === pestana)!.texto]]}>
-            <EncabezadoPagina etiqueta="Administración · Configuración" titulo="Configuración del portal" texto="Ajustes generales que ven todas las personas. Datos de ejemplo." />
+            <EncabezadoPagina etiqueta="Administración · Configuración" titulo="Configuración del portal" texto="Ajustes generales que ven todas las personas." />
             <div className="ad-barra">
                 <Pestanas etiqueta="Sección de la configuración" valor={pestana} alCambiar={setPestana} opciones={PESTANAS} />
                 {sinGuardar && <p className="ad-sin-guardar" role="status">Hay cambios sin guardar</p>}

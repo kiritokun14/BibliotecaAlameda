@@ -27,7 +27,6 @@ import libro from "../../../assets/credencial/libro.svg";
 import calendario from "../../../assets/perfil/evento-calendario-verde.svg";
 import usuario from "../../../assets/perfil/tarjeta-usuario.svg";
 import enviar from "../../../assets/perfil/tarjeta-enviar.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 
 import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 // Proponer una actividad con sesión (Figma A-02, 476:29029 formulario, 476:29255 enviado,
@@ -41,7 +40,7 @@ function SinSesion() {
             <div className="cred-estado">
                 <h1>Inicia sesión para proponer una actividad</h1>
                 <p>Con tu cuenta puedes proponer eventos o clubes y dar seguimiento a tus propuestas.</p>
-                <Link className="boton-visitante" to="/iniciar-sesion">Iniciar sesión <img src={flechaBlanca} alt="" /></Link>
+                <Link className="boton-visitante" to="/iniciar-sesion">Iniciar sesión</Link>
             </div>
         </PaginaPublica>
     );
@@ -240,7 +239,7 @@ export function PropuestaEnviada() {
                     </div>
                     <p className="proponer-suave">Puedes consultar el estado y las observaciones desde Mis propuestas.</p>
                     <div className="cred-acciones">
-                        <Link to="/mi-perfil/propuestas" className="boton-visitante">Ver mis propuestas <img src={flechaBlanca} alt="" /></Link>
+                        <Link to="/mi-perfil/propuestas" className="boton-visitante">Ver mis propuestas</Link>
                         <Link to="/eventos" className="boton-visitante cred-boton-contorno">Volver a Eventos y actividades</Link>
                     </div>
                 </section>

@@ -7,7 +7,8 @@ para que todas las pantallas se vean iguales. Si una regla choca con Figma, gana
 
 ```text
 Trabajas en el frontend de la Biblioteca Pública Central Estatal Solón Argüello (React + TypeScript + Vite, carpeta Front/).
-Todo en español: código, nombres, textos y respuestas. Escritorio de 1280 a 1920 px, fuente Noto Sans.
+Todo en español: código, nombres, textos y respuestas. Escritorio de 1280 a 1920 px (acceso y portal también responsivos: ver «Diseño responsivo» en AGENTS.md), fuente Noto Sans.
+Antes de diseñar, sigue la «Normalización de diseño» de AGENTS.md: el login y el inicio son la referencia.
 Tu prioridad es que la pantalla se vea igual que las demás: REUTILIZA piezas existentes y NO inventes estilos nuevos.
 Antes de escribir CSS, busca una pantalla parecida ya hecha y copia su estructura.
 
@@ -31,10 +32,10 @@ Antes de escribir CSS, busca una pantalla parecida ya hecha y copia su estructur
 
 4. PIEZAS DEL PANEL QUE DEBES USAR (src/pages/admin/componentes.tsx y vecinos)
 - <Migas raiz="Sección" pasos={[["Pantalla", ruta?], ["Detalle"]]} /> arriba de todo.
-- <EncabezadoPagina etiqueta="Sección · Pantalla" titulo texto accion? volver? /> (con «volver» en pantallas internas).
+- <EncabezadoPagina titulo texto accion? volver? /> (con «volver» en pantallas internas). La etiqueta pequeña sobre el título ya no se muestra.
 - Franja «Accesos rápidos»: bloque .contenidos-resumen con 3–4 tarjetas de cifras que filtran la lista (ver atencion/Bandeja.tsx).
 - Listas: <section className="contenidos-lista"> + cabecera con ícono, .contenidos-filtros (píldoras), .contenidos-buscar (con lupa, a la derecha),
-  filas en tarjeta .contenidos-tabla__fila, acción como enlace «Ver →» / «Revisar →», paginación .contenidos-paginas.
+  filas en tarjeta .contenidos-tabla__fila, acción como enlace «Ver» / «Revisar» (sin flecha), paginación .contenidos-paginas.
 - Filtros con varias opciones (sala, estado, tipo…): <BarraFiltros> del portal, igual que en Noticias, con el selector de vista
   en «arriba» (<ChipsFiltro>) y dentro de un bloque .cal-controles. Ejemplos: Actividades › Calendario y salas, y Visitas.
 - Estados con <Chip tono="verde|dorado|guinda|gris">. <EstadoVacio icono titulo texto accion?/> para vacío, error y «sin resultados».
@@ -52,7 +53,7 @@ Antes de escribir CSS, busca una pantalla parecida ya hecha y copia su estructur
 - Cargando: esqueletos con <Bloque> (components/portal/Esqueleto) con la forma de lo que viene. NUNCA un <p>Cargando…</p> suelto.
   Atajos: <EsqueletoLista /> para listas y <EsqueletoDetalle /> para detalles (components/portal/Esqueleto).
 - Error: <EstadoVacio> (panel) o <EstadoPagina> (portal) con botón «Reintentar». Vacío: <EstadoVacio> con texto que diga qué aparecerá.
-- Datos de ejemplo: deja que PanelLayout muestre la franja «Datos de ejemplo»; marca lo pendiente con «TODO backend» en datos.ts.
+- Datos de ejemplo: no se anuncian en pantalla (sin franja ni «(ejemplo)» en los textos); marca lo pendiente con «TODO backend» en datos.ts.
 
 7. MOVIMIENTO Y ACCESIBILIDAD
 - Solo anima transform y opacity (entradas de 0.3–0.5 s, hover que eleva 2 px). Respeta prefers-reduced-motion.
@@ -62,6 +63,8 @@ Antes de escribir CSS, busca una pantalla parecida ya hecha y copia su estructur
 - Clases viejas cn-*, boton-panel, cn-enlace, tablas <table> sueltas o selects sin estilo en pantallas nuevas.
 - Estilos en línea (style={{…}}) para diseño, tamaños fuera de la escala, colores nuevos, botones grises por defecto del navegador.
 - Cambiar la lógica, permisos o llamadas al backend cuando la tarea es solo de diseño. No tocar Back/ ni Supabase/.
+- Íconos dentro de botones, pastillas o enlaces (flechas de texto → ←, ::after { content: "→" } o SVG de cualquier tipo):
+  solo texto. Excepciones: el ícono de carga mientras se envía y el ojo de «Mostrar» en contraseñas. Los íconos van fuera de los botones.
 
 9. AL TERMINAR
 - npm run lint, npm test y npm run build sin errores.

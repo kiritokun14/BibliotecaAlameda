@@ -152,7 +152,6 @@ function EditorContenidos() {
 
             <div className="contenidos-encabezado">
                 <div>
-                    <p className="contenidos-etiqueta">Contenidos · Editor</p>
                     <h1>Editor de contenidos</h1>
                 </div>
                 <Link to="/admin/contenidos/editor/nuevo" className="contenidos-boton contenidos-boton--principal">

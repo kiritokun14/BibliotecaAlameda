@@ -73,7 +73,7 @@ function BandejaRevision() {
                     insignia="Revisión y publicación"
                     titulo="¿Qué espera tu"
                     resalte="decisión?"
-                    subtitulo="Lo que espera tu decisión como Administrador · cifras de ejemplo"
+                    subtitulo="Lo que espera tu decisión como Administrador"
                     accesos={[
                         {
                             icono: iconoReloj, numero: porAutorizar.length, titulo: "Por autorizar", tono: "guinda", enlace: "Ver por autorizar",
@@ -122,7 +122,7 @@ function BandejaRevision() {
 
                     {filtrados.length > 0 && (
                         <div className="cn-pie-tabla">
-                            <p>Mostrando {visibles.length} de {filtrados.length} {nombreFiltro} (ejemplo)</p>
+                            <p>Mostrando {visibles.length} de {filtrados.length} {nombreFiltro}</p>
                             <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
                             {filtro !== "todos" && <button type="button" className={clasesBoton("vino")} onClick={() => elegir("todos")}>Ver todos los contenidos</button>}
                         </div>

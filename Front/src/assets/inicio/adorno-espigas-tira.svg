@@ -1,0 +1,25 @@
+<svg preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg" width="140" height="689" viewBox="0 0 140 689" fill="none">
+  <!-- Espigas doradas que crecen desde abajo (Acerca de, abajo izquierda). -->
+  <defs>
+    <g id="grano"><ellipse cx="0" cy="0" rx="4.5" ry="9"/></g>
+  </defs>
+  <g stroke="#a8862f" stroke-width="2.4" stroke-linecap="round">
+    <path d="M60 240 C 58 180, 50 120, 36 50"/><path d="M66 240 C 70 186, 82 130, 104 70"/><path d="M62 240 C 62 200, 64 160, 66 120"/>
+  </g>
+  <!-- Espiga izquierda -->
+  <g fill="#e6d194">
+    <use href="#grano" transform="translate(36 46) rotate(-12)"/><use href="#grano" transform="translate(30 62) rotate(-40)"/><use href="#grano" transform="translate(44 62) rotate(20)"/>
+    <use href="#grano" transform="translate(34 80) rotate(-40)"/><use href="#grano" transform="translate(48 80) rotate(20)"/><use href="#grano" transform="translate(38 98) rotate(-40)"/><use href="#grano" transform="translate(51 98) rotate(20)"/>
+  </g>
+  <!-- Espiga derecha -->
+  <g fill="#c9a24a">
+    <use href="#grano" transform="translate(105 66) rotate(16)"/><use href="#grano" transform="translate(96 80) rotate(-20)"/><use href="#grano" transform="translate(110 84) rotate(40)"/>
+    <use href="#grano" transform="translate(92 98) rotate(-20)"/><use href="#grano" transform="translate(105 102) rotate(40)"/><use href="#grano" transform="translate(88 116) rotate(-20)"/><use href="#grano" transform="translate(100 120) rotate(40)"/>
+  </g>
+  <!-- Espiga del centro -->
+  <g fill="#f2e3b8">
+    <use href="#grano" transform="translate(66 116)"/><use href="#grano" transform="translate(60 132) rotate(-35)"/><use href="#grano" transform="translate(72 132) rotate(35)"/><use href="#grano" transform="translate(61 150) rotate(-35)"/><use href="#grano" transform="translate(72 150) rotate(35)"/>
+  </g>
+  <!-- Hojas -->
+  <g fill="#2a7d6b" fill-opacity=".9"><path d="M60 200 C 40 190, 26 172, 24 152 C 44 160, 56 176, 60 200 Z"/><path d="M66 190 C 88 184, 104 168, 110 150 C 90 154, 74 168, 66 190 Z"/></g>
+</svg>

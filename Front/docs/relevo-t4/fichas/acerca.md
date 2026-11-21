@@ -17,7 +17,7 @@ Nodo `495:15866` · «Acerca de · Historia · sesión iniciada»
 - La Biblioteca Solón Argüello es la biblioteca pública central del estado, en Tepic. Aquí contamos cómo nació y cómo ha crecido.
 - Biblioteca pública central del estado
 - Un lugar abierto a toda la comunidad de Tepic y de Nayarit.
-- Acervo general, regional y hemeroteca
+- Acervo general y regional
 - Libros, prensa y revistas de Nayarit para consulta.
 - Entrada libre
 - Servicios abiertos al público general.
@@ -148,7 +148,7 @@ Nodo `495:16445` · «Acerca de · Rol de la biblioteca · sesión iniciada»
 - Actividades para familias
 - Académica
 - Recursos para estudiar, investigar y aprender durante toda la vida.
-- Consulta de acervo y hemeroteca
+- Consulta del acervo general y regional
 - Catálogo en línea
 - Apoyo a la investigación
 - Cultural

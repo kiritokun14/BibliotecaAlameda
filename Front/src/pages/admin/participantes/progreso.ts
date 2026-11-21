@@ -42,7 +42,7 @@ export type Participante = {
 export type Entrega = { id: string; recompensa: string; persona: string; fecha: string; entrego: string; aviso: "enviado" | "sin-contacto"; estado: "entregada" | "pendiente" };
 
 export const PLAZOS = ["1 mes", "2 meses", "3 meses", "6 meses", "1 año"];
-export const QUIEN_ENTREGA = "Personal (ejemplo)";
+export const QUIEN_ENTREGA = "Personal";
 
 const metasIniciales: Meta[] = [
     { id: "lector-constante", nombre: "Lector constante", necesarias: 5, plazo: "2 meses", puntos: 30, recompensa: "insignia-lector", estado: "activa", descripcion: "Asiste con constancia y gana tu insignia." },
@@ -59,17 +59,17 @@ const recompensasIniciales: Recompensa[] = [
 const av = (id: string, fecha: string, actividad: string, puntos = 30, origen: Origen = "Asistencia"): Avance => ({ id, fecha, actividad, puntos, origen });
 
 const participantesIniciales: Participante[] = [
-    { folio: "P-0112", nombre: "Persona participante A (ejemplo)", credencial: "Credencial por confirmar", desde: "2026-09", meta: "lector-constante", avances: [av("a1", "2026-10-27", "Club de lectura"), av("a2", "2026-10-20", "Taller de dibujo"), av("a3", "2026-10-14", "Visita guiada"), av("a4", "2026-10-02", "Cuentacuentos", 30, "Ajuste manual")] },
-    { folio: "P-0111", nombre: "Persona participante B (ejemplo)", credencial: "Credencial por confirmar", desde: "2026-08", meta: "explorador", avances: ["Club de lectura", "Taller de dibujo", "Visita guiada", "Cuentacuentos", "Charla", "Cine en familia"].map((x, i) => av(`b${i}`, `2026-10-${String(25 - i * 3).padStart(2, "0")}`, x, 35)), entregada: { fecha: "2026-10-27", entrego: QUIEN_ENTREGA } },
-    { folio: "P-0110", nombre: "Persona participante C (ejemplo)", credencial: "Credencial por confirmar", desde: "2026-10", meta: "lector-constante", avances: [av("c1", "2026-10-27", "Club de lectura"), av("c2", "2026-10-20", "Taller de dibujo")] },
-    { folio: "P-0109", nombre: "Persona participante D (ejemplo)", credencial: "Credencial por confirmar", desde: "2026-07", meta: "explorador", avances: ["Club de lectura", "Taller de dibujo", "Visita guiada", "Cuentacuentos"].map((x, i) => av(`d${i}`, `2026-10-${String(26 - i * 4).padStart(2, "0")}`, x, 25)) },
-    { folio: "P-0108", nombre: "Persona participante E (ejemplo)", credencial: "Credencial por confirmar", desde: "2026-06", meta: "lector-constante", avances: ["Club de lectura", "Taller de dibujo", "Visita guiada", "Cuentacuentos", "Charla"].map((x, i) => av(`e${i}`, `2026-10-${String(28 - i * 5).padStart(2, "0")}`, x)) },
+    { folio: "P-0112", nombre: "Persona participante A", credencial: "Credencial por confirmar", desde: "2026-09", meta: "lector-constante", avances: [av("a1", "2026-10-27", "Club de lectura"), av("a2", "2026-10-20", "Taller de dibujo"), av("a3", "2026-10-14", "Visita guiada"), av("a4", "2026-10-02", "Cuentacuentos", 30, "Ajuste manual")] },
+    { folio: "P-0111", nombre: "Persona participante B", credencial: "Credencial por confirmar", desde: "2026-08", meta: "explorador", avances: ["Club de lectura", "Taller de dibujo", "Visita guiada", "Cuentacuentos", "Charla", "Cine en familia"].map((x, i) => av(`b${i}`, `2026-10-${String(25 - i * 3).padStart(2, "0")}`, x, 35)), entregada: { fecha: "2026-10-27", entrego: QUIEN_ENTREGA } },
+    { folio: "P-0110", nombre: "Persona participante C", credencial: "Credencial por confirmar", desde: "2026-10", meta: "lector-constante", avances: [av("c1", "2026-10-27", "Club de lectura"), av("c2", "2026-10-20", "Taller de dibujo")] },
+    { folio: "P-0109", nombre: "Persona participante D", credencial: "Credencial por confirmar", desde: "2026-07", meta: "explorador", avances: ["Club de lectura", "Taller de dibujo", "Visita guiada", "Cuentacuentos"].map((x, i) => av(`d${i}`, `2026-10-${String(26 - i * 4).padStart(2, "0")}`, x, 25)) },
+    { folio: "P-0108", nombre: "Persona participante E", credencial: "Credencial por confirmar", desde: "2026-06", meta: "lector-constante", avances: ["Club de lectura", "Taller de dibujo", "Visita guiada", "Cuentacuentos", "Charla"].map((x, i) => av(`e${i}`, `2026-10-${String(28 - i * 5).padStart(2, "0")}`, x)) },
 ];
 
 const entregasIniciales: Entrega[] = [
-    { id: "EN-0003", recompensa: "insignia-lector", persona: "Persona A (ejemplo)", fecha: "2026-10-27", entrego: QUIEN_ENTREGA, aviso: "enviado", estado: "entregada" },
-    { id: "EN-0002", recompensa: "insignia-explorador", persona: "Persona B (ejemplo)", fecha: "2026-10-20", entrego: QUIEN_ENTREGA, aviso: "enviado", estado: "pendiente" },
-    { id: "EN-0001", recompensa: "constancia", persona: "Persona C (ejemplo)", fecha: "2026-10-14", entrego: QUIEN_ENTREGA, aviso: "sin-contacto", estado: "entregada" },
+    { id: "EN-0003", recompensa: "insignia-lector", persona: "Persona A", fecha: "2026-10-27", entrego: QUIEN_ENTREGA, aviso: "enviado", estado: "entregada" },
+    { id: "EN-0002", recompensa: "insignia-explorador", persona: "Persona B", fecha: "2026-10-20", entrego: QUIEN_ENTREGA, aviso: "enviado", estado: "pendiente" },
+    { id: "EN-0001", recompensa: "constancia", persona: "Persona C", fecha: "2026-10-14", entrego: QUIEN_ENTREGA, aviso: "sin-contacto", estado: "entregada" },
 ];
 
 type Estado = { participantes: Participante[]; metas: Meta[]; recompensas: Recompensa[]; entregas: Entrega[]; ajustesMes: number };

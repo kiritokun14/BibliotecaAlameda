@@ -8,7 +8,7 @@ import { clasesBoton, dondeSeVe } from "./utiles";
 import iconoCheck from "../../../assets/admin/contenidos/resultado-check.svg";
 import iconoLapiz from "../../../assets/admin/contenidos/resultado-lapiz.svg";
 import iconoX from "../../../assets/admin/contenidos/resultado-x.svg";
-import iconoReloj from "../../../assets/admin/contenidos/tarjeta-reloj.svg";
+import iconoReloj from "../../../assets/comun/iconos/reloj-blanco.svg";
 import iconoFlecha from "../../../assets/admin/contenidos/tarjeta-flecha.svg";
 
 const BASE = "/admin/contenidos/revision";
@@ -70,7 +70,7 @@ function Publicado({ contenido }: { contenido: Contenido }) {
                 tono="verde"
                 icono={iconoCheck}
                 titulo={nombre}
-                linea={`${p.programada ? `Programada: ${fechaLarga(p.fecha.slice(0, 10))}` : `Publicada ${cuandoConHora(p.fecha).toLowerCase()}`} (ejemplo) · Autorizó: ${p.autorizo}`}
+                linea={`${p.programada ? `Programada: ${fechaLarga(p.fecha.slice(0, 10))}` : `Publicada ${cuandoConHora(p.fecha).toLowerCase()}`} · Autorizó: ${p.autorizo}`}
                 chip={<ChipEstado estado={contenido.estado} />}
             />
             <Tarjeta icono={iconoReloj} titulo="Registro de la publicación">
@@ -103,7 +103,7 @@ function ObservacionesEnviadas({ contenido }: { contenido: Contenido }) {
                 tono="dorado"
                 icono={iconoLapiz}
                 titulo={`${contenido.folio} · ${tituloDe(contenido.tipo, contenido.valores)}`}
-                linea={`Estado: Con observaciones · Enviadas ${cuandoConHora(contenido.actualizado).toLowerCase()} (ejemplo)${o.limite ? ` · Fecha límite: ${o.limite.toLowerCase()}` : ""}`}
+                linea={`Estado: Con observaciones · Enviadas ${cuandoConHora(contenido.actualizado).toLowerCase()}${o.limite ? ` · Fecha límite: ${o.limite.toLowerCase()}` : ""}`}
                 chip={<ChipEstado estado={contenido.estado} />}
             />
             <Tarjeta icono={iconoFlecha} titulo="¿Qué sigue?">
@@ -131,7 +131,7 @@ function Rechazado({ contenido }: { contenido: Contenido }) {
                 tono="guinda"
                 icono={iconoX}
                 titulo={`${contenido.folio} · ${tituloDe(contenido.tipo, contenido.valores)}`}
-                linea={`Motivo: ${r.motivo} · ${cuandoConHora(r.fecha)} (ejemplo)`}
+                linea={`Motivo: ${r.motivo} · ${cuandoConHora(r.fecha)}`}
                 chip={<ChipEstado estado={contenido.estado} />}
             />
             {r.explicacion && (

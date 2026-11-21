@@ -57,7 +57,7 @@
 .ac-cuerpo-lista .contenidos-tabla.ac-tabla { max-height: none; overflow-x: auto; }
 .ac-tabla .contenidos-tabla__fila:not(.contenidos-tabla__fila--titulos) { min-height: 56px; }
 .ac-tabla--cambios .contenidos-tabla__fila { grid-template-columns: 90px minmax(220px, 2fr) minmax(150px, 1.2fr) 80px 120px 100px; }
-.ac-tabla--sesiones .contenidos-tabla__fila { grid-template-columns: minmax(220px, 2fr) minmax(170px, 1.3fr) minmax(130px, 1fr) 140px 110px; }
+.ac-tabla--sesiones .contenidos-tabla__fila { grid-template-columns: minmax(220px, 2fr) minmax(170px, 1.3fr) 150px 150px 120px; column-gap: 24px; }
 .ac-tabla--asistencia .contenidos-tabla__fila { grid-template-columns: 90px minmax(220px, 2fr) 120px 80px 150px 120px; }
 .ac-tabla--resumen .contenidos-tabla__fila { grid-template-columns: 90px minmax(220px, 2fr) 80px 90px minmax(130px, 1fr) 130px; }
 .ac-tabla--evidencias .contenidos-tabla__fila { grid-template-columns: 90px minmax(240px, 2fr) minmax(170px, 1.2fr) 130px 120px; }
@@ -155,3 +155,10 @@
     .ac-ficha, .ac-cupo-sesion__cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .ac-nota.tr-entrada { width: 150px; }
 }
+
+/* Cupo en la tabla de sesiones: cifra arriba, barra corta abajo */
+.ac-cupo-celda { display: flex; flex-direction: column; gap: 6px; max-width: 140px; }
+.ac-cupo-celda__cifra { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; font-size: 13px; color: #161a1d; }
+.ac-cupo-celda__cifra strong { font-size: 14px; }
+.ac-cupo-celda__cifra small { margin-left: auto; color: #4d4d4d; font-size: 12px; }
+.ac-cupo-celda .ac-cupo__barra { flex: none; width: 100%; }

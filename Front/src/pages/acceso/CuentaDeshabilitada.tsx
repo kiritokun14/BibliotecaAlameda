@@ -1,15 +1,11 @@
 import { Link } from "react-router";
 import AccesoLayout from "../../components/acceso/AccesoLayout";
 import Aviso from "../../components/acceso/Aviso";
-import iconoFlechaDer from "../../assets/comun/iconos/flecha-derecha.svg";
-import iconoFlechaIzqVerde from "../../assets/login/icono-flecha-izq-verde.svg";
 
 function CuentaDeshabilitada() {
     return (
         <AccesoLayout
-            titulo={<>Inicia <span>sesión</span></>}
-            texto="Entra para consultar tu credencial, tus actividades y tus solicitudes."
-            beneficios={["Solicitar tu credencial", "Inscribirte a actividades", "Solicitar espacios"]}
+            titulo="Tu cuenta está deshabilitada"
         >
             <div className="tarjeta">
                 <div className="tarjeta__encabezado">
@@ -27,11 +23,9 @@ function CuentaDeshabilitada() {
                 {/* TODO: estas páginas todavía no existen */}
                 <Link to="/contacto" className="boton-principal">
                     Ir a Contacto
-                    <img src={iconoFlechaDer} alt="" />
                 </Link>
                 <Link to="/credencial" className="boton-secundario">
                     Volver a Credencial
-                    <img src={iconoFlechaIzqVerde} alt="" />
                 </Link>
             </div>
         </AccesoLayout>

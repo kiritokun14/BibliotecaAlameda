@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import AccesoLayout from "../../components/acceso/AccesoLayout";
 import iconoUsuarios from "../../assets/login/icono-usuarios.svg";
-import iconoFlechaDerVerde from "../../assets/login/icono-flecha-der-verde.svg";
 
 // Vistas de Crear cuenta para menores de 18 años.
 // Viven dentro de CrearCuenta (no son rutas aparte) para no perder lo que ya escribió.
@@ -16,35 +15,44 @@ export function VistaMenor({
 }) {
     return (
         <AccesoLayout
-            etiqueta="MENOR DE 18 AÑOS"
             titulo="Necesitamos a tu madre, padre o tutor"
-            texto="Si eres menor de 18 años, necesitamos los datos de contacto de una persona adulta responsable."
         >
             <div className="tarjeta">
-                <div className="icono-circulo">
-                    <img src={iconoUsuarios} alt="" />
-                </div>
-
                 <div className="tarjeta__encabezado">
+                    <span className="acceso__insignia" aria-hidden="true"><img src={iconoUsuarios} alt="" /></span>
                     <h2>Eres menor de 18 años</h2>
-                    <p>
-                        Para crear tu cuenta necesitamos los datos de contacto y domicilio de tu madre, padre o tutor.
-                        La confirmación se envía a tu propio correo. No se crea una cuenta ni acceso para el responsable.
-                    </p>
+                    <p>Para crear tu cuenta necesitamos los datos de una persona adulta responsable de ti.</p>
                 </div>
 
-                <button type="button" className="boton-secundario" onClick={onContinuar}>
-                    Continuar con datos del tutor
-                    <img src={iconoFlechaDerVerde} alt="" />
-                </button>
+                <div className="menor-pedimos">
+                    <strong>Te vamos a pedir de tu madre, padre o tutor</strong>
+                    <ul>
+                        <li>Nombre, apellidos y relación contigo</li>
+                        <li>Teléfono y correo de contacto</li>
+                        <li>Domicilio, si no vive contigo</li>
+                    </ul>
+                </div>
 
-                <div className="enlaces">
-                    <button type="button" className="enlace enlace--boton" onClick={onCambiarFecha}>
+                <div className="menor-nota">
+                    <p>La confirmación llega <b>a tu propio correo</b>.</p>
+                    <p>Tu responsable <b>no recibe una cuenta</b> ni acceso a la tuya; solo es un contacto.</p>
+                </div>
+
+                <div className="menor-acciones">
+                    <button type="button" className="boton-principal" onClick={onContinuar}>
+                        Continuar con datos del tutor
+                    </button>
+                    <button type="button" className="boton-secundario" onClick={onCambiarFecha}>
                         Cambiar fecha de nacimiento
                     </button>
-                    <Link to="/iniciar-sesion" className="enlace">
-                        Ir a iniciar sesión
-                    </Link>
+                    <p className="menor-acciones__ayuda">¿Te equivocaste de fecha? Puedes corregirla sin perder lo que escribiste.</p>
+                </div>
+
+                <div className="tarjeta__pie">
+                    <p>
+                        ¿Ya tienes cuenta?{" "}
+                        <Link to="/iniciar-sesion" className="enlace">Iniciar sesión</Link>
+                    </p>
                 </div>
             </div>
         </AccesoLayout>

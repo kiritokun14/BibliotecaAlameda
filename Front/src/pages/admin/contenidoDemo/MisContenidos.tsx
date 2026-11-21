@@ -65,7 +65,7 @@ function MisContenidos() {
                     insignia="Editor de contenidos"
                     titulo="¿Cómo van tus"
                     resalte="contenidos?"
-                    subtitulo="Tu actividad en el Editor · cifras de ejemplo"
+                    subtitulo="Tu actividad en el Editor"
                     accesos={[
                         { icono: iconoLapiz, numero: cuenta("borrador"), titulo: "Borradores", texto: "Aún no los has enviado a autorización.", enlace: "Ver borradores", tono: "verde", activo: filtro === "borrador", alPresionar: () => elegir("borrador") },
                         { icono: iconoReloj, numero: cuenta("por-autorizar"), titulo: "Por autorizar", texto: "Esperan la decisión del Administrador.", enlace: "Ver en autorización", tono: "dorado", activo: filtro === "por-autorizar", alPresionar: () => elegir("por-autorizar") },
@@ -104,7 +104,7 @@ function MisContenidos() {
 
                     {filtrados.length > 0 && (
                         <div className="cn-pie-tabla">
-                            <p>Mostrando {visibles.length} de {filtrados.length} contenidos (ejemplo)</p>
+                            <p>Mostrando {visibles.length} de {filtrados.length} contenidos</p>
                             {filtro !== "todos" && <button type="button" className={clasesBoton("vino")} onClick={() => elegir("todos")}>Ver todos mis contenidos</button>}
                             <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
                         </div>

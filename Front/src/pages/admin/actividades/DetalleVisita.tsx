@@ -72,7 +72,7 @@ export function DetalleVisita() {
                         <Datos
                             filas={[
                                 [v.espacio, o.tipo === "libre" ? `Libre de ${v.hora} a ${fin}` : o.tipo === "bloqueada" ? "Bloqueada en ese horario" : `Ocupada: ${o.texto}`],
-                                ["Guía disponible", "Sí (ejemplo)"],
+                                ["Guía disponible", "Sí"],
                                 ["Capacidad", capacidad ? `${sala ? `${sala.capacidad} ${sala.equipo.includes("equipos") ? "equipos" : "personas"}` : `${capacidad} personas`}${turnos > 1 ? ` · el grupo cabe dividido en ${turnos} turnos` : " · el grupo cabe completo"}` : "Por confirmar"],
                             ]}
                         />

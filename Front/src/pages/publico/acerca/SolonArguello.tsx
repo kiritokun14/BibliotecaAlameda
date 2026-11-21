@@ -1,148 +1,70 @@
 import { useState } from "react";
-import { EncabezadoSeccion } from "../inicio/Bloque";
-import { FotoConMarco, NotaAcerca, SeccionAcerca } from "./piezas";
-import { biografiaCompleta, ficha, fichaCompleta, obras, trayectoria, type Fragmento } from "./datos";
-import retrato from "../../../assets/acerca/solon-retrato.webp";
-import fotoFachada from "../../../assets/acerca/foto-fachada.webp";
-import iconoPersona from "../../../assets/acerca/etiqueta-persona.svg";
-import iconoReloj from "../../../assets/acerca/etiqueta-reloj.svg";
-import iconoLibro from "../../../assets/acerca/etiqueta-libro.svg";
-import iconoCheck from "../../../assets/acerca/dato-check.svg";
+import { Dato, EtiquetaPerfil, TarjetaPerfil } from "../perfil/piezas";
+import { biografiaCompleta, fichaCompleta, obras, trayectoria, type Fragmento } from "./datos";
+import iconoPersona from "../../../assets/comun/iconos/persona-verde.svg";
+import tarjetaUsuario from "../../../assets/perfil/tarjeta-usuario.svg";
+import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
+import tarjetaEstrella from "../../../assets/perfil/tarjeta-estrella.svg";
+
+// Solón Argüello (contenido del diseño de Figma), con el catálogo de piezas: ficha en datos, semblanza que se abre
+// con «Leer biografía completa», trayectoria como tarjetas de lista con fecha y obras con su portada.
+// TODO backend (HU-01): cuando la biblioteca publique «Solón Argüello» desde el panel, se muestra lo publicado en su lugar.
+function texto(partes: Fragmento[]) {
+    return partes.map((p, i) => (typeof p === "string" ? p : <strong key={i}>{p.resaltado}</strong>));
+}
 
 function SolonArguello() {
+    const [completa, setCompleta] = useState(false);
     return (
         <>
-            {/* Semblanza */}
-            <SeccionAcerca textura="credencial">
-                <EncabezadoSeccion
-                    etiqueta="Semblanza"
-                    iconoEtiqueta={iconoPersona}
-                    titulo={<>Solón <span>Argüello</span></>}
-                    texto="Quien da nombre a la biblioteca."
-                />
-                <TarjetaSemblanza />
-            </SeccionAcerca>
+            <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="José Solón Argüello Escobar"
+                texto="Poeta, maestro y periodista nicaragüense que vivió y enseñó en Tepic; da nombre a esta biblioteca.">
+                <dl className="perfil-datos">
+                    {fichaCompleta.map((f) => <Dato key={f.dato} etiqueta={f.dato} valor={f.valor} icono={iconoPersona} ancho={2} />)}
+                </dl>
+            </TarjetaPerfil>
 
-            {/* Trayectoria */}
-            <SeccionAcerca fondo="blanca" textura="rama">
-                <EncabezadoSeccion
-                    etiqueta="Trayectoria"
-                    iconoEtiqueta={iconoReloj}
-                    titulo="De Nicaragua a Nayarit y la Revolución"
-                    texto="Cuatro momentos de su vida (fechas según fuentes públicas; por confirmar)."
-                />
-                <ol className="tarjeta-blanca lista-etapas">
-                    {trayectoria.map((momento) => (
-                        <li key={momento.titulo} className="etapa">
-                            <div className="etapa__boton etapa__boton--fijo">
-                                <span className="icono-dorado">
-                                    <img src={iconoCheck} alt="" />
-                                </span>
-                                <span className="etapa__textos">
-                                    <strong>{momento.titulo}</strong>
-                                    <span>{momento.texto}</span>
-                                </span>
-                                <span className="etapa__fecha">{momento.fecha}</span>
+            <TarjetaPerfil color="dorada" icono={tarjetaLista} titulo="Semblanza">
+                <div className="acerca-biografia">
+                    {(completa ? biografiaCompleta : biografiaCompleta.slice(0, 2)).map((b) => (
+                        <section key={b.titulo}>
+                            <h4>{b.titulo}</h4>
+                            <p className="acerca-parrafo">{texto(b.texto)}</p>
+                        </section>
+                    ))}
+                </div>
+                <div className="perfil-acciones">
+                    <button type="button" className="perfil-boton perfil-boton--contorno perfil-boton--chico" aria-expanded={completa}
+                        onClick={() => setCompleta(!completa)}>{completa ? "Ver menos" : "Leer biografía completa"}</button>
+                </div>
+            </TarjetaPerfil>
+
+            <section className="perfil-panel perfil-panel--ajustado" aria-labelledby="titulo-trayectoria">
+                <EtiquetaPerfil id="titulo-trayectoria" icono={iconoPersona}>Trayectoria</EtiquetaPerfil>
+                <ol className="perfil-solicitudes historia-etapas">
+                    {trayectoria.map((t, i) => (
+                        <li key={t.titulo} className="perfil-solicitud historia-etapa">
+                            <div className="historia-etapa__boton">
+                                <span className="historia-etapa__numero">{i + 1}</span>
+                                <span className="perfil-solicitud__textos"><strong>{t.titulo}</strong><span>{t.texto}</span></span>
+                                <span className="historia-etapa__fecha">{t.fecha}</span>
                             </div>
                         </li>
                     ))}
                 </ol>
-                <FotoConMarco src={fotoFachada} pie="La biblioteca que lleva su nombre" alto={200} className="foto-marco--ancha" />
-            </SeccionAcerca>
+            </section>
 
-            {/* Catálogo de obras */}
-            <SeccionAcerca textura="libros">
-                <EncabezadoSeccion
-                    etiqueta="Catálogo de obras"
-                    iconoEtiqueta={iconoLibro}
-                    titulo={<>Catálogo de <span>obras</span></>}
-                    texto="Obras publicadas según fuentes públicas; la biblioteca confirmará ediciones."
-                />
-                <ul className="cuatro-columnas">
-                    {obras.map((obra) => (
-                        <li key={obra.titulo} className="tarjeta-blanca tarjeta-obra">
-                            <img loading="lazy" decoding="async" src={obra.portada} alt={`Portada ilustrativa de ${obra.titulo}`} />
-                            <h3>{obra.titulo}</h3>
-                            <p>{obra.tipo}</p>
+            <TarjetaPerfil color="rosa" icono={tarjetaEstrella} titulo="Obras" texto="Sus libros y la revista que fundó en Tepic.">
+                <ul className="acerca-obras">
+                    {obras.map((o) => (
+                        <li key={o.titulo}>
+                            <img loading="lazy" decoding="async" src={o.portada} alt={`Portada de ${o.titulo}`} />
+                            <strong>{o.titulo}</strong>
+                            <span>{o.tipo}</span>
                         </li>
                     ))}
                 </ul>
-            </SeccionAcerca>
-
-            <NotaAcerca>
-                Datos biográficos tomados de fuentes públicas (Wikipedia, Crónica, Reporte Naranja); la biblioteca los
-                confirmará. Retrato y portadas por confirmar.
-            </NotaAcerca>
-        </>
-    );
-}
-
-// Biografía: resumida al inicio; "Ver más" despliega la versión completa (Figma: Estado=Completo)
-function TarjetaSemblanza() {
-    const [completa, setCompleta] = useState(false);
-
-    const botonVerMas = (
-        <button
-            type="button"
-            className="boton-ver-mas"
-            aria-expanded={completa}
-            aria-controls="biografia-completa"
-            onClick={() => setCompleta(!completa)}
-        >
-            {completa ? "Ver menos" : "Ver más"} <span aria-hidden="true">{completa ? "▴" : "▾"}</span>
-        </button>
-    );
-    const etiquetaFuentes = <span className="pastilla-por-confirmar">Fuentes públicas · por confirmar con la biblioteca</span>;
-    const filas = completa ? fichaCompleta : ficha;
-
-    return (
-        <article className={completa ? "tarjeta-blanca semblanza semblanza--completa" : "tarjeta-blanca semblanza"}>
-            <figure className="semblanza__retrato">
-                <img src={retrato} alt="Retrato ilustrativo de Solón Argüello" />
-                <figcaption>Ilustración de ejemplo</figcaption>
-            </figure>
-            <div className="semblanza__texto">
-                <h3>Biografía</h3>
-                <p>
-                    Poeta, maestro y periodista nacido en <strong>León, Nicaragua</strong>, el{" "}
-                    <strong>11 de julio de 1879</strong>. Llegó a México en 1902 y fue maestro en Tepic, donde fundó la
-                    revista <strong>Tepic literario</strong> (1907). Fue secretario privado de Francisco I.{" "}
-                    <strong>Madero</strong> y murió fusilado en 1913 por oponerse a Victoriano Huerta.
-                </p>
-
-                <div id="biografia-completa" className="semblanza__completa" hidden={!completa}>
-                    {biografiaCompleta.map((parte) => (
-                        <section key={parte.titulo}>
-                            <h4>{parte.titulo}</h4>
-                            <p><TextoResaltado partes={parte.texto} /></p>
-                        </section>
-                    ))}
-                </div>
-
-                {etiquetaFuentes}
-                <dl className="ficha">
-                    {filas.map((fila) => (
-                        <div key={fila.dato}>
-                            <dt>{fila.dato}</dt>
-                            <dd>{fila.valor}</dd>
-                        </div>
-                    ))}
-                </dl>
-                {/* Un solo botón (así no pierde el foco del teclado). En la versión completa
-                    el CSS lo sube arriba de la ficha, como en Figma. */}
-                {botonVerMas}
-            </div>
-        </article>
-    );
-}
-
-// Pinta en negritas verdes las partes marcadas como { resaltado: "..." }
-function TextoResaltado({ partes }: { partes: Fragmento[] }) {
-    return (
-        <>
-            {partes.map((parte, i) =>
-                typeof parte === "string" ? parte : <strong key={i}>{parte.resaltado}</strong>,
-            )}
+            </TarjetaPerfil>
         </>
     );
 }

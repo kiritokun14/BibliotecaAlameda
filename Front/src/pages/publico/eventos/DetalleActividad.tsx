@@ -17,9 +17,6 @@ import iconoPin from "../../../assets/eventos/destacada-pin.svg";
 import iconoCupo from "../../../assets/eventos/detalle-cupo.svg";
 import circuloGrande from "../../../assets/comun/iconos/circulo-grande.svg";
 import circuloChico from "../../../assets/comun/iconos/circulo-chico.svg";
-import flechaOscura from "../../../assets/comun/iconos/flecha-oscura.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
 import modalCalendario from "../../../assets/perfil/fila-calendario-verde.svg";
 import infoVerde from "../../../assets/credencial/info-verde.svg";
 import checkEnviada from "../../../assets/credencial/enviada-check.svg";
@@ -51,7 +48,7 @@ export default function DetalleActividad({ actividad: a }: { actividad: Activida
                         <p className="agenda-sobretitulo">ACTIVIDAD CANCELADA</p>
                         <h3>Esta actividad fue cancelada</h3>
                         <p>Por causas de fuerza mayor no se realizará. Si estabas inscrito, te avisaremos por tus notificaciones.</p>
-                        <Link to="/eventos" className="agenda-boton agenda-boton--verde">Ver otras actividades <img src={flechaBlanca} alt="" /></Link>
+                        <Link to="/eventos" className="agenda-boton agenda-boton--verde">Ver otras actividades</Link>
                     </div>
                 </div>
             </PaginaPublica>
@@ -72,20 +69,20 @@ export default function DetalleActividad({ actividad: a }: { actividad: Activida
     if (inscrito) {
         accion = <>
             <p className="detalle-actividad__inscrito"><span className="calendario-agenda__punto" /> Inscrito</p>
-            <Link to={`/eventos/${a.id}/mi-inscripcion`} className="agenda-boton agenda-boton--dorado agenda-boton--ancho">Ver mi inscripción <img src={flechaOscura} alt="" /></Link>
+            <Link to={`/eventos/${a.id}/mi-inscripcion`} className="agenda-boton agenda-boton--dorado agenda-boton--ancho">Ver mi inscripción</Link>
             <p className="detalle-actividad__nota">Estás inscrito en esta actividad. Si no puedes asistir, cancela para liberar tu lugar. No hay lista de espera.</p>
         </>;
     } else if (lugarLibre) {
-        accion = <button type="button" className="agenda-boton agenda-boton--dorado agenda-boton--ancho" onClick={() => { inscribirEn(a); setModal("enviada"); }}>Confirmar mi lugar <img src={flechaOscura} alt="" /></button>;
+        accion = <button type="button" className="agenda-boton agenda-boton--dorado agenda-boton--ancho" onClick={() => { inscribirEn(a); setModal("enviada"); }}>Confirmar mi lugar</button>;
     } else if (espera !== null) {
-        accion = <button type="button" className="agenda-boton agenda-boton--dorado agenda-boton--ancho" onClick={() => inscripciones.salirDeEspera(a.id)}>Salir de la lista de espera <img src={flechaOscura} alt="" /></button>;
+        accion = <button type="button" className="agenda-boton agenda-boton--dorado agenda-boton--ancho" onClick={() => inscripciones.salirDeEspera(a.id)}>Salir de la lista de espera</button>;
     } else if (estado === "cupo" && sesion) {
-        accion = <button type="button" className="agenda-boton agenda-boton--dorado agenda-boton--ancho" onClick={() => setModal("espera")}>Anotarme en lista de espera <img src={flechaOscura} alt="" /></button>;
+        accion = <button type="button" className="agenda-boton agenda-boton--dorado agenda-boton--ancho" onClick={() => setModal("espera")}>Anotarme en lista de espera</button>;
     } else if (estado === "abierta") {
         accion = <>
             {sesion
-                ? <button type="button" className="agenda-boton agenda-boton--dorado agenda-boton--ancho" onClick={() => setModal("confirmar")}>Inscribirme <img src={flechaOscura} alt="" /></button>
-                : <Link to="/iniciar-sesion" className="agenda-boton agenda-boton--dorado agenda-boton--ancho">Inscribirme <img src={flechaOscura} alt="" /></Link>}
+                ? <button type="button" className="agenda-boton agenda-boton--dorado agenda-boton--ancho" onClick={() => setModal("confirmar")}>Inscribirme</button>
+                : <Link to="/iniciar-sesion" className="agenda-boton agenda-boton--dorado agenda-boton--ancho">Inscribirme</Link>}
             <p className="detalle-actividad__nota">
                 {sesion ? "Tu inscripción la confirma el personal, según el cupo. Puedes cancelarla antes del inicio." : "Inicia sesión para inscribirte. Tu inscripción la confirma el personal, según el cupo."}
             </p>
@@ -130,8 +127,8 @@ export default function DetalleActividad({ actividad: a }: { actividad: Activida
                     <p>Hay más talleres, clubes y visitas.</p>
                 </div>
                 <div className="detalle-actividad__otra-botones">
-                    <Link to="/eventos" className="agenda-boton agenda-boton--negro">Volver a Eventos y actividades <img src={volverOscura} alt="" /></Link>
-                    <Link to="/eventos/todas" className="agenda-boton agenda-boton--verde">Ver todas las actividades <img src={flechaBlanca} alt="" /></Link>
+                    <Link to="/eventos" className="agenda-boton agenda-boton--negro">Volver a Eventos y actividades</Link>
+                    <Link to="/eventos/todas" className="agenda-boton agenda-boton--verde">Ver todas las actividades</Link>
                 </div>
             </section>
 
@@ -147,7 +144,7 @@ export default function DetalleActividad({ actividad: a }: { actividad: Activida
                     <p className="modal-agenda__nota"><img src={infoVerde} alt="" />No necesitas escribir tus datos otra vez. El personal confirma tu inscripción según el cupo; puedes cancelarla antes del inicio.</p>
                     <div className="modal-agenda__acciones">
                         <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => { inscribirEn(a); setModal("enviada"); }}>
-                            Confirmar inscripción <img src={flechaBlanca} alt="" />
+                            Confirmar inscripción
                         </button>
                         <button type="button" className="agenda-boton agenda-boton--contorno-verde" onClick={() => setModal(null)}>Volver a la actividad</button>
                     </div>
@@ -158,7 +155,7 @@ export default function DetalleActividad({ actividad: a }: { actividad: Activida
                     <p className="modal-agenda__texto">Si se libera un lugar, te avisamos y tendrás 24 horas para confirmarlo. No pierdes nada si no puedes asistir.</p>
                     <div className="modal-agenda__acciones">
                         <button type="button" className="agenda-boton agenda-boton--contorno-verde" onClick={() => setModal(null)}>Cancelar</button>
-                        <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => { inscripciones.anotarEnEspera(a.id); setModal(null); }}>Anotarme <img src={flechaBlanca} alt="" /></button>
+                        <button type="button" className="agenda-boton agenda-boton--verde" onClick={() => { inscripciones.anotarEnEspera(a.id); setModal(null); }}>Anotarme</button>
                     </div>
                 </ModalAgenda>
             )}
@@ -168,7 +165,7 @@ export default function DetalleActividad({ actividad: a }: { actividad: Activida
                         {a.titulo} · {fechaCompleta(a.fecha)}, {a.horario} · {a.lugar}. El personal confirmará tu lugar según el cupo.
                     </p>
                     <div className="modal-agenda__acciones">
-                        <Link to={`/eventos/${a.id}/mi-inscripcion`} className="agenda-boton agenda-boton--verde">Ver mi inscripción <img src={flechaBlanca} alt="" /></Link>
+                        <Link to={`/eventos/${a.id}/mi-inscripcion`} className="agenda-boton agenda-boton--verde">Ver mi inscripción</Link>
                         <button type="button" className="agenda-boton agenda-boton--contorno-verde" onClick={() => setModal(null)}>Cerrar</button>
                     </div>
                 </ModalAgenda>

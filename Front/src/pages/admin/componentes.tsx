@@ -18,13 +18,13 @@ import avisoX from "../../assets/admin/aviso-x.svg";
 
 type EncabezadoPaginaProps = {
     volver?: { texto: string; ruta: string }; // solo en pantallas internas (detalle, listado completo)
-    etiqueta: string;
+    etiqueta?: string; // ya no se muestra: repetía las migas y el título
     titulo: string;
     texto: string;
     accion?: ReactNode;
 };
 
-export function EncabezadoPagina({ volver, etiqueta, titulo, texto, accion }: EncabezadoPaginaProps) {
+export function EncabezadoPagina({ volver, titulo, texto, accion }: EncabezadoPaginaProps) {
     return (
         <div className={`contenidos-encabezado${volver ? " contenidos-encabezado--tarjeta" : ""}`}>
             <div>
@@ -34,7 +34,6 @@ export function EncabezadoPagina({ volver, etiqueta, titulo, texto, accion }: En
                         {volver.texto}
                     </Link>
                 )}
-                <p className="contenidos-etiqueta">{etiqueta}</p>
                 <h1>{titulo}</h1>
                 {texto && <p className="contenidos-encabezado__texto">{texto}</p>}
             </div>

@@ -64,11 +64,11 @@ export const VACIA: DatosActividad = {
 // ---------- Ejemplos ----------
 function ejemplo(folio: string, estado: EstadoActividad, d: Partial<DatosActividad>, extra: Partial<Actividad> = {}): Actividad {
     return {
-        ...VACIA, responsable: "Personal de Fomento a la lectura (ejemplo)", ...d,
+        ...VACIA, responsable: "Personal de Fomento a la lectura", ...d,
         folio, estado, actualizado: "2026-10-20T10:00:00", inscritos: 0, espera: 0, ...extra,
     };
 }
-const coordinacion = { quien: "Coordinación (ejemplo)", fecha: "2026-10-20T10:00:00" };
+const coordinacion = { quien: "Coordinación", fecha: "2026-10-20T10:00:00" };
 
 const iniciales: Actividad[] = [
     ejemplo("AC-0108", "publicada", {
@@ -77,44 +77,44 @@ const iniciales: Actividad[] = [
     }, { autorizo: coordinacion, publicadaEl: "2026-10-22T12:10:00", inscritos: 18, espera: 2 }),
     ejemplo("AC-0107", "en-revision", {
         nombre: "Club de lectura: cuentos nayaritas", tipo: "Club", fecha: "2026-11-14", inicio: "17:00", fin: "18:30", espacio: "Sala de lectura", cupo: "15",
-        publico: "Personas adultas", descripcion: "Club mensual para leer y comentar cuentos de autoras y autores de Nayarit (ejemplo).",
+        publico: "Personas adultas", descripcion: "Club mensual para leer y comentar cuentos de autoras y autores de Nayarit.",
     }),
     ejemplo("AC-0106", "aprobada", {
         nombre: "Charla: historia de Tepic", tipo: "Charla", fecha: "2026-11-19", inicio: "18:00", fin: "19:30", espacio: "Auditorio", cupo: "60",
-        descripcion: "Charla abierta sobre la historia de Tepic, con imágenes y testimonios (ejemplo).",
+        descripcion: "Charla abierta sobre la historia de Tepic, con imágenes y testimonios.",
     }, { autorizo: coordinacion }),
     ejemplo("AC-0105", "borrador", {
         nombre: "Visita guiada escolar", tipo: "Visita", fecha: "2026-11-21", inicio: "10:00", fin: "11:30", espacio: "Toda la biblioteca", cupo: "30",
-        publico: "Escuelas", descripcion: "Recorrido por las salas para grupos escolares (ejemplo).",
+        publico: "Escuelas", descripcion: "Recorrido por las salas para grupos escolares.",
     }),
     ejemplo("AC-0104", "cancelada", {
         nombre: "Cuentacuentos de otoño", tipo: "Taller", fecha: "2026-10-24", inicio: "11:00", fin: "12:00", espacio: "Sala infantil", cupo: "25",
-        publico: "Niñez (6 a 10 años)", descripcion: "Cuentos de temporada para la niñez (ejemplo).",
+        publico: "Niñez (6 a 10 años)", descripcion: "Cuentos de temporada para la niñez.",
     }, { autorizo: coordinacion, publicadaEl: "2026-10-01T09:00:00", inscritos: 12 }),
     ejemplo("AC-0103", "publicada", {
         nombre: "Taller de encuadernación", tipo: "Taller", fecha: "2026-11-26", inicio: "16:00", fin: "18:00", espacio: "Sala de lectura", cupo: "12",
-        publico: "Personas adultas", descripcion: "Aprende a encuadernar una libreta a mano (ejemplo).", materiales: "Traer tijeras y regla.",
+        publico: "Personas adultas", descripcion: "Aprende a encuadernar una libreta a mano.", materiales: "Traer tijeras y regla.",
     }, { autorizo: coordinacion, publicadaEl: "2026-10-18T10:00:00", inscritos: 12, espera: 4 }),
     ejemplo("AC-0102", "en-revision", {
         nombre: "Presentación de libro: voces de la sierra", tipo: "Presentación", fecha: "2026-11-28", inicio: "18:00", fin: "19:00", espacio: "Auditorio", cupo: "60",
-        descripcion: "Presentación con la participación de la autora (ejemplo).", inscripcion: false,
+        descripcion: "Presentación con la participación de la autora.", inscripcion: false,
     }),
     ejemplo("AC-0101", "publicada", {
         nombre: "Club de cómputo para personas mayores", tipo: "Club", fecha: "2026-11-05", inicio: "10:00", fin: "11:30", espacio: "Sala de cómputo", cupo: "15",
-        publico: "Personas mayores", descripcion: "Uso básico de la computadora y del correo electrónico (ejemplo).",
+        publico: "Personas mayores", descripcion: "Uso básico de la computadora y del correo electrónico.",
     }, { autorizo: coordinacion, publicadaEl: "2026-10-10T10:00:00", inscritos: 9 }),
     // Actividades ya realizadas (para Asistencia e Inscripciones "Pasadas")
     ejemplo("AC-0099", "publicada", {
         nombre: "Taller de dibujo", tipo: "Taller", fecha: "2026-10-20", inicio: "16:00", fin: "17:30", espacio: "Sala infantil", cupo: "15",
-        publico: "Niñez (6 a 10 años)", descripcion: "Taller de dibujo con cuentos (ejemplo).",
+        publico: "Niñez (6 a 10 años)", descripcion: "Taller de dibujo con cuentos.",
     }, { autorizo: coordinacion, publicadaEl: "2026-10-05T10:00:00", inscritos: 15 }),
     ejemplo("AC-0098", "publicada", {
         nombre: "Club de lectura", tipo: "Club", fecha: "2026-10-27", inicio: "09:00", fin: "10:30", espacio: "Sala de lectura", cupo: "15",
-        publico: "Personas adultas", descripcion: "Club de lectura de los martes (ejemplo).",
+        publico: "Personas adultas", descripcion: "Club de lectura de los martes.",
     }, { autorizo: coordinacion, publicadaEl: "2026-10-12T10:00:00", inscritos: 12 }),
     ejemplo("AC-0100", "borrador", {
         nombre: "Exposición: fotografías del archivo", tipo: "Exposición", fecha: "2026-12-03", inicio: "09:00", fin: "18:00", espacio: "Toda la biblioteca", cupo: "40",
-        descripcion: "Selección de fotografías del archivo histórico (ejemplo).", inscripcion: false,
+        descripcion: "Selección de fotografías del archivo histórico.", inscripcion: false,
     }),
 ];
 

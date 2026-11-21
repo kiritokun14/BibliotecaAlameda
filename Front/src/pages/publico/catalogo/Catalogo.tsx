@@ -2,7 +2,6 @@ import { Link } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import { urlCatalogo } from "../../../servicios/catalogo";
 import "./Catalogo.css";
-import flecha from "../../../assets/comun/iconos/portada-flecha.svg";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
 import iconoExterno from "../../../assets/catalogo/icono-externo.svg";
@@ -48,7 +47,7 @@ function CatalogoDisponible({ url }: { url: string }) {
                         noopener/noreferrer: Koha no controla esta pestaña ni recibe de dónde viene la visita. */}
                     <a href={url} target="_blank" rel="noopener noreferrer" className="boton-dorado boton-dorado--grande">
                         Abrir catálogo (Koha)
-                        <img src={flecha} alt="" />
+
                         <span className="solo-lectores">(sitio externo, se abre en una pestaña nueva)</span>
                     </a>
                 </div>

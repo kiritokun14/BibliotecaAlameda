@@ -7,7 +7,7 @@ import instagramGrande from "../../assets/portal/red-instagram-30.svg";
 import whatsappGrande from "../../assets/portal/red-whatsapp-30.svg";
 
 // Encabezado y pie institucionales del portal público (Inicio, Catálogo, Servicios...).
-// Las pantallas de acceso siguen usando FranjaInstitucional/PieInstitucional.
+// Las pantallas de acceso no los usan: llevan sus propios logos sobre la foto (AccesoLayout).
 
 // TODO: la biblioteca debe confirmar las cuentas oficiales; mientras tanto no enlazan a ningún lado
 const redes = [
@@ -23,6 +23,10 @@ export function EncabezadoPortal() {
                 <img src={logoMexico} alt="Gobierno de México" className="logo-mexico" />
                 <span className="encabezado-portal__separador" aria-hidden="true" />
                 <img src={logoNayarit} alt="Gobierno de Nayarit" className="logo-nayarit" />
+                <span className="encabezado-portal__separador" aria-hidden="true" />
+                <Link to="/" className="encabezado-portal__biblioteca" aria-label="Biblioteca Solón Argüello, ir al inicio">
+                    <span className="logo-solon logo-solon--blanco" />
+                </Link>
             </div>
         </header>
     );

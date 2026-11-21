@@ -13,7 +13,7 @@ import iconoCheck from "../../../assets/admin/contenidos/tarjeta-check.svg";
 import iconoLapiz from "../../../assets/admin/contenidos/tarjeta-lapiz.svg";
 import iconoBalanza from "../../../assets/admin/contenidos/tarjeta-balanza.svg";
 import iconoPersona from "../../../assets/admin/contenidos/tarjeta-persona.svg";
-import iconoReloj from "../../../assets/admin/contenidos/tarjeta-reloj.svg";
+import iconoReloj from "../../../assets/comun/iconos/reloj-blanco.svg";
 
 const BASE = "/admin/contenidos/revision";
 
@@ -158,7 +158,7 @@ function Detalle({ contenido }: { contenido: Contenido }) {
                                             <span className="cn-eventos__punto" aria-hidden="true" />
                                             <span>
                                                 <strong>{e.titulo}</strong>
-                                                <small>{cuandoConHora(e.fecha)} (ejemplo)</small>
+                                                <small>{cuandoConHora(e.fecha)}</small>
                                             </span>
                                         </li>
                                     ))}

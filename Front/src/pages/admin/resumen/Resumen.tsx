@@ -60,7 +60,6 @@ export default function Resumen() {
             <div className="resumen">
                 {simulado === "parcial" && <AvisoResumenParcial alReintentar={reintentar} />}
                 <header className="resumen-encabezado">
-                    <p className="resumen-encabezado__etiqueta">DATOS DE EJEMPLO</p>
                     <h2>Resumen de hoy</h2>
                 </header>
 
@@ -112,7 +111,7 @@ export default function Resumen() {
                             </div>
                             <p className="resumen-indicador__cifra">3</p>
                             <p className="resumen-indicador__texto">Esperan autorización del administrador</p>
-                            <p className="resumen-indicador__texto">▲ 1 más que la semana pasada (ejemplo)</p>
+                            <p className="resumen-indicador__texto">▲ 1 más que la semana pasada</p>
                         </div>
 
                         <div className="resumen-capacidades">
@@ -274,7 +273,7 @@ function TablaPendientes() {
             </div>
 
             <div className="resumen-tabla__pie">
-                <p aria-live="polite">Mostrando {visibles.length} de {filtrados.length} pendientes (ejemplo) · ordenados por vencimiento</p>
+                <p aria-live="polite">Mostrando {visibles.length} de {filtrados.length} pendientes · ordenados por vencimiento</p>
                 {filtrados.length > FILAS_INICIALES && (
                     <button type="button" className="resumen-enlace" onClick={() => setTodos((t) => !t)} aria-expanded={todos}>
                         {todos ? "Ver menos" : "Ver todos los pendientes →"}

@@ -51,7 +51,6 @@ function VistaPreviaNoticia({ noticia, alVolver, alEnviar, folio, tieneImagen, v
                         <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
                         Volver a editar
                     </button>
-                    <p className="contenidos-etiqueta">Vista previa · Noticia nueva</p>
                     <h1>Así se verá en el portal</h1>
                     <p className="contenidos-encabezado__texto">Revisa el texto y la imagen. Aún no está publicado: nadie más lo ve.</p>
                 </div>

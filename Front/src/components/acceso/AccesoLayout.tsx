@@ -1,71 +1,34 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import "../../pages/acceso/Acceso.css";
-import circuloGrande from "../../assets/login/circulo-grande.svg";
-import circuloChico from "../../assets/login/circulo-chico.svg";
-import iconoFlechaIzq from "../../assets/login/icono-flecha-izq.svg";
-import punto from "../../assets/login/punto.svg";
-import iconoCheck from "../../assets/login/icono-check.svg";
-import { FranjaInstitucional, PieInstitucional } from "./Institucional";
+import logoSolon from "../../assets/comun/logos/logo-solon-arguello.png";
+import logoMexico from "../../assets/comun/logos/logo-gobierno-mexico.webp";
+import logoNayarit from "../../assets/comun/logos/logo-nayarit-blanco.png";
 
-// Estructura común de Iniciar sesión y Crear cuenta:
-// franja, foto con bienvenida (izquierda), formulario (derecha) y pie.
+// Estructura común de las pantallas de acceso (iniciar sesión, crear cuenta, recuperar, confirmar correo…):
+// la foto de la biblioteca de fondo, los logos institucionales y una sola tarjeta al centro.
 type AccesoLayoutProps = {
-    etiqueta?: string;
-    // La palabra en dorado va dentro de <span>, por ejemplo: <>Inicia <span>sesión</span></>
+    // Encabezado de la página para lectores de pantalla; la tarjeta ya lleva su título visible.
     titulo: ReactNode;
-    texto: string;
-    beneficios?: string[];
     children: ReactNode;
+    ancho?: boolean; // tarjeta más ancha, para formularios largos (Crear cuenta)
 };
 
-function AccesoLayout({
-    etiqueta = "ACCESO DE USUARIOS",
-    titulo,
-    texto,
-    beneficios = [],
-    children,
-}: AccesoLayoutProps) {
+function AccesoLayout({ titulo, children, ancho = false }: AccesoLayoutProps) {
     return (
         <div className="pagina-acceso">
-            <FranjaInstitucional />
-
             <main className="acceso">
-                <section className="presentacion">
-                    <img className="presentacion__circulo presentacion__circulo--grande" src={circuloGrande} alt="" />
-                    <img className="presentacion__circulo presentacion__circulo--chico" src={circuloChico} alt="" />
-
-                    <Link className="boton-volver" to="/">
-                        <img src={iconoFlechaIzq} alt="" />
-                        Volver al inicio
-                    </Link>
-
-                    <div className="presentacion__contenido">
-                        <span className="etiqueta">
-                            <img src={punto} alt="" />
-                            {etiqueta}
-                        </span>
-                        <h1 className="presentacion__titulo">{titulo}</h1>
-                        <p className="presentacion__texto">{texto}</p>
-                        {beneficios.length > 0 && (
-                            <ul className="beneficios">
-                                {beneficios.map((beneficio) => (
-                                    <li key={beneficio}>
-                                        <span className="beneficios__icono">
-                                            <img src={iconoCheck} alt="" />
-                                        </span>
-                                        {beneficio}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                <div className={`acceso__columna${ancho ? " acceso__columna--ancha" : ""}`}>
+                    <div className="acceso__logos">
+                        <img className="acceso__logo acceso__logo--mexico" src={logoMexico} alt="Gobierno de México" />
+                        <span className="acceso__separador" aria-hidden="true" />
+                        <img className="acceso__logo acceso__logo--nayarit" src={logoNayarit} alt="Gobierno de Nayarit" />
+                        <span className="acceso__separador" aria-hidden="true" />
+                        <img className="acceso__logo acceso__logo--solon" src={logoSolon} alt="Biblioteca Pública Central Estatal Solón Argüello" />
                     </div>
-                </section>
-
-                <section className="formulario">{children}</section>
+                    <h1 className="acceso__oculto">{titulo}</h1>
+                    {children}
+                </div>
             </main>
-
-            <PieInstitucional />
         </div>
     );
 }

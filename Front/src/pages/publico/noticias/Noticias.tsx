@@ -6,8 +6,8 @@ import { CATEGORIAS, fechaLarga, filtrarNoticias, nombreCategoria, type Categori
 import { CargandoNoticias, EncabezadoNoticias, EstadoNoticias, ImagenNoticia, PuntoCategoria, TarjetaChica } from "./piezas";
 import { ChipsFiltro } from "../../../components/portal/BarraFiltros";
 import { useNoticias } from "./useNoticias";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import flechaOscura from "../../../assets/comun/iconos/flecha-oscura.svg";
+import iconoNoticias from "../../../assets/inicio/noticias-periodico.svg";
+import { EtiquetaPerfil } from "../perfil/piezas";
 import circuloGrande from "../../../assets/comun/iconos/circulo-grande.svg";
 import circuloChico from "../../../assets/comun/iconos/circulo-chico.svg";
 
@@ -20,23 +20,14 @@ function Noticias() {
         <PaginaPublica>
             <EncabezadoNoticias
                 etiqueta="Noticias"
+                icono={iconoNoticias}
+                compacto
                 titulo={<>Lo que pasa en la <span>biblioteca</span></>}
                 texto="Avisos, actividades y novedades de la comunidad, en un solo lugar."
             />
 
-            <section className="noticias-seccion">
+            <section className="noticias-seccion noticias-pagina">
                 <div className="noticias-contenedor">
-                    <div className="noticias-titulo">
-                        <div className="noticias-titulo__textos">
-                            <span className="etiqueta-noticias">Noticias recientes</span>
-                            <h2>Últimas <span>noticias</span></h2>
-                            <p>Lo más reciente que pasa en la biblioteca, para que no te pierdas nada.</p>
-                        </div>
-                        <Link to="/noticias/todas" className="boton-noticias boton-noticias--verde">
-                            Ver todas las noticias
-                            <img src={flechaBlanca} alt="" />
-                        </Link>
-                    </div>
 
                     {carga.estado === "cargando" && <CargandoNoticias />}
                     {carga.estado === "error" && <EstadoNoticias tipo="error" alAccionar={reintentar} />}
@@ -68,12 +59,16 @@ function ContenidoListado({
 
     return (
         <>
+            {/* Barra: filtros por categoría a la izquierda y «Ver todas» a la derecha (el título ya está en la franja) */}
+            <div className="noticias-barra">
             <ChipsFiltro
                 etiqueta="Filtrar por categoría"
                 opciones={[{ valor: "", texto: "Todas" }, ...CATEGORIAS.map((c) => ({ valor: c.id as string, texto: c.nombre }))]}
                 activa={categoria ?? ""}
                 alElegir={(valor) => alCambiarCategoria((valor || null) as Categoria | null)}
             />
+            <Link to="/noticias/todas" className="boton-noticias boton-noticias--verde boton-noticias--chico">Ver todas las noticias</Link>
+            </div>
 
             {!destacada ? (
                 <EstadoNoticias
@@ -98,17 +93,13 @@ function ContenidoListado({
                             <span className="noticia-principal__resumen">{destacada.resumen}</span>
                             <span className="boton-noticias boton-noticias--dorado">
                                 Leer la noticia
-                                <img src={flechaOscura} alt="" />
                             </span>
                         </span>
                     </Link>
 
                     {mas.length > 0 && (
                         <div className="noticias-mas">
-                            <div className="noticias-mas__titulo">
-                                <h2>Más noticias</h2>
-                                <p>Avisos, actividades y novedades de la comunidad.</p>
-                            </div>
+                            <EtiquetaPerfil icono={iconoNoticias}>Más noticias</EtiquetaPerfil>
                             <ul className="noticias-fila">
                                 {mas.map((noticia) => (
                                     <li key={noticia.id}>

@@ -20,7 +20,6 @@ import checkEnviada from "../../../assets/credencial/enviada-check.svg";
 import checkPaso from "../../../assets/credencial/paso-check.svg";
 import infoDorado from "../../../assets/credencial/info-dorado.svg";
 import alerta from "../../../assets/credencial/alerta-guinda.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import relojBlanco from "../../../assets/comun/iconos/reloj-blanco.svg";
 import archivoBlanco from "../../../assets/perfil/chip-archivo.svg";
 
@@ -48,7 +47,7 @@ export function SolicitudEnviada() {
                     </ol>
                     <p>Puedes consultarla en Mis espacios. Si cambias de planes, cancélala desde ahí.</p>
                     <div className="cred-acciones">
-                        <Link to={folio ? `/espacios/solicitud/${encodeURIComponent(folio)}` : "/mi-perfil/espacios"} className="boton-visitante">Ver mi solicitud <img src={flechaBlanca} alt="" /></Link>
+                        <Link to={folio ? `/espacios/solicitud/${encodeURIComponent(folio)}` : "/mi-perfil/espacios"} className="boton-visitante">Ver mi solicitud</Link>
                         <Link to="/espacios" className="boton-visitante cred-boton-contorno">Volver a la agenda</Link>
                     </div>
                 </section>

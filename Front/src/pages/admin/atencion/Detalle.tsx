@@ -60,7 +60,8 @@ function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial,
             />
 
             {flujo}
-            {texto.aviso && <AvisoResultado {...texto.aviso} />}
+            {/* Con la barra de etapas, el aviso repetiría lo mismo que su «siguiente paso» */}
+            {!flujo && texto.aviso && <AvisoResultado {...texto.aviso} />}
 
             <div className="contenidos-formulario">
                 <div className="at-columna">{principal}</div>
@@ -133,7 +134,7 @@ export function TarjetaResolucion({ estado, resolucion, rutaBandeja, extra, deci
                 {decidio}
             </Dato>
             <Dato etiqueta="FECHA" alto>
-                {resolucion?.fecha ?? "Hoy (ejemplo)"}
+                {resolucion?.fecha ?? "Hoy"}
             </Dato>
             {resolucion?.motivo && (
                 <Dato etiqueta="MOTIVO" alto>

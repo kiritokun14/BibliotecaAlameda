@@ -1,23 +1,28 @@
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { imagenFallo, marcarImagenFallida } from "../../../servicios/imagenesFallidas";
 import { Link, NavLink } from "react-router";
 import { mesAnio, type Memoria, type Resena } from "./datos";
 import { urlCatalogo } from "../../../servicios/catalogo";
 import circulo1 from "../../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/encabezado-circulo-2.svg";
-import volverBlanca from "../../../assets/comun/iconos/volver-blanca.svg";
-import volverOscura from "../../../assets/comun/iconos/volver-oscura.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import iconoCandado from "../../../assets/comun/iconos/candado.svg";
-import iconoLibro from "../../../assets/lecturas/libro-guinda.svg";
-import iconoExterno from "../../../assets/lecturas/externo-blanco.svg";
+import { iconoLibro } from "./iconos";
 import fotoRespaldo from "../../../assets/comun/fotos/foto-biblioteca.webp";
 
-// ---------- Pestañas "Por autor · Por tema · Memoria pública" ----------
+// Tipo de lectura en pastilla con punto (sin mayúsculas): Reseña · Recomendada · Memoria
+export function TipoLectura({ tipo, claro, children }: { tipo: "resena" | "recomendada" | "memoria"; claro?: boolean; children?: ReactNode }) {
+    const texto = { resena: "Reseña", recomendada: "Recomendada", memoria: "Memoria" }[tipo];
+    return (
+        <span className={`lectura-tipo lectura-tipo--${tipo}${claro ? " lectura-tipo--claro" : ""}`}>
+            <span className="lectura-tipo__punto" aria-hidden="true" />{texto}{children && <small>{children}</small>}
+        </span>
+    );
+}
+
+// ---------- Pestañas "Lecturas · Memoria pública" (Por tema se quitó: lo hace el filtro Género) ----------
 export function PestanasLecturas() {
     const pestanas = [
-        { texto: "Por autor", ruta: "/lecturas" },
-        { texto: "Por tema", ruta: "/lecturas/temas" },
+        { texto: "Lecturas", ruta: "/lecturas" },
         { texto: "Memoria pública", ruta: "/lecturas/memoria" },
     ];
     return (
@@ -36,7 +41,7 @@ export function PestanasLecturas() {
 // ---------- Portada ----------
 // La portada ilustrada se ve siempre; si la reseña tiene foto, aparece encima con un desvanecido
 // solo cuando terminó de cargar. Si falla o tarda, se queda la ilustrada (nunca un recuadro vacío).
-export function Portada({ resena, tamano = "normal" }: { resena: Resena; tamano?: "normal" | "ancha" | "detalle" }) {
+export function Portada({ resena, tamano = "normal" }: { resena: Resena; tamano?: "normal" | "detalle" }) {
     const [foto, setFoto] = useState<"cargando" | "lista" | "fallo">(() => (imagenFallo(resena.imagen) ? "fallo" : "cargando"));
     const conFoto = Boolean(resena.imagen) && foto !== "fallo";
     return (
@@ -44,7 +49,7 @@ export function Portada({ resena, tamano = "normal" }: { resena: Resena; tamano?
             <span className="portada-lectura__circulo" aria-hidden="true" />
             {/* En la portada solo el nombre del libro (lo que va antes de «:»); el título completo va debajo */}
             <strong aria-hidden="true">{resena.libro.split(":")[0]}</strong>
-            {tamano !== "ancha" && <small aria-hidden="true">{resena.autoria}</small>}
+            <small aria-hidden="true">{resena.autoria}</small>
             {conFoto && (
                 <img className={`portada-lectura__foto${foto === "lista" ? " portada-lectura__foto--lista" : ""}`}
                     loading="lazy" decoding="async" src={resena.imagen} alt={foto === "lista" ? `Portada de ${resena.libro}` : ""}
@@ -62,40 +67,57 @@ export function FotoMemoria({ src }: { src?: string }) {
 }
 
 // ---------- Tarjetas ----------
-export function TarjetaResena({ resena, desde }: { resena: Resena; desde?: "tema" }) {
-    const ruta = `/lecturas/${resena.id}${desde ? `?desde=${desde}` : ""}`;
+// Tarjeta blanca con franja de color arriba (verde = reseña, dorada = memoria); se eleva 4 px al pasar el mouse,
+// su portada o foto se acerca 3 % y su enlace se subraya en dorado.
+export function TarjetaResena({ resena }: { resena: Resena }) {
+    const ruta = `/lecturas/${resena.id}`;
     return (
-        <li className="tarjeta-resena">
-            <Portada resena={resena} />
-            <p className="tipo-lectura tipo-lectura--resena"><span />RESEÑA</p>
-            <h3>{resena.libro}</h3>
-            <p className="tarjeta-resena__autoria">{resena.autoria}</p>
-            <p className="tarjeta-resena__fecha">Reseña del equipo · {mesAnio(resena.publicada)}</p>
-            <Link to={ruta} className="boton-lectura boton-lectura--chico">
-                Leer reseña <img src={flechaBlanca} alt="" />
-                <span className="solo-lectores">: {resena.libro}</span>
-            </Link>
+        <li className="tarjeta-resena tarjeta-lectura tarjeta-lectura--resena">
+            <Link to={ruta} className="tarjeta-lectura__portada" tabIndex={-1} aria-hidden="true"><Portada resena={resena} /></Link>
+            <div className="tarjeta-lectura__contenido">
+                <TipoLectura tipo={resena.recomendada ? "recomendada" : "resena"} />
+                <h3>{resena.libro}</h3>
+                <p className="tarjeta-resena__autoria">{resena.autoria}</p>
+                <p className="tarjeta-resena__fecha">Reseña del equipo · {mesAnio(resena.publicada)}</p>
+                <Link to={ruta} className="tarjeta-lectura__accion">
+                    Leer reseña<span className="solo-lectores">: {resena.libro}</span>
+                </Link>
+            </div>
         </li>
     );
 }
 
-export function TarjetaMemoria({ memoria, desde }: { memoria: Memoria; desde?: "tema" }) {
-    const ruta = `/lecturas/memoria/${memoria.id}${desde ? `?desde=${desde}` : ""}`;
+export function TarjetaMemoria({ memoria }: { memoria: Memoria }) {
+    const ruta = `/lecturas/memoria/${memoria.id}`;
     return (
-        <li className="tarjeta-memoria">
-            <div className="tarjeta-memoria__imagen">
-                <FotoMemoria src={memoria.imagen} />
-                <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
-            </div>
-            <div className="tarjeta-memoria__contenido">
-                <p className="tipo-lectura tipo-lectura--memoria"><span />MEMORIA <small>{memoria.anio}</small></p>
+        <li className="tarjeta-memoria tarjeta-lectura tarjeta-lectura--memoria">
+            <Link to={ruta} className="tarjeta-memoria__imagen" tabIndex={-1} aria-hidden="true"><FotoMemoria src={memoria.imagen} /></Link>
+            <div className="tarjeta-memoria__contenido tarjeta-lectura__contenido">
+                <TipoLectura tipo="memoria">{memoria.anio}</TipoLectura>
                 <h3>{memoria.titulo}</h3>
-                <Link to={ruta} className="boton-lectura boton-lectura--chico">
-                    Ver registro <img src={flechaBlanca} alt="" />
-                    <span className="solo-lectores">: {memoria.titulo}</span>
+                <Link to={ruta} className="tarjeta-lectura__accion">
+                    Ver registro<span className="solo-lectores">: {memoria.titulo}</span>
                 </Link>
             </div>
         </li>
+    );
+}
+
+// Registro más reciente de la memoria: tarjeta ancha con la foto a la izquierda y su texto a la derecha
+export function MemoriaDestacada({ memoria }: { memoria: Memoria }) {
+    const ruta = `/lecturas/memoria/${memoria.id}`;
+    const texto = memoria.entrada.trim() !== memoria.titulo.trim() ? memoria.entrada : memoria.cuerpo[0] ?? "";
+    return (
+        <article className="memoria-destacada tarjeta-lectura tarjeta-lectura--memoria">
+            <Link to={ruta} className="memoria-destacada__foto" tabIndex={-1} aria-hidden="true"><FotoMemoria src={memoria.imagen} /></Link>
+            <div className="memoria-destacada__contenido">
+                <TipoLectura tipo="memoria">{memoria.anio}</TipoLectura>
+                <p className="memoria-destacada__nota">Registro más reciente</p>
+                <h2>{memoria.titulo}</h2>
+                {texto && <p className="memoria-destacada__texto">{texto}</p>}
+                <Link to={ruta} className="perfil-boton">Ver registro<span className="solo-lectores">: {memoria.titulo}</span></Link>
+            </div>
+        </article>
     );
 }
 
@@ -107,46 +129,27 @@ export function TituloResaltado({ titulo, resaltado }: { titulo: string; resalta
     return <>{titulo.slice(0, i)}<span>{resaltado}</span>{titulo.slice(i + resaltado.length)}</>;
 }
 
-export function EncabezadoLecturas({
-    etiqueta,
-    titulo,
-    texto,
-    regreso,
-    conImagenDebajo,
-}: {
-    etiqueta: string;
-    titulo: ReactNode;
-    texto: string;
-    regreso?: { texto: string; ruta: string };
-    conImagenDebajo?: boolean; // deja espacio para la portada o foto que se monta encima
-}) {
-    const clases = ["encabezado-publico", "encabezado-lecturas"];
-    if (regreso) clases.push("encabezado-lecturas--con-regreso");
-    if (conImagenDebajo) clases.push("encabezado-lecturas--con-imagen");
+// Franja verde compacta con el ícono del libro junto al título (plantilla C)
+export function EncabezadoLecturas({ etiqueta, titulo, texto }: { etiqueta: string; titulo: ReactNode; texto: string }) {
     return (
-        <section className={clases.join(" ")}>
+        <section className="encabezado-publico encabezado-lecturas encabezado-lecturas--compacto">
             <img className="encabezado-publico__circulo encabezado-publico__circulo--1" src={circulo1} alt="" />
             <img className="encabezado-publico__circulo encabezado-publico__circulo--2" src={circulo2} alt="" />
-            {regreso && (
-                <div className="encabezado-lecturas__regreso">
-                    <Link to={regreso.ruta} className="boton-regreso-lecturas">
-                        <img src={volverBlanca} alt="" />
-                        {regreso.texto}
-                    </Link>
-                </div>
-            )}
             <span className="etiqueta-inicio">
                 <span className="punto-dorado" />
                 {etiqueta}
             </span>
-            <h1>{titulo}</h1>
+            <div className="encabezado-publico__titular">
+                <span className="encabezado-publico__insignia" style={{ "--icono": `url("${iconoLibro}")` } as CSSProperties} aria-hidden="true" />
+                <h1>{titulo}</h1>
+            </div>
             <p>{texto}</p>
         </section>
     );
 }
 
-// ---------- Estados: acceso restringido, recurso no disponible, sin resultados ----------
-type TipoEstado = "privado" | "no-disponible" | "sin-resultados";
+// ---------- Estados: el vacío importante del catálogo (insignia grande; guinda si es error o restringido) ----------
+type TipoEstado = "privado" | "no-disponible" | "sin-resultados" | "error";
 
 export function EstadoLecturas({
     tipo,
@@ -158,52 +161,27 @@ export function EstadoLecturas({
     alLimpiar?: () => void;
 }) {
     const datos = {
-        privado: {
-            etiqueta: "ACCESO RESTRINGIDO",
-            titulo: "Este material no es de consulta pública",
-            texto: "Tiene acceso restringido. Si necesitas consultarlo, pregunta al personal de la biblioteca (reglas de acceso por confirmar).",
-            icono: iconoCandado,
-            rosa: false,
-        },
-        "no-disponible": {
-            etiqueta: "RECURSO NO DISPONIBLE",
-            titulo: "No pudimos abrir este recurso",
-            texto: "Puede estar en revisión o ya no estar publicado. Avisa a la biblioteca y lo atendemos.",
-            icono: iconoLibro,
-            rosa: true,
-        },
-        "sin-resultados": {
-            etiqueta: "SIN RESULTADOS",
-            titulo: "No encontramos lecturas con esa búsqueda",
-            texto: "Prueba con otro autor, título o tema, o quita los filtros.",
-            icono: iconoLibro,
-            rosa: true,
-        },
+        privado: { titulo: "Este material no es de consulta pública", texto: "Tiene acceso restringido. Si necesitas consultarlo, pregunta al personal de la biblioteca.", icono: iconoCandado, guinda: true },
+        "no-disponible": { titulo: "No pudimos abrir esta lectura", texto: "Puede estar en revisión o ya no estar publicada. Si crees que es un error, avísanos.", icono: iconoLibro, guinda: true },
+        "sin-resultados": { titulo: "No encontramos lecturas con esa búsqueda", texto: "Prueba con otro autor, título o tema, o quita los filtros.", icono: iconoLibro, guinda: false },
+        error: { titulo: "No pudimos cargar las lecturas", texto: "Revisa tu conexión e inténtalo de nuevo en un momento.", icono: iconoLibro, guinda: true },
     }[tipo];
 
     return (
-        <div className="estado-lecturas" role="status">
-            <span className="estado-lecturas__anillo">
-                <span className={datos.rosa ? "estado-lecturas__icono estado-lecturas__icono--rosa" : "estado-lecturas__icono"}>
-                    <img src={datos.icono} alt="" />
-                </span>
-            </span>
-            <p className="estado-lecturas__etiqueta">{datos.etiqueta}</p>
-            <h2>{datos.titulo}</h2>
-            <p className="estado-lecturas__texto">{datos.texto}</p>
-            <div className="estado-lecturas__botones">
+        <div className={`perfil-vacio perfil-vacio--eventos estado-lecturas-nuevo${datos.guinda ? " estado-lecturas-nuevo--guinda" : ""}`} role="status"
+            style={{ "--icono-seccion": `url("${datos.icono}")` } as CSSProperties}>
+            <span className="perfil-vacio__insignia" aria-hidden="true" />
+            <p><strong>{datos.titulo}</strong>{datos.texto}</p>
+            <div className="estado-lecturas-nuevo__botones">
                 {tipo === "sin-resultados" ? (
-                    <button type="button" className="boton-lectura" onClick={alLimpiar}>Quitar filtros</button>
+                    <button type="button" className="perfil-boton" onClick={alLimpiar}>Quitar filtros</button>
+                ) : tipo === "error" ? (
+                    <button type="button" className="perfil-boton" onClick={() => window.location.reload()}>Reintentar</button>
                 ) : (
-                    <Link to={regreso?.ruta ?? "/lecturas"} className="boton-lectura">
-                        <img src={volverBlanca} alt="" />
-                        {regreso?.texto ?? "Volver a Lecturas"}
-                    </Link>
+                    <Link to={regreso?.ruta ?? "/lecturas"} className="perfil-boton">{regreso?.texto ?? "Volver a Lecturas"}</Link>
                 )}
-                {tipo !== "sin-resultados" && (
-                    <Link to="/contacto" className="boton-lectura boton-lectura--contorno">
-                        Avisar a la biblioteca
-                    </Link>
+                {(tipo === "no-disponible" || tipo === "privado") && (
+                    <Link to="/contacto" className="perfil-boton perfil-boton--contorno">Avisar a la biblioteca</Link>
                 )}
             </div>
         </div>
@@ -215,11 +193,11 @@ export function BotonCatalogo() {
     const url = urlCatalogo();
     // Sin dirección de Koha, /catalogo muestra «Catálogo no disponible»
     if (!url) {
-        return <Link to="/catalogo" className="boton-lectura">Buscar en el catálogo</Link>;
+        return <Link to="/catalogo" className="perfil-boton">Buscar en el catálogo</Link>;
     }
     return (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="boton-lectura">
-            Buscar en el catálogo <img src={iconoExterno} alt="" />
+        <a href={url} target="_blank" rel="noopener noreferrer" className="perfil-boton">
+            Buscar en el catálogo
             <span className="solo-lectores"> (se abre en una pestaña nueva)</span>
         </a>
     );
@@ -227,8 +205,7 @@ export function BotonCatalogo() {
 
 export function BotonVolverClaro({ texto, ruta }: { texto: string; ruta: string }) {
     return (
-        <Link to={ruta} className="boton-lectura boton-lectura--contorno">
-            <img src={volverOscura} alt="" />
+        <Link to={ruta} className="perfil-boton perfil-boton--contorno">
             {texto}
         </Link>
     );

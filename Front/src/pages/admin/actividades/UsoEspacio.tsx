@@ -15,7 +15,7 @@ import iconoCalendario from "../../../assets/admin/actividades/tarjeta-calendari
 import iconoCheck from "../../../assets/admin/contenidos/resultado-check.svg";
 
 const REGISTRO = `${BASE_VISITAS}?vista=uso`;
-const QUIEN_REGISTRA = "Personal de Servicios (ejemplo)";
+const QUIEN_REGISTRA = "Personal de Servicios";
 
 // Uso de espacios · registrar (Figma 567:23607). ?id= completa un uso "por registrar"; /uso/:id/editar lo corrige.
 export function RegistrarUso() {

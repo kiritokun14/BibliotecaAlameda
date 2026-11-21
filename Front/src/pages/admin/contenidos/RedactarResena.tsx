@@ -57,7 +57,6 @@ function RedactarResena({ inicial }: { inicial?: Contenido }) {
                         Volver a Mis contenidos
                     </Link>
                     {/* El folio (CN-0000) lo asigna la base al guardar el primer borrador */}
-                    <p className="contenidos-etiqueta">Contenidos · Editor · {borrador.folio ? `Reseña ${borrador.folio}` : "Reseña nueva"}</p>
                     <h1>Redactar reseña bibliográfica</h1>
                     <p className="contenidos-encabezado__texto">La reseña la firma el equipo de la biblioteca. Los campos con * son obligatorios.</p>
                 </div>

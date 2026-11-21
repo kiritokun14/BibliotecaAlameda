@@ -1,40 +1,48 @@
-import { useState, type ReactNode } from "react";
-import { Link, useNavigate } from "react-router";
-import { estadosDeEjemplo, fechaLarga, type Etapa, type EstadoCredencial } from "./datos";
+import type { ReactNode } from "react";
+import { Link } from "react-router";
+import { estadosDeEjemplo, fechaLarga, pasosCredencial, type DatosEstado, type Etapa, type EstadoCredencial, type TramiteCredencial } from "./datos";
+import { Dato } from "../perfil/piezas";
+import { iconosSeccion } from "../perfil/iconos";
 import puntoDorado from "../../../assets/comun/iconos/punto-dorado.svg";
 import puntoVerde from "../../../assets/credencial/punto-verde.svg";
 import puntoGris from "../../../assets/credencial/punto-gris.svg";
 import puntoGuinda from "../../../assets/credencial/punto-guinda.svg";
 import pasoCheck from "../../../assets/credencial/paso-check.svg";
-import iconoTramite from "../../../assets/credencial/tramite-archivo.svg";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
-import flechaVerde from "../../../assets/inicio/lecturas-flecha-verde.svg";
 import checkEtapa from "../../../assets/credencial/etapa-check.svg";
 import libro from "../../../assets/credencial/libro.svg";
 import circulo1 from "../../../assets/acerca/circulo-grande.svg";
 import circulo2 from "../../../assets/credencial/tarjeta-circulo-2.svg";
 
 // ---------- Indicador «1 Información · 2 Solicitud · 3 Seguimiento» ----------
-// actual: paso en curso (1 a 3); 4 = los tres completos.
+// actual: paso del trámite (1 a 3; 4 = los tres completos), según su estado (pasoDelEstado en datos.ts).
+// pagina: la pantalla abierta (1 a 3). Los pasos que se pueden visitar y no son la pantalla abierta son enlaces:
+// Información solo antes de solicitar (con una solicitud en proceso, /credencial lleva al seguimiento); Solicitud solo si
+// se puede solicitar; Seguimiento si ya hay una solicitud.
 const nombresPasos = ["Información", "Solicitud", "Seguimiento"];
-export function PasosTramite({ actual }: { actual: number }) {
+const rutasPasos = ["/credencial", "/credencial/solicitud", "/credencial/seguimiento"];
+export function PasosTramite({ actual, pagina, solicitar = false }: { actual: number; pagina: number; solicitar?: boolean }) {
     return (
-        <section className="cred-pasos-franja" aria-label="Pasos del trámite">
+        <nav className="cred-pasos-franja" aria-label="Pasos del trámite">
             <ol className="cred-pasos">
                 {nombresPasos.map((nombre, i) => {
                     const numero = i + 1;
                     const estado = numero < actual ? "hecho" : numero === actual ? "actual" : "pendiente";
+                    const visitable = (numero === 1 && actual < 3) || (numero === 2 && solicitar) || (numero === 3 && actual >= 3);
+                    const contenido = <>
+                        <span className="cred-paso__numero">
+                            {estado === "hecho" ? <img src={pasoCheck} alt="Completado:" /> : numero}
+                        </span>
+                        {nombre}
+                    </>;
                     return (
-                        <li key={nombre} className={`cred-paso cred-paso--${estado}`} aria-current={estado === "actual" ? "step" : undefined}>
-                            <span className="cred-paso__numero">
-                                {estado === "hecho" ? <img src={pasoCheck} alt="Completado:" /> : numero}
-                            </span>
-                            {nombre}
+                        <li key={nombre} className={`cred-paso cred-paso--${estado}${numero === pagina ? " cred-paso--aqui" : ""}`}
+                            aria-current={numero === pagina ? "page" : undefined}>
+                            {visitable && numero !== pagina ? <Link to={rutasPasos[i]} className="cred-paso__enlace">{contenido}</Link> : contenido}
                         </li>
                     );
                 })}
             </ol>
-        </section>
+        </nav>
     );
 }
 
@@ -55,45 +63,68 @@ export function DatoCred({ etiqueta, valor }: { etiqueta: string; valor: string 
     return <div className="cred-dato"><dt>{etiqueta}</dt><dd>{valor}</dd></div>;
 }
 
-// ---------- Tarjeta «Mi trámite» en la página de información (sin solicitud) ----------
-export function TarjetaMiTramite() {
-    const navegar = useNavigate();
-    const [leido, setLeido] = useState(false);
-    const [error, setError] = useState(false);
-    function solicitar() {
-        if (!leido) { setError(true); document.getElementById("cred-leido")?.focus(); return; }
-        navegar("/credencial/solicitud");
-    }
+// ---------- Trámite por estados (Mi perfil › Mi credencial, Credencial y su seguimiento) ----------
+// A la izquierda la credencial (o su lugar punteado mientras no existe); a la derecha el chip, qué pasa, la observación
+// del personal si la hay, las fechas si ya se emitió y las acciones (children). nivel: h2 en páginas, h3 dentro del perfil.
+export function EstadoCredencial({ datos, titular, tramite, nivel = 3, children }: {
+    datos: DatosEstado; titular: string; tramite?: TramiteCredencial; nivel?: 2 | 3; children?: ReactNode;
+}) {
+    const emitida = tramite?.estado === "vigente" || tramite?.estado === "vencida";
+    const Titulo = nivel === 2 ? "h2" : "h3";
     return (
-        <div className="cred-tarjeta cred-tramite">
-            <div className="cred-tramite__encabezado">
-                <span className="cred-tramite__icono"><img src={iconoTramite} alt="" /></span>
-                <div className="cred-tramite__textos">
-                    <Chip color="dorado">Sin solicitud</Chip>
-                    <h2>Aún no tienes una solicitud</h2>
-                    <p>Si decides continuar, te pediremos confirmar tus datos y enviarás la solicitud. Podrás seguir su avance en la sección Seguimiento.</p>
-                </div>
+        <section className={`perfil-credencial-estado perfil-credencial-estado--${datos.color}`} aria-labelledby="titulo-estado-credencial">
+            <div className="perfil-credencial-estado__visual">
+                {emitida && tramite
+                    ? <TarjetaCredencial titular={titular} vencida={tramite.estado === "vencida"} emision={tramite.emision} />
+                    : (
+                        <div className="perfil-credencial-vacia">
+                            <span className="perfil-credencial-vacia__icono"><img src={iconosSeccion.credencial} alt="" /></span>
+                            <strong>{titular}</strong>
+                            <span>Tu credencial aparecerá aquí cuando el personal la valide.</span>
+                        </div>
+                    )}
             </div>
-            <label className="cred-casilla">
-                <input id="cred-leido" type="checkbox" checked={leido} aria-invalid={error && !leido ? true : undefined}
-                    aria-describedby={error && !leido ? "cred-leido-error" : undefined}
-                    onChange={(e) => { setLeido(e.target.checked); setError(false); }} />
-                Leí en qué consiste y cuáles son los requisitos.
-            </label>
-            {error && !leido && <p id="cred-leido-error" className="cred-error-campo">Marca la casilla para continuar.</p>}
-            <div className="cred-acciones">
-                <button type="button" className="boton-visitante" onClick={solicitar}>Solicitar credencial <img src={flechaBlanca} alt="" /></button>
-                <Link to="/" className="boton-visitante cred-boton-contorno">Ahora no</Link>
+            <div className="perfil-credencial-estado__textos">
+                <Chip color={datos.color}>{datos.chip}</Chip>
+                <Titulo id="titulo-estado-credencial">{datos.titulo}</Titulo>
+                <p>{datos.texto}</p>
+                {tramite?.estado === "correccion" && tramite.motivoCorreccion && (
+                    <div className="perfil-nota perfil-nota--guinda"><p><strong>Observación del personal</strong>{tramite.motivoCorreccion}</p></div>
+                )}
+                {emitida && tramite && (
+                    <dl className="perfil-datos perfil-datos--dos">
+                        <Dato etiqueta="Emisión" valor={tramite.emision ? fechaLarga(tramite.emision) : "Por confirmar"} />
+                        <Dato etiqueta={tramite.estado === "vencida" ? "Venció" : "Vigencia"}
+                            valor={tramite.vencimiento ? fechaLarga(tramite.vencimiento) : "2 años desde la emisión"} />
+                    </dl>
+                )}
+                {children}
             </div>
-            <hr className="cred-linea" />
-            <div className="cred-tramite__ya">
-                <strong>¿Ya iniciaste el trámite?</strong>
-                <Link to="/credencial/seguimiento" className="boton-visitante cred-boton-contorno">
-                    Ver seguimiento de mi solicitud <img src={flechaVerde} alt="" />
-                </Link>
-                <Link to="/credencial/solicitud?tipo=renovacion" className="boton-visitante cred-boton-contorno">Renovar mi credencial</Link>
-            </div>
-        </div>
+        </section>
+    );
+}
+
+// ---------- Los cuatro pasos en fila, unidos por una línea (Credencial y su seguimiento) ----------
+// Sin etapas (sin sesión) solo dicen quién hace cada paso; con etapas, el chip de cada uno (completado, en curso, pendiente).
+const colorEtapa = { hecho: "verde", actual: "dorado", pendiente: "gris" } as const;
+const textoEtapa = { hecho: "Completado", actual: "En curso", pendiente: "Pendiente" } as const;
+export function RutaCredencial({ etapas }: { etapas?: Etapa[] | null }) {
+    return (
+        <ol className="perfil-niveles perfil-niveles--ruta cred-ruta">
+            {pasosCredencial.map((p, i) => {
+                const estado = etapas?.[i]?.estado;
+                return (
+                    <li key={p.titulo} className={`perfil-nivel perfil-nivel--${estado ? colorEtapa[estado] : "verde"}`}
+                        aria-current={estado === "actual" ? "step" : undefined}>
+                        <span className="perfil-nivel__numero" aria-hidden="true">{i + 1}</span>
+                        <p>{p.quien}</p>
+                        <strong>{p.titulo}</strong>
+                        <span className="cred-ruta__texto">{p.texto}</span>
+                        {estado && <Chip color={colorEtapa[estado]}>{textoEtapa[estado]}</Chip>}
+                    </li>
+                );
+            })}
+        </ol>
     );
 }
 
@@ -102,7 +133,7 @@ export function SelectorEstados({ actual, alElegir }: { actual: EstadoCredencial
     if (!import.meta.env.DEV) return null;
     return (
         <section className="cred-ejemplos" aria-label="Vista de ejemplo de estados">
-            <p>VISTA DE EJEMPLO DE ESTADOS</p>
+            <p>Vista de ejemplo de estados</p>
             <div>
                 {estadosDeEjemplo.map((e) => (
                     <button key={e.estado} type="button" className={`cred-ejemplo${e.estado === actual ? " cred-ejemplo--activo" : ""}`}
@@ -139,14 +170,14 @@ export function TarjetaCredencial({ titular, vencida = false, emision }: { titul
             <img className="cred-credencial__circulo cred-credencial__circulo--2" src={circulo2} alt="" />
             <div className="cred-credencial__cabecera">
                 <span className="cred-credencial__sello"><img src={libro} alt="" /></span>
-                <div><p>BIBLIOTECA SOLÓN ARGÜELLO</p><strong>Credencial de persona usuaria</strong></div>
+                <div><p>Biblioteca Solón Argüello</p><strong>Credencial de persona usuaria</strong></div>
             </div>
-            <p className="cred-credencial__etiqueta">TITULAR</p>
+            <p className="cred-credencial__etiqueta">Titular</p>
             <p className="cred-credencial__titular">{titular}</p>
             <dl className="cred-credencial__datos">
-                <div><dt>ESTADO</dt><dd>{vencida ? "Vencida" : "Vigente"}</dd></div>
-                <div><dt>VIGENCIA</dt><dd>2 años desde la emisión</dd></div>
-                <div><dt>EMISIÓN</dt><dd>{emision ? fechaLarga(emision) : "Fecha por confirmar"}</dd></div>
+                <div><dt>Estado</dt><dd>{vencida ? "Vencida" : "Vigente"}</dd></div>
+                <div><dt>Vigencia</dt><dd>2 años desde la emisión</dd></div>
+                <div><dt>Emisión</dt><dd>{emision ? fechaLarga(emision) : "Fecha por confirmar"}</dd></div>
             </dl>
         </div>
     );

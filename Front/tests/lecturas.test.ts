@@ -8,7 +8,6 @@ import {
     memoriaPorAnio,
     memorias,
     parametrosDesdeFiltros,
-    porTema,
     resenas,
     visibles,
 } from '../src/pages/publico/lecturas/datos';
@@ -57,14 +56,7 @@ describe('Búsqueda y filtros de reseñas', () => {
     });
 });
 
-describe('Por tema y memoria pública', () => {
-    it('un tema mezcla reseñas y memoria de ese tema', () => {
-        const items = porTema('novela');
-        expect(items.some((x) => x.tipo === 'resena')).toBe(true);
-        expect(items.some((x) => x.tipo === 'memoria')).toBe(true);
-        expect(items.every((x) => (x.tipo === 'resena' ? x.item.genero === 'novela' : x.item.temas.includes('novela')))).toBe(true);
-    });
-
+describe('Memoria pública', () => {
     it('los años salen de los registros, del más reciente al más antiguo', () => {
         expect(aniosDeMemoria()).toEqual([2025, 2024, 2023]);
         expect(memoriaPorAnio(2024).map((m) => m.anio)).toEqual([2024, 2024]);
@@ -72,12 +64,27 @@ describe('Por tema y memoria pública', () => {
     });
 });
 
-describe("Búsqueda de Por tema y Memoria pública", () => {
+describe("Búsqueda de Memoria pública", () => {
     it("encuentra el texto en cualquier campo, sin importar acentos ni mayúsculas", async () => {
         const { coincideBusqueda } = await import("../src/pages/publico/lecturas/datos");
         expect(coincideBusqueda("", "Pedro Páramo")).toBe(true);
         expect(coincideBusqueda("paramo", "Pedro Páramo")).toBe(true);
         expect(coincideBusqueda("RULFO", "Pedro Páramo", "Juan Rulfo")).toBe(true);
         expect(coincideBusqueda("borges", "Pedro Páramo", undefined)).toBe(false);
+    });
+});
+
+describe("Filtros de Memoria pública", () => {
+    it("busca en el texto completo, el año y los temas, y ordena por año", async () => {
+        const { buscaEnMemoria, ordenarMemoria, temasDeMemoria } = await import("../src/pages/publico/lecturas/datos");
+        const feria = memorias.find((m) => m.id === "feria-del-libro-2023")!;
+        expect(buscaEnMemoria("poesia", feria)).toBe(true);
+        expect(buscaEnMemoria("2023", feria)).toBe(true);
+        expect(buscaEnMemoria("voz alta", feria)).toBe(true);
+        expect(buscaEnMemoria("encuadernacion", feria)).toBe(false);
+        const lista = visibles(memorias);
+        expect(ordenarMemoria(lista, "antiguos")[0].anio).toBe(2023);
+        expect(ordenarMemoria(lista, "recientes")[0].anio).toBe(2025);
+        expect(temasDeMemoria(lista)).toEqual(["novela", "historia-regional", "poesia", "infantil"]);
     });
 });

@@ -9,7 +9,6 @@ import { fechaCompleta, inscripciones, obtenerActividad, useInscripcion } from "
 import { ModalAgenda } from "./DetalleActividad";
 import "../credencial/CredencialSesion.css";
 import "./Agenda.css";
-import flechaBlanca from "../../../assets/comun/iconos/flecha-blanca.svg";
 import alerta from "../../../assets/credencial/alerta-guinda.svg";
 
 // T-052 · Mi inscripción (Figma A-02, 476:12366), modal «¿Cancelar tu inscripción?» (476:12479)
@@ -63,7 +62,7 @@ export default function MiInscripcion() {
                             </dl>
                             <div className="modal-agenda__acciones">
                                 <button type="button" className="agenda-boton agenda-boton--guinda" onClick={() => setModal(true)}>Cancelar mi inscripción</button>
-                                <Link to={`/eventos/${actividad.id}`} className="agenda-boton agenda-boton--verde">Ver actividad <img src={flechaBlanca} alt="" /></Link>
+                                <Link to={`/eventos/${actividad.id}`} className="agenda-boton agenda-boton--verde">Ver actividad</Link>
                             </div>
                         </>}
                     </article>
@@ -85,7 +84,7 @@ export default function MiInscripcion() {
                             onClick={() => { inscripciones.cancelar(actividad.id); quitarInscripcion(actividad.id); navegar(`/eventos/${actividad.id}`); }}>
                             Sí, cancelar mi inscripción
                         </button>
-                        <button type="button" className="agenda-boton agenda-boton--verde" onClick={cerrar}>Mantener inscripción <img src={flechaBlanca} alt="" /></button>
+                        <button type="button" className="agenda-boton agenda-boton--verde" onClick={cerrar}>Mantener inscripción</button>
                     </div>
                 </ModalAgenda>
             )}

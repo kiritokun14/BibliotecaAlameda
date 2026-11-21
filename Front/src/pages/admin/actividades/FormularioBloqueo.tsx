@@ -172,7 +172,6 @@ export function BloqueoGuardado() {
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", BASE_CALENDARIO], ["Bloqueo guardado"]]} />
                 <div className="cn-encabezado"><div className="cn-encabezado__textos">
-                    <p className="cn-etiqueta"><span className="cn-etiqueta__punto" aria-hidden="true" />Calendario y salas</p>
                     <h1 className="cn-titulo">Bloqueo guardado</h1>
                     <p className="cn-entrada">El horario ya no se puede reservar.</p>
                 </div></div>

@@ -51,7 +51,7 @@ export function EncabezadoSeccion({
     iconoEtiqueta?: string;
     titulo: ReactNode;
     texto?: string; // subtítulo opcional debajo del título
-    boton?: { texto: string; ruta: string; icono: string };
+    boton?: { texto: string; ruta: string };
 }) {
     return (
         <div className="encabezado-seccion">
@@ -63,7 +63,6 @@ export function EncabezadoSeccion({
             {boton && (
                 <Link to={boton.ruta} className="boton-contorno boton-contorno--chico">
                     {boton.texto}
-                    <img src={boton.icono} alt="" />
                 </Link>
             )}
         </div>

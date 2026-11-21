@@ -314,7 +314,12 @@ a.panel-submenu__item.active {
     border: 1px solid #bfd9d0;
     border-radius: 999px;
     background: #e4efeb;
+    color: inherit;
+    text-decoration: none;
 }
+
+.panel-cuenta:hover { border-color: #164f44; }
+.panel-cuenta:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
 
 .panel-cuenta__avatar {
     display: flex;
@@ -1813,3 +1818,6 @@ a.panel-submenu__item.active {
 /* Un panel desplegable abierto (Filtros) queda encima del resto del contenido: las animaciones de entrada
    convierten cada bloque en una capa propia y, sin esto, lo que viene después (notas, pie) se pintaba encima. */
 .panel-contenido > :has(.barra-filtros__panel) { position: relative; z-index: 6; }
+
+/* Enlaces dentro de textos de ayuda: verde del panel, no el azul del navegador */
+.panel .contenidos-campo__ayuda a { color: #164f44; font-weight: 700; }

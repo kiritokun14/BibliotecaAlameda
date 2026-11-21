@@ -4,7 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { Link } from "react-router";
 import { NOMBRE_ESTADO, type EstadoContenido } from "./datos";
 import { clasesBoton, TONO_ESTADO, type Tono } from "./utiles";
-import iconoBuscar from "../../../assets/admin/contenidos/buscar.svg";
+import iconoBuscar from "../../../assets/comun/iconos/buscar-gris.svg";
 import decoracion1 from "../../../assets/admin/contenidos/decoracion-1.svg";
 import decoracion2 from "../../../assets/admin/contenidos/decoracion-2.svg";
 
@@ -39,11 +39,10 @@ export function Etiqueta({ children }: { children: ReactNode }) {
 }
 
 // Encabezado suelto (bandejas y resultados). "grande" = pantallas de resultado (44 px).
-export function Encabezado({ etiqueta, titulo, texto, accion, grande }: { etiqueta: string; titulo: string; texto: string; accion?: ReactNode; grande?: boolean }) {
+export function Encabezado({ titulo, texto, accion, grande }: { etiqueta?: string; titulo: string; texto: string; accion?: ReactNode; grande?: boolean }) {
     return (
         <header className="cn-encabezado">
             <div className="cn-encabezado__textos">
-                <Etiqueta>{etiqueta}</Etiqueta>
                 <h1 className={grande ? "cn-titulo cn-titulo--grande" : "cn-titulo"}>{titulo}</h1>
                 <p className={grande ? "cn-entrada cn-entrada--grande" : "cn-entrada"}>{texto}</p>
             </div>
@@ -53,22 +52,22 @@ export function Encabezado({ etiqueta, titulo, texto, accion, grande }: { etique
 }
 
 // Encabezado en tarjeta blanca con acento dorado y botón de volver (formularios y detalle)
-export function EncabezadoTarjeta({ volver, etiqueta, titulo, texto }: { volver: { texto: string; ruta: string }; etiqueta: string; titulo: string; texto: string }) {
+export function EncabezadoTarjeta({ volver, titulo, texto }: { volver: { texto: string; ruta: string }; etiqueta?: string; titulo: string; texto: string }) {
     return (
         <header className="cn-encabezado-tarjeta">
             <Link to={volver.ruta} className="cn-volver">
                 <span className="cn-volver__circulo" aria-hidden="true">←</span>
                 {volver.texto}
             </Link>
-            <Etiqueta>{etiqueta}</Etiqueta>
             <h1 className="cn-titulo">{titulo}</h1>
             <p className="cn-entrada">{texto}</p>
         </header>
     );
 }
 
+// El pie único lo renderiza PanelLayout. Se conserva esta pieza para no tocar todas las pantallas heredadas.
 export function PieDatos() {
-    return <p className="cn-pie">Biblioteca Solón Argüello · Panel del personal · Datos de ejemplo</p>;
+    return null;
 }
 
 // ---------- Tarjetas ----------

@@ -58,14 +58,14 @@ export default function Recuperacion() {
     const tarjetas: { tono: "azul" | "gris" | "guinda"; icono: ReactNode; cifra: number; titulo: string; texto: string }[] = [
         { tono: "azul", icono: <IconoReloj />, cifra: historial.filter((i) => i.fecha === hoy && i.resultado === "enviado").length, titulo: "Atendidas hoy", texto: "Enlace enviado." },
         { tono: "guinda", icono: <IconoAviso />, cifra: historial.filter((i) => i.resultado === "fallida").length, titulo: "Verificación fallida", texto: "Sin enlace enviado." },
-        { tono: "gris", icono: <IconoLista />, cifra: historial.filter((i) => i.fecha.startsWith(mes)).length, titulo: "Del mes", texto: "Total (ejemplo)." },
+        { tono: "gris", icono: <IconoLista />, cifra: historial.filter((i) => i.fecha.startsWith(mes)).length, titulo: "Del mes", texto: "Total." },
     ];
 
     return (
         <PanelLayout titulo="Atención" tema="contenidos">
             <Migas pasos={[["Recuperación asistida"]]} />
             <EncabezadoPagina etiqueta="Atención · Recuperación asistida" titulo="Recuperación asistida"
-                texto="Ayuda a una persona que no puede entrar a su cuenta. Nunca se te muestra ni se te pide su contraseña. Datos de ejemplo." />
+                texto="Ayuda a una persona que no puede entrar a su cuenta. Nunca se te muestra ni se te pide su contraseña." />
 
             <section className="contenidos-resumen" aria-labelledby="rec-resumen-titulo">
                 <h2 id="rec-resumen-titulo">Accesos rápidos</h2>
@@ -206,7 +206,7 @@ export function ResultadoRecuperacion({ tipo }: { tipo: "enviado" | "fallida" })
                     <EncabezadoPagina etiqueta={`Cuenta ${c.id}`} titulo={tipo === "enviado" ? "Enlace enviado" : "Verificación fallida"}
                         texto={tipo === "enviado" ? "Pide a la persona que revise su correo, incluida la carpeta de no deseados." : "No se envió ningún enlace. El intento quedó registrado."} />
                     <AvisoResultado tono={tipo === "enviado" ? "exito" : "error"} titulo={c.nombre}
-                        texto={tipo === "enviado" ? `Enlace enviado a ${enmascararCorreo(c.correo)} (ejemplo).` : "La persona puede volver con una identificación vigente."}
+                        texto={tipo === "enviado" ? `Enlace enviado a ${enmascararCorreo(c.correo)}.` : "La persona puede volver con una identificación vigente."}
                         chip={tipo === "enviado" ? "Enviado" : "Sin enlace"} />
                     <div className="contenidos-previa__acciones">
                         <Link to={RUTA} className="contenidos-boton contenidos-boton--principal">Atender a otra persona</Link>
@@ -225,7 +225,7 @@ export function HistorialRecuperacion() {
     return (
         <Pantalla migas={[["Historial"]]}>
             <EncabezadoPagina volver={{ texto: "Volver a Recuperación asistida", ruta: RUTA }} etiqueta="Recuperación asistida · Historial" titulo="Historial de recuperaciones"
-                texto="Quién atendió cada caso y qué pasó. Datos de ejemplo." />
+                texto="Quién atendió cada caso y qué pasó." />
             <section className="contenidos-lista" aria-labelledby="rec-historial-titulo">
                 <div className="contenidos-lista__cabecera">
                     <span className="contenidos-lista__icono"><IconoReloj /></span>

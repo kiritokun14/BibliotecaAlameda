@@ -13,6 +13,8 @@ import {
     type Noticia,
     type Orden,
 } from "./datos";
+import iconoNoticias from "../../../assets/inicio/noticias-periodico.svg";
+import { EtiquetaPerfil } from "../perfil/piezas";
 import { CargandoNoticias, EncabezadoNoticias, EstadoNoticias, Paginacion, TarjetaArchivo } from "./piezas";
 import { useNoticias } from "./useNoticias";
 import cuadriculaBlanca from "../../../assets/noticias/vista-cuadricula-blanca.svg";
@@ -44,13 +46,12 @@ function TodasNoticias() {
 
     return (
         <PaginaPublica>
-            <EncabezadoNoticias
-                regreso={{ texto: "Volver a Noticias", ruta: "/noticias" }}
+            <EncabezadoNoticias icono={iconoNoticias} compacto
                 etiqueta="Noticias"
                 titulo={<>Todas las <span>noticias</span></>}
                 texto="Encuentra cualquier noticia por tema, categoría o fecha."
             />
-            <section className="noticias-seccion noticias-seccion--archivo">
+            <section className="noticias-seccion noticias-seccion--archivo noticias-pagina">
                 <div className="noticias-contenedor">
                     {carga.estado === "cargando" && <CargandoNoticias destacada={false} />}
                     {carga.estado === "error" && <EstadoNoticias tipo="error" alAccionar={reintentar} />}
@@ -123,12 +124,9 @@ function Archivo({ noticias }: { noticias: Noticia[] }) {
             />
 
             <div className="noticias-titulo noticias-titulo--archivo" ref={tituloResultados}>
-                <div className="noticias-titulo__textos">
-                    <span className="etiqueta-noticias">Archivo</span>
-                    <h2>{filtros.fecha ? <>Noticias de <span>esa fecha</span></> : <>Noticias <span>publicadas</span></>}</h2>
-                </div>
+                <EtiquetaPerfil icono={iconoNoticias}>{filtros.fecha ? "Noticias de esa fecha" : "Noticias publicadas"}</EtiquetaPerfil>
                 <div className="noticias-titulo__resumen">
-                    <p aria-live="polite">{resumen}</p>
+                    <p aria-live="polite" className="solo-lectores">{resumen}</p>
                     <div className="selector-vista" role="group" aria-label="Forma de ver las noticias">
                         {(["cuadricula", "lista"] as const).map((vista) => {
                             const activa = filtros.vista === vista;
