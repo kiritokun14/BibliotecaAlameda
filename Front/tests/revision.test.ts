@@ -59,7 +59,7 @@ describe("Revisión y publicación", () => {
 
     it("ordena el historial de decisiones con el más reciente primero e incluye la creación", () => {
         const eventos = eventosDetalle({ creadoEn: hace(4), historial: [evento("envio", hace(1))] });
-        expect(eventos.map((e) => e.titulo)).toEqual(["Enviado a autorización", "Creado"]);
+        expect(eventos.map((e) => e.titulo)).toEqual(["Enviado a autorización", "Creado como borrador"]);
     });
 
     it("separa y numera las observaciones, y valida lo que acepta el backend", () => {

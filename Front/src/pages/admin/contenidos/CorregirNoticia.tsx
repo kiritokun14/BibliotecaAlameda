@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { Campo, IconoAviso, IconoFlechaIzq, IconoLapiz, IconoReloj, SubirImagen } from "./piezas";
+import { Campo, IconoAviso, IconoLapiz, IconoReloj, SubirImagen } from "./piezas";
 import ConfirmarEnvio from "./ConfirmarEnvio";
 import CargarContenido from "./CargarContenido";
 import { datoTexto, useBorrador } from "./usarBorrador";
@@ -9,6 +9,7 @@ import type { Contenido } from "../../../servicios/contenidos";
 import RedactarResena from "./RedactarResena";
 import RedactarMemoria from "./RedactarMemoria";
 import EditarAcerca from "./EditarAcerca";
+import { Encabezado as EncabezadoPz } from "../piezasPanel";
 import "./Contenidos.css";
 
 // Corregir una noticia que el Administrador regresó con observaciones.
@@ -39,7 +40,7 @@ function Correccion({ contenido }: { contenido: Contenido }) {
     };
 
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <nav className="contenidos-migas" aria-label="Ruta">
                 <span>Contenidos</span>
                 <span aria-hidden="true">›</span>
@@ -48,16 +49,7 @@ function Correccion({ contenido }: { contenido: Contenido }) {
                 <strong aria-current="page">Con observaciones</strong>
             </nav>
 
-            <div className="contenidos-encabezado contenidos-encabezado--tarjeta">
-                <div>
-                    <Link to="/admin/contenidos/editor" className="contenidos-volver">
-                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
-                        Volver a Mis contenidos
-                    </Link>
-                    <h1>Corregir noticia</h1>
-                    <p className="contenidos-encabezado__texto">El Administrador dejó observaciones. Corrige y vuelve a enviar.</p>
-                </div>
-            </div>
+            <EncabezadoPz titulo="Corregir noticia" texto="El Administrador dejó observaciones. Corrige y vuelve a enviar." />
 
             <section className="contenidos-observaciones" aria-labelledby="observaciones-titulo">
                 <div className="contenidos-lista__cabecera">

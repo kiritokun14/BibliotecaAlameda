@@ -241,6 +241,26 @@ formulario ya lleno) y «Cancelar propuesta» (confirmación en el lugar, igual 
   `puedeEditar`, `puedeCancelar` y `propuestaDesdeSolicitud` (`proponer/datos.ts`), `EditarPropuesta` y `CancelarPropuesta` (`proponer/Proponer.tsx`).
   Para verlo sin backend: `/proponer?simular=sesion`, enviar, y en el seguimiento usar los dos botones.
 
+## 9. Contenidos: el Editor cancela su envío (para editarlo o no publicarlo) — prioridad media (Aldahir, 21 nov 2026)
+
+En **Consulta de mi contenido** (`/admin/contenidos/editor/:folio/ver`), cuando el contenido está `en_revision` y nadie lo ha decidido,
+hay dos botones nuevos: «Editar contenido» (lo regresa a borrador y abre `/admin/contenidos/editor/:folio/editar`) y «Cancelar envío»
+(lo regresa a borrador y se queda en la consulta). Hoy no existe la operación:
+
+- **Pedido:** `POST /contenidos/editor/{folio}/cancelar-envio` con `{}` → `200` con el contenido en `borrador`. Solo quien lo redactó
+  (`403` si no), solo desde `en_revision` (`409` si ya se publicó, rechazó o tiene observaciones), `404` si no existe, `401` sin sesión.
+  En el historial: `accion = 'cancelacion'` (el frontend ya la muestra como «Envío cancelado por el Editor»), responsable el Editor.
+  Debe salir de la bandeja de Revisión del Administrador.
+- **Mientras no exista:** el botón responde `404` y la pantalla dice «Por ahora no se puede cancelar el envío en línea…».
+- **Frontend:** `cancelarEnvio` (`Front/src/servicios/contenidos.ts`) y `CancelarEnvio` (`Front/src/pages/admin/revision/Revision.tsx`).
+
+## 10. Imágenes de contenidos: falta la clave secreta en `Back/.env` — prioridad alta (21 nov 2026)
+
+Ninguna imagen de contenidos carga (ni en el panel ni en el portal): `GET /contenidos/editor|revision|publicos/{folio}/imagen` responde
+`503 «No se pudo cargar la imagen.»`. La base sí tiene la ruta de la imagen (p. ej. CN-0045, `image/png`), pero `crear_cliente_servicio()`
+(`Back/conexion.py`) no puede bajar del almacenamiento porque `SUPABASE_SECRET_KEY` está vacía en `Back/.env`. Configurar la clave secreta
+(`sb_secret_…`) en el `.env` de cada equipo que corra el backend. No es un cambio de código.
+
 ## Cómo probar
 
 - **Backend local:** `.\.venv\Scripts\python.exe -m uvicorn Back.main:app --reload` desde la raíz (puerto 8000).

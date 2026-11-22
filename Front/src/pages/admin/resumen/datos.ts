@@ -102,7 +102,9 @@ export const ACCESOS_RAPIDOS: AccesoRapido[] = [
     { titulo: "Evidencias", texto: "Fotos y listas firmadas", ruta: "/admin/actividades/evidencias", icono: "evidencias" },
     // Contenidos y participantes
     { titulo: "Autorizar", texto: "Contenidos en revisión", ruta: "/admin/contenidos/revision", icono: "revision" },
-    { titulo: "Publicar", texto: "Noticias y reseñas", ruta: "/admin/contenidos/editor", icono: "contenido" },
+    { titulo: "Mis contenidos", texto: "Borradores y enviados", ruta: "/admin/contenidos/editor", icono: "contenido" },
+    { titulo: "Nueva noticia", texto: "Avisos y novedades", ruta: "/admin/contenidos/editor/nuevo/noticia", icono: "aviso" },
+    { titulo: "Nueva reseña", texto: "Un libro recomendado", ruta: "/admin/contenidos/editor/nuevo/resena", icono: "fuentes" },
     { titulo: "Avisos", texto: "Enviar un aviso", ruta: "/admin/atencion/avisos", icono: "aviso" },
     { titulo: "Recompensas", texto: "Progreso de lectores", ruta: "/admin/participantes/progreso", icono: "recompensa" },
     { titulo: "Foro", texto: "Moderar el club", ruta: "/admin/participantes/foro", icono: "foro" },

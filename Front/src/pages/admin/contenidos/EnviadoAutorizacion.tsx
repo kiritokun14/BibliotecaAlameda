@@ -44,7 +44,7 @@ function EnviadoAutorizacion() {
     const nombre = envio?.titulo || "Sin título";
 
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <nav className="contenidos-migas" aria-label="Ruta">
                 <span>Contenidos</span>
                 <span aria-hidden="true">›</span>

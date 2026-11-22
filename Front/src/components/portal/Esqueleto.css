@@ -158,5 +158,7 @@
 /* Imagen de un contenido mientras se descarga (ImagenContenido) */
 .imagen-contenido-cargando { display: block; }
 .imagen-contenido-cargando__bloque { display: block; width: 100%; height: 260px; border-radius: 18px; }
+.imagen-contenido-error { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 180px; padding: 16px; box-sizing: border-box; border: 1px dashed #b9c4cd; border-radius: 18px; background: #f4f6f8; color: #5c5a5b; font-size: 13px; text-align: center; }
+.imagen-contenido-error strong { color: #2b2a2b; font-size: 14px; }
 /* Propuesta de la persona mientras carga (Proponer) */
 .proponer-esqueleto { max-width: 1000px; margin: 0 auto; padding: 40px 24px 72px; }

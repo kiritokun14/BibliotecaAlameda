@@ -1,4 +1,4 @@
-import { useContext, useId, useRef, useState } from "react";
+import { useContext, useEffect, useId, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { AvisoResumenParcial, ResumenCargando, ResumenConError, ResumenSinPendientes } from "../EstadosPanel";
@@ -29,6 +29,8 @@ import {
 } from "./datos";
 import { Icono } from "./iconos";
 import { Cabecera, Chip, Cifra, Enlace, Segmentado } from "../piezasPanel";
+import { consultarResumen, listarContenidos, type FilaContenidoApi, type ResumenContenidos } from "../../../servicios/contenidos";
+import { mensajeError } from "../../../servicios/api";
 import { MOVIMIENTOS, fechaHora } from "../administracion/datos";
 
 const TEMA = "paleta"; // paleta institucional (21 nov 2026), por ahora solo en el Resumen
@@ -56,6 +58,9 @@ export default function Resumen() {
     const veActividades = vistaEnlace("/admin/actividades/calendario", acceso) === "enlace";
     // Sin actividades, quien administra ve los últimos cambios (los mismos de la Bitácora)
     const veCambios = !veActividades && vistaEnlace("/admin/administracion/bitacora", acceso) === "enlace";
+    // Quien redacta (Editor) ve sus contenidos: cifras reales de /contenidos/editor/resumen
+    const veContenidos = !veActividades && !veCambios && vistaEnlace("/admin/contenidos/editor", acceso) === "enlace";
+    const editor = useContenidosEditor(veContenidos);
     const actividades = veActividades ? actividadesHoy : [];
     const [plazo, setPlazo] = useState<Plazo | null>(null);
     // Pendientes y actividades forman el área de trabajo: mide el alto visible y el scroll la encuadra (AGENTS §1)
@@ -108,9 +113,15 @@ export default function Resumen() {
 
                 {/* 3. Pendientes | actividades de hoy y reglas */}
                 <div className="pz-columnas" ref={area}>
-                    <ListaPendientes pendientes={pendientes} plazo={plazo} alCambiarPlazo={setPlazo} />
+                    {veContenidos ? (
+                        <div className="pz-columna-doble">
+                            <ListaPendientes pendientes={pendientes} plazo={plazo} alCambiarPlazo={setPlazo} />
+                            <TarjetaRecientes editor={editor} />
+                        </div>
+                    ) : <ListaPendientes pendientes={pendientes} plazo={plazo} alCambiarPlazo={setPlazo} />}
 
                     <aside className="pz-lateral" aria-label="Tu día">
+                        {veContenidos && <TarjetaMisContenidos editor={editor} />}
                         {veCambios && (
                             <section className="pz-tarjeta pz-tarjeta--actividades" aria-labelledby="pz-cambios">
                                 <Cabecera icono="bitacora" id="pz-cambios" titulo="Últimos cambios" texto="Lo más reciente de la bitácora" />
@@ -228,7 +239,8 @@ function ListaPendientes({ pendientes, plazo, alCambiarPlazo }: { pendientes: Pe
         <section className="pz-tarjeta pz-pendientes" id="pendientes" aria-labelledby={`${id}-titulo`}>
             <Cabecera icono="lista" id={`${id}-titulo`} titulo="Pendientes por atender" texto="Los que vencen antes van primero" />
 
-            <div className="pz-herramientas">
+            {/* Con pocos pendientes (4 o menos) y sin filtros puestos, el filtro y el buscador sobran */}
+            {(pendientes.length > 4 || hayFiltros) && <div className="pz-herramientas">
                 <Segmentado<Plazo | "todos"> etiqueta="Filtrar por vencimiento" valor={plazo ?? "todos"} alCambiar={(v) => alCambiarPlazo(v === "todos" ? null : v)}
                     opciones={[{ valor: "todos", texto: "Todos", cantidad: porPlazo.hoy + porPlazo.manana + porPlazo.semana },
                         ...PLAZOS.map((x) => ({ valor: x.id, texto: x.nombre, cantidad: porPlazo[x.id], urgente: x.id === "hoy" }))]} />
@@ -247,7 +259,7 @@ function ListaPendientes({ pendientes, plazo, alCambiarPlazo }: { pendientes: Pe
                         <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar folio o asunto" />
                     </label>
                 </div>
-            </div>
+            </div>}
 
             <p className="solo-lectores" role="status">{filtrados.length} pendientes con estos filtros</p>
 
@@ -297,6 +309,93 @@ function FilaPendiente({ pendiente: p }: { pendiente: Pendiente }) {
     );
 }
 
+// Lateral del Editor: sus contenidos por estado y lo más reciente (datos reales de /contenidos/editor)
+const ESTADO_EDITOR: Record<string, { texto: string; tono: "gris" | "dorado" | "guinda" | "verde" }> = {
+    borrador: { texto: "Borrador", tono: "gris" }, en_revision: { texto: "Por autorizar", tono: "dorado" }, con_observaciones: { texto: "Con observaciones", tono: "guinda" },
+    publicado: { texto: "Publicado", tono: "verde" }, aprobado: { texto: "Aprobado", tono: "verde" }, rechazado: { texto: "Rechazado", tono: "guinda" },
+    retirado: { texto: "Retirado", tono: "gris" }, archivado: { texto: "Archivado", tono: "gris" },
+};
+const TIPO_EDITOR: Record<string, { texto: string; icono: "contenido" | "fuentes" | "info" | "evidencias" | "lista" }> = {
+    noticia: { texto: "Noticia", icono: "contenido" }, resena: { texto: "Reseña", icono: "fuentes" }, acerca: { texto: "Acerca de", icono: "info" }, memoria: { texto: "Memoria pública", icono: "evidencias" },
+};
+const rutaContenido = (c: FilaContenidoApi) =>
+    c.estado === "con_observaciones" ? `/admin/contenidos/editor/${c.folio}/corregir` : c.estado === "borrador" ? `/admin/contenidos/editor/${c.folio}/editar` : `/admin/contenidos/editor/${c.folio}/ver`;
+const fechaCorta = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" });
 
+type DatosEditor = { resumen: ResumenContenidos | null; recientes: FilaContenidoApi[] | null; error: string };
+function useContenidosEditor(activo: boolean): DatosEditor {
+    const [d, setD] = useState<DatosEditor>({ resumen: null, recientes: null, error: "" });
+    useEffect(() => {
+        if (!activo) return;
+        let vigente = true;
+        Promise.all([consultarResumen(), listarContenidos({ limite: 6 })])
+            .then(([r, l]) => { if (vigente) setD({ resumen: r, recientes: l.contenidos, error: "" }); })
+            .catch((e) => { if (vigente) setD((x) => ({ ...x, error: mensajeError(e) })); });
+        return () => { vigente = false; };
+    }, [activo]);
+    return d;
+}
 
+// Lo más reciente del Editor, ancho, bajo sus pendientes: cada contenido con su estado y su acción
+function TarjetaRecientes({ editor }: { editor: DatosEditor }) {
+    const accion = (c: FilaContenidoApi) => (c.estado === "con_observaciones" ? "Corregir" : c.estado === "borrador" ? "Editar" : "Ver");
+    return (
+        <section className="pz-tarjeta pz-recientes-tarjeta" aria-labelledby="rs-recientes">
+            <Cabecera icono="reloj" id="rs-recientes" titulo="Lo más reciente" texto="Tus últimos contenidos, del más nuevo al más antiguo"
+                accion={<Enlace ruta="/admin/contenidos/editor" className="pz-boton pz-boton--contorno pz-boton--chico">Ver todos</Enlace>} />
+            {editor.error ? <p className="pz-acciones__nota">No se pudieron cargar: {editor.error}</p>
+                : !editor.recientes ? <p className="pz-acciones__nota">Cargando…</p>
+                    : editor.recientes.length === 0 ? <p className="pz-acciones__nota">Aún no has redactado nada. Empieza con «Nuevo contenido».</p> : (
+                        <div className="pz-grupos" tabIndex={0} role="region" aria-label="Lo más reciente">
+                            <ul className="pz-filas">
+                                {editor.recientes.map((c) => (
+                                    <li key={c.folio}>
+                                        <article className="pz-fila">
+                                            <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={TIPO_EDITOR[c.tipo]?.icono ?? "contenido"} /></span>
+                                            <div className="pz-fila__textos">
+                                                <h4 className="pz-fila__titulo">{c.titulo || "Sin título"}</h4>
+                                                <p className="pz-fila__detalle"><span className="pz-fila__folio">{c.folio}</span><span>{TIPO_EDITOR[c.tipo]?.texto ?? c.tipo}</span><span>Actualizado el {fechaCorta.format(new Date(c.actualizadoEn))}</span></p>
+                                            </div>
+                                            <Chip tono={ESTADO_EDITOR[c.estado]?.tono ?? "gris"}>{ESTADO_EDITOR[c.estado]?.texto ?? c.estado}</Chip>
+                                            <Link to={rutaContenido(c)} className={`pz-boton pz-boton--chico${accion(c) === "Ver" ? " pz-boton--contorno" : ""}`}>{accion(c)}<span className="solo-lectores"> {c.titulo}</span></Link>
+                                        </article>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+        </section>
+    );
+}
+
+// Lateral del Editor: sus cifras por estado y para empezar uno nuevo
+function TarjetaMisContenidos({ editor }: { editor: DatosEditor }) {
+    const datos = editor.resumen;
+    const cifras: { texto: string; valor?: number; tono: string }[] = [
+        { texto: "Borradores", valor: datos?.borrador, tono: "gris" },
+        { texto: "Por autorizar", valor: datos?.en_revision, tono: "dorado" },
+        { texto: "Con observaciones", valor: datos?.con_observaciones, tono: "guinda" },
+        { texto: "Publicados", valor: datos?.publicado, tono: "verde" },
+    ];
+    return (
+        <section className="pz-tarjeta pz-tarjeta--actividades" aria-labelledby="rs-mis-contenidos">
+            <Cabecera icono="contenido" id="rs-mis-contenidos" titulo="Mis contenidos" texto={datos ? `${datos.total} en total` : "Lo que has redactado"} />
+            {editor.error ? <p className="pz-acciones__nota">No se pudieron cargar: {editor.error}</p> : (
+                <dl className="pz-mini-cifras">
+                    {cifras.map((c) => (
+                        <div key={c.texto} className={`pz-mini-cifra pz-mini-cifra--${c.tono}`}>
+                            <dt>{c.texto}</dt>
+                            <dd>{c.valor ?? "…"}</dd>
+                        </div>
+                    ))}
+                </dl>
+            )}
+            <div className="pz-acciones pz-acciones--pie">
+                <Enlace ruta="/admin/contenidos/editor/nuevo" className="pz-boton">Nuevo contenido</Enlace>
+                <Enlace ruta="/admin/contenidos/revision/historial" className="pz-boton pz-boton--contorno">Ver lo publicado</Enlace>
+                <p className="pz-acciones__nota">Lo que envías lo autoriza el Administrador antes de aparecer en el portal.</p>
+            </div>
+        </section>
+    );
+}
 

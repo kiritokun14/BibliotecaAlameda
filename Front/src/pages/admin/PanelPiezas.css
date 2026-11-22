@@ -574,6 +574,107 @@ a.pz-ficha:hover .pz-ficha__accion { text-decoration-color: var(--pz-tono-borde)
 .pz-reglas[open] li:nth-child(n + 4) { animation-delay: 180ms; }
 .pz-reglas[open] .pz-reglas__mas::after { transform: rotate(0deg); }
 
+/* Enlaces del lateral para empezar algo (Editor · ¿Qué quieres redactar?): toda la fila es el enlace */
+.pz-redactar li { padding: 0 !important; border: 0 !important; background: none !important; }
+.pz-redactar__enlace {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; box-sizing: border-box; border: 1px solid var(--pz-borde); border-radius: 14px;
+  background: var(--pz-fondo); color: inherit; text-decoration: none; transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.pz-redactar__enlace:hover { transform: translateY(-2px); border-color: var(--pz-primario); background: #fff; }
+.pz-redactar__enlace:hover .pz-actividades__titulo { color: var(--pz-primario); }
+
+/* Lista de pasos numerados en el lateral (Revisión · Cómo se revisa) */
+.pz-pasos-lista { margin: 0; padding-left: 0; list-style: none; }
+.pz-pasos-lista li { align-items: flex-start; }
+.pz-pasos-lista__numero { display: grid; flex: none; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--pz-primario); color: #fff; font-size: 13px; font-weight: 800; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-fila--espera .pz-fila__icono { background: var(--pz-tono); color: var(--pz-tono-texto); }
+
+/* Resumen del Editor: cifras en cuadrícula de 2 × 2 y su lista de lo más reciente */
+/* Columna izquierda doble: pendientes (lo que necesiten, hasta la mitad) y debajo lo más reciente, que toma el resto */
+.pz-columna-doble { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
+.pz-columna-doble > .pz-pendientes { flex: 0 0 auto; height: auto !important; max-height: 62%; }
+.pz-columna-doble > .pz-recientes-tarjeta { flex: 1 1 0; min-height: 0; }
+@media (max-width: 1300px) { .pz-columna-doble > .pz-pendientes { max-height: none; } }
+.pz-mini-cifras { display: grid; flex: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.pz-mini-cifra { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--pz-claro); }
+.pz-mini-cifra dt { color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.pz-mini-cifra dd { margin: 0; color: var(--pz-primario); font-size: 22px; line-height: 26px; font-weight: 800; }
+.pz-mini-cifra--dorado { background: var(--pz-tono); }
+.pz-mini-cifra--dorado dd { color: var(--pz-tono-texto); }
+.pz-mini-cifra--guinda { background: var(--pz-urgente-claro); }
+.pz-mini-cifra--guinda dd { color: var(--pz-urgente); }
+.pz-mini-cifra--gris { background: #f1f0ef; }
+.pz-mini-cifra--gris dd { color: var(--pz-texto); }
+.pz-subtitulo { flex: none; margin: 2px 0 -4px; color: var(--pz-texto); font-size: 13px; font-weight: 800; }
+.pz-recientes li { align-items: center; padding: 10px; background: #fff; }
+.pz-recientes .pz-fila__icono { width: 32px; height: 32px; border-radius: 10px; }
+.pz-recientes .pz-fila__icono svg { width: 16px; height: 16px; }
+.pz-recientes .pz-actividades__titulo { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+.pz-recientes .pz-chip { flex: none; font-size: 11.5px; }
+
+/* Línea del tiempo (historial de un contenido): cada paso con su ícono y su color, unidos por una línea; el más reciente
+   con aro. Verde = autorizado o publicado, dorado = enviado o en espera, guinda = observaciones o rechazo, gris = lo demás */
+.pz-linea { position: relative; display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.pz-linea::before { content: ""; position: absolute; top: 8px; bottom: 8px; left: 15px; width: 2px; border-radius: 2px; background: linear-gradient(var(--pz-acento-suave), var(--pz-borde)); }
+.pz-linea__paso { position: relative; display: flex; align-items: flex-start; gap: 12px; animation: pz-entra 0.35s ease-out backwards; }
+.pz-linea__paso:nth-child(2) { animation-delay: 60ms; }
+.pz-linea__paso:nth-child(3) { animation-delay: 120ms; }
+.pz-linea__paso:nth-child(n + 4) { animation-delay: 180ms; }
+.pz-linea__icono { position: relative; display: grid; flex: none; place-items: center; width: 32px; height: 32px; border: 2px solid #fff; border-radius: 50%; background: #efeeee; color: var(--pz-gris); }
+.pz-linea__icono svg { width: 16px; height: 16px; }
+.pz-linea__paso--verde .pz-linea__icono { background: var(--pz-claro-2); color: var(--pz-primario); }
+.pz-linea__paso--dorado .pz-linea__icono { background: var(--pz-tono); color: var(--pz-tono-texto); }
+.pz-linea__paso--guinda .pz-linea__icono { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.pz-linea__paso--actual .pz-linea__icono { box-shadow: 0 0 0 3px var(--pz-acento-suave); animation: pz-aro 0.9s ease-out 0.3s 1; }
+.pz-linea__textos { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding-top: 4px; }
+.pz-linea__textos p { margin: 0; }
+.pz-linea__titulo { color: var(--pz-texto); font-size: 14px; font-weight: 800; }
+.pz-linea__paso--actual .pz-linea__titulo { color: var(--pz-primario); }
+.pz-linea__detalle { color: var(--pz-gris); font-size: 12.5px; }
+.pz-linea__nota { margin-top: 4px !important; padding: 6px 10px; border-radius: 10px; background: var(--pz-fondo); color: var(--pz-texto); font-size: 12.5px; line-height: 18px; overflow-wrap: anywhere; }
+
+/* Cancelar o editar un envío: dos botones y la confirmación en el lugar (anima su alto) */
+.rv-cancelar { display: flex; flex-direction: column; gap: 8px; }
+.rv-confirmar { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid #e8c3cf; border-radius: 14px; background: #fbf1f4; font-size: 13px; line-height: 19px; animation: pz-baja 0.3s ease-out; }
+.rv-confirmar p { margin: 0; }
+.rv-confirmar strong { color: var(--pz-urgente); font-size: 14px; }
+.rv-confirmar__error { color: var(--pz-urgente); font-weight: 700; }
+.rv-confirmar__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+/* Formularios del Editor (redactar, corregir, Acerca de, revisar): sus clases `contenidos-*` toman el aspecto de las piezas
+   del panel cuando la pantalla usa la paleta (AGENTS, «Plantillas de pantalla del panel» → Formulario). Columnas: el formulario
+   | lateral de 340 px que acompaña al bajar; tarjetas con franja de color arriba y cabecera con ícono en círculo. */
+.panel--paleta .contenidos-formulario { grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; }
+.panel--paleta .contenidos-formulario__lateral { position: sticky; top: 0; gap: 16px; }
+.panel--paleta :is(.contenidos-formulario, .contenidos-tipos, .rv-columna) .contenidos-panel,
+.panel--paleta .contenidos-formulario__lateral > section {
+  position: relative; gap: 14px; padding: 20px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 20px; background: #fff;
+  box-shadow: var(--pz-sombra); animation: pz-entra 0.4s ease-out backwards;
+}
+.panel--paleta :is(.contenidos-formulario, .rv-columna) .contenidos-panel::before,
+.panel--paleta .contenidos-formulario__lateral > section::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-primario); }
+.panel--paleta .contenidos-formulario__lateral > :nth-child(2) { animation-delay: 0.08s; }
+.panel--paleta .contenidos-formulario__lateral > :nth-child(n + 3) { animation-delay: 0.14s; }
+.panel--paleta .contenidos-formulario .contenidos-lista__cabecera { padding-bottom: 12px; border-bottom: 1px solid var(--pz-borde); }
+.panel--paleta .contenidos-formulario .contenidos-lista__icono { width: 36px; height: 36px; border-radius: 50%; background: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.panel--paleta .contenidos-formulario .contenidos-lista__cabecera h2 { color: var(--pz-texto); font-size: 17px; line-height: 22px; }
+.panel--paleta .contenidos-formulario .contenidos-lista__cabecera p { font-size: 13px; }
+/* Tarjeta de estado del borrador: como la tarjeta de guardar (fondo blanco, franja dorada) */
+.panel--paleta .contenidos-panel--estado { border-color: var(--pz-tono-borde) !important; background: #fff !important; }
+.panel--paleta .contenidos-panel--estado::before { background: var(--pz-tono-borde) !important; }
+.panel--paleta .contenidos-panel--estado .contenidos-boton { min-height: 44px; }
+/* Elegir tipo: el ícono del tipo en un círculo, como en la bandeja */
+.panel--paleta .contenidos-tipo__letra--icono { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--pz-claro); color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.panel--paleta .contenidos-tipo__letra--icono svg { width: 21px; height: 21px; }
+/* Subir imagen: recuadro punteado como «Agregar un día» */
+.panel--paleta .contenidos-subir { border: 1px dashed var(--pz-acento-suave); border-radius: 16px; background: var(--pz-fondo); transition: border-color 0.2s ease, background-color 0.2s ease; }
+.panel--paleta .contenidos-subir:hover, .panel--paleta .contenidos-subir:focus-within { border-color: var(--pz-primario); background: var(--pz-claro); }
+.panel--paleta .contenidos-subir strong { color: var(--pz-primario); }
+@media (max-width: 1100px) {
+  .panel--paleta .contenidos-formulario { grid-template-columns: minmax(0, 1fr); }
+  .panel--paleta .contenidos-formulario__lateral { position: static; }
+}
+
 /* Resultado de una acción (cuenta suspendida, permisos guardados) */
 .pz-resultado { max-width: 640px; margin: 8px auto 0; }
 .pz-resultado__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }

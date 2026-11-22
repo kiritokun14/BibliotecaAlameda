@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { Campo, IconoBandera, IconoBuscar, IconoFlechaIzq, IconoLapiz, IconoLista, Interruptor, Migas, PanelEstado } from "./piezas";
+import { Campo, IconoBandera, IconoBuscar, IconoLapiz, IconoLista, Interruptor, Migas, PanelEstado } from "./piezas";
 import { SECCIONES_ACERCA, type SeccionAcerca } from "./tipos";
 import ConfirmarEnvio from "./ConfirmarEnvio";
 import { datoTexto, useBorrador } from "./usarBorrador";
 import type { Contenido } from "../../../servicios/contenidos";
+import { Encabezado as EncabezadoPz } from "../piezasPanel";
 import "./Contenidos.css";
 
 // Edición de «Acerca de la biblioteca». Cada sección es un contenido aparte y se
@@ -56,19 +56,10 @@ function EditarAcerca({ inicial }: { inicial?: Contenido }) {
     const coincidencias = termino ? valores.texto.toLowerCase().split(termino).length - 1 : 0;
 
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <Migas actual="Borrador" />
 
-            <div className="contenidos-encabezado contenidos-encabezado--tarjeta">
-                <div>
-                    <Link to="/admin/contenidos/editor" className="contenidos-volver">
-                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
-                        Volver a Mis contenidos
-                    </Link>
-                    <h1>Editar «Acerca de la biblioteca»</h1>
-                    <p className="contenidos-encabezado__texto">Elige la sección que vas a modificar. Cada sección se autoriza por separado.</p>
-                </div>
-            </div>
+            <EncabezadoPz titulo="Editar «Acerca de la biblioteca»" texto="Elige la sección que vas a modificar. Cada sección se autoriza por separado." />
 
             <form
                 className="contenidos-formulario"

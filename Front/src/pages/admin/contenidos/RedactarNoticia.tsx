@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { Campo, IconoBandera, IconoFlechaIzq, IconoLapiz, Interruptor, Migas, PanelEstado, SubirImagen } from "./piezas";
+import { Campo, IconoBandera, IconoLapiz, Interruptor, Migas, PanelEstado, SubirImagen } from "./piezas";
 import VistaPreviaNoticia from "./VistaPreviaNoticia";
 import ConfirmarEnvio from "./ConfirmarEnvio";
 import { datoSiNo, datoTexto, useBorrador } from "./usarBorrador";
 import type { Contenido } from "../../../servicios/contenidos";
+import { Encabezado as EncabezadoPz } from "../piezasPanel";
 import "./Contenidos.css";
 
 // Formulario para redactar una noticia nueva o seguir un borrador (inicial).
@@ -49,7 +49,7 @@ function RedactarNoticia({ inicial }: { inicial?: Contenido }) {
 
     if (vistaPrevia) {
         return (
-            <PanelLayout titulo="Contenidos" tema="contenidos">
+            <PanelLayout titulo="Contenidos" tema="contenidos paleta">
                 <VistaPreviaNoticia
                     noticia={{ titulo, texto, imagen: imagen ?? null, textoAlternativo, categoria, fecha }} folio={borrador.folio} tieneImagen={imagen === undefined && borrador.tieneImagen} version={borrador.guardadoEn}
                     alVolver={() => cambiarVista(false)}
@@ -70,20 +70,10 @@ function RedactarNoticia({ inicial }: { inicial?: Contenido }) {
     }
 
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <Migas actual="Borrador" />
 
-            <div className="contenidos-encabezado contenidos-encabezado--tarjeta">
-                <div>
-                    <Link to="/admin/contenidos/editor" className="contenidos-volver">
-                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
-                        Volver a Mis contenidos
-                    </Link>
-                    {/* El folio (CN-0000) lo asigna la base al guardar el primer borrador */}
-                    <h1>Redactar noticia</h1>
-                    <p className="contenidos-encabezado__texto">Los campos con * son obligatorios. Se guarda como borrador.</p>
-                </div>
-            </div>
+            <EncabezadoPz titulo="Redactar noticia" texto="Los campos con * son obligatorios. Se guarda como borrador." />
 
             <form
                 className="contenidos-formulario"
