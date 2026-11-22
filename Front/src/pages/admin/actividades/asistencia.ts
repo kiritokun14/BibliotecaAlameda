@@ -2,8 +2,7 @@ import { useSyncExternalStore } from "react";
 import { obtenerActividad } from "./datos";
 import { deActividad, leerInscripciones } from "./inscripciones";
 
-// Listas de asistencia SIMULADAS. Se reinician al recargar.
-// TODO backend: GET/PUT /actividades/:folio/asistencia, POST .../cerrar, POST .../correcciones (queda en bitácora).
+// Datos para la vista de demostración. La asistencia real usa asistenciaReal.ts.
 
 export type Marca = "presente" | "ausente" | "sin";
 export type Extra = { id: string; persona: string; contacto: string };

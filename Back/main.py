@@ -34,6 +34,7 @@ from Back.foro import router as participacion_foro_router
 from Back.evidencias import router as evidencias_router
 
 from Back.inscripciones import router as inscripciones_router
+from Back.asistencia import router as asistencia_router
 
 app = FastAPI(title='Biblioteca Alameda', version='0.1.0')
 app.include_router(agenda_router)
@@ -59,6 +60,7 @@ app.include_router(avisos_router)
 app.include_router(foro_router)
 app.include_router(participacion_foro_router)
 app.include_router(inscripciones_router)
+app.include_router(asistencia_router)
 app.include_router(evidencias_router)
 
 

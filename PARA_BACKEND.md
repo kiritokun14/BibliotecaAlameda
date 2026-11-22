@@ -139,7 +139,7 @@ Las pantallas con datos de ejemplo y su contrato están en `Front/docs/pendiente
 | Pantalla | Contrato |
 |---|---|
 | Resumen y Notificaciones del panel | `pages/admin/resumen/datos.ts`, `pages/admin/notificaciones/datos.ts` |
-| Actividades | Cambios y cancelaciones, Asistencia, Calendario (editar salas y bloqueos), Visitas (uso de espacios), Inscripciones (mostrador y cupo) |
+| Actividades | Cambios y cancelaciones, Calendario (editar salas y bloqueos), Visitas (uso de espacios), Inscripciones (mostrador y cupo) |
 | Participantes | Progreso y recompensas, Cotejo de credenciales, normas y silencios del foro |
 | Atención | Avisos del portal, Recuperación asistida, conteos por estado en Credenciales, Espacios y Propuestas, notas internas de Espacios, motivo en bitácora para Consulta de cuentas |
 | Administración | Estadísticas, Bitácora y Configuración del portal (incluye modo mantenimiento) en `pages/admin/administracion/datos.ts` |
