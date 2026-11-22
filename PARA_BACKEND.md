@@ -198,6 +198,10 @@ El frontend no necesita cambios si la ruta respeta el contrato de abajo.
 
 ## 7. Espacios: registrar los seis espacios del mapa — prioridad alta (Aldahir, 20 nov 2026)
 
+> **Hecho (Valeria, 22 nov 2026):** `Supabase/espacios_mapa.sql` registra los seis espacios. La «Sala de lectura» se convierte en
+> la Sala general (mismo registro) en lugar de desactivarse, porque tiene sesiones programadas y la base no deja desactivar un espacio así.
+> `POST /espacios/solicitudes` ya rechaza fines de semana y horas fuera de 8:00 a 19:30 (`422`).
+
 La página **Espacios** (`/espacios`) ahora es un **mapa 2D de la biblioteca** (levantamiento de Aldahir) donde la persona elige el espacio
 para su evento y luego llena fecha y datos (`/espacios/solicitar?espacio=<slug>`). El formulario sigue usando
 `POST /espacios/solicitudes` sin cambios (`areaId` = `slug`). Lo que falta es que **la base tenga los espacios del mapa**:

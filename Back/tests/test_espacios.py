@@ -76,6 +76,20 @@ class SolicitudesEspacioTests(BaseEspacios):
                 self.assertEqual(r.status_code, 422)
         self.cliente.rpc.assert_not_called()
 
+    def test_enviar_rechaza_fuera_del_horario_de_la_biblioteca(self):
+        # 2030-01-19 es sábado y 2030-01-20 domingo; abre de 8:00 a 19:30.
+        for cambio in ({'fecha': '2030-01-19'}, {'fecha': '2030-01-20'}, {'horaInicio': '07:59'},
+                       {'horaFin': '19:31'}, {'horaInicio': '19:00', 'horaFin': '20:00'}):
+            with self.subTest(cambio=cambio):
+                r = self.http.post(f'{RUTA}/solicitudes', json={**VALIDA, **cambio}, headers=self.cabeceras)
+                self.assertEqual(r.status_code, 422)
+                self.assertEqual(r.json()['detail'], 'La biblioteca recibe eventos de lunes a viernes, de 8:00 a 19:30 h.')
+        self.cliente.rpc.assert_not_called()
+
+    def test_enviar_acepta_los_limites_del_horario(self):
+        cuerpo = {**VALIDA, 'fecha': '2030-01-18', 'horaInicio': '08:00', 'horaFin': '19:30'}  # viernes
+        self.assertEqual(self.http.post(f'{RUTA}/solicitudes', json=cuerpo, headers=self.cabeceras).status_code, 201)
+
     def test_errores_de_la_bd(self):
         casos = (
             ('23514', 'Elige una fecha y hora futuras.', 422, 'Elige una fecha y hora futuras.'),
@@ -132,7 +146,8 @@ class SolicitudesEspacioTests(BaseEspacios):
         self.assertEqual(self.llamada_rpc(), ('modificar_solicitud_espacio', {'operacion': 'responder', 'datos': {
             'actualizadoEn': VERSION, 'acepta': True, 'comentarios': 'Va', 'folio': 'SE-0002'}}))
         self.cliente.rpc.reset_mock()
-        for cuerpo in ({}, {'acepta': 'quizá'}, {'acepta': True, 'espacio': 'otra'}):
+        for cuerpo in ({'actualizadoEn': VERSION}, {'actualizadoEn': VERSION, 'acepta': 'quizá'},
+                       {'actualizadoEn': VERSION, 'acepta': True, 'espacio': 'otra'}):
             with self.subTest(cuerpo=cuerpo):
                 self.assertEqual(self.http.post(f'{RUTA}/solicitudes/SE-0002/respuesta', json=cuerpo,
                                                 headers=self.cabeceras).status_code, 422)

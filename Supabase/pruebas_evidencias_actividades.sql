@@ -8,7 +8,7 @@ DECLARE
  sesion uuid; actividad uuid; otra_actividad uuid; id_actual uuid; r jsonb; carpeta text; ruta text; fol text; bloqueo boolean;
  datos jsonb:='{"nombres":"Prueba HU21","primerApellido":"Temporal","fechaNacimiento":"2000-01-01","telefono":"3110000000","aceptaAviso":true,"domicilio":{"calle":"Prueba","numeroExterior":"sin número","coloniaLocalidad":"Prueba","codigoPostal":"63000","municipio":"Tepic","estadoProvincia":"Nayarit"}}';
 BEGIN
- SELECT s.id,s."actividadId" INTO sesion,actividad FROM public."sesionActividad" s WHERE s.inicio<=now() ORDER BY s.inicio DESC LIMIT 1;
+ SELECT s.id,s."actividadId" INTO sesion,actividad FROM public."sesionActividad" s WHERE s.estado<>'cancelada' AND (s.estado='finalizada' OR s.fin<=now()) ORDER BY s.inicio DESC LIMIT 1;
  IF sesion IS NULL THEN RAISE EXCEPTION 'Se necesita al menos una sesión de actividad ya realizada'; END IF;
  SELECT a.id INTO otra_actividad FROM public.actividad a WHERE a.id<>actividad LIMIT 1;
 

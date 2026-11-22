@@ -79,6 +79,15 @@ class EvidenciasTests(unittest.TestCase):
         self.assertEqual(self.subir().status_code, 403)
         self.almacen.upload.assert_not_called()
 
+    def test_solo_actividades_realizadas_sin_tocar_storage(self):
+        for mensaje in ('La actividad aún no se realiza.', 'No se suben evidencias de actividades canceladas.'):
+            with self.subTest(mensaje=mensaje):
+                self.rpc(error_bd('23514', mensaje))
+                r = self.subir()
+                self.assertEqual(r.status_code, 422)
+                self.assertEqual(r.json()['detail'], mensaje)
+        self.almacen.upload.assert_not_called()
+
     def test_tipo_no_permitido(self):
         self.assertEqual(self.subir(b'GIF89a', 'image/gif').status_code, 415)
         self.cliente.rpc.assert_not_called()

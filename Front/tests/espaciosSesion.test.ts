@@ -58,7 +58,7 @@ describe('Espacios con sesión (T-076)', () => {
     });
     it('no consulta sin sesión', async () => {
         cliente.auth.getSession.mockResolvedValue({ data: { session: null } });
-        await expect(cancelarMiSolicitud('SE-0007', '', '')).rejects.toThrow('Inicia sesión');
+        await expect(cancelarMiSolicitud('SE-0007', '2026-11-09T19:00:00Z', '', '')).rejects.toThrow('Inicia sesión');
         expect(pedirApi).not.toHaveBeenCalled();
     });
     it('muestra fechas y horas en la hora de Tepic', () => {

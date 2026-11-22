@@ -154,6 +154,20 @@ class Decision(VersionSolicitud):
     mensaje: Mensaje
 
 
+MOTIVO_SIN_ESPECIFICAR = 'Sin motivo especificado'
+
+# Horario de la biblioteca: el mismo que el formulario (HORARIO en Front/src/pages/publico/espacios/datosSesion.ts).
+# Si la biblioteca lo cambia, cambiarlo en los dos lados.
+ABRE, CIERRA = time(8, 0), time(19, 30)
+FUERA_DE_HORARIO = 'La biblioteca recibe eventos de lunes a viernes, de 8:00 a 19:30 h.'
+
+
+def _en_horario(datos: NuevaSolicitud) -> None:
+    """Rechaza fines de semana y horas fuera de servicio, por si alguien llama la API directo."""
+    if datos.fecha.weekday() >= 5 or datos.horaInicio < ABRE or datos.horaFin > CIERRA:
+        raise HTTPException(422, FUERA_DE_HORARIO)
+
+
 def _horario(cuerpo: dict, datos) -> dict:
     if 'areaId' in cuerpo:
         cuerpo['espacio'] = cuerpo.pop('areaId')
@@ -172,6 +186,7 @@ def areas(cliente: Cliente):
 @router.post('/solicitudes', status_code=201)
 def enviar(datos: NuevaSolicitud, cliente: Cliente):
     """Envía la solicitud. Queda 'en_revision'; no reserva el espacio. La respuesta trae el folio."""
+    _en_horario(datos)
     return ejecutar(cliente, 'enviar', _horario(datos.model_dump(mode='json', exclude_none=True), datos))
 
 
