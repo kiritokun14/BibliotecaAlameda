@@ -2,7 +2,7 @@
    PANEL · NAVEGACIÓN Y PIE (21 nov 2026, propuesta del Resumen; pendiente de aprobar)
    Menú lateral plegable (escritorio), menú como panel que se abre desde la cabecera (tableta y teléfono),
    pie solo de administración y enlace «Saltar al contenido». Los colores salen de variables: por defecto son los
-   del panel actual (verde) y la paleta institucional (`.panel--paleta`, PanelPaleta en Resumen.css) los cambia.
+   del panel actual (verde) y la paleta institucional (`.panel--paleta`, PanelPaleta.css) los cambia.
    ============================================================ */
 .panel {
   --nav-fondo: #0b3b33;
@@ -22,6 +22,25 @@
   --marco-luz-2: rgba(22, 79, 68, 0.55);
   --marco-linea: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
   --marco-acento: #e6d194;
+  /* Piezas del panel (PanelPiezas.css): verde y dorado, como el portal */
+  --pz-primario: #164f44;
+  --pz-decor: #9cc3b7;
+  --pz-acento-suave: #bfd9d0;
+  --pz-claro: #eef5f2;
+  --pz-claro-2: #e4efeb;
+  --pz-texto: #161a1d;
+  --pz-gris: #5c5a5b;
+  --pz-fondo: #f7f5f0;
+  --pz-borde: #e2ded5;
+  --pz-urgente: #9b2247;
+  --pz-urgente-claro: #f6eaee;
+  --pz-tono: #f6eeda;
+  --pz-tono-borde: #e6d194;
+  --pz-tono-texto: #6b4f12;
+  --pz-sombra: 0 6px 18px rgba(22, 79, 68, 0.08);
+  --pz-luz-1: rgba(201, 162, 74, 0.16);
+  --pz-luz-2: rgba(22, 79, 68, 0.08);
+  --pz-franja: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
   --foco: #c9a24a;
   --acc: #164f44;
   --acc-claro: #e4efeb;

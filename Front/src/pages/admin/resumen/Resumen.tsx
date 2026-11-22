@@ -1,8 +1,7 @@
-import { useContext, useId, useRef, useState, type ReactNode } from "react";
+import { useContext, useId, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { AvisoResumenParcial, ResumenCargando, ResumenConError, ResumenSinPendientes } from "../EstadosPanel";
-import "./Resumen.css";
 import { ContextoPanel } from "../../../servicios/accesoPanel";
 import {
     AREAS,
@@ -28,7 +27,8 @@ import {
     type TonoEstado,
     vistaEnlace,
 } from "./datos";
-import { Icono, type NombreIcono } from "./iconos";
+import { Icono } from "./iconos";
+import { Cabecera, Chip, Cifra, Enlace, Segmentado } from "../piezasPanel";
 import { MOVIMIENTOS, fechaHora } from "../administracion/datos";
 
 const TEMA = "paleta"; // paleta institucional (21 nov 2026), por ahora solo en el Resumen
@@ -76,17 +76,17 @@ export default function Resumen() {
 
     return (
         <PanelLayout titulo="Resumen" tema={TEMA}>
-            <div className="rs">
+            <div className="pz-pagina">
                 {simulado === "parcial" && <AvisoResumenParcial alReintentar={reintentar} />}
 
                 {/* 1. Saludo: qué día es y cuánto hay; cada cifra lleva a lo que cuenta */}
-                <header className="rs-saludo">
-                    <div className="rs-saludo__textos">
-                        <p className="rs-saludo__fecha">{fechaDeHoy()}</p>
+                <header className="pz-saludo">
+                    <div className="pz-saludo__textos">
+                        <p className="pz-saludo__fecha">{fechaDeHoy()}</p>
                         <h2>{saludo(new Date().getHours())}</h2>
                         <p>{textoDelDia(pendientes.length, porPlazo.hoy)}</p>
                     </div>
-                    <div className="rs-saludo__cifras" role="group" aria-label="Tu día en cifras">
+                    <div className="pz-saludo__cifras" role="group" aria-label="Tu día en cifras">
                         <Cifra icono="lista" valor={pendientes.length} texto="por atender" alPresionar={() => verPendientes(null)} />
                         <Cifra icono="alerta" valor={porPlazo.hoy} texto="vencen hoy" tono="vino" alPresionar={() => verPendientes("hoy")} />
                         {veActividades && <Cifra icono="calendario" valor={actividades.length} texto="actividades hoy" alPresionar={() => ir(area.current)} />}
@@ -95,68 +95,68 @@ export default function Resumen() {
 
                 {/* 2. Accesos rápidos: cada uno dice cuánto tiene esperando */}
                 {accesos.length > 0 && (
-                    <section className="rs-seccion" aria-labelledby="rs-accesos">
-                        <div className="rs-seccion__titular">
-                            <h2 id="rs-accesos" className="rs-titulo"><span className="rs-titulo__icono"><Icono nombre="lista" /></span>Accesos rápidos</h2>
-                            <p className="rs-ayuda">Cada acceso te dice cuánto tienes esperando en esa sección.</p>
+                    <section className="pz-seccion" aria-labelledby="pz-accesos">
+                        <div className="pz-seccion__titular">
+                            <h2 id="pz-accesos" className="pz-titulo"><span className="pz-titulo__icono"><Icono nombre="lista" /></span>Accesos rápidos</h2>
+                            <p className="pz-ayuda">Cada acceso te dice cuánto tienes esperando en esa sección.</p>
                         </div>
-                        <ul className="rs-accesos">
+                        <ul className="pz-accesos">
                             {accesos.map((a) => <li key={a.ruta}><Acceso acceso={a} estado={estadoAcceso(a, pendientes, actividades)} /></li>)}
                         </ul>
                     </section>
                 )}
 
                 {/* 3. Pendientes | actividades de hoy y reglas */}
-                <div className="rs-columnas" ref={area}>
+                <div className="pz-columnas" ref={area}>
                     <ListaPendientes pendientes={pendientes} plazo={plazo} alCambiarPlazo={setPlazo} />
 
-                    <aside className="rs-lateral" aria-label="Tu día">
+                    <aside className="pz-lateral" aria-label="Tu día">
                         {veCambios && (
-                            <section className="rs-tarjeta rs-tarjeta--actividades" aria-labelledby="rs-cambios">
-                                <Cabecera icono="bitacora" id="rs-cambios" titulo="Últimos cambios" texto="Lo más reciente de la bitácora" />
-                                <ul className="rs-actividades rs-cambios">
+                            <section className="pz-tarjeta pz-tarjeta--actividades" aria-labelledby="pz-cambios">
+                                <Cabecera icono="bitacora" id="pz-cambios" titulo="Últimos cambios" texto="Lo más reciente de la bitácora" />
+                                <ul className="pz-actividades pz-cambios">
                                     {MOVIMIENTOS.slice(0, 5).map((m) => (
                                         <li key={m.folio}>
-                                            <div className="rs-actividades__textos">
-                                                <p className="rs-actividades__titulo">{m.accion}</p>
-                                                <p className="rs-actividades__detalle">{m.persona}, {m.modulo}, {fechaHora(m.fecha)}</p>
-                                                {m.tipo === "Sensible" && <div className="rs-actividades__pie"><ChipEstado tono="guinda">Sensible</ChipEstado></div>}
+                                            <div className="pz-actividades__textos">
+                                                <p className="pz-actividades__titulo">{m.accion}</p>
+                                                <p className="pz-actividades__detalle">{m.persona}, {m.modulo}, {fechaHora(m.fecha)}</p>
+                                                {m.tipo === "Sensible" && <div className="pz-actividades__pie"><Chip tono="guinda">Sensible</Chip></div>}
                                             </div>
                                         </li>
                                     ))}
                                 </ul>
-                                <Enlace ruta="/admin/administracion/bitacora" className="rs-enlace">Ver la bitácora</Enlace>
+                                <Enlace ruta="/admin/administracion/bitacora" className="pz-enlace">Ver la bitácora</Enlace>
                             </section>
                         )}
                         {veActividades && (
-                        <section className="rs-tarjeta rs-tarjeta--actividades" aria-labelledby="rs-actividades">
-                            <Cabecera icono="hoy" id="rs-actividades" titulo="Actividades de hoy" texto={`${actividades.length} programadas`} />
-                            <ul className="rs-actividades">
+                        <section className="pz-tarjeta pz-tarjeta--actividades" aria-labelledby="pz-actividades">
+                            <Cabecera icono="hoy" id="pz-actividades" titulo="Actividades de hoy" texto={`${actividades.length} programadas`} />
+                            <ul className="pz-actividades">
                                 {actividades.map((actividad) => (
-                                    <li key={actividad.titulo} className={actividad.chip.texto === "Cancelada" ? "rs-actividades__cancelada" : undefined}>
-                                        <span className="rs-actividades__hora"><strong>{actividad.hora}</strong><span>h</span></span>
-                                        <div className="rs-actividades__textos">
-                                            <p className="rs-actividades__titulo">{actividad.titulo}</p>
-                                            <p className="rs-actividades__detalle">{actividad.detalle}</p>
-                                            <div className="rs-actividades__pie">
-                                                <ChipEstado tono={actividad.chip.tono}>{actividad.chip.texto}</ChipEstado>
+                                    <li key={actividad.titulo} className={actividad.chip.texto === "Cancelada" ? "pz-actividades__cancelada" : undefined}>
+                                        <span className="pz-actividades__hora"><strong>{actividad.hora}</strong><span>h</span></span>
+                                        <div className="pz-actividades__textos">
+                                            <p className="pz-actividades__titulo">{actividad.titulo}</p>
+                                            <p className="pz-actividades__detalle">{actividad.detalle}</p>
+                                            <div className="pz-actividades__pie">
+                                                <Chip tono={actividad.chip.tono}>{actividad.chip.texto}</Chip>
                                                 {actividad.pasarLista && (
-                                                    <Enlace ruta="/admin/actividades/asistencia" className="rs-boton rs-boton--chico">Pasar lista</Enlace>
+                                                    <Enlace ruta="/admin/actividades/asistencia" className="pz-boton pz-boton--chico">Pasar lista</Enlace>
                                                 )}
                                             </div>
                                         </div>
                                     </li>
                                 ))}
                             </ul>
-                            <Enlace ruta="/admin/actividades/calendario" className="rs-enlace">Ver el calendario</Enlace>
+                            <Enlace ruta="/admin/actividades/calendario" className="pz-enlace">Ver el calendario</Enlace>
                         </section>
                         )}
 
-                        <details className="rs-tarjeta rs-reglas">
+                        <details className="pz-tarjeta pz-reglas">
                             <summary>
-                                <span className="rs-tarjeta__icono"><Icono nombre="info" /></span>
-                                <span className="rs-reglas__titulo">Reglas de operación</span>
-                                <span className="rs-reglas__mas" aria-hidden="true" />
+                                <span className="pz-tarjeta__icono"><Icono nombre="info" /></span>
+                                <span className="pz-reglas__titulo">Reglas de operación</span>
+                                <span className="pz-reglas__mas" aria-hidden="true" />
                             </summary>
                             <ul>{REGLAS.map((regla) => <li key={regla}>{regla}</li>)}</ul>
                         </details>
@@ -173,14 +173,6 @@ function textoDelDia(total: number, hoy: number) {
     return `Tienes ${total} ${total === 1 ? "pendiente" : "pendientes"} y ${vencen}. Empieza por los que vencen primero.`;
 }
 
-function Cifra({ icono, valor, texto, tono, alPresionar }: { icono: NombreIcono; valor: number; texto: string; tono?: "vino"; alPresionar: () => void }) {
-    return (
-        <button type="button" className={`rs-cifra${tono ? ` rs-cifra--${tono}` : ""}`} onClick={alPresionar}>
-            <span className="rs-cifra__icono" aria-hidden="true"><Icono nombre={icono} /></span>
-            <span className="rs-cifra__textos"><strong>{valor}</strong><span>{texto}</span></span>
-        </button>
-    );
-}
 
 // ---------- Accesos rápidos ----------
 type EstadoAcceso = { texto: string; tono: TonoEstado } | null;
@@ -204,15 +196,15 @@ function estadoAcceso(a: AccesoRapido, pendientes: Pendiente[], actividades: typ
 
 function Acceso({ acceso, estado }: { acceso: AccesoRapido; estado: EstadoAcceso }) {
     return (
-        <Link to={acceso.ruta} className={`rs-acceso${estado?.tono === "guinda" ? " rs-acceso--urgente" : ""}`}>
-            <span className="rs-acceso__cabecera">
-                <span className="rs-acceso__icono"><Icono nombre={acceso.icono} /></span>
-                <span className="rs-acceso__textos">
-                    <span className="rs-acceso__titulo">{acceso.titulo}</span>
-                    <span className="rs-acceso__texto">{acceso.texto}</span>
+        <Link to={acceso.ruta} className={`pz-acceso${estado?.tono === "guinda" ? " pz-acceso--urgente" : ""}`}>
+            <span className="pz-acceso__cabecera">
+                <span className="pz-acceso__icono"><Icono nombre={acceso.icono} /></span>
+                <span className="pz-acceso__textos">
+                    <span className="pz-acceso__titulo">{acceso.titulo}</span>
+                    <span className="pz-acceso__texto">{acceso.texto}</span>
                 </span>
             </span>
-            {estado && <ChipEstado tono={estado.tono}>{estado.texto}</ChipEstado>}
+            {estado && <Chip tono={estado.tono}>{estado.texto}</Chip>}
         </Link>
     );
 }
@@ -233,19 +225,16 @@ function ListaPendientes({ pendientes, plazo, alCambiarPlazo }: { pendientes: Pe
     const grupos = PLAZOS.map((x) => ({ ...x, filas: visibles.filter((p) => plazoDe(p) === x.id) })).filter((g) => g.filas.length);
 
     return (
-        <section className="rs-tarjeta rs-pendientes" id="pendientes" aria-labelledby={`${id}-titulo`}>
+        <section className="pz-tarjeta pz-pendientes" id="pendientes" aria-labelledby={`${id}-titulo`}>
             <Cabecera icono="lista" id={`${id}-titulo`} titulo="Pendientes por atender" texto="Los que vencen antes van primero" />
 
-            <div className="rs-herramientas">
-                <div className="rs-segmentado" role="group" aria-label="Filtrar por vencimiento">
-                    <Opcion activa={plazo === null} cantidad={porPlazo.hoy + porPlazo.manana + porPlazo.semana} alPresionar={() => alCambiarPlazo(null)}>Todos</Opcion>
-                    {PLAZOS.map((x) => (
-                        <Opcion key={x.id} activa={plazo === x.id} cantidad={porPlazo[x.id]} urgente={x.id === "hoy"} alPresionar={() => alCambiarPlazo(x.id)}>{x.nombre}</Opcion>
-                    ))}
-                </div>
-                <div className="rs-herramientas__campos">
+            <div className="pz-herramientas">
+                <Segmentado<Plazo | "todos"> etiqueta="Filtrar por vencimiento" valor={plazo ?? "todos"} alCambiar={(v) => alCambiarPlazo(v === "todos" ? null : v)}
+                    opciones={[{ valor: "todos", texto: "Todos", cantidad: porPlazo.hoy + porPlazo.manana + porPlazo.semana },
+                        ...PLAZOS.map((x) => ({ valor: x.id, texto: x.nombre, cantidad: porPlazo[x.id], urgente: x.id === "hoy" }))]} />
+                <div className="pz-herramientas__campos">
                     {areas.length > 1 && (
-                        <label className="rs-campo">
+                        <label className="pz-campo">
                             <span className="solo-lectores">Área</span>
                             <select value={area ?? ""} onChange={(e) => setArea((e.target.value || null) as AreaPendiente | null)}>
                                 <option value="">Todas las áreas</option>
@@ -253,7 +242,7 @@ function ListaPendientes({ pendientes, plazo, alCambiarPlazo }: { pendientes: Pe
                             </select>
                         </label>
                     )}
-                    <label className="rs-campo rs-campo--buscar">
+                    <label className="pz-campo pz-campo--buscar">
                         <span className="solo-lectores">Buscar por folio o asunto</span>
                         <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar folio o asunto" />
                     </label>
@@ -263,18 +252,18 @@ function ListaPendientes({ pendientes, plazo, alCambiarPlazo }: { pendientes: Pe
             <p className="solo-lectores" role="status">{filtrados.length} pendientes con estos filtros</p>
 
             {filtrados.length === 0 ? (
-                <div className="rs-vacio">
-                    <span className="rs-vacio__insignia" aria-hidden="true"><Icono nombre="check" /></span>
-                    <p className="rs-vacio__titulo">{hayFiltros ? "No hay pendientes con estos filtros" : "Estás al día"}</p>
+                <div className="pz-vacio">
+                    <span className="pz-vacio__insignia" aria-hidden="true"><Icono nombre="check" /></span>
+                    <p className="pz-vacio__titulo">{hayFiltros ? "No hay pendientes con estos filtros" : "Estás al día"}</p>
                     <p>{hayFiltros ? "Prueba con otro plazo u otra área." : "Cuando llegue algo que atender, aparecerá aquí."}</p>
-                    {hayFiltros && <button type="button" className="rs-boton rs-boton--contorno rs-boton--chico" onClick={quitarFiltros}>Quitar filtros</button>}
+                    {hayFiltros && <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={quitarFiltros}>Quitar filtros</button>}
                 </div>
             ) : (
-                <div className="rs-grupos" tabIndex={0} role="region" aria-label="Lista de pendientes">
+                <div className="pz-grupos" tabIndex={0} role="region" aria-label="Lista de pendientes">
                     {(plazo ? [{ id: plazo, nombre: "", filas: visibles }] : grupos).map((g) => (
-                        <div key={g.id} className="rs-grupo">
-                            {!plazo && <p className={`rs-grupo__titulo rs-grupo__titulo--${g.id}`}>{g.nombre}<span>{porPlazo[g.id]}</span></p>}
-                            <ul className="rs-filas">
+                        <div key={g.id} className="pz-grupo">
+                            {!plazo && <p className={`pz-grupo__titulo pz-grupo__titulo--${g.id}`}>{g.nombre}<span>{porPlazo[g.id]}</span></p>}
+                            <ul className="pz-filas">
                                 {g.filas.map((p) => <li key={p.folio}><FilaPendiente pendiente={p} /></li>)}
                             </ul>
                         </div>
@@ -289,62 +278,25 @@ function ListaPendientes({ pendientes, plazo, alCambiarPlazo }: { pendientes: Pe
 function FilaPendiente({ pendiente: p }: { pendiente: Pendiente }) {
     const plazo = plazoDe(p);
     return (
-        <article className="rs-fila">
-            <span className="rs-fila__icono" aria-hidden="true"><Icono nombre={p.icono ?? ICONO_AREA[p.area]} /></span>
-            <div className="rs-fila__textos">
-                <h4 className="rs-fila__titulo">{p.asunto}</h4>
-                <p className="rs-fila__detalle">
-                    <span className="rs-fila__folio">{p.folio}</span>
+        <article className="pz-fila pz-fila--pendiente">
+            <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={p.icono ?? ICONO_AREA[p.area]} /></span>
+            <div className="pz-fila__textos">
+                <h4 className="pz-fila__titulo">{p.asunto}</h4>
+                <p className="pz-fila__detalle">
+                    <span className="pz-fila__folio">{p.folio}</span>
                     <span>{NOMBRE_AREA[p.area]}</span>
                     <span>{p.responsable === "Sin asignar" ? "Sin responsable" : `Atiende ${p.responsable}`}</span>
                 </p>
             </div>
-            <span className={`rs-vence rs-vence--${plazo}`}>{plazo === "hoy" ? "Vence hoy" : p.vence}</span>
-            <ChipEstado tono={p.estado.tono}>{p.estado.texto}</ChipEstado>
-            <Enlace ruta={p.ruta} className="rs-boton rs-boton--chico">
+            <span className={`pz-vence pz-vence--${plazo}`}>{plazo === "hoy" ? "Vence hoy" : p.vence}</span>
+            <Chip tono={p.estado.tono}>{p.estado.texto}</Chip>
+            <Enlace ruta={p.ruta} className="pz-boton pz-boton--chico">
                 Atender<span className="solo-lectores"> {p.folio}</span>
             </Enlace>
         </article>
     );
 }
 
-function Opcion({ activa, cantidad, urgente, alPresionar, children }: { activa: boolean; cantidad: number; urgente?: boolean; alPresionar: () => void; children: string }) {
-    return (
-        <button type="button" className={`rs-opcion${activa ? " rs-opcion--activa" : ""}${urgente && cantidad > 0 ? " rs-opcion--urgente" : ""}`} aria-pressed={activa} onClick={alPresionar}>
-            {children}
-            <span className="rs-opcion__cantidad">{cantidad}</span>
-        </button>
-    );
-}
 
-// ---------- Piezas ----------
-// Enlace a otra pantalla del panel. Si la cuenta no tiene permiso, no se muestra; si la pantalla aún no existe,
-// el mismo aspecto sin poder presionarse.
-function Enlace({ ruta, className, children }: { ruta: string; className: string; children: ReactNode }) {
-    const identidad = useContext(ContextoPanel);
-    const vista = vistaEnlace(ruta, identidad?.acceso);
-    if (vista === "enlace") return <Link to={ruta} className={className}>{children}</Link>;
-    if (vista === "oculto") return null;
-    return <span className={`${className} rs-sin-enlace`} title="Sección en desarrollo">{children}</span>;
-}
 
-function ChipEstado({ tono, children }: { tono: TonoEstado; children: ReactNode }) {
-    return (
-        <span className={`rs-chip rs-chip--${tono}`}>
-            <span className="rs-chip__punto" aria-hidden="true" />
-            {children}
-        </span>
-    );
-}
 
-function Cabecera({ icono, id, titulo, texto }: { icono: NombreIcono; id: string; titulo: string; texto?: string }) {
-    return (
-        <div className="rs-tarjeta__cabecera">
-            <span className="rs-tarjeta__icono"><Icono nombre={icono} /></span>
-            <div>
-                <h3 id={id}>{titulo}</h3>
-                {texto && <p className="rs-tarjeta__texto">{texto}</p>}
-            </div>
-        </div>
-    );
-}

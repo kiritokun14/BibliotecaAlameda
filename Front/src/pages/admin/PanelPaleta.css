@@ -1,0 +1,118 @@
+/* ============================================================
+   PALETA INSTITUCIONAL DEL PANEL (21 nov 2026, aprobada por Aldahir: Resumen y Administración; `tema="paleta"`)
+   1. Paleta institucional (`.panel--paleta`): tonos del logo Solón Argüello (azul pizarra #92a9bb, azul claro #aecbdb,
+      gris #5c5a5b) y de Nayarit (vino #77162a, arena #c1b09e). El azul pizarra y la arena del material solo adornan;
+      para texto y botones se usan sus tonos oscuros, que pasan AA (4.5:1 o más):
+        pizarra-700 #3f5a6e sobre blanco 7.2 · blanco sobre lateral #2e4456 10.1 · gris #5c5a5b sobre blanco 6.8 ·
+        vino #77162a sobre blanco 10.9 · arena-700 #6b5a44 sobre arena-50 5.7 · azul claro sobre lateral 6.0.
+   2. Armazón con la paleta (franja, menú, cabecera, pie). Las piezas están en PanelPiezas.css.
+   Tipografía Noto Sans: saludo 28/34, títulos de sección 19/26, títulos de tarjeta 16/22, texto 15/22, ayuda 13/19
+   (nunca menos de 12.5). Espaciado en múltiplos de 4: 8 · 12 · 16 · 24 · 32. Radios: tarjetas 16, botones 999.
+   ============================================================ */
+
+/* ---------- 1. Paleta ---------- */
+.panel--paleta {
+  --adm-pizarra: #92a9bb;
+  --adm-pizarra-700: #3f5a6e;
+  --adm-pizarra-800: #2e4456;
+  --adm-pizarra-900: #22323f;
+  --adm-celeste: #aecbdb;
+  --adm-celeste-50: #eef3f7;
+  --adm-celeste-100: #dce8f0;
+  --adm-tinta: #2b2a2b;
+  --adm-gris: #5c5a5b;
+  --adm-fondo: #f4f6f8;
+  --adm-borde: #dbe3ea;
+  --adm-vino: #77162a;
+  --adm-vino-50: #f6e9ec;
+  --adm-arena: #c1b09e;
+  --adm-arena-50: #f3eee8;
+  --adm-arena-700: #6b5a44;
+  --adm-sombra: 0 6px 18px rgba(34, 50, 63, 0.08);
+
+  /* Navegación y pie (PanelNavegacion.css) */
+  --nav-fondo: var(--adm-pizarra-800);
+  --nav-hover: rgba(255, 255, 255, 0.08);
+  --nav-activo: rgba(255, 255, 255, 0.14);
+  --nav-sello: var(--adm-pizarra-700);
+  --nav-texto-normal: #e6eef3;
+  --nav-acento: var(--adm-celeste);
+  --nav-texto: #fff;
+  --nav-texto-suave: #cfe0ea;
+  --nav-linea: #4a6274;
+  --pie-texto: #dbe7ee;
+  /* Marco (franja superior y pie) en la tinta de la paleta, con luces arena y azul claro */
+  --marco-fondo: linear-gradient(160deg, #1b2833, #22323f 50%, #2e4456);
+  --marco-luz-1: rgba(193, 176, 158, 0.30);
+  --marco-luz-2: rgba(174, 203, 219, 0.28);
+  --marco-linea: linear-gradient(90deg, #77162a, #92a9bb 45%, #aecbdb);
+  --marco-acento: #aecbdb;
+  --marco-acento-oscuro: #3f5a6e;
+  --cab-aro: #dce8f0;
+  --cab-fondo-desplegable: #f7f9fb;
+  --cab-tono: var(--adm-arena-50);
+  --cab-tono-borde: var(--adm-arena);
+  --cab-tono-texto: var(--adm-arena-700);
+  --cab-punto: var(--adm-vino);
+  --cab-opcion-borde: var(--adm-celeste);
+  --cab-principal: linear-gradient(180deg, #3f5a6e, #2e4456);
+  --cab-sombra: rgba(46, 68, 86, 0.22);
+  --cab-luz: rgba(146, 169, 187, 0.12);
+  /* Piezas del panel (PanelPiezas.css) */
+  --pz-primario: var(--adm-pizarra-700);
+  --pz-decor: var(--adm-pizarra);
+  --pz-acento-suave: var(--adm-celeste);
+  --pz-claro: var(--adm-celeste-50);
+  --pz-claro-2: var(--adm-celeste-100);
+  --pz-texto: var(--adm-tinta);
+  --pz-gris: var(--adm-gris);
+  --pz-fondo: var(--adm-fondo);
+  --pz-borde: var(--adm-borde);
+  --pz-urgente: var(--adm-vino);
+  --pz-urgente-claro: var(--adm-vino-50);
+  --pz-tono: var(--adm-arena-50);
+  --pz-tono-borde: var(--adm-arena);
+  --pz-tono-texto: var(--adm-arena-700);
+  --pz-sombra: var(--adm-sombra);
+  --pz-luz-1: rgba(193, 176, 158, 0.18);
+  --pz-luz-2: rgba(174, 203, 219, 0.3);
+  --pz-franja: linear-gradient(90deg, var(--adm-vino), var(--adm-pizarra) 45%, var(--adm-celeste));
+}
+/* Las pantallas que aún usan las piezas del Editor (campos, migas, ventanas) toman los mismos tonos */
+.panel.panel--paleta {
+  --solon-acento: var(--adm-celeste);
+  --solon-azul: var(--adm-pizarra-700);
+  --solon-primario: var(--adm-pizarra-700);
+  --solon-oscuro: var(--adm-pizarra-900);
+  --solon-azul-suave: var(--adm-celeste-50);
+  --solon-borde: var(--adm-borde);
+  --solon-fondo: var(--adm-fondo);
+  --solon-neutro-suave: var(--adm-fondo);
+  --solon-guinda: var(--adm-vino);
+  --solon-guinda-suave: var(--adm-vino-50);
+  --foco: var(--adm-pizarra-700);
+  --foco: var(--adm-pizarra-700);
+  --acc: var(--adm-pizarra-700);
+  --acc-claro: var(--adm-celeste-50);
+  --alerta: var(--adm-vino);
+  --alerta-claro: var(--adm-vino-50);
+  --borde: var(--adm-borde);
+
+  background: var(--adm-fondo);
+  color: var(--adm-tinta);
+}
+
+/* ---------- 2. Armazón con la paleta ---------- */
+body .panel.panel--paleta .panel-cabecera { border-bottom-color: var(--adm-borde); }
+body .panel.panel--paleta .panel-cabecera__titulo { color: var(--adm-tinta); }
+body .panel.panel--paleta .boton-panel--contorno-verde { border-color: var(--adm-pizarra-700); color: var(--adm-pizarra-700); }
+body .panel.panel--paleta .boton-panel--contorno-verde:hover { background: var(--adm-celeste-50); }
+body .panel.panel--paleta .panel-cabecera__menu { color: var(--adm-pizarra-700); }
+body .panel.panel--paleta .panel-campana { border-color: var(--adm-borde); background: var(--adm-celeste-50); }
+body .panel.panel--paleta .panel-campana__insignia { background: var(--adm-vino); }
+body .panel.panel--paleta .panel-cuenta { border-color: var(--adm-borde); background: #fff; }
+body .panel.panel--paleta .panel-cuenta:hover { border-color: var(--adm-pizarra-700); }
+body .panel.panel--paleta .panel-cuenta__avatar { background: var(--adm-pizarra-700); }
+body .panel.panel--paleta .panel-cuenta__nombre { color: var(--adm-tinta); }
+body .panel.panel--paleta .panel-cuenta__rol { color: var(--adm-gris); }
+body .panel.panel--paleta .panel-contenido :is(a, button, summary, input, [tabindex]):focus-visible { outline: 3px solid var(--adm-pizarra-700); outline-offset: 2px; }

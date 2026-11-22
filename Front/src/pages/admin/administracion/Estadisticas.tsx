@@ -1,18 +1,21 @@
-// Administración › Estadísticas (Figma 580:49970). Diseño del Editor. Datos de ejemplo (./datos.ts, TODO backend).
-import { useState } from "react";
-import { EncabezadoPagina, AvisoResultado } from "../componentes";
+// Administración › Estadísticas (Figma 580:49970). Datos de ejemplo (./datos.ts, TODO backend).
+// 21 nov 2026: con las piezas del panel: sección y periodo en filtros segmentados, indicadores como cifras, la gráfica en
+// su tarjeta y, al lado, la lista de lo más visto con su porcentaje en barra.
+import { useId, useState } from "react";
 import { Ventana } from "../Ventana";
-import { IconoLista, IconoReloj } from "../contenidos/piezas";
 import { simulacion } from "../../../servicios/simulacion";
 import { estadisticas, porcentaje, type Periodo, type SeccionEstadistica } from "./datos";
-import { ErrorCarga, Pantalla, Pestanas, Resumen } from "./comun";
+import { ErrorCarga, Pantalla } from "./comun";
 import { descargarCsv } from "./utiles";
+import { Aviso, Cifra, Encabezado, Segmentado, Tarjeta, Vacio, type NombreIcono } from "../piezasPanel";
 import modalInfo from "../../../assets/admin/modal-info.svg";
 
 const SECCIONES: { valor: SeccionEstadistica; texto: string }[] = [{ valor: "portal", texto: "Portal" }, { valor: "actividades", texto: "Actividades" }, { valor: "contenidos", texto: "Contenidos" }];
 const PERIODOS: { valor: Periodo; texto: string }[] = [{ valor: "30dias", texto: "Últimos 30 días" }, { valor: "mes", texto: "Este mes" }, { valor: "anio", texto: "Este año" }];
+const ICONOS: NombreIcono[] = ["estadisticas", "usuario", "check", "reloj"];
 
 export default function Estadisticas() {
+    const id = useId();
     const [seccion, setSeccion] = useState<SeccionEstadistica>("portal");
     const [periodo, setPeriodo] = useState<Periodo>("30dias");
     const [exportando, setExportando] = useState(false);
@@ -43,68 +46,67 @@ export default function Estadisticas() {
 
     return (
         <Pantalla migas={[["Estadísticas"], [nombreSeccion]]}>
-            <EncabezadoPagina etiqueta="Administración · Estadísticas" titulo="Estadísticas" texto="Cómo se usa el portal y las actividades. Sin datos personales."
-                accion={<button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => setExportando(true)}>Exportar</button>} />
+            <div className="pz-pagina">
+                <Encabezado titulo="Estadísticas" texto="Cómo se usan el portal, las actividades y los contenidos. Sin datos personales.">
+                    <button type="button" className="pz-boton pz-boton--contorno" onClick={() => setExportando(true)}>Exportar en CSV</button>
+                </Encabezado>
 
-            <div className="ad-barra">
-                <Pestanas etiqueta="Sección" valor={seccion} alCambiar={setSeccion} opciones={SECCIONES} />
-                <Pestanas etiqueta="Periodo" valor={periodo} alCambiar={setPeriodo} opciones={PERIODOS} />
+                <div className="pz-herramientas pz-herramientas--barra">
+                    <Segmentado<SeccionEstadistica> etiqueta="Sección" valor={seccion} alCambiar={setSeccion} opciones={SECCIONES} />
+                    <Segmentado<Periodo> etiqueta="Periodo" valor={periodo} alCambiar={setPeriodo} opciones={PERIODOS} />
+                </div>
+
+                {exportado && <Aviso titulo="Exportación lista." texto={`Se descargó ${exportado}.`} />}
+                {errorExportar && <Aviso tono="error" titulo="No se pudo exportar." texto="Inténtalo de nuevo en unos minutos." />}
+
+                {errorCarga ? (
+                    <ErrorCarga titulo="No se pudieron cargar las estadísticas" texto="Revisa tu conexión e inténtalo de nuevo." alReintentar={() => setCargaRecuperada(true)} />
+                ) : modo === "sin-datos" ? (
+                    <section className="pz-tarjeta"><Vacio icono="estadisticas" titulo="Sin datos para este periodo" texto="Prueba con otro periodo." /></section>
+                ) : (
+                    <>
+                        <div className="pz-indicadores" role="group" aria-label={`${nombreSeccion}, ${nombrePeriodo}`}>
+                            {datos.indicadores.map((i, n) => <Cifra key={i.titulo} icono={ICONOS[n] ?? "estadisticas"} valor={i.valor} texto={`${i.titulo}. ${i.detalle}`} />)}
+                        </div>
+
+                        <div className="pz-columnas pz-columnas--libre">
+                            <Tarjeta icono="estadisticas" id={`${id}-serie`} titulo={datos.tituloSerie} texto="Últimas 5 semanas. Pasa el cursor o el foco por una barra para ver su valor">
+                                <div className="ad-grafica" role="img" aria-label={`${datos.tituloSerie}: ${datos.serie.map((s) => `${s.etiqueta} ${s.valor}`).join(", ")}`}>
+                                    {datos.serie.map((s) => (
+                                        <div key={s.etiqueta} className="ad-grafica__columna" tabIndex={0} aria-label={`${s.etiqueta}: ${s.valor.toLocaleString("es-MX")}`}>
+                                            <span className="ad-grafica__aviso">{s.etiqueta}: {s.valor.toLocaleString("es-MX")}</span>
+                                            <span className="ad-grafica__barra" style={{ height: `${Math.max(2, (s.valor / maximo) * 100)}%` }} />
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="ad-grafica__ejes" aria-hidden="true">{datos.serie.map((s) => <span key={s.etiqueta}>{s.etiqueta}</span>)}</div>
+                                <table className="solo-lectores">
+                                    <caption>{datos.tituloSerie}</caption>
+                                    <thead><tr><th>Semana</th><th>Valor</th></tr></thead>
+                                    <tbody>{datos.serie.map((s) => <tr key={s.etiqueta}><td>{s.etiqueta}</td><td>{s.valor}</td></tr>)}</tbody>
+                                </table>
+                            </Tarjeta>
+
+                            <aside className="pz-lateral" aria-label={datos.tituloTabla}>
+                                <Tarjeta icono="lista" id={`${id}-tabla`} titulo={datos.tituloTabla} texto={`Del total de ${nombrePeriodo}`}>
+                                    <ol className="pz-ranking">
+                                        {datos.tabla.map((f, n) => (
+                                            <li key={f.nombre}>
+                                                <span className="pz-ranking__lugar" aria-hidden="true">{n + 1}</span>
+                                                <div className="pz-ranking__textos">
+                                                    <p className="pz-ranking__nombre">{f.nombre}</p>
+                                                    <span className="pz-ranking__barra" aria-hidden="true"><span style={{ width: porcentaje(f.valor, totalTabla) }} /></span>
+                                                </div>
+                                                <p className="pz-ranking__valor"><strong>{f.valor.toLocaleString("es-MX")}</strong><span>{porcentaje(f.valor, totalTabla)}</span></p>
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </Tarjeta>
+                            </aside>
+                        </div>
+                    </>
+                )}
             </div>
-
-            {exportado && <AvisoResultado tono="exito" titulo="Exportación lista" texto={`Se descargó ${exportado}.`} chip="Listo" />}
-            {errorExportar && <AvisoResultado tono="error" titulo="No se pudo exportar" texto="Inténtalo de nuevo en unos minutos." chip="Error" />}
-
-            {errorCarga ? (
-                <ErrorCarga titulo="No se pudieron cargar las estadísticas" texto="Revisa tu conexión e inténtalo de nuevo." alReintentar={() => setCargaRecuperada(true)} />
-            ) : modo === "sin-datos" ? (
-                <div className="contenidos-vacio"><span><span className="contenidos-vacio__icono"><IconoLista /></span><strong>Sin datos para este periodo</strong><span>Prueba con otro periodo.</span></span></div>
-            ) : (
-                <>
-                    <Resumen titulo={`${nombreSeccion} · ${nombrePeriodo}`} tarjetas={datos.indicadores.map((i, n) => ({
-                        tono: (["azul", "gris", "azul", "guinda"] as const)[n], icono: n % 2 ? <IconoReloj /> : <IconoLista />, cifra: i.valor, titulo: i.titulo, texto: i.detalle,
-                    }))} />
-
-                    <section className="contenidos-panel" aria-labelledby="ad-serie-titulo">
-                        <div className="contenidos-lista__cabecera">
-                            <span className="contenidos-lista__icono"><IconoLista /></span>
-                            <div className="at-cabecera__textos"><h2 id="ad-serie-titulo">{datos.tituloSerie}</h2><p>Últimas 5 semanas. Pasa el cursor o el foco por una barra para ver su valor.</p></div>
-                        </div>
-                        <div className="ad-grafica" role="img" aria-label={`${datos.tituloSerie}: ${datos.serie.map((s) => `${s.etiqueta} ${s.valor}`).join(", ")}`}>
-                            {datos.serie.map((s) => (
-                                <div key={s.etiqueta} className="ad-grafica__columna" tabIndex={0} aria-label={`${s.etiqueta}: ${s.valor.toLocaleString("es-MX")}`}>
-                                    <span className="ad-grafica__aviso">{s.etiqueta}: {s.valor.toLocaleString("es-MX")}</span>
-                                    <span className="ad-grafica__barra" style={{ height: `${Math.max(2, (s.valor / maximo) * 100)}%` }} />
-                                </div>
-                            ))}
-                        </div>
-                        <div className="ad-grafica__ejes" aria-hidden="true">{datos.serie.map((s) => <span key={s.etiqueta}>{s.etiqueta}</span>)}</div>
-                        <table className="solo-lectores">
-                            <caption>{datos.tituloSerie}</caption>
-                            <thead><tr><th>Semana</th><th>Valor</th></tr></thead>
-                            <tbody>{datos.serie.map((s) => <tr key={s.etiqueta}><td>{s.etiqueta}</td><td>{s.valor}</td></tr>)}</tbody>
-                        </table>
-                    </section>
-
-                    <section className="contenidos-lista" aria-labelledby="ad-tabla-titulo">
-                        <div className="contenidos-lista__cabecera">
-                            <span className="contenidos-lista__icono"><IconoLista /></span>
-                            <div><h2 id="ad-tabla-titulo">{datos.tituloTabla}</h2></div>
-                        </div>
-                        <div className="contenidos-tabla ad-tabla-paginas" role="table" aria-label={datos.tituloTabla}>
-                            <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
-                                <span role="columnheader">Nombre</span><span role="columnheader">Total</span><span role="columnheader">% del total</span>
-                            </div>
-                            {datos.tabla.map((f) => (
-                                <div key={f.nombre} className="contenidos-tabla__fila" role="row">
-                                    <span role="cell" className="contenidos-tabla__folio">{f.nombre}</span>
-                                    <span role="cell" className="contenidos-tabla__titulo">{f.valor.toLocaleString("es-MX")}</span>
-                                    <span role="cell">{porcentaje(f.valor, totalTabla)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                </>
-            )}
 
             {exportando && (
                 <Ventana tono="verde" icono={modalInfo} angosta titulo="Exportar estadísticas" texto={`Se descargará un archivo CSV con ${nombreSeccion.toLowerCase()} de ${nombrePeriodo}. No incluye datos personales.`}

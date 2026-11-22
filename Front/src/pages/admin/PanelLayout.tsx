@@ -7,6 +7,8 @@ import { ContextoPanel, capacidadPanel, permisoGlobal, type IdentidadPanel } fro
 import "./Panel.css";
 import "./PanelNormalizado.css";
 import "./PanelNavegacion.css";
+import "./PanelPiezas.css";
+import "./PanelPaleta.css";
 import CabeceraPanel from "./CabeceraPanel";
 import { EstadoConexion, FechaHora, RolSesion } from "./MarcoPanel";
 import { RESUMEN, SECCIONES_MENU, type SeccionMenu, type SubitemMenu } from "./menu";
@@ -220,7 +222,7 @@ function PiePanel() {
 type PanelLayoutProps = {
     titulo: string; // el de la cabecera blanca, p. ej. "Atención"
     children: ReactNode;
-    tema?: string; // «paleta»: paleta institucional (propuesta del 21 nov, por ahora solo en el Resumen)
+    tema?: string; // uno o varios, separados por espacio: «paleta» (paleta institucional: Resumen y Administración), «contenidos»…
     sinDemo?: boolean; // ya sin efecto: la franja «Datos de ejemplo» se quitó del panel
 };
 
@@ -254,7 +256,7 @@ function PanelLayout({ titulo, children, tema }: PanelLayoutProps) {
     }, [menuMovil]);
 
     return (
-        <div className={`panel${tema ? ` panel--${tema}` : ""}${plegado ? " panel--menu-plegado" : ""}`}>
+        <div className={`panel${tema ? tema.split(" ").map((t) => ` panel--${t}`).join("") : ""}${plegado ? " panel--menu-plegado" : ""}`}>
             <a className="panel-saltar" href="#contenido-panel">Saltar al contenido</a>
             <FranjaGobierno />
             <div className="panel-cuerpo">
