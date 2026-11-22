@@ -5,7 +5,7 @@ vi.mock('@supabase/supabase-js', () => ({ createClient: () => cliente }));
 import { cancelarPropuesta, puedeCancelarPropuesta, puedeCorregirPropuesta, publicarPropuesta, enviarPropuesta, listarTramites, resolverTramite, solicitarCredencial, type SolicitudAtencion } from '../src/servicios/tramites';
 import { capacidadPanel } from '../src/servicios/accesoPanel';
 import { invalidarConsultas } from '../src/servicios/consultas';
-import { registrarPropuestaUsuario } from '../src/servicios/propuestasUsuario';
+import { editarPropuestaUsuario, registrarPropuestaUsuario } from '../src/servicios/propuestasUsuario';
 import { propuestaVacia } from '../src/pages/publico/proponer/datos';
 const peticiones = vi.fn();
 const solicitud = { id: 'solicitud', actualizadoEn: '2026-11-05T12:00:00Z', actualizadaEn: '2026-11-05T13:00:00Z' } as SolicitudAtencion;
@@ -18,6 +18,12 @@ beforeEach(() => {
     vi.stubGlobal('fetch', peticiones);
 });
 afterEach(() => vi.unstubAllGlobals());
+it('el formulario renovado conserva el motivo y la versión de T-094 al editar', async () => {
+    await editarPropuestaUsuario({ ...propuestaVacia('Ana', '3110000000'), titulo: 'Prueba de integración', descripcion: 'Actividad' }, solicitud, 'Cambio de horario');
+    const [ruta, opciones] = peticiones.mock.calls.find(([url]) => url.endsWith('/corregir'))!;
+    expect(ruta).toBe('/api/propuestas/solicitud/corregir');
+    expect(JSON.parse(opciones.body)).toMatchObject({ actualizadoEn: solicitud.actualizadoEn, motivoCambio: 'Cambio de horario', tituloPropuesta: 'Prueba de integración' });
+});
 it('cancelar una propuesta conserva versión y motivo sin enviar identidad ni borrar el expediente', async () => {
     await cancelarPropuesta(solicitud, ' Cambio de planes ');
     const [ruta, opciones] = peticiones.mock.calls.find(([url]) => url.endsWith('/cancelacion'))!;

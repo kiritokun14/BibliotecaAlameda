@@ -75,6 +75,8 @@ En CECANbd ya se aplicaron los pasos 18 a 20; no hace falta repetirlos para ejec
 
 ## Cambios nuevos a la base
 
+HU-20 / T-099: `asistencia_actividades.sql` registra asistencia por sesión y sus correcciones con historial; requiere agenda e inscripciones. `pruebas_asistencia_actividades.sql` verifica permisos, sesiones, cierre y correcciones con `ROLLBACK` en una copia de pruebas. Revisa su aplicación antes de utilizar esta función en la base compartida.
+
 T-094, complemento de solicitudes: `t094_correcciones_solicitudes.sql` agrega versiones completas, motivo obligatorio, corrección propia y control de concurrencia para propuestas y espacios. Aplicar después de las migraciones vigentes de propuestas y espacios y revisar con el equipo. `pruebas_t094_solicitudes.sql` comprueba los cuatro criterios con ROLLBACK. Ver `../T-094-INFORME.md`; la aplicación en CECANbd y la revisión de Aldahir siguen pendientes.
 
 HU-17 / T-094: `cambios_actividad.sql` agrega solicitudes por sesiones, registro del acuerdo institucional, aplicación transaccional, historial y avisos del portal con reintento. Se prepara para revisión; no se ha aplicado a CECANbd desde esta implementación. Requiere las migraciones vigentes de agenda, espacios y propuestas indicadas en `../HU-17.md`. La suite `pruebas_cambios_actividad.sql` se ejecuta después de esta migración y termina con `ROLLBACK`.
