@@ -2,7 +2,7 @@
 // franja «Accesos rápidos» (.contenidos-resumen), lista con filtros en píldora y buscador (.contenidos-lista),
 // filas en tarjeta (.contenidos-tabla) y paginación (.contenidos-paginas). Las usan Cambios, Asistencia y Evidencias.
 import type { ReactNode } from "react";
-import { IconoBuscar } from "../contenidos/piezas";
+import { Buscador, Paginas, Segmentado } from "../piezasPanel";
 import { Bloque } from "../../../components/portal/Esqueleto";
 import BarraFiltros, { ChipsFiltro, type GrupoFiltro, type OpcionFiltro } from "../../../components/portal/BarraFiltros";
 import "../atencion/AtencionTramites.css";
@@ -28,23 +28,19 @@ export type AccesoRapido = {
 
 export function AccesosRapidos({ titulo = "En cifras", accesos }: { titulo?: string; accesos: AccesoRapido[] }) {
     return (
-        <section className="contenidos-resumen" aria-label={titulo}>
-            <h2 className="solo-lectores">{titulo}</h2>
-            <div className="contenidos-resumen__tarjetas">
-                {accesos.map((a) => (
-                    <article key={a.clave} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${a.tono}${a.activo ? " at-tarjeta--activa" : ""}`}>
-                        <div className="contenidos-resumen__fila">
-                            <span className="contenidos-resumen__icono">{a.icono}</span>
-                            {a.enlace && a.alPresionar && (
-                                <button type="button" className="contenidos-resumen__enlace" aria-pressed={a.activo} onClick={a.alPresionar}>{a.enlace}</button>
-                            )}
-                        </div>
-                        <p className="contenidos-resumen__cifra">{a.cifra}</p>
-                        <p className="contenidos-resumen__titulo">{a.titulo}</p>
-                        <p className="contenidos-resumen__texto">{a.texto}</p>
-                    </article>
-                ))}
-            </div>
+        <section className="pz-indicadores ac-cifras" aria-label={titulo}>
+            {accesos.map((a) => {
+                const contenido = (
+                    <>
+                        <span className="pz-cifra__icono" aria-hidden="true">{a.icono}</span>
+                        <span className="pz-cifra__textos"><strong>{a.cifra}</strong><span>{a.titulo}</span><small>{a.texto}</small></span>
+                    </>
+                );
+                const clase = `pz-cifra${a.tono === "guinda" ? " pz-cifra--vino" : ""}${a.activo ? " pz-cifra--activa" : ""}`;
+                return a.alPresionar
+                    ? <button key={a.clave} type="button" className={clase} aria-pressed={!!a.activo} onClick={a.alPresionar} title={a.enlace}>{contenido}</button>
+                    : <div key={a.clave} className={`${clase} pz-cifra--fija`}>{contenido}</div>;
+            })}
         </section>
     );
 }
@@ -61,13 +57,13 @@ type SeccionListaProps = {
 
 export function SeccionLista({ id, icono, titulo, texto, extra, herramientas, children }: SeccionListaProps) {
     return (
-        <section className="contenidos-lista" aria-labelledby={id}>
-            <div className="contenidos-lista__cabecera">
-                <span className="contenidos-lista__icono">{icono}</span>
-                <div className="at-cabecera__textos"><h2 id={id}>{titulo}</h2>{texto && <p>{texto}</p>}</div>
-                {extra}
+        <section className="pz-tarjeta ac-lista" aria-labelledby={id}>
+            <div className="pz-tarjeta__cabecera">
+                <span className="pz-tarjeta__icono" aria-hidden="true">{icono}</span>
+                <div className="pz-tarjeta__titulos"><h3 id={id}>{titulo}</h3>{texto && <p className="pz-tarjeta__texto">{texto}</p>}</div>
+                {extra && <div className="pz-tarjeta__accion">{extra}</div>}
             </div>
-            {herramientas && <div className="contenidos-lista__herramientas">{herramientas}</div>}
+            {herramientas && <div className="pz-herramientas">{herramientas}</div>}
             {children}
         </section>
     );
@@ -76,22 +72,13 @@ export function SeccionLista({ id, icono, titulo, texto, extra, herramientas, ch
 export function FiltrosPildora<T extends string>({ etiqueta, valor, opciones, alCambiar }: {
     etiqueta: string; valor: T; opciones: { valor: T; texto: string }[]; alCambiar: (v: T) => void;
 }) {
-    return (
-        <div className="contenidos-filtros" role="group" aria-label={etiqueta}>
-            {opciones.map((o) => (
-                <button key={o.valor} type="button" aria-pressed={valor === o.valor} onClick={() => alCambiar(o.valor)}
-                    className={`contenidos-filtro${valor === o.valor ? " contenidos-filtro--activo" : ""}`}>{o.texto}</button>
-            ))}
-        </div>
-    );
+    // «Pendientes (2)» → la cantidad va en su círculo, como en el filtro segmentado de las piezas
+    const partes = (texto: string) => { const m = /^(.*?)\s*\((\d+)\)$/.exec(texto); return m ? { texto: m[1], cantidad: Number(m[2]) } : { texto }; };
+    return <Segmentado etiqueta={etiqueta} valor={valor} alCambiar={alCambiar} opciones={opciones.map((o) => ({ valor: o.valor, ...partes(o.texto) }))} />;
 }
 
 export function BuscarLista({ texto, valor, alCambiar }: { texto: string; valor: string; alCambiar: (v: string) => void }) {
-    return (
-        <label className="contenidos-buscar"><IconoBuscar />
-            <input type="search" placeholder={texto} aria-label={texto} value={valor} onChange={(e) => alCambiar(e.target.value)} />
-        </label>
-    );
+    return <Buscador etiqueta={texto} placeholder={texto} valor={valor} alCambiar={alCambiar} />;
 }
 
 // Bloque de filtros (como Calendario y Visitas): pastillas de lo principal arriba, buscador y panel «Filtros» con el resto
@@ -149,17 +136,9 @@ export const CeldaDoble = ({ arriba, abajo }: { arriba: ReactNode; abajo?: React
 
 export function PieLista({ texto, pagina, paginas, alCambiar }: { texto: string; pagina: number; paginas: number; alCambiar: (p: number) => void }) {
     return (
-        <div className="contenidos-lista__pie">
-            <p>{texto}</p>
-            {paginas > 1 && (
-                <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                    <button type="button" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>Anterior</button>
-                    {Array.from({ length: paginas }, (_, i) => (
-                        <button key={i} type="button" className={i === pagina ? "contenidos-paginas__actual" : undefined} aria-current={i === pagina ? "page" : undefined} onClick={() => alCambiar(i)}>{i + 1}</button>
-                    ))}
-                    <button type="button" disabled={pagina >= paginas - 1} onClick={() => alCambiar(pagina + 1)}>Siguiente</button>
-                </div>
-            )}
+        <div className="pz-tarjeta__pie">
+            <p aria-live="polite">{texto}</p>
+            {paginas > 1 && <Paginas pagina={pagina + 1} paginas={paginas} alCambiar={(p) => alCambiar(p - 1)} />}
         </div>
     );
 }

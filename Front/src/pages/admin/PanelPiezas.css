@@ -855,6 +855,27 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
   .pz-pastilla:hover { transform: none; }
 }
 
+/* Confirmación de envío (Contenidos › Enviado a autorización) y fila de acciones */
+.pz-envio-ok { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--pz-claro); }
+.pz-envio-ok p { margin: 0; color: var(--pz-texto); font-size: 14px; }
+.pz-envio-ok__insignia { display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--pz-primario); color: #fff; animation: pz-aro 0.9s ease-out 0.3s 1; }
+.pz-envio-ok__insignia svg { width: 20px; height: 20px; }
+.pz-acciones--fila { flex-direction: row; flex-wrap: wrap; }
+.pz-acciones--fila .pz-boton { width: auto; }
+@media (prefers-reduced-motion: reduce) { .pz-envio-ok__insignia { animation: none; } }
+
+/* ---------- Listas de Actividades con las piezas (PiezasLista: Visitas, Cambios, Inscripciones, Asistencia, Evidencias; 22 nov 2026) ---------- */
+.ac-cifras { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.ac-cifras .pz-cifra { align-items: flex-start; text-align: left; font-family: inherit; }
+.ac-cifras .pz-cifra__icono svg { width: 20px; height: 20px; }
+.ac-cifras .pz-cifra__textos small { display: block; margin-top: 2px; color: var(--pz-gris); font-size: 12px; font-weight: 600; line-height: 16px; }
+.ac-cifras button.pz-cifra { cursor: pointer; }
+.pz-tarjeta__icono svg { width: 18px; height: 18px; }
+.ac-lista { animation: pz-entra 0.4s ease-out 0.12s backwards; overflow: visible; }
+.ac-lista > .pz-herramientas { position: relative; z-index: 5; }
+.ac-lista .contenidos-tabla { margin-top: 0; }
+@media (prefers-reduced-motion: reduce) { .ac-lista { animation: none; } }
+
 /* ---------- Calendario y salas (22 nov 2026): barra, mes que llena su tarjeta, salas del día y detalle de sala ---------- */
 .cal-barra { gap: 12px; padding: 14px 18px; overflow: visible; z-index: 5; animation: pz-entra 0.4s ease-out 0.06s backwards; }
 .cal-barra__fila { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
