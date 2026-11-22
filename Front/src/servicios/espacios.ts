@@ -58,10 +58,11 @@ export const listarAreas = () => pedir<AreaEspacio[]>('/areas');
 export const enviarSolicitud = (datos: NuevaSolicitudEspacio) => pedir<SolicitudEspacioApi>('/solicitudes', enviarJson(datos));
 export const listarMisSolicitudes = () => pedir<{ total: number; solicitudes: SolicitudEspacioApi[] }>('/solicitudes?limite=50');
 export const obtenerMiSolicitud = (folio: string) => pedir<SolicitudEspacioApi>('/solicitudes/' + folioUrl(folio));
-export const cancelarMiSolicitud = (folio: string, motivo: string, comentarios: string) =>
-    pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/cancelacion`, enviarJson({ motivo: motivo || null, comentarios: comentarios.trim() || null }));
-export const responderPropuesta = (folio: string, acepta: boolean, comentarios: string) =>
-    pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/respuesta`, enviarJson({ acepta, comentarios: comentarios.trim() || null }));
+// actualizadoEn: la versión que vio la persona; si el personal la cambió después, el servidor responde 409 y se recarga.
+export const cancelarMiSolicitud = (folio: string, actualizadoEn: string, motivo: string, comentarios: string) =>
+    pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/cancelacion`, enviarJson({ actualizadoEn, motivo: motivo || null, comentarios: comentarios.trim() || null }));
+export const responderPropuesta = (folio: string, actualizadoEn: string, acepta: boolean, comentarios: string) =>
+    pedir<SolicitudEspacioApi>(`/solicitudes/${folioUrl(folio)}/respuesta`, enviarJson({ actualizadoEn, acepta, comentarios: comentarios.trim() || null }));
 
 // ---------- Personal ----------
 type BandejaEspacios = { total: number; conteos: Record<EstadoSolicitudEspacio, number>; solicitudes: SolicitudEspacioPersonal[] };

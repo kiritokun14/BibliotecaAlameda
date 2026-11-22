@@ -36,6 +36,8 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 21 | `evidencias_actividades.sql` | Evidencias privadas de actividades: bucket privado, folio, nivel de acceso, retiro y registro de consultas | HU-21 / BDLAG-95 |
 | 22 | `cancelacion_credencial_propia.sql` | La persona titular cancela su propia solicitud de credencial (operación `cancelar`) | T-072 |
 | 23 | `datos_prueba.sql` | **Opcional.** Datos ficticios de prueba | T-026 |
+| 24 | `espacios_mapa.sql` | Los seis espacios del mapa que se pueden pedir para un evento (Sala general, Sala Braille y de usos múltiples, Vestíbulo, Coliseo, Área infantil y Mesanim); la «Sala de lectura» pasa a ser la Sala general | T-076 |
+| 25 | `evidencias_solo_realizadas.sql` | Evidencias privadas solo de actividades que ya se realizaron (ni pendientes, ni en curso, ni canceladas) | HU-21 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
@@ -53,6 +55,8 @@ fijos `00000000-0000-4000-…` para poder encontrarlos y borrarlos.
   y los siete pares exactos UUID/correo de las semillas. No selecciona otras cuentas
   `@biblioteca.test`, como la de integración. No ejecutarlo sobre CECANbd.
   Deben revisarse antes las dependencias y los borrados en cascada del esquema.
+- `datos_prueba.sql` va antes de `espacios_mapa.sql` (paso 24): sus tres espacios provisionales son la base que ese script
+  completa. En una copia con datos de prueba, `limpiar_datos_prueba.sql` también borra esos tres espacios.
 
 ## Pruebas
 
@@ -65,6 +69,7 @@ administración de cuentas sin dejar registros. Se pueden ejecutar después del 
 `pruebas_publicacion_propuestas.sql` comprueba publicación, permisos, cupo, vínculos, reintentos y conflictos de horario con `ROLLBACK`, después del paso 20.
 `pruebas_evidencias_actividades.sql` (también con `ROLLBACK`) comprueba permisos por actividad, acceso de Coordinación, registro de consultas, retiro y que las listas firmadas nunca se publiquen, después del paso 21.
 `pruebas_cancelacion_credencial_propia.sql` (también con `ROLLBACK`) comprueba que solo la persona titular cancela su solicitud de credencial, después del paso 22.
+`pruebas_evidencias_solo_realizadas.sql` (también con `ROLLBACK`) comprueba que solo se suben evidencias de sesiones ya realizadas, después del paso 25.
 
 En CECANbd ya se aplicaron los pasos 18 a 20; no hace falta repetirlos para ejecutar el proyecto contra esa base compartida.
 

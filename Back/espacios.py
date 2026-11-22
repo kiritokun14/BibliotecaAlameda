@@ -114,11 +114,15 @@ class NuevaSolicitud(DatosBase):
 
 
 class Cancelacion(DatosBase):
+    # La BD pide la versión que vio la persona (actualizadoEn) para no cancelar sobre un cambio del personal.
+    actualizadoEn: AwareDatetime
     motivo: MotivoCancelacion | None = None
     comentarios: Comentarios | None = None
 
 
 class Respuesta(DatosBase):
+    # La versión de la propuesta que vio la persona: si el personal la cambió después, se pide recargar.
+    actualizadoEn: AwareDatetime
     acepta: bool = Field(description='true acepta la propuesta del personal; false pide que se revise de nuevo.')
     comentarios: Comentarios | None = None
 
@@ -148,6 +152,20 @@ class Decision(VersionSolicitud):
     mensaje: Mensaje
 
 
+MOTIVO_SIN_ESPECIFICAR = 'Sin motivo especificado'
+
+# Horario de la biblioteca: el mismo que el formulario (HORARIO en Front/src/pages/publico/espacios/datosSesion.ts).
+# Si la biblioteca lo cambia, cambiarlo en los dos lados.
+ABRE, CIERRA = time(8, 0), time(19, 30)
+FUERA_DE_HORARIO = 'La biblioteca recibe eventos de lunes a viernes, de 8:00 a 19:30 h.'
+
+
+def _en_horario(datos: NuevaSolicitud) -> None:
+    """Rechaza fines de semana y horas fuera de servicio, por si alguien llama la API directo."""
+    if datos.fecha.weekday() >= 5 or datos.horaInicio < ABRE or datos.horaFin > CIERRA:
+        raise HTTPException(422, FUERA_DE_HORARIO)
+
+
 def _horario(cuerpo: dict, datos) -> dict:
     if 'areaId' in cuerpo:
         cuerpo['espacio'] = cuerpo.pop('areaId')
@@ -166,6 +184,7 @@ def areas(cliente: Cliente):
 @router.post('/solicitudes', status_code=201)
 def enviar(datos: NuevaSolicitud, cliente: Cliente):
     """Envía la solicitud. Queda 'en_revision'; no reserva el espacio. La respuesta trae el folio."""
+    _en_horario(datos)
     return ejecutar(cliente, 'enviar', _horario(datos.model_dump(mode='json', exclude_none=True), datos))
 
 
@@ -188,13 +207,16 @@ def obtener(folio: Folio, cliente: Cliente):
 @router.post('/solicitudes/{folio}/cancelacion')
 def cancelar(folio: Folio, datos: Cancelacion, cliente: Cliente):
     """Cancela una solicitud propia mientras está en revisión. No se puede deshacer."""
-    return ejecutar(cliente, 'cancelar', {**datos.model_dump(exclude_none=True), 'folio': folio})
+    cuerpo = datos.model_dump(mode='json', exclude_none=True)
+    # En la pantalla el motivo es opcional; la BD lo guarda siempre en el historial.
+    cuerpo['motivo'] = cuerpo.get('motivo') or MOTIVO_SIN_ESPECIFICAR
+    return ejecutar(cliente, 'cancelar', {**cuerpo, 'folio': folio})
 
 
 @router.post('/solicitudes/{folio}/respuesta')
 def responder(folio: Folio, datos: Respuesta, cliente: Cliente):
     """Responde la propuesta del personal. En ambos casos la solicitud vuelve a revisión."""
-    return ejecutar(cliente, 'responder', {**datos.model_dump(exclude_none=True), 'folio': folio})
+    return ejecutar(cliente, 'responder', {**datos.model_dump(mode='json', exclude_none=True), 'folio': folio})
 
 
 # ---------------------------------------------------------------------------

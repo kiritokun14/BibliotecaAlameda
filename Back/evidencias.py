@@ -41,7 +41,7 @@ SIN_CACHE = {'Cache-Control': 'private, no-store'}
 
 # Mensajes de la BD que se pueden mostrar tal cual.
 MENSAJES_VISIBLES = (
-    'Elige la actividad.', 'La actividad aún no se realiza.', 'Elige el tipo de evidencia.', 'Elige quién puede verla.',
+    'Elige la actividad.', 'La actividad aún no se realiza.', 'No se suben evidencias de actividades canceladas.', 'Elige el tipo de evidencia.', 'Elige quién puede verla.',
     'Solo se aceptan archivos PDF, JPG o PNG.', 'El archivo pesa más de 10 MB.', 'Revisa el nombre del archivo.',
     'La nota admite hasta 500 caracteres.', 'Escribe el motivo', 'La evidencia ya fue retirada.', 'Ya puedes abrir esta evidencia.',
 )

@@ -1,7 +1,7 @@
 // Mapa 2D de la Biblioteca Pública Central Estatal «Solón Argüello» (levantamiento de Aldahir, 20 nov 2026).
 // Única fuente de las áreas: el mapa (MapaBiblioteca), la página de Espacios, el formulario y Proponer.
 // Las capacidades son aproximadas, calculadas según el tamaño de cada área.
-// TODO backend: registrar los seis espacios para eventos con estos `slug` en public.espacio (PARA_BACKEND.md, punto 7).
+// Los seis espacios para eventos están registrados con estos `slug` en public.espacio (Supabase/espacios_mapa.sql).
 
 export type Planta = "baja" | "alta";
 export type Categoria = "lectura" | "infantil" | "publico" | "oficina" | "bano" | "restringido" | "exterior" | "mesanim";

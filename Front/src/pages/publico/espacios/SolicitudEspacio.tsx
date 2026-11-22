@@ -155,7 +155,7 @@ function Estado({ solicitud: s, enviada, alCambiar }: { solicitud: SolicitudEspa
                     </div>
                 )}
                 {s.estado === "requiere_correccion" && s.propuesta && <Propuesta solicitud={s} alCambiar={alCambiar} />}
-                {estaEnProceso(s) && <Cancelar folio={s.folio} alCambiar={alCambiar} />}
+                {estaEnProceso(s) && <Cancelar folio={s.folio} version={s.actualizadoEn} alCambiar={alCambiar} />}
                 {(s.estado === "cancelada" || s.estado === "rechazada") && (
                     <div className="perfil-acciones">
                         <Link to="/espacios?nueva=1" className="perfil-boton">Pedir otro espacio</Link>
@@ -176,7 +176,7 @@ function Propuesta({ solicitud: s, alCambiar }: { solicitud: SolicitudEspacioApi
     const [error, setError] = useState("");
     function responder(acepta: boolean) {
         setGuardando(true); setError("");
-        responderPropuesta(s.folio, acepta, acepta ? "" : comentarios)
+        responderPropuesta(s.folio, s.actualizadoEn, acepta, acepta ? "" : comentarios)
             .then(alCambiar)
             .catch((e) => { setError(mensajeError(e)); setGuardando(false); });
     }
@@ -204,7 +204,7 @@ function Propuesta({ solicitud: s, alCambiar }: { solicitud: SolicitudEspacioApi
 }
 
 // ---------- Cancelar en el lugar (como en Credencial): el botón guinda se vuelve una nota rosa que anima su alto ----------
-function Cancelar({ folio, alCambiar }: { folio: string; alCambiar: (s: SolicitudEspacioApi) => void }) {
+function Cancelar({ folio, version, alCambiar }: { folio: string; version: string; alCambiar: (s: SolicitudEspacioApi) => void }) {
     const [confirmando, setConfirmando] = useState(false);
     const [cerrando, setCerrando] = useState(false);
     const [motivo, setMotivo] = useState("");
@@ -214,7 +214,7 @@ function Cancelar({ folio, alCambiar }: { folio: string; alCambiar: (s: Solicitu
     function cancelar() {
         if (bloqueo.current) return;
         bloqueo.current = true; setCancelando(true); setError("");
-        const pedir = sesionSimulada ? Promise.resolve(cancelarSimulada(motivo)!) : cancelarMiSolicitud(folio, motivo, "");
+        const pedir = sesionSimulada ? Promise.resolve(cancelarSimulada(motivo)!) : cancelarMiSolicitud(folio, version, motivo, "");
         pedir.then(alCambiar).catch((e) => { setError(mensajeError(e)); setCancelando(false); bloqueo.current = false; });
     }
     if (!confirmando) {

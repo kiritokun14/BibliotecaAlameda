@@ -76,6 +76,20 @@ class SolicitudesEspacioTests(BaseEspacios):
                 self.assertEqual(r.status_code, 422)
         self.cliente.rpc.assert_not_called()
 
+    def test_enviar_rechaza_fuera_del_horario_de_la_biblioteca(self):
+        # 2030-01-19 es sábado y 2030-01-20 domingo; abre de 8:00 a 19:30.
+        for cambio in ({'fecha': '2030-01-19'}, {'fecha': '2030-01-20'}, {'horaInicio': '07:59'},
+                       {'horaFin': '19:31'}, {'horaInicio': '19:00', 'horaFin': '20:00'}):
+            with self.subTest(cambio=cambio):
+                r = self.http.post(f'{RUTA}/solicitudes', json={**VALIDA, **cambio}, headers=self.cabeceras)
+                self.assertEqual(r.status_code, 422)
+                self.assertEqual(r.json()['detail'], 'La biblioteca recibe eventos de lunes a viernes, de 8:00 a 19:30 h.')
+        self.cliente.rpc.assert_not_called()
+
+    def test_enviar_acepta_los_limites_del_horario(self):
+        cuerpo = {**VALIDA, 'fecha': '2030-01-18', 'horaInicio': '08:00', 'horaFin': '19:30'}  # viernes
+        self.assertEqual(self.http.post(f'{RUTA}/solicitudes', json=cuerpo, headers=self.cabeceras).status_code, 201)
+
     def test_errores_de_la_bd(self):
         casos = (
             ('23514', 'Elige una fecha y hora futuras.', 422, 'Elige una fecha y hora futuras.'),
@@ -113,26 +127,41 @@ class SolicitudesEspacioTests(BaseEspacios):
 
     def test_cancelar(self):
         r = self.http.post(f'{RUTA}/solicitudes/SE-0002/cancelacion',
-                           json={'motivo': 'Cambio de planes', 'comentarios': ' Gracias '}, headers=self.cabeceras)
+                           json={'actualizadoEn': VERSION, 'motivo': 'Cambio de planes', 'comentarios': ' Gracias '},
+                           headers=self.cabeceras)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.llamada_rpc()[1], {'operacion': 'cancelar', 'datos': {
-            'motivo': 'Cambio de planes', 'comentarios': 'Gracias', 'folio': 'SE-0002'}})
+            'actualizadoEn': VERSION, 'motivo': 'Cambio de planes', 'comentarios': 'Gracias', 'folio': 'SE-0002'}})
+
+    def test_cancelar_sin_motivo_manda_uno_por_defecto(self):
+        r = self.http.post(f'{RUTA}/solicitudes/SE-0002/cancelacion', json={'actualizadoEn': VERSION}, headers=self.cabeceras)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.llamada_rpc()[1]['datos'], {
+            'actualizadoEn': VERSION, 'motivo': 'Sin motivo especificado', 'folio': 'SE-0002'})
+
+    def test_cancelar_y_responder_piden_la_version(self):
+        for ruta, cuerpo in (('cancelacion', {'motivo': 'x'}), ('respuesta', {'acepta': True})):
+            with self.subTest(ruta=ruta):
+                r = self.http.post(f'{RUTA}/solicitudes/SE-0002/{ruta}', json=cuerpo, headers=self.cabeceras)
+                self.assertEqual(r.status_code, 422)
+        self.cliente.rpc.assert_not_called()
 
     def test_cancelar_dos_veces_es_409(self):
         self.cliente.rpc.return_value.execute.side_effect = error_bd(
             '55000', 'Esta solicitud ya no se puede cancelar desde aquí.')
-        r = self.http.post(f'{RUTA}/solicitudes/SE-0002/cancelacion', json={}, headers=self.cabeceras)
+        r = self.http.post(f'{RUTA}/solicitudes/SE-0002/cancelacion', json={'actualizadoEn': VERSION}, headers=self.cabeceras)
         self.assertEqual(r.status_code, 409)
         self.assertEqual(r.json()['detail'], 'Esta solicitud ya no se puede cancelar desde aquí.')
 
     def test_responder_propuesta(self):
-        r = self.http.post(f'{RUTA}/solicitudes/SE-0002/respuesta', json={'acepta': True, 'comentarios': ' Va '},
+        r = self.http.post(f'{RUTA}/solicitudes/SE-0002/respuesta', json={'actualizadoEn': VERSION, 'acepta': True, 'comentarios': ' Va '},
                            headers=self.cabeceras)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.llamada_rpc(), ('solicitudes_espacio', {'operacion': 'responder', 'datos': {
-            'acepta': True, 'comentarios': 'Va', 'folio': 'SE-0002'}}))
+            'actualizadoEn': VERSION, 'acepta': True, 'comentarios': 'Va', 'folio': 'SE-0002'}}))
         self.cliente.rpc.reset_mock()
-        for cuerpo in ({}, {'acepta': 'quizá'}, {'acepta': True, 'espacio': 'otra'}):
+        for cuerpo in ({'actualizadoEn': VERSION}, {'actualizadoEn': VERSION, 'acepta': 'quizá'},
+                       {'actualizadoEn': VERSION, 'acepta': True, 'espacio': 'otra'}):
             with self.subTest(cuerpo=cuerpo):
                 self.assertEqual(self.http.post(f'{RUTA}/solicitudes/SE-0002/respuesta', json=cuerpo,
                                                 headers=self.cabeceras).status_code, 422)
