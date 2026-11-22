@@ -18,7 +18,7 @@ const RUTA = "/admin/atencion/recuperacion";
 
 function Pantalla({ migas, children }: { migas: [string, string?][]; children: ReactNode }) {
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[["Recuperación asistida", RUTA], ...migas]} />
             {children}
         </PanelLayout>
@@ -62,7 +62,7 @@ export default function Recuperacion() {
     ];
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[["Recuperación asistida"]]} />
             <EncabezadoPagina etiqueta="Atención · Recuperación asistida" titulo="Recuperación asistida"
                 texto="Ayuda a una persona que no puede entrar a su cuenta. Nunca se te muestra ni se te pide su contraseña." />

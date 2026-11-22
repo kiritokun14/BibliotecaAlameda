@@ -56,7 +56,7 @@ export default function AtencionTramites() {
     const { pathname } = useLocation(); const { folio } = useParams();
     const tipo: TipoTramite = pathname.includes('/credenciales') ? 'credencial' : 'propuesta';
     const base = `/admin/atencion/${tipo === 'credencial' ? 'credenciales' : 'propuestas'}`;
-    return <PanelLayout titulo="Atención" tema="contenidos">
+    return <PanelLayout titulo="Atención" tema="contenidos paleta">
         {folio ? <Detalle key={folio} tipo={tipo} folio={folio} base={base} /> : <Lista key={tipo} tipo={tipo} base={base} />}
     </PanelLayout>;
 }
@@ -162,9 +162,9 @@ function Lista({ tipo, base }: { tipo: TipoTramite; base: string }) {
                 <div className="contenidos-lista__pie">
                     <p>Mostrando {pagina * POR_PAGINA + 1} a {pagina * POR_PAGINA + lista.solicitudes.length} de {lista.total}</p>
                     <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                        <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>‹ Anterior</button>
+                        <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button>
                         <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                        <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(x => x + 1)}>Siguiente ›</button>
+                        <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(x => x + 1)}>Siguiente</button>
                     </div>
                 </div>
             )}

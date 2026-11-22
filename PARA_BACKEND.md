@@ -261,6 +261,18 @@ Ninguna imagen de contenidos carga (ni en el panel ni en el portal): `GET /conte
 (`Back/conexion.py`) no puede bajar del almacenamiento porque `SUPABASE_SECRET_KEY` está vacía en `Back/.env`. Configurar la clave secreta
 (`sb_secret_…`) en el `.env` de cada equipo que corra el backend. No es un cambio de código.
 
+## 11. Estadísticas del panel: ejecutar la migración — prioridad alta (Aldahir, 22 nov 2026)
+
+Ya está hecho (a pedido de Aldahir, que autorizó hacer este backend):
+- **SQL:** `Supabase/estadisticas_panel.sql` crea `public.estadisticas_panel(seccion, periodo)` (envoltorio de `privado.estadisticas_panel`, `SECURITY DEFINER`). Solo conteos, sin datos personales; exige la capacidad `consultar_estadisticas`.
+- **API:** `GET /administracion/estadisticas?seccion=portal|actividades|contenidos&periodo=30dias|mes|anio` (`Back/estadisticas.py`, registrado en `Back/main.py`). Errores: 401 sin sesión, 403 sin permiso, 422 sección o periodo inválido, 503 si la función aún no existe en la base («todavía no están instaladas»).
+- **Respuesta:** `{ seccion, periodo, desde, hasta, indicadores: [{titulo, valor, detalle}], tituloSerie, serie: [{etiqueta, valor}], tituloTabla, tabla: [{nombre, valor}] }`. Serie semanal (30 días y mes) o mensual (año), en hora de Tepic.
+- **Pruebas:** `Back/tests/test_estadisticas.py` (7, con `python -m unittest Back.tests.test_estadisticas`).
+- **Frontend:** `Front/src/servicios/estadisticas.ts` y `administracion/Estadisticas.tsx` ya lo consumen (los datos de ejemplo ya no se muestran).
+
+**Falta:** ejecutar `Supabase/estadisticas_panel.sql` en Supabase (SQL Editor). Mientras no se ejecute, la pantalla dice «Las estadísticas todavía no están instaladas en la base de datos» con «Reintentar».
+**Nota:** con los datos de prueba, `consultar_estadisticas` la tiene la cuenta de responsable; la de administración no (revisar si Administración total también debe tenerla).
+
 ## Cómo probar
 
 - **Backend local:** `.\.venv\Scripts\python.exe -m uvicorn Back.main:app --reload` desde la raíz (puerto 8000).

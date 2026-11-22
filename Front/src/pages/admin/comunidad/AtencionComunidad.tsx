@@ -58,7 +58,7 @@ export default function AtencionComunidad({ bibliocomunidad = false }: { biblioc
     }
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[[titulo]]} />
 
             <div className="contenidos-encabezado">
@@ -124,9 +124,9 @@ export default function AtencionComunidad({ bibliocomunidad = false }: { biblioc
                 <div className="contenidos-lista__pie">
                     <p aria-live="polite">Mostrando {datos?.items.length ?? 0} de {datos?.total ?? 0} casos</p>
                     <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                        <button type="button" disabled={!datos || pagina === 1} onClick={() => { setPagina((p) => p - 1); setSeleccion(null); }}>‹ Anterior</button>
+                        <button type="button" disabled={!datos || pagina === 1} onClick={() => { setPagina((p) => p - 1); setSeleccion(null); }}>Anterior</button>
                         <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina} de {paginas}</button>
-                        <button type="button" disabled={!datos || pagina * POR_PAGINA >= datos.total} onClick={() => { setPagina((p) => p + 1); setSeleccion(null); }}>Siguiente ›</button>
+                        <button type="button" disabled={!datos || pagina * POR_PAGINA >= datos.total} onClick={() => { setPagina((p) => p + 1); setSeleccion(null); }}>Siguiente</button>
                     </div>
                 </div>
             </section>

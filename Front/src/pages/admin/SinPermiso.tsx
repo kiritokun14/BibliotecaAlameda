@@ -23,7 +23,7 @@ export default function SinPermiso() {
     })).filter((s) => s.subitems.length > 0);
 
     return (
-        <PanelLayout titulo={seccion} tema="contenidos">
+        <PanelLayout titulo={seccion} tema="contenidos paleta">
             <div className="sin-permiso">
                 <h1 className="sin-permiso__titulo">Sin permiso para esta sección</h1>
 

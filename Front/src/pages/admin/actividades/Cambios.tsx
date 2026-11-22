@@ -41,7 +41,7 @@ function Cambios() {
     const limpiar = () => { setBusqueda(""); setTipo(""); elegir("todos"); };
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Cambios y cancelaciones"]]} />
             <EncabezadoPagina
                 etiqueta="Actividades · Cambios"
@@ -120,7 +120,7 @@ function Historial({ cambios }: { cambios: Cambio[] }) {
     const avisados = aplicados.reduce((s, c) => s + c.avisados, 0);
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Cambios y cancelaciones", BASE_CAMBIOS], ["Historial"]]} />
             <EncabezadoPagina volver={{ texto: "Volver a Cambios y cancelaciones", ruta: BASE_CAMBIOS }} etiqueta="Actividades · Cambios"
                 titulo="Historial de cambios" texto="Todo lo que se aplicó o rechazó, con quién lo decidió, qué cambió y a cuántas personas se avisó." />

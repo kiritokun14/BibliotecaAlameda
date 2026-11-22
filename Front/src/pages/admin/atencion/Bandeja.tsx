@@ -241,9 +241,9 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                                 Mostrando {inicio + 1} a {inicio + visibles.length} de {filtradas.length} {config.sustantivo}
                             </p>
                             <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                                <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>‹ Anterior</button>
+                                <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>Anterior</button>
                                 <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                                <button type="button" disabled={inicio + POR_PAGINA >= filtradas.length} onClick={() => setPagina(pagina + 1)}>Siguiente ›</button>
+                                <button type="button" disabled={inicio + POR_PAGINA >= filtradas.length} onClick={() => setPagina(pagina + 1)}>Siguiente</button>
                             </div>
                         </div>
                     )

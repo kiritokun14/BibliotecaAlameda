@@ -54,7 +54,7 @@ function Asistencia() {
     const titulos: Record<Periodo, string> = { hoy: "Actividades de hoy", semana: "Actividades de esta semana", anteriores: "Actividades anteriores" };
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Asistencia"]]} />
             <EncabezadoPagina etiqueta="Actividades · Asistencia" titulo="Asistencia"
                 texto="Pasa lista a las personas inscritas el día de la actividad y cierra la lista al terminar."
@@ -176,7 +176,7 @@ export function PasarLista() {
     }
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Asistencia", BASE_ASISTENCIA], [cerrada ? "Lista cerrada" : "Pasar lista"]]} />
             <EncabezadoPagina
                 volver={{ texto: "Volver a Asistencia", ruta: BASE_ASISTENCIA }}
@@ -310,7 +310,7 @@ export function ListaCerrada() {
     if (!a || !listaDe(a.folio, listas).cerrada) return <Navigate to={a ? `${BASE_ASISTENCIA}/${a.folio}` : BASE_ASISTENCIA} replace />;
     const c = conteo(a.folio, listas);
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Asistencia", BASE_ASISTENCIA], ["Lista cerrada"]]} />
             <EncabezadoPagina etiqueta={`Actividad ${a.folio} · Asistencia`} titulo="Lista cerrada" texto="La asistencia quedó registrada." />
             <AvisoResultado tono="exito" titulo={a.nombre} texto={`${c.presentes} presentes · ${c.ausentes} ausentes · ${porcentaje(c.presentes, c.inscritos + c.sinInscripcion)}% de asistencia`} chip="Lista cerrada" />
@@ -336,7 +336,7 @@ export function ResumenAsistencia() {
     const nombreMes = new Date(anio, m - 1, 1).toLocaleDateString("es-MX", { month: "long", year: "numeric" });
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Asistencia", BASE_ASISTENCIA], ["Resumen del mes"]]} />
             <EncabezadoPagina volver={{ texto: "Volver a Asistencia", ruta: BASE_ASISTENCIA }} etiqueta="Actividades · Asistencia"
                 titulo={`Resumen de ${nombreMes}`} texto="Cómo ha ido la asistencia en las actividades ya realizadas." />

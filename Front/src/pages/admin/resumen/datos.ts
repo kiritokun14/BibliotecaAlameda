@@ -90,7 +90,6 @@ export const ACCESOS_RAPIDOS: AccesoRapido[] = [
     { titulo: "Credenciales", texto: "Revisar solicitudes", ruta: "/admin/atencion/credenciales", icono: "credencial" },
     { titulo: "Cotejo", texto: "Validar en Préstamos", ruta: "/admin/participantes/cotejo", icono: "cotejo" },
     { titulo: "Propuestas", texto: "Revisar eventos propuestos", ruta: "/admin/atencion/propuestas", icono: "propuesta" },
-    { titulo: "Espacios", texto: "Solicitudes de salas", ruta: "/admin/atencion/espacios", icono: "espacios" },
     { titulo: "Mensajes", texto: "Contactos y sugerencias", ruta: "/admin/atencion/contactos", icono: "mensajes" },
     { titulo: "Recuperar acceso", texto: "Orientar a una persona", ruta: "/admin/atencion/recuperacion", icono: "recuperacion" },
     { titulo: "Consultar cuentas", texto: "Buscar a una persona", ruta: "/admin/atencion/cuentas", icono: "buscarCuenta" },
@@ -98,6 +97,7 @@ export const ACCESOS_RAPIDOS: AccesoRapido[] = [
     { titulo: "Inscripciones", texto: "Cupos y lugares", ruta: "/admin/actividades/inscripciones", icono: "inscripciones" },
     { titulo: "Pasar lista", texto: "Asistencia de hoy", ruta: "/admin/actividades/asistencia", icono: "asistencia" },
     { titulo: "Calendario", texto: "Actividades y salas", ruta: "/admin/actividades/calendario", icono: "calendario" },
+    { titulo: "Espacios", texto: "Solicitudes de salas", ruta: "/admin/atencion/espacios", icono: "espacios" },
     { titulo: "Visitas", texto: "Visitas y uso de espacios", ruta: "/admin/actividades/visitas", icono: "espacios" },
     { titulo: "Evidencias", texto: "Fotos y listas firmadas", ruta: "/admin/actividades/evidencias", icono: "evidencias" },
     // Contenidos y participantes
@@ -116,10 +116,24 @@ export const ACCESOS_RAPIDOS: AccesoRapido[] = [
     { titulo: "Estadísticas", texto: "Uso del portal", ruta: "/admin/administracion/estadisticas", icono: "estadisticas" },
     { titulo: "Bitácora", texto: "Quién cambió qué", ruta: "/admin/administracion/bitacora", icono: "bitacora" },
 ];
-export const MAXIMO_ACCESOS = 12; // tres filas de cuatro
+// Cuatro (un renglón): solo las tareas de todos los días de cada cuenta; lo demás está en el menú (Aldahir, 21 nov 2026)
+export const MAXIMO_ACCESOS = 4;
 // Los accesos que la cuenta puede abrir, en su orden, hasta el máximo (los demás siguen en el menú)
 export function accesosDeLaCuenta(acceso: AccesoCuenta | null | undefined, lista = ACCESOS_RAPIDOS, maximo = MAXIMO_ACCESOS) {
     return lista.filter((a) => vistaEnlace(a.ruta, acceso) === "enlace").slice(0, maximo);
+}
+
+// Momento de cada actividad respecto a la hora actual (hora de Tepic): ya pasó, es la que sigue o está más adelante.
+// Sin duración en los datos, una actividad «pasó» cuando ya empezó la siguiente o lleva más de 90 min.
+export type MomentoActividad = "pasada" | "ahora" | "siguiente" | "despues";
+export function momentosDelDia(horas: string[], minutosAhora: number): MomentoActividad[] {
+    const min = horas.map((h) => { const [a, b] = h.split(":").map(Number); return a * 60 + (b || 0); });
+    const siguiente = min.findIndex((m) => m > minutosAhora);
+    return min.map((m, i) => {
+        if (m > minutosAhora) return i === siguiente ? "siguiente" : "despues";
+        const fin = i + 1 < min.length ? Math.min(min[i + 1], m + 90) : m + 90;
+        return minutosAhora < fin ? "ahora" : "pasada";
+    });
 }
 
 // TODO backend: actividades del día (hora, título, lugar, cupo y estado). Varias, con estados distintos, para revisar el diseño.

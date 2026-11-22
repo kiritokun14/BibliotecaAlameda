@@ -82,7 +82,7 @@ function FormularioBloqueo({ inicial, id }: { inicial: DatosBloqueo; id?: string
     });
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", BASE_CALENDARIO], [conflicto ? "Conflicto detectado" : id ? "Editar bloqueo" : "Bloquear"]]} />
                 <EncabezadoTarjeta
@@ -168,7 +168,7 @@ export function BloqueoGuardado() {
     const b: Bloqueo | undefined = obtenerBloqueo(id);
     if (!b) return <Navigate to={BASE_CALENDARIO} replace />;
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", BASE_CALENDARIO], ["Bloqueo guardado"]]} />
                 <div className="cn-encabezado"><div className="cn-encabezado__textos">

@@ -47,7 +47,7 @@ function Propuestas() {
     ];
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades"], ["Lista"]]} />
 

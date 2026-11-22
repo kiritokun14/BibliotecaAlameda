@@ -1,7 +1,7 @@
 import { precargarPanel } from "./precargaPanel";
 import { AvisosSistema, LimiteErrorPanel } from "./EstadosPanel";
 import "./PanelSolon.css";
-import { useContext, useEffect, useState, type ReactNode } from "react";
+import { useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import { ContextoPanel, capacidadPanel, permisoGlobal, type IdentidadPanel } from "../../servicios/accesoPanel";
 import "./Panel.css";
@@ -59,6 +59,10 @@ function leerPlegado() {
     try { return localStorage.getItem(CLAVE_PLEGADO) === "si"; } catch { return false; }
 }
 
+// Cada página monta su propio PanelLayout: el desplazamiento del menú se guarda aquí para que, al elegir
+// una opción de abajo, el menú se quede donde estaba y no regrese hasta arriba (Aldahir, 22 nov 2026)
+let desplazamientoMenu = 0;
+
 function BarraLateral({ plegado, alPlegar, abiertoMovil, alCerrarMovil }: {
     plegado: boolean; alPlegar: () => void; abiertoMovil: boolean; alCerrarMovil: () => void;
 }) {
@@ -68,6 +72,20 @@ function BarraLateral({ plegado, alPlegar, abiertoMovil, alCerrarMovil }: {
     // Abierta: la sección de la página actual; las demás se abren y cierran al presionarlas
     const [abiertas, setAbiertas] = useState<Set<string>>(() => new Set(seccionActual ? [seccionActual] : []));
     const enResumen = pathname.startsWith(RESUMEN.ruta);
+    const menu = useRef<HTMLElement>(null);
+    useLayoutEffect(() => {
+        const nav = menu.current;
+        if (!nav) return;
+        const restaurar = () => { if (desplazamientoMenu && nav.scrollTop < desplazamientoMenu) nav.scrollTop = desplazamientoMenu; };
+        restaurar();
+        // La sección abierta anima su alto al montar: se restaura otra vez al terminar
+        const espera = window.setTimeout(() => {
+            restaurar();
+            // Si se llegó de otra parte y la opción elegida no se ve, se acerca sin saltar hasta arriba
+            nav.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
+        }, 400);
+        return () => window.clearTimeout(espera);
+    }, []);
 
     function alternar(id: string) {
         // Con el menú plegado, una sección se abre desplegando el menú (así se ven sus opciones)
@@ -81,7 +99,7 @@ function BarraLateral({ plegado, alPlegar, abiertoMovil, alCerrarMovil }: {
     }
 
     return (
-        <nav id="menu-panel" className={`panel-lateral${plegado ? " panel-lateral--plegado" : ""}${abiertoMovil ? " panel-lateral--abierto" : ""}`} aria-label="Menú del panel">
+        <nav id="menu-panel" ref={menu} onScroll={(e) => { desplazamientoMenu = e.currentTarget.scrollTop; }} className={`panel-lateral${plegado ? " panel-lateral--plegado" : ""}${abiertoMovil ? " panel-lateral--abierto" : ""}`} aria-label="Menú del panel">
             {/* Marca: el logo de la biblioteca en blanco, su nombre completo y el área (plegado, solo el sello) */}
             <div className="panel-marca">
                 <span className="panel-marca__sello"><img src={iconoLibro} alt="" /></span>

@@ -26,10 +26,10 @@ export type AccesoRapido = {
     alPresionar?: () => void;
 };
 
-export function AccesosRapidos({ titulo = "Accesos rápidos", accesos }: { titulo?: string; accesos: AccesoRapido[] }) {
+export function AccesosRapidos({ titulo = "En cifras", accesos }: { titulo?: string; accesos: AccesoRapido[] }) {
     return (
         <section className="contenidos-resumen" aria-label={titulo}>
-            <h2>{titulo}</h2>
+            <h2 className="solo-lectores">{titulo}</h2>
             <div className="contenidos-resumen__tarjetas">
                 {accesos.map((a) => (
                     <article key={a.clave} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${a.tono}${a.activo ? " at-tarjeta--activa" : ""}`}>
@@ -153,11 +153,11 @@ export function PieLista({ texto, pagina, paginas, alCambiar }: { texto: string;
             <p>{texto}</p>
             {paginas > 1 && (
                 <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                    <button type="button" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>‹ Anterior</button>
+                    <button type="button" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>Anterior</button>
                     {Array.from({ length: paginas }, (_, i) => (
                         <button key={i} type="button" className={i === pagina ? "contenidos-paginas__actual" : undefined} aria-current={i === pagina ? "page" : undefined} onClick={() => alCambiar(i)}>{i + 1}</button>
                     ))}
-                    <button type="button" disabled={pagina >= paginas - 1} onClick={() => alCambiar(pagina + 1)}>Siguiente ›</button>
+                    <button type="button" disabled={pagina >= paginas - 1} onClick={() => alCambiar(pagina + 1)}>Siguiente</button>
                 </div>
             )}
         </div>

@@ -1,31 +1,25 @@
 // Actividades › Propuestas de actividades (datos reales: servicios/actividades).
 // Diseño: el mismo de Atención (piezas de ../componentes, clases «contenidos-*» y «tr-*»). La lógica no cambia.
-import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import PanelLayout from '../PanelLayout';
 import { CambioSesion } from './CambioSesion';
-import { Chip, EncabezadoPagina, EstadoVacio, Migas, Tarjeta, type TonoChip } from '../componentes';
-import { IconoAviso, IconoBuscar, IconoLista, IconoReloj } from '../contenidos/piezas';
-import Flujo, { type Etapa } from '../atencion/Flujo';
+import { EstadoVacio, Migas } from '../componentes';
+import { type Etapa } from '../atencion/Flujo';
 import { Bloque } from '../../../components/portal/Esqueleto';
 import { ContextoPanel, permisoGlobal } from '../../../servicios/accesoPanel';
 import { mensajeError } from '../../../servicios/api';
 import { actividadEnMemoria, actividadesEnMemoria, consultarActividad, consultarEspaciosAgenda, decidirActividad, guardarActividad, listarActividades,
     type AccionActividad, type ActividadGestion, type DatosActividadReal } from '../../../servicios/actividades';
-import vacioCheck from '../../../assets/admin/vacio-check.svg';
 import vacioBuscar from '../../../assets/admin/vacio-search.svg';
-import tarjetaInfo from '../../../assets/admin/tarjeta-info.svg';
-import tarjetaCalendario from '../../../assets/admin/tarjeta-calendar.svg';
-import tarjetaCheck from '../../../assets/admin/tarjeta-check.svg';
-import tarjetaClock from '../../../assets/admin/tarjeta-clock.svg';
 import '../atencion/AtencionTramites.css';
 import './Actividades.css';
+import { Aviso, Buscador, Cabecera, Chip as ChipPz, Cifra, Dato, Datos, Encabezado as EncabezadoPz, FiltrosAvanzados, Icono as IconoPz, Plegable, Tarjeta as TarjetaPz, Vacio as VacioPz, type NombreIcono, type TonoEstado } from '../piezasPanel';
 
 const BASE = '/admin/actividades/propuestas';
 const vacia: DatosActividadReal = { nombre: '', tipo: 'Taller', descripcion: '', fecha: '', inicio: '', fin: '', espacio: '',
     cupo: '', inscripcion: true, publico: 'Público en general', responsable: '', materiales: '' };
 const estados: Record<string, string> = { borrador: 'Borrador', 'en-revision': 'En revisión', aprobada: 'Aprobada', publicada: 'Publicada', archivada: 'Archivada o retirada', cancelada: 'Cancelada' };
-const TONO: Record<string, TonoChip> = { borrador: 'gris', 'en-revision': 'guinda', aprobada: 'dorado', publicada: 'verde', archivada: 'gris', cancelada: 'guinda' };
 const acciones: Record<AccionActividad, string> = { enviar: 'Enviar a revisión', aprobar: 'Autorizar actividad', publicar: 'Publicar en la agenda',
     rechazar: 'Devolver al autor con motivo', retirar: 'Retirar de la agenda', archivar: 'Archivar borrador' };
 
@@ -54,17 +48,9 @@ export default function GestionActividades() {
 
     const titulo = nueva ? 'Nueva actividad' : editar ? 'Editar borrador' : folio ? (actual?.actividad?.nombre ?? 'Detalle de la actividad') : 'Propuestas de actividades';
     const enLista = !folio && !nueva;
-    return <PanelLayout titulo="Actividades" tema="contenidos">
+    return <PanelLayout titulo="Actividades" tema="contenidos paleta">
         <Migas raiz="Actividades" pasos={enLista ? [['Propuestas de actividades']] : [['Propuestas de actividades', BASE], [nueva ? 'Nueva' : folio ?? '']]} />
-        <EncabezadoPagina
-            volver={enLista ? undefined : { texto: 'Volver a propuestas de actividades', ruta: BASE }}
-            etiqueta={folio ? `Actividad ${folio}` : 'Actividades · Propuestas'}
-            titulo={titulo}
-            texto={enLista ? 'Registra actividades, envíalas a revisión y publícalas en la agenda. La autorización va antes de la publicación.'
-                : 'Los cambios se guardan en la base de datos. La autorización precede a la publicación.'}
-            accion={enLista ? <Link className="contenidos-boton contenidos-boton--oscuro" to={`${BASE}/nueva`}>Nueva actividad</Link>
-                : actual?.actividad && <Chip tono={TONO[actual.actividad.estado] ?? 'gris'}>{estados[actual.actividad.estado] ?? actual.actividad.estado}</Chip>}
-        />
+        {!enLista && (!actual || actual.error) && <div className="pz-pagina"><EncabezadoPz titulo={titulo} texto={nueva ? 'Registra la actividad como borrador o envíala de una vez a revisión.' : 'Consultando la actividad…'} /></div>}
         {confirmado?.folio === folio && confirmado && <div className="at-bloque at-bloque--info" role="status"><strong>Listo</strong><p>{confirmado.texto}</p></div>}
         {!actual && <div className="contenidos-tabla" aria-busy="true" role="status"><span className="tr-oculto">Cargando actividades…</span>{[0, 1, 2, 3].map(i => <Bloque key={i} clase="tr-esqueleto" />)}</div>}
         {actual?.error && <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar las actividades" texto={actual.error} accion={{ texto: 'Reintentar', alPresionar: () => recargar(x => x + 1) }} />}
@@ -74,146 +60,273 @@ export default function GestionActividades() {
     </PanelLayout>;
 }
 
-// ---------- Lista: resumen por estado, filtros, buscador y tabla ----------
+// ---------- Lista (21 nov 2026, con las piezas del panel): cifras que filtran | lista con bloque de fecha | lateral ----------
+const TONO_PZ: Record<string, TonoEstado> = { borrador: 'gris', 'en-revision': 'dorado', aprobada: 'dorado', publicada: 'verde', archivada: 'gris', cancelada: 'guinda' };
+const ICONO_TIPO_ACTIVIDAD: Record<string, NombreIcono> = { Taller: 'contenido', 'Club de lectura': 'fuentes', Club: 'fuentes', Visita: 'grupo', Evento: 'calendario', Charla: 'mensajes', Presentación: 'fuentes' };
+// Primero lo que necesita atención; después lo publicado y al final lo cancelado o archivado
+const ORDEN_ESTADO: Record<string, number> = { 'en-revision': 0, aprobada: 1, borrador: 2, publicada: 3, cancelada: 4, archivada: 5 };
+const accionDe = (estado: string) => (estado === 'en-revision' ? 'Revisar' : estado === 'aprobada' ? 'Publicar' : estado === 'borrador' ? 'Continuar' : 'Abrir');
+
 function Lista({ lista }: { lista: ActividadGestion[] }) {
     const [busqueda, setBusqueda] = useState('');
     const [filtro, setFiltro] = useState('');
+    const [tipo, setTipo] = useState('');
     const cuenta = (estado: string) => lista.filter(a => a.estado === estado).length;
-    const visibles = lista.filter(a => (!filtro || a.estado === filtro) && `${a.nombre} ${a.folio}`.toLowerCase().includes(busqueda.toLowerCase()));
-    const tarjetas: { estado: string; titulo: string; texto: string; enlace: string; tono: 'gris' | 'guinda' | 'azul'; icono: ReactNode }[] = [
-        { estado: 'en-revision', titulo: 'En revisión', texto: 'Esperan autorización.', enlace: 'Ver en revisión', tono: 'gris', icono: <IconoReloj /> },
-        { estado: 'aprobada', titulo: 'Por publicar', texto: 'Autorizadas, falta publicarlas.', enlace: 'Ver aprobadas', tono: 'guinda', icono: <IconoAviso /> },
-        { estado: 'publicada', titulo: 'Publicadas', texto: 'Visibles en la agenda.', enlace: 'Ver publicadas', tono: 'azul', icono: <IconoLista /> },
-    ];
-    return <>
-        <section className="contenidos-resumen" aria-labelledby="actividades-resumen">
-            <h2 id="actividades-resumen">Accesos rápidos</h2>
-            <div className="contenidos-resumen__tarjetas">
-                {tarjetas.map(t => (
-                    <article key={t.estado} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${t.tono}${filtro === t.estado ? ' at-tarjeta--activa' : ''}`}>
-                        <div className="contenidos-resumen__fila">
-                            <span className="contenidos-resumen__icono">{t.icono}</span>
-                            <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.estado} onClick={() => setFiltro(filtro === t.estado ? '' : t.estado)}>{t.enlace}</button>
-                        </div>
-                        <p className="contenidos-resumen__cifra">{cuenta(t.estado)}</p>
-                        <p className="contenidos-resumen__titulo">{t.titulo}</p>
-                        <p className="contenidos-resumen__texto">{t.texto}</p>
-                    </article>
-                ))}
-            </div>
-        </section>
+    const tipos = [...new Set(lista.map(a => a.tipo).filter(Boolean))].sort();
+    const coincide = (a: ActividadGestion) => `${a.nombre} ${a.folio} ${a.espacio}`.toLowerCase().includes(busqueda.toLowerCase());
+    const visibles = lista.filter(a => (!filtro || a.estado === filtro) && (!tipo || a.tipo === tipo) && coincide(a))
+        .sort((x, y) => (ORDEN_ESTADO[x.estado] ?? 9) - (ORDEN_ESTADO[y.estado] ?? 9) || (x.fecha || '9999').localeCompare(y.fecha || '9999'));
+    const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mazatlan' });
+    const proximas = lista.filter(a => a.estado === 'publicada').map(a => ({ a, s: proximaSesion(a) }))
+        .filter(x => x.s && !x.s.pasada && x.s.fecha >= hoy).sort((x, y) => `${x.s!.fecha}${x.s!.inicio}`.localeCompare(`${y.s!.fecha}${y.s!.inicio}`)).slice(0, 5);
+    const alternar = (estado: string) => setFiltro(filtro === estado ? '' : estado);
+    const activos = (filtro ? 1 : 0) + (tipo ? 1 : 0);
 
-        <section className="contenidos-lista" aria-labelledby="actividades-lista">
-            <div className="contenidos-lista__cabecera">
-                <span className="contenidos-lista__icono"><IconoLista /></span>
-                <div><h2 id="actividades-lista">Actividades registradas</h2><p>{lista.length} {lista.length === 1 ? 'actividad' : 'actividades'} que puedes consultar.</p></div>
-            </div>
-            <div className="contenidos-lista__herramientas">
-                <div className="contenidos-filtros" role="group" aria-label="Filtrar por estado">
-                    {[['', `Todas (${lista.length})`], ...Object.entries(estados).map(([v, t]) => [v, `${t} (${cuenta(v)})`])].map(([valor, texto]) => (
-                        <button key={valor} type="button" aria-pressed={filtro === valor} onClick={() => setFiltro(valor)}
-                            className={`contenidos-filtro${filtro === valor ? ' contenidos-filtro--activo' : ''}`}>{texto}</button>
-                    ))}
-                </div>
-                <label className="contenidos-buscar"><IconoBuscar />
-                    <input type="search" placeholder="Buscar por nombre o folio" aria-label="Buscar por nombre o folio" value={busqueda} onChange={e => setBusqueda(e.target.value)} />
-                </label>
-            </div>
-            {visibles.length === 0 ? (
-                lista.length === 0
-                    ? <EstadoVacio icono={vacioCheck} titulo="Aún no hay actividades" texto="Cuando registres una actividad, aparecerá aquí." />
-                    : <EstadoVacio icono={vacioBuscar} titulo="Sin resultados" texto="No hay actividades con esos filtros." accion={{ texto: 'Quitar filtros', alPresionar: () => { setFiltro(''); setBusqueda(''); } }} />
-            ) : (
-                <div className="contenidos-tabla tr-tabla-actividades" role="table" aria-label="Actividades registradas" tabIndex={0}>
-                    <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
-                        <span role="columnheader">Folio</span><span role="columnheader">Actividad</span><span role="columnheader">Fecha</span>
-                        <span role="columnheader">Inscritos</span><span role="columnheader">Estado</span><span role="columnheader">Acción</span>
-                    </div>
-                    {visibles.map(a => (
-                        <div key={a.folio} className="contenidos-tabla__fila" role="row">
-                            <span role="cell" className="contenidos-tabla__folio">{a.folio}</span>
-                            <span role="cell" className="at-celda at-celda-doble"><span>{a.nombre}</span><small>{a.tipo} · {a.espacio || 'Sin espacio'}</small></span>
-                            <span role="cell">{a.fecha || 'Sin programar'}</span>
-                            <span role="cell">{a.inscritos}{a.cupo ? ` de ${a.cupo}` : ''}</span>
-                            <span role="cell"><Chip tono={TONO[a.estado] ?? 'gris'}>{estados[a.estado] ?? a.estado}</Chip></span>
-                            <span role="cell"><Link to={`${BASE}/${a.folio}`} className="contenidos-tabla__accion">{a.estado === 'en-revision' || a.estado === 'aprobada' ? 'Revisar' : 'Abrir'}<span className="tr-oculto"> {a.folio}</span></Link></span>
+    return (
+        <div className="pz-pagina">
+            <EncabezadoPz titulo="Propuestas de actividades" texto="Registra actividades, envíalas a revisión y publícalas en la agenda. La autorización va antes de la publicación.">
+                <Cifra icono="reloj" valor={cuenta('en-revision')} texto="en revisión" activa={filtro === 'en-revision'} alPresionar={() => alternar('en-revision')} />
+                <Cifra icono="alerta" tono="vino" valor={cuenta('aprobada')} texto="por publicar" activa={filtro === 'aprobada'} alPresionar={() => alternar('aprobada')} />
+                <Cifra icono="check" valor={cuenta('publicada')} texto="publicadas" activa={filtro === 'publicada'} alPresionar={() => alternar('publicada')} />
+            </EncabezadoPz>
+
+            <div className="pz-columnas">
+                <TarjetaPz icono="calendario" id="actividades-lista" titulo="Actividades registradas" texto="Primero lo que necesita tu atención; después por fecha" className="pz-pendientes"
+                    accion={<Link className="pz-boton pz-boton--chico" to={`${BASE}/nueva`}>Nueva actividad</Link>}>
+                    <Buscador etiqueta="Buscar por nombre, folio o espacio" placeholder="Buscar por nombre, folio o espacio" valor={busqueda} alCambiar={setBusqueda}>
+                        <FiltrosAvanzados activos={activos} alQuitar={() => { setFiltro(''); setTipo(''); }} grupos={[
+                            { titulo: 'Estado', valor: filtro, alCambiar: setFiltro, opciones: [{ valor: '', texto: 'Todas', cantidad: lista.length }, ...Object.entries(estados).map(([v, t]) => ({ valor: v, texto: t, cantidad: cuenta(v) }))] },
+                            { titulo: 'Tipo', valor: tipo, alCambiar: setTipo, opciones: [{ valor: '', texto: 'Todos' }, ...tipos.map(t => ({ valor: t, texto: t, cantidad: lista.filter(a => a.tipo === t).length }))] },
+                        ]} />
+                    </Buscador>
+                    {visibles.length === 0 ? (
+                        lista.length === 0
+                            ? <VacioPz icono="calendario" titulo="Aún no hay actividades" texto="Cuando registres una actividad, aparecerá aquí."
+                                accion={<Link className="pz-boton pz-boton--chico" to={`${BASE}/nueva`}>Nueva actividad</Link>} />
+                            : <VacioPz icono="buscarCuenta" titulo="Sin resultados" texto="No hay actividades con esos filtros."
+                                accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setFiltro(''); setTipo(''); setBusqueda(''); }}>Quitar filtros</button>} />
+                    ) : (
+                        <div className="pz-grupos" tabIndex={0} role="region" aria-label="Actividades registradas">
+                            <ul className="pz-filas">
+                                {visibles.map(a => {
+                                    const [dia, mes] = partesFecha(a.fecha || '');
+                                    return (
+                                        <li key={a.folio}>
+                                            <article className={`pz-fila${a.estado === 'en-revision' || a.estado === 'aprobada' ? ' pz-fila--espera' : ''}`}>
+                                                {a.fecha ? <span className="pz-fecha" aria-hidden="true"><strong>{dia}</strong><span>{mes}</span></span>
+                                                    : <span className="pz-fila__icono" aria-hidden="true"><IconoPz nombre={ICONO_TIPO_ACTIVIDAD[a.tipo] ?? 'calendario'} /></span>}
+                                                <div className="pz-fila__textos">
+                                                    <h4 className="pz-fila__titulo">{a.nombre}</h4>
+                                                    <p className="pz-fila__detalle">
+                                                        <span className="pz-fila__folio">{a.folio}</span><span>{a.tipo}</span><span>{a.espacio || 'Sin espacio'}</span>
+                                                        <span>{a.cupo ? `${a.inscritos} de ${a.cupo} lugares` : `${a.inscritos} inscritos`}</span>
+                                                    </p>
+                                                </div>
+                                                <ChipPz tono={TONO_PZ[a.estado] ?? 'gris'}>{estados[a.estado] ?? a.estado}</ChipPz>
+                                                <Link to={`${BASE}/${a.folio}`} className={`pz-boton pz-boton--chico${a.estado === 'en-revision' || a.estado === 'aprobada' ? '' : ' pz-boton--contorno'}`}>
+                                                    {accionDe(a.estado)}<span className="tr-oculto"> {a.folio}</span>
+                                                </Link>
+                                            </article>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
                         </div>
-                    ))}
-                </div>
-            )}
-        </section>
-    </>;
+                    )}
+                    <div className="pz-tarjeta__pie"><p aria-live="polite">{visibles.length} de {lista.length} actividades</p></div>
+                </TarjetaPz>
+
+                <aside className="pz-lateral" aria-label="Lo que viene">
+                    <TarjetaPz icono="hoy" id="actividades-proximas" titulo="Lo que viene en la agenda" texto="Las próximas sesiones publicadas" className="pz-tarjeta--actividades">
+                        {proximas.length ? (
+                            <ul className="pz-actividades">
+                                {proximas.map(({ a, s }) => {
+                                    const [dia, mes] = partesFecha(s!.fecha);
+                                    return (
+                                        <li key={`${a.folio}-${s!.fecha}-${s!.inicio}`}>
+                                            <span className="pz-actividades__hora"><strong>{dia}</strong><span>{mes}</span></span>
+                                            <div className="pz-actividades__textos">
+                                                <Link to={`${BASE}/${a.folio}`} className="pz-actividades__titulo pz-enlace-fila">{a.nombre}</Link>
+                                                <p className="pz-actividades__detalle">{s!.inicio ? `${s!.inicio.slice(0, 5)} h, ` : ''}{a.espacio || 'Sin espacio'}</p>
+                                                <p className="pz-actividades__detalle">{a.cupo ? `${a.inscritos} de ${a.cupo} lugares` : `${a.inscritos} inscritos`}</p>
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        ) : <p className="pz-acciones__nota">No hay sesiones publicadas próximas.</p>}
+                        <Link to="/admin/actividades/calendario" className="pz-enlace">Ver el calendario</Link>
+                    </TarjetaPz>
+                    <Plegable titulo="Cómo se publica una actividad">
+                        <ul>
+                            <li>Registras la actividad como borrador; puedes editarla cuantas veces quieras.</li>
+                            <li>La envías a revisión y alguien con permiso la autoriza o la devuelve con motivo.</li>
+                            <li>Ya autorizada, se publica en la agenda; se comprueba que el espacio siga libre.</li>
+                            <li>Si cambia algo, reprograma o cancela la sesión desde su ficha.</li>
+                        </ul>
+                    </Plegable>
+                </aside>
+            </div>
+        </div>
+    );
 }
 
 // ---------- Formulario (nueva actividad o borrador) ----------
 const ETIQUETAS: Record<string, string> = { nombre: 'Nombre', tipo: 'Tipo de actividad', descripcion: 'Descripción pública', fecha: 'Fecha', inicio: 'Hora de inicio', fin: 'Hora de fin', cupo: 'Cupo máximo', publico: 'Público', responsable: 'Área o responsable público', materiales: 'Materiales o requisitos' };
 
+const TIPOS_SUGERIDOS = ['Taller', 'Club', 'Charla', 'Visita', 'Evento', 'Presentación'];
+// Lo que hace falta para enviar a revisión (el borrador solo pide el nombre)
+const REQUISITOS: { campo: keyof DatosActividadReal; texto: string }[] = [
+    { campo: 'nombre', texto: 'Nombre' }, { campo: 'descripcion', texto: 'Descripción pública' }, { campo: 'fecha', texto: 'Fecha' },
+    { campo: 'inicio', texto: 'Hora de inicio' }, { campo: 'fin', texto: 'Hora de fin' }, { campo: 'espacio', texto: 'Espacio' },
+    { campo: 'cupo', texto: 'Cupo' }, { campo: 'responsable', texto: 'Responsable público' },
+];
+
 function Formulario({ actividad }: { actividad?: ActividadGestion }) {
     const navigate = useNavigate();
-    const [datos, setDatos] = useState<DatosActividadReal>(actividad ? Object.fromEntries(Object.keys(vacia).map(k => [k, actividad[k as keyof DatosActividadReal]])) as unknown as DatosActividadReal : vacia);
+    const inicial = actividad ? Object.fromEntries(Object.keys(vacia).map(k => [k, actividad[k as keyof DatosActividadReal]])) as unknown as DatosActividadReal : vacia;
+    const [datos, setDatos] = useState<DatosActividadReal>(inicial);
     const [espacios, setEspacios] = useState<{ nombre: string; capacidad: number }[]>();
     const [error, setError] = useState('');
-    const [guardando, setGuardando] = useState(false);
+    const [guardando, setGuardando] = useState<'' | 'borrador' | 'en-revision'>('');
     const bloqueo = useRef(false);
     useEffect(() => {
         let activo = true;
         consultarEspaciosAgenda().then(datos => { if (activo) setEspacios(datos); }).catch(error => { if (activo) setError(mensajeError(error)); });
         return () => { activo = false; };
     }, []);
-    if (actividad && actividad.estado !== 'borrador') return <div className="at-bloque"><strong>Solo puedes editar un borrador</strong><p><Link to={`${BASE}/${actividad.folio}`}>Volver al detalle</Link></p></div>;
+    if (actividad && actividad.estado !== 'borrador') return (
+        <div className="pz-pagina">
+            <EncabezadoPz titulo="Editar borrador" texto={actividad.nombre} />
+            <TarjetaPz icono="alerta" id="actividad-no-editable" titulo="Solo se edita un borrador" texto="Esta actividad ya avanzó en su publicación.">
+                <VacioPz icono="calendario" titulo="Ya no es un borrador" texto="Para cambiar fecha u horario, reprograma o cancela la sesión desde la actividad."
+                    accion={<Link className="pz-boton pz-boton--chico" to={`${BASE}/${actividad.folio}`}>Abrir la actividad</Link>} />
+            </TarjetaPz>
+        </div>
+    );
     const cambiar = (campo: keyof DatosActividadReal, valor: string | boolean) => setDatos(d => ({ ...d, [campo]: valor }));
+    const faltan = REQUISITOS.filter(r => !String(datos[r.campo] ?? '').trim());
+    const cambios = JSON.stringify(datos) !== JSON.stringify(inicial);
+    const espacio = espacios?.find(e => e.nombre === datos.espacio);
+    const excede = !!espacio && !!datos.cupo && Number(datos.cupo) > espacio.capacidad;
+    const horario = !!datos.inicio && !!datos.fin && datos.fin <= datos.inicio;
     async function guardar(estado: 'borrador' | 'en-revision') {
         if (bloqueo.current) return;
         setError('');
         if (!datos.nombre.trim()) return setError('Escribe el nombre de la actividad.');
-        if (estado === 'en-revision' && (!datos.descripcion.trim() || !datos.fecha || !datos.inicio || !datos.fin || !datos.espacio || !datos.cupo || !datos.responsable.trim())) return setError('Completa descripción, fecha, horario, espacio, cupo y responsable.');
-        if (datos.inicio && datos.fin && datos.fin <= datos.inicio) return setError('La hora de fin debe ser posterior al inicio.');
-        bloqueo.current = true; setGuardando(true);
+        if (estado === 'en-revision' && faltan.length) return setError(`Para enviarla a revisión falta: ${faltan.map(f => f.texto.toLowerCase()).join(', ')}.`);
+        if (horario) return setError('La hora de fin debe ser posterior al inicio.');
+        if (excede) return setError(`El cupo no puede ser mayor que la capacidad del espacio (${espacio!.capacidad} personas).`);
+        bloqueo.current = true; setGuardando(estado);
         try { const guardada = await guardarActividad(datos, estado, actividad); navigate(`${BASE}/${guardada.folio}`); }
         catch (error) { setError(mensajeError(error)); }
-        finally { bloqueo.current = false; setGuardando(false); }
+        finally { bloqueo.current = false; setGuardando(''); }
     }
-    const campo = (c: 'nombre' | 'tipo' | 'fecha' | 'inicio' | 'fin' | 'cupo' | 'publico' | 'responsable' | 'materiales') => (
-        <div className="contenidos-campo" key={c}>
-            <label htmlFor={`agenda-${c}`}>{ETIQUETAS[c]}{c === 'nombre' && <span className="contenidos-campo__obligatorio"> *</span>}</label>
-            <input id={`agenda-${c}`} className="tr-entrada" type={c === 'fecha' ? 'date' : c === 'inicio' || c === 'fin' ? 'time' : c === 'cupo' ? 'number' : 'text'} min={c === 'cupo' ? 1 : undefined}
-                maxLength={c === 'materiales' ? 1000 : c === 'tipo' ? 80 : 150} value={datos[c]} onChange={e => cambiar(c, e.target.value)} />
+    const texto = (c: 'nombre' | 'publico' | 'responsable' | 'materiales', extra: { placeholder?: string; max?: number; obligatorio?: boolean } = {}) => (
+        <label className="pz-campo pz-campo--lleno" key={c}>
+            <span>{ETIQUETAS[c]}{extra.obligatorio && <span className="contenidos-campo__obligatorio"> *</span>}</span>
+            <input type="text" maxLength={extra.max ?? 150} placeholder={extra.placeholder} value={datos[c]} onChange={e => cambiar(c, e.target.value)} />
+        </label>
+    );
+    const [dia, mes] = partesFecha(datos.fecha);
+    return (
+        <div className="pz-pagina">
+            <EncabezadoPz titulo={actividad ? 'Editar borrador' : 'Nueva actividad'}
+                texto={actividad ? `${actividad.folio}. Mientras sea borrador puedes cambiar todo; al enviarla a revisión ya no.` : 'Regístrala como borrador o envíala de una vez a revisión. Nadie del público la ve hasta que se publica.'} />
+            <div className="pz-columnas pz-columnas--libre">
+                <fieldset disabled={!!guardando} className="pz-formulario">
+                    <TarjetaPz icono="info" id="actividad-publico" titulo="Lo que verá el público" texto="Así aparece en la agenda del portal">
+                        {texto('nombre', { placeholder: 'Ej.: Taller de encuadernación japonesa', obligatorio: true })}
+                        <div className="pz-campo pz-campo--lleno">
+                            <span>{ETIQUETAS.tipo}</span>
+                            <div className="pz-pastillas" role="group" aria-label="Tipos frecuentes">
+                                {TIPOS_SUGERIDOS.map(t => (
+                                    <button key={t} type="button" className={`pz-pastilla${datos.tipo === t ? ' pz-pastilla--elegida' : ''}`} aria-pressed={datos.tipo === t} onClick={() => cambiar('tipo', t)}>{t}</button>
+                                ))}
+                                <input type="text" aria-label="Otro tipo" placeholder="Otro tipo" maxLength={80} className="pz-pastillas__otro"
+                                    value={TIPOS_SUGERIDOS.includes(datos.tipo) ? '' : datos.tipo} onChange={e => cambiar('tipo', e.target.value)} />
+                            </div>
+                        </div>
+                        <label className="pz-campo pz-campo--lleno">
+                            <span>{ETIQUETAS.descripcion}</span>
+                            <textarea rows={5} maxLength={1000} placeholder="Qué se hará, para quién es y qué se llevan las personas." value={datos.descripcion} onChange={e => cambiar('descripcion', e.target.value)} />
+                            <small className="pz-campo__ayuda">{datos.descripcion.length} de 1000 caracteres</small>
+                        </label>
+                        <div className="pz-campos-fila">
+                            {texto('publico', { placeholder: 'Público en general' })}
+                            {texto('responsable', { placeholder: 'Ej.: Sala infantil' })}
+                        </div>
+                        {texto('materiales', { placeholder: 'Ej.: Traer tijeras y pegamento', max: 1000 })}
+                    </TarjetaPz>
+
+                    <TarjetaPz icono="calendario" id="actividad-cuando" titulo="Cuándo y dónde" texto="Hora de Tepic">
+                        <div className="pz-campos-fila pz-campos-fila--tres">
+                            <label className="pz-campo pz-campo--lleno"><span>{ETIQUETAS.fecha}</span><input type="date" value={datos.fecha} onChange={e => cambiar('fecha', e.target.value)} /></label>
+                            <label className="pz-campo pz-campo--lleno"><span>{ETIQUETAS.inicio}</span><input type="time" value={datos.inicio} onChange={e => cambiar('inicio', e.target.value)} /></label>
+                            <label className={`pz-campo pz-campo--lleno${horario ? ' pz-campo--error' : ''}`}><span>{ETIQUETAS.fin}</span><input type="time" value={datos.fin} aria-invalid={horario} onChange={e => cambiar('fin', e.target.value)} /></label>
+                        </div>
+                        {horario && <p className="pz-campo__error" role="alert">La hora de fin debe ser posterior al inicio.</p>}
+                        <div className="pz-campos-fila">
+                            <label className="pz-campo pz-campo--lleno"><span>Espacio</span>
+                                <select value={datos.espacio} onChange={e => cambiar('espacio', e.target.value)}>
+                                    <option value="">{espacios ? 'Elige un espacio' : 'Cargando espacios…'}</option>
+                                    {espacios?.map(e => <option key={e.nombre} value={e.nombre}>{e.nombre} (hasta {e.capacidad} personas)</option>)}
+                                </select>
+                            </label>
+                            <label className={`pz-campo pz-campo--lleno${excede ? ' pz-campo--error' : ''}`}><span>{ETIQUETAS.cupo}</span>
+                                <input type="number" min={1} max={espacio?.capacidad} value={datos.cupo} aria-invalid={excede} onChange={e => cambiar('cupo', e.target.value)} />
+                                <small className="pz-campo__ayuda">{espacio ? `El espacio admite hasta ${espacio.capacidad} personas` : 'Elige primero el espacio'}</small>
+                            </label>
+                        </div>
+                        {excede && <p className="pz-campo__error" role="alert">El cupo supera la capacidad del espacio.</p>}
+                        <label className={`pz-casilla${datos.inscripcion ? ' pz-casilla--elegida' : ''}`}>
+                            <input type="checkbox" checked={datos.inscripcion} onChange={e => cambiar('inscripcion', e.target.checked)} />
+                            <span><strong>Requiere inscripción</strong><small>{datos.inscripcion ? 'Las personas apartan su lugar desde el portal con su cuenta.' : 'Entrada libre: no se lleva registro de lugares.'}</small></span>
+                        </label>
+                    </TarjetaPz>
+                </fieldset>
+
+                <aside className="pz-lateral" aria-label="Vista previa y guardar">
+                    <TarjetaPz icono="portal" id="actividad-previa" titulo="Así se verá en la agenda" texto="Vista previa">
+                        <article className="pz-fila pz-fila--previa">
+                            {datos.fecha ? <span className="pz-fecha" aria-hidden="true"><strong>{dia}</strong><span>{mes}</span></span>
+                                : <span className="pz-fila__icono" aria-hidden="true"><IconoPz nombre="calendario" /></span>}
+                            <div className="pz-fila__textos">
+                                <h4 className="pz-fila__titulo">{datos.nombre || 'Nombre de la actividad'}</h4>
+                                <p className="pz-fila__detalle"><span>{datos.tipo || 'Tipo'}</span><span>{datos.inicio ? `${datos.inicio} a ${datos.fin || '…'} h` : 'Sin horario'}</span></p>
+                                <p className="pz-fila__detalle"><span>{datos.espacio || 'Sin espacio'}</span><span>{datos.inscripcion ? (datos.cupo ? `${datos.cupo} lugares` : 'Con inscripción') : 'Entrada libre'}</span></p>
+                            </div>
+                        </article>
+                    </TarjetaPz>
+                    <section className={`pz-tarjeta pz-guardar pz-envio${cambios ? ' pz-guardar--cambios' : ''}${faltan.length ? '' : ' pz-envio--listo'}`} aria-labelledby="actividad-guardar">
+                        <Cabecera icono={faltan.length ? 'lista' : 'check'} id="actividad-guardar" titulo={faltan.length ? 'Antes de enviarla' : 'Lista para enviar'}
+                            texto={cambios ? 'Tienes cambios sin guardar' : actividad ? 'Sin cambios desde que la abriste' : 'Aún no escribes nada'} />
+                        <div className="pz-envio__avance">
+                            <p><strong>{REQUISITOS.length - faltan.length} de {REQUISITOS.length}</strong> datos listos</p>
+                            <span className="pz-envio__barra" aria-hidden="true"><span style={{ width: `${((REQUISITOS.length - faltan.length) / REQUISITOS.length) * 100}%` }} /></span>
+                        </div>
+                        <ul className="pz-envio__lista" aria-label="Datos para enviar a revisión">
+                            {REQUISITOS.map(r => {
+                                const listo = !!String(datos[r.campo] ?? '').trim();
+                                return (
+                                    <li key={r.campo} className={listo ? 'pz-envio__dato--listo' : undefined}>
+                                        <span className="pz-envio__marca" aria-hidden="true">{listo && <IconoPz nombre="check" />}</span>
+                                        {r.texto}<span className="tr-oculto">{listo ? ', listo' : ', falta'}</span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        <p className="pz-acciones__nota">{faltan.length ? 'Puedes guardarla como borrador solo con el nombre y completar lo demás después.' : 'Al enviarla, quien tenga permiso la autoriza o te la devuelve con motivo.'}</p>
+                        {error && <Aviso tono="error" titulo="Revisa los datos" texto={error} />}
+                        <div className="pz-acciones">
+                            {!actividad && <button type="button" className="pz-boton" disabled={!!guardando || faltan.length > 0} onClick={() => void guardar('en-revision')}>{guardando === 'en-revision' ? 'Enviando…' : 'Guardar y enviar a revisión'}</button>}
+                            <button type="button" className={`pz-boton${actividad ? '' : ' pz-boton--contorno'}`} disabled={!!guardando || !datos.nombre.trim()} onClick={() => void guardar('borrador')}>{guardando === 'borrador' ? 'Guardando…' : 'Guardar borrador'}</button>
+                        </div>
+                    </section>
+                </aside>
+            </div>
         </div>
     );
-    return <div className="contenidos-formulario">
-        <div className="at-columna">
-            <Tarjeta icono={tarjetaInfo} titulo="Datos de la actividad" subtitulo="Lo que verá el público en la agenda.">
-                <fieldset disabled={guardando} className="tr-campos">
-                    {campo('nombre')}
-                    <div className="at-fila">{campo('tipo')}{campo('publico')}</div>
-                    <div className="contenidos-campo"><label htmlFor="agenda-descripcion">{ETIQUETAS.descripcion}</label>
-                        <textarea id="agenda-descripcion" rows={5} maxLength={1000} value={datos.descripcion} onChange={e => cambiar('descripcion', e.target.value)} /></div>
-                    {campo('materiales')}
-                    {campo('responsable')}
-                </fieldset>
-            </Tarjeta>
-        </div>
-        <aside className="contenidos-formulario__lateral">
-            <Tarjeta icono={tarjetaCalendario} titulo="Fecha y espacio" subtitulo="Horario de Tepic.">
-                <fieldset disabled={guardando} className="tr-campos">
-                    {campo('fecha')}
-                    <div className="at-fila">{campo('inicio')}{campo('fin')}</div>
-                    <div className="contenidos-campo"><label htmlFor="agenda-espacio">Espacio</label>
-                        <select id="agenda-espacio" value={datos.espacio} onChange={e => cambiar('espacio', e.target.value)}>
-                            <option value="">{espacios ? 'Elige un espacio' : 'Cargando espacios…'}</option>
-                            {espacios?.map(e => <option key={e.nombre} value={e.nombre}>{e.nombre} · capacidad {e.capacidad}</option>)}
-                        </select></div>
-                    {campo('cupo')}
-                    <label className="at-casilla"><input type="checkbox" checked={datos.inscripcion} onChange={e => cambiar('inscripcion', e.target.checked)} /> Requiere inscripción</label>
-                </fieldset>
-            </Tarjeta>
-            {error && <div className="at-bloque at-bloque--error" role="alert"><strong>Revisa los datos</strong><p>{error}</p></div>}
-            <div className="tr-acciones">
-                <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={guardando} onClick={() => void guardar('borrador')}>{guardando ? 'Guardando…' : 'Guardar borrador'}</button>
-                {!actividad && <button type="button" className="contenidos-boton contenidos-boton--oscuro" disabled={guardando} onClick={() => void guardar('en-revision')}>Guardar y enviar a revisión</button>}
-            </div>
-        </aside>
-    </div>;
 }
 
 // ---------- Detalle: ficha, etapas, sesiones, datos, decisión e historial ----------
@@ -257,6 +370,13 @@ const SIGUIENTE: Record<string, { titulo: string; texto: string; tono?: 'verde' 
     cancelada: { titulo: 'Actividad cancelada', texto: 'Se canceló y ya no recibe inscripciones. Las personas inscritas conservan su historial.', tono: 'guinda' },
 };
 
+const PASO_HISTORIAL: Record<string, { icono: NombreIcono; tono: TonoEstado }> = {
+    crear: { icono: 'contenido', tono: 'gris' }, enviar: { icono: 'revision', tono: 'dorado' }, aprobar: { icono: 'check', tono: 'verde' },
+    rechazar: { icono: 'alerta', tono: 'guinda' }, publicar: { icono: 'portal', tono: 'verde' }, retirar: { icono: 'alerta', tono: 'guinda' },
+    archivar: { icono: 'alerta', tono: 'gris' }, cancelar: { icono: 'alerta', tono: 'guinda' }, reprogramar: { icono: 'calendario', tono: 'dorado' },
+    reprogramacion: { icono: 'calendario', tono: 'dorado' }, cancelacion: { icono: 'alerta', tono: 'guinda' }, cancelar_sesion: { icono: 'alerta', tono: 'guinda' },
+};
+
 function Detalle({ actividad: a, alRecargar, alCambiarSesion }: { actividad: ActividadGestion; alRecargar: () => void; alCambiarSesion: (texto: string) => void }) {
     const identidad = useContext(ContextoPanel);
     const permiso = (capacidad: string) => !!identidad && permisoGlobal(identidad.acceso, capacidad);
@@ -284,113 +404,142 @@ function Detalle({ actividad: a, alRecargar, alCambiarSesion }: { actividad: Act
     const cerrada = a.estado === 'archivada' || a.estado === 'cancelada';
     // Etapas que sí ocurrieron, según el historial (enviar → revisión, aprobar → autorizada, publicar → publicada)
     const PASO: Record<string, string> = { enviar: 'en-revision', aprobar: 'aprobada', publicar: 'publicada' };
-    const ocurridas = ['borrador', ...a.historial.map(h => PASO[h.accion]).filter(Boolean), ...(a.publicadaEl ? ['publicada'] : [])];
+    const ocurridas = new Set(['borrador', ...a.historial.map(h => PASO[h.accion]).filter(Boolean), ...(a.publicadaEl ? ['publicada'] : [])]);
+    const indiceActual = ETAPAS.findIndex(e => e.id === a.estado);
     const proxima = proximaSesion(a);
     const ocupacion = a.cupo ? Math.min(100, Math.round((a.inscritos / Number(a.cupo)) * 100)) : 0;
-    return <>
-        <section className="ac-ficha" aria-label="Resumen de la actividad">
-            <div className="ac-ficha__dato">
-                <span className="ac-ficha__etiqueta">{proxima?.pasada ? 'Última sesión' : 'Próxima sesión'}</span>
-                <strong>{proxima ? fechaLarga(proxima.fecha) : a.fecha ? fechaLarga(a.fecha) : 'Sin programar'}</strong>
-                <small>{proxima ? `${proxima.inicio} a ${proxima.fin} · hora de Tepic` : a.inicio ? `${a.inicio} a ${a.fin}` : 'Agrega fecha y horario al borrador.'}</small>
-            </div>
-            <div className="ac-ficha__dato">
-                <span className="ac-ficha__etiqueta">Espacio</span>
-                <strong>{proxima?.espacio || a.espacio || 'Sin espacio'}</strong>
-                <small>{a.sesiones.length ? `${a.sesiones.length} ${a.sesiones.length === 1 ? 'sesión' : 'sesiones'} en total` : 'Aún sin sesiones'}</small>
-            </div>
-            <div className="ac-ficha__dato">
-                <span className="ac-ficha__etiqueta">Ocupación</span>
-                <strong>{a.inscripcion ? `${a.inscritos}${a.cupo ? ` de ${a.cupo}` : ''} inscritos` : 'Entrada libre'}</strong>
-                {a.inscripcion && a.cupo
-                    ? <span className="ac-cupo__barra" aria-hidden="true"><span className={`ac-cupo__relleno ac-cupo__relleno--${ocupacion >= 100 ? 'guinda' : ocupacion >= 80 ? 'dorado' : 'verde'}`} style={{ width: `${ocupacion}%` }} /></span>
-                    : <small>{a.inscripcion ? 'Sin cupo definido' : 'No requiere inscripción'}</small>}
-                {a.espera > 0 && <small>{a.espera} en lista de espera</small>}
-            </div>
-            <div className="ac-ficha__dato">
-                <span className="ac-ficha__etiqueta">Tipo y público</span>
-                <strong>{a.tipo || '—'}</strong>
-                <small>{a.publico || 'Público por definir'}</small>
-            </div>
-        </section>
+    const siguiente = SIGUIENTE[a.estado] ?? { titulo: 'Sin acciones pendientes', texto: 'Esta actividad no requiere nada por ahora.' };
+    const historial = [...a.historial].reverse();
+    return (
+        <div className="pz-pagina">
+            <EncabezadoPz titulo={a.nombre} texto={`${a.tipo || 'Actividad'} con folio ${a.folio}. ${siguiente.texto}`}>
+                <ChipPz tono={TONO_PZ[a.estado] ?? 'gris'}>{estados[a.estado] ?? a.estado}</ChipPz>
+                {a.estado === 'borrador' && <Link className="pz-boton pz-boton--chico" to={`${BASE}/${a.folio}/editar`}>Editar borrador</Link>}
+                {a.estado === 'publicada' && <Link className="pz-boton pz-boton--contorno pz-boton--chico" to={`/eventos/${a.folio}`}>Ver en la agenda</Link>}
+            </EncabezadoPz>
 
-        <Flujo etapas={ETAPAS} actual={a.estado} final={cerrada ? { id: a.estado, texto: estados[a.estado] ?? a.estado } : undefined}
-            ocurridas={ocurridas}
-            siguiente={SIGUIENTE[a.estado] ?? { titulo: 'Sin acciones pendientes', texto: 'Esta actividad no requiere nada por ahora.', tono: 'gris' }} />
+            <ol className="pz-etapas" aria-label="Etapas de la publicación">
+                {ETAPAS.map((e, i) => {
+                    const hecha = !cerrada && (i < indiceActual || ocurridas.has(e.id)) && e.id !== a.estado;
+                    const actual = e.id === a.estado;
+                    return (
+                        <li key={e.id} className={`pz-etapas__paso${hecha ? ' pz-etapas__paso--hecho' : ''}${actual ? ' pz-etapas__paso--actual' : ''}`} aria-current={actual ? 'step' : undefined}>
+                            <span className="pz-etapas__numero" aria-hidden="true">{hecha ? <IconoPz nombre="check" /> : i + 1}</span>
+                            <span className="pz-etapas__texto">{e.texto}</span>
+                        </li>
+                    );
+                })}
+                {cerrada && <li className="pz-etapas__paso pz-etapas__paso--cerrado" aria-current="step"><span className="pz-etapas__numero" aria-hidden="true"><IconoPz nombre="alerta" /></span><span className="pz-etapas__texto">{estados[a.estado]}</span></li>}
+            </ol>
 
-        <div className="contenidos-formulario">
-            <div className="at-columna">
-                <Tarjeta icono={tarjetaCalendario} titulo="Sesiones"
-                    subtitulo={a.sesiones.length ? `${a.sesiones.length} ${a.sesiones.length === 1 ? 'sesión' : 'sesiones'}. Desde aquí ves sus inscripciones o la reprogramas.` : 'Fecha y horario de la actividad.'}>
-                    {a.sesiones.length ? <ul className="ac-sesiones">
-                        {a.sesiones.map(s => {
-                            const [dia, mes] = partesFecha(s.fecha);
-                            const cambiable = a.estado === 'publicada' && s.estado === 'programada' && permiso('registrar_resoluciones_actividades');
-                            return <li key={s.id} className={`ac-sesion${s.estado === 'cancelada' ? ' ac-sesion--cancelada' : ''}`}>
-                                <div className="ac-sesion__fila">
-                                    <span className="ac-sesion__dia" aria-hidden="true"><strong>{dia}</strong><small>{mes}</small></span>
-                                    <span className="ac-sesion__textos">
-                                        <strong>{fechaLarga(s.fecha)}</strong>
-                                        <small>{s.inicio} a {s.fin} · {s.espacio || 'Sin espacio'} · cupo {s.cupo}</small>
-                                    </span>
-                                    <Chip tono={s.estado === 'programada' ? 'verde' : s.estado === 'cancelada' ? 'guinda' : 'gris'}>{NOMBRE_SESION[s.estado] ?? s.estado}</Chip>
-                                    {a.inscripcion && s.estado !== 'cancelada' && <Link to={`/admin/actividades/inscripciones/${s.id}`} className="contenidos-tabla__accion">Inscripciones</Link>}
-                                </div>
-                                {cambiable && <CambioSesion actividad={a} sesion={s} alGuardar={alCambiarSesion} />}
-                            </li>;
-                        })}
-                    </ul> : <p className="tr-datos__texto">{a.fecha ? `${fechaLarga(a.fecha)} · ${a.inicio} a ${a.fin} · ${a.espacio || 'Sin espacio'}` : 'Sin programar. Completa la fecha en el borrador.'}</p>}
-                </Tarjeta>
+            <div className="pz-columnas pz-columnas--libre">
+                <div className="pz-pila">
+                    <TarjetaPz icono="info" id="actividad-acerca" titulo="Acerca de la actividad" texto="Lo que ve el público en la agenda">
+                        <Datos>
+                            <Dato icono="calendario" etiqueta={proxima?.pasada ? 'Última sesión' : 'Próxima sesión'}>
+                                {proxima ? fechaLarga(proxima.fecha) : a.fecha ? fechaLarga(a.fecha) : 'Sin programar'}
+                                <small className="pz-dato__nota">{proxima ? `${proxima.inicio} a ${proxima.fin} h` : a.inicio ? `${a.inicio} a ${a.fin} h` : 'Agrega fecha y horario'}</small>
+                            </Dato>
+                            <Dato icono="espacios" etiqueta="Espacio">
+                                {proxima?.espacio || a.espacio || 'Sin espacio'}
+                                <small className="pz-dato__nota">{a.sesiones.length ? `${a.sesiones.length} ${a.sesiones.length === 1 ? 'sesión' : 'sesiones'} en total` : 'Aún sin sesiones'}</small>
+                            </Dato>
+                            <Dato icono="inscripciones" etiqueta="Ocupación">
+                                {a.inscripcion ? `${a.inscritos}${a.cupo ? ` de ${a.cupo}` : ''} inscritos` : 'Entrada libre'}
+                                {a.inscripcion && a.cupo
+                                    ? <span className="pz-ocupacion" aria-hidden="true"><span className={`pz-ocupacion__relleno pz-ocupacion__relleno--${ocupacion >= 100 ? 'guinda' : ocupacion >= 80 ? 'dorado' : 'verde'}`} style={{ width: `${ocupacion}%` }} /></span>
+                                    : <small className="pz-dato__nota">{a.inscripcion ? 'Sin cupo definido' : 'No requiere inscripción'}</small>}
+                            </Dato>
+                            <Dato icono="grupo" etiqueta="Público">{a.publico || 'Por definir'}<small className="pz-dato__nota">Responsable: {a.responsable || 'por definir'}</small></Dato>
+                            <Dato ancho icono="contenido" etiqueta="Descripción pública">{a.descripcion || 'Sin descripción. El público solo verá el nombre y la fecha.'}</Dato>
+                            <Dato ancho icono="lista" etiqueta="Requisitos o materiales">{a.materiales || 'Sin requisitos adicionales'}</Dato>
+                            {a.autorizo && <Dato ancho icono="check" etiqueta="Autorizó">{a.autorizo.quien}, el {new Date(a.autorizo.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}</Dato>}
+                        </Datos>
+                    </TarjetaPz>
 
-                <Tarjeta icono={tarjetaInfo} titulo="Acerca de la actividad" subtitulo="Lo que verá el público en la agenda."
-                    extra={a.estado === 'borrador' ? <Link className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" to={`${BASE}/${a.folio}/editar`}>Editar borrador</Link>
-                        : a.estado === 'publicada' ? <Link className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" to={`/eventos/${a.folio}`}>Ver en la agenda</Link> : undefined}>
-                    <div className="tr-datos">
-                        <div className="tr-datos__bloque"><p className="at-subtitulo">Descripción pública</p>
-                            <p className="tr-datos__texto">{a.descripcion || 'Sin descripción. El público solo verá el nombre y la fecha.'}</p></div>
-                        <dl className="tr-datos__filas">
-                            <div><dt>Responsable público</dt><dd>{a.responsable || 'Por definir'}</dd></div>
-                            <div><dt>Requisitos o materiales</dt><dd>{a.materiales || 'Sin requisitos adicionales'}</dd></div>
-                            <div><dt>Inscripción</dt><dd>{a.inscripcion ? 'Requerida: se inscriben desde el portal con su cuenta' : 'Entrada libre, sin registro'}</dd></div>
-                            {a.autorizo && <div><dt>Autorizó</dt><dd>{a.autorizo.quien} · {new Date(a.autorizo.fecha).toLocaleDateString('es-MX')}</dd></div>}
-                        </dl>
-                        <p className="tr-datos__folio">Folio: <span>{a.folio}</span></p>
-                    </div>
-                </Tarjeta>
+                    <TarjetaPz icono="calendario" id="actividad-sesiones" titulo="Sesiones"
+                        texto={a.sesiones.length ? 'Desde aquí ves sus inscripciones o la reprogramas' : 'Fecha y horario de la actividad'}>
+                        {a.sesiones.length ? (
+                            <ul className="pz-filas">
+                                {[...a.sesiones].sort((x, y) => `${x.fecha}${x.inicio}`.localeCompare(`${y.fecha}${y.inicio}`)).map(s => {
+                                    const [dia, mes] = partesFecha(s.fecha);
+                                    const cambiable = a.estado === 'publicada' && s.estado === 'programada' && permiso('registrar_resoluciones_actividades');
+                                    return (
+                                        <li key={s.id} className={s.estado === 'cancelada' ? 'pz-sesion--cancelada' : undefined}>
+                                            <article className="pz-fila">
+                                                <span className="pz-fecha" aria-hidden="true"><strong>{dia}</strong><span>{mes}</span></span>
+                                                <div className="pz-fila__textos">
+                                                    <h4 className="pz-fila__titulo">{fechaLarga(s.fecha)}</h4>
+                                                    <p className="pz-fila__detalle"><span>{s.inicio} a {s.fin} h</span><span>{s.espacio || 'Sin espacio'}</span><span>Cupo de {s.cupo}</span></p>
+                                                </div>
+                                                <ChipPz tono={s.estado === 'programada' ? 'verde' : s.estado === 'cancelada' ? 'guinda' : 'gris'}>{NOMBRE_SESION[s.estado] ?? s.estado}</ChipPz>
+                                                {a.inscripcion && s.estado !== 'cancelada'
+                                                    ? <Link to={`/admin/actividades/inscripciones/${s.id}`} className="pz-boton pz-boton--contorno pz-boton--chico">Inscripciones</Link>
+                                                    : <span aria-hidden="true" />}
+                                            </article>
+                                            {cambiable && <CambioSesion actividad={a} sesion={s} alGuardar={alCambiarSesion} />}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        ) : <VacioPz icono="calendario" titulo="Sin sesiones" texto={a.fecha ? `${fechaLarga(a.fecha)}, de ${a.inicio} a ${a.fin} h, en ${a.espacio || 'un espacio por definir'}.` : 'Completa la fecha en el borrador.'} />}
+                    </TarjetaPz>
+                </div>
+
+                <aside className="pz-lateral" aria-label="Qué sigue e historial">
+                    <TarjetaPz icono="revision" id="actividad-decision" titulo={siguiente.titulo}
+                        texto={ofrecidas.length ? 'Elige qué hacer con esta actividad' : 'Tu cuenta no tiene decisiones en este estado'}>
+                        {ofrecidas.length > 0 && <div className="pz-acciones">
+                            {ofrecidas.map(op => {
+                                const rojo = ['retirar', 'archivar', 'rechazar'].includes(op);
+                                return <button key={op} type="button" disabled={guardando} aria-pressed={accion === op}
+                                    onClick={() => { setAccion(accion === op ? undefined : op); setError(''); setConfirmacion(false); }}
+                                    className={`pz-boton${rojo ? ' pz-boton--guinda pz-boton--contorno' : accion === op || ofrecidas.length === 1 ? '' : ' pz-boton--contorno'}`}>{acciones[op]}</button>;
+                            })}
+                        </div>}
+                        {accion && <fieldset key={accion} disabled={guardando} className="pz-decision">
+                            {accion === 'aprobar' && <label className="pz-campo pz-campo--lleno"><span>Referencia de autorización institucional <span className="contenidos-campo__obligatorio">*</span></span>
+                                <input type="text" maxLength={200} placeholder="Ej.: Oficio DBP/123/2026" value={referencia} onChange={e => setReferencia(e.target.value)} /></label>}
+                            {negativa && <label className="pz-campo pz-campo--lleno"><span>Motivo <span className="contenidos-campo__obligatorio">*</span></span>
+                                <textarea rows={3} maxLength={1000} value={motivo} onChange={e => setMotivo(e.target.value)} /></label>}
+                            {accion === 'enviar' && <p className="pz-acciones__nota">Ya no podrás editarla mientras esté en revisión.</p>}
+                            {accion === 'publicar' && <p className="pz-acciones__nota">Autorizó {a.autorizo?.quien ?? 'la coordinación'}. Al publicarla se comprueba que el espacio siga libre.</p>}
+                            {accion === 'retirar' && <p className="pz-acciones__nota">Se oculta de la agenda y se cierra el registro. No cancela las sesiones ni avisa a las personas inscritas.</p>}
+                            <label className={`pz-casilla${confirmacion ? ' pz-casilla--elegida' : ''}`}>
+                                <input type="checkbox" checked={confirmacion} onChange={e => setConfirmacion(e.target.checked)} />
+                                <span><strong>Revisé los datos</strong><small>Confirmo esta decisión.</small></span>
+                            </label>
+                            <button type="button" className={`pz-boton${negativa ? ' pz-boton--guinda' : ''}`} onClick={() => void decidir()}>
+                                {guardando ? 'Guardando…' : `Sí, ${acciones[accion].toLowerCase()}`}
+                            </button>
+                        </fieldset>}
+                        {error && <Aviso tono="error" titulo="No se guardó" texto={error}>
+                            <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={alRecargar}>Recargar versión actual</button>
+                        </Aviso>}
+                    </TarjetaPz>
+
+                    <TarjetaPz icono="reloj" id="actividad-historial" titulo="Historial" texto={a.historial.length ? 'Lo más reciente arriba' : 'Sin decisiones registradas'}>
+                        {historial.length ? (
+                            <ol className="pz-linea" aria-label="Historial de la actividad">
+                                {historial.map((h, i) => {
+                                    const paso = PASO_HISTORIAL[h.accion] ?? { icono: 'info' as NombreIcono, tono: 'gris' as TonoEstado };
+                                    return (
+                                        <li key={`${h.accion}:${h.fecha}:${i}`} className={`pz-linea__paso pz-linea__paso--${paso.tono}${i === 0 ? ' pz-linea__paso--actual' : ''}`}>
+                                            <span className="pz-linea__icono" aria-hidden="true"><IconoPz nombre={paso.icono} /></span>
+                                            <div className="pz-linea__textos">
+                                                <p className="pz-linea__titulo">{ACCIONES_HISTORIAL[h.accion] ?? h.accion}</p>
+                                                <p className="pz-linea__detalle">{new Date(h.fecha).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                                {h.referencia && <p className="pz-linea__nota">Referencia: {h.referencia}</p>}
+                                                {h.motivo && <p className="pz-linea__nota">{h.motivo}</p>}
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ol>
+                        ) : <p className="pz-acciones__nota">Aquí aparecerá cada envío, autorización y publicación.</p>}
+                    </TarjetaPz>
+                </aside>
             </div>
-
-            <aside className="contenidos-formulario__lateral tr-lateral tr-lateral--alto">
-                <Tarjeta variante="decision" icono={tarjetaCheck} titulo="Decisión" subtitulo={ofrecidas.length ? 'Elige qué hacer con esta actividad.' : 'No hay decisiones disponibles para tu cuenta en este estado.'}>
-                    {ofrecidas.map(op => (
-                        <button key={op} type="button" disabled={guardando} onClick={() => { setAccion(op); setError(''); setConfirmacion(false); }}
-                            className={`contenidos-boton contenidos-boton--ancho ${['retirar', 'archivar', 'rechazar'].includes(op) ? 'at-boton--guinda' : accion === op ? 'contenidos-boton--oscuro' : 'contenidos-boton--contorno'}`}>{acciones[op]}</button>
-                    ))}
-                    {accion && <fieldset disabled={guardando} className="tr-campos tr-decision">
-                        <p className="at-subtitulo">{acciones[accion]}</p>
-                        {accion === 'aprobar' && <div className="contenidos-campo"><label htmlFor="referencia-actividad">Referencia de autorización institucional <span className="contenidos-campo__obligatorio">*</span></label>
-                            <input id="referencia-actividad" className="tr-entrada" type="text" maxLength={200} value={referencia} onChange={e => setReferencia(e.target.value)} /></div>}
-                        {negativa && <div className="contenidos-campo"><label htmlFor="motivo-actividad">Motivo <span className="contenidos-campo__obligatorio">*</span></label>
-                            <textarea id="motivo-actividad" rows={3} maxLength={1000} value={motivo} onChange={e => setMotivo(e.target.value)} /></div>}
-                        {accion === 'publicar' && <p className="contenidos-campo__ayuda">Autorización registrada: {a.autorizo?.quien}. Se publicará y se comprobará la disponibilidad del espacio.</p>}
-                        {accion === 'retirar' && <p className="contenidos-campo__ayuda">Se ocultará de la agenda y se cerrará el registro. No cancela las sesiones ni avisa a participantes.</p>}
-                        <label className="at-casilla"><input type="checkbox" checked={confirmacion} onChange={e => setConfirmacion(e.target.checked)} /> Revisé los datos y confirmo esta decisión.</label>
-                        <button type="button" className={`contenidos-boton contenidos-boton--ancho ${negativa ? 'at-boton--guinda-lleno' : 'contenidos-boton--oscuro'}`} onClick={() => void decidir()}>
-                            {guardando ? 'Guardando…' : `Confirmar: ${acciones[accion].toLowerCase()}`}
-                        </button>
-                    </fieldset>}
-                    {error && <div className="at-bloque at-bloque--error" role="alert"><strong>No se guardó</strong><p>{error}</p>
-                        <p className="tr-acciones"><button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={alRecargar}>Recargar versión actual</button></p></div>}
-                </Tarjeta>
-
-                <Tarjeta icono={tarjetaClock} titulo="Historial" subtitulo={`${a.historial.length} ${a.historial.length === 1 ? 'decisión registrada' : 'decisiones registradas'}.`} className="tr-seguimiento">
-                    {a.historial.length ? <ol className="tr-eventos" tabIndex={0} aria-label="Historial de la actividad">
-                        {a.historial.map((h, i) => <li key={i} className={i === a.historial.length - 1 ? 'tr-eventos--ultimo' : 'tr-eventos--hecho'}>
-                            <strong>{ACCIONES_HISTORIAL[h.accion] ?? h.accion}</strong><small>{new Date(h.fecha).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}</small>
-                            {(h.referencia || h.motivo) && <p className="tr-evento-nota">{[h.referencia, h.motivo].filter(Boolean).join(' · ')}</p>}
-                        </li>)}
-                    </ol> : <p className="contenidos-campo__ayuda">Sin decisiones registradas.</p>}
-                </Tarjeta>
-            </aside>
         </div>
-    </>;
+    );
 }

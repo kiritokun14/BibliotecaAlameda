@@ -20,6 +20,7 @@ import {
     pendientesPorRuta,
     plazoDe,
     saludo,
+    momentosDelDia,
     type AccesoRapido,
     type AreaPendiente,
     type Pendiente,
@@ -62,6 +63,14 @@ export default function Resumen() {
     const veContenidos = !veActividades && !veCambios && vistaEnlace("/admin/contenidos/editor", acceso) === "enlace";
     const editor = useContenidosEditor(veContenidos);
     const actividades = veActividades ? actividadesHoy : [];
+    const momentos = momentosDelDia(actividades.map((a) => a.hora), minutosAhora());
+    // La lista de actividades se coloca en la que sigue (o la que está ahora) al abrir el Resumen
+    const listaActividades = useRef<HTMLUListElement>(null);
+    useEffect(() => {
+        const lista = listaActividades.current;
+        const destino = lista?.querySelector<HTMLElement>('[data-momento="ahora"], [data-momento="siguiente"]');
+        if (lista && destino) lista.scrollTop = destino.offsetTop - lista.offsetTop - 6;
+    }, []);
     const [plazo, setPlazo] = useState<Plazo | null>(null);
     // Pendientes y actividades forman el área de trabajo: mide el alto visible y el scroll la encuadra (AGENTS §1)
     const area = useRef<HTMLDivElement>(null);
@@ -141,10 +150,14 @@ export default function Resumen() {
                         )}
                         {veActividades && (
                         <section className="pz-tarjeta pz-tarjeta--actividades" aria-labelledby="pz-actividades">
-                            <Cabecera icono="hoy" id="pz-actividades" titulo="Actividades de hoy" texto={`${actividades.length} programadas`} />
-                            <ul className="pz-actividades">
-                                {actividades.map((actividad) => (
-                                    <li key={actividad.titulo} className={actividad.chip.texto === "Cancelada" ? "pz-actividades__cancelada" : undefined}>
+                            <Cabecera icono="hoy" id="pz-actividades" titulo="Actividades de hoy" texto={textoActividades(momentos, actividades.length)} />
+                            <ul className="pz-actividades" ref={listaActividades}>
+                                {actividades.map((actividad, i) => (
+                                    <li key={actividad.titulo} data-momento={momentos[i]}
+                                        className={[actividad.chip.texto === "Cancelada" ? "pz-actividades__cancelada" : "", `pz-actividades--${momentos[i]}`].join(" ").trim()}>
+                                        {(momentos[i] === "ahora" || momentos[i] === "siguiente") && (
+                                            <span className="pz-actividades__momento">{momentos[i] === "ahora" ? "En este momento" : "Sigue"}</span>
+                                        )}
                                         <span className="pz-actividades__hora"><strong>{actividad.hora}</strong><span>h</span></span>
                                         <div className="pz-actividades__textos">
                                             <p className="pz-actividades__titulo">{actividad.titulo}</p>
@@ -176,6 +189,17 @@ export default function Resumen() {
             </div>
         </PanelLayout>
     );
+}
+
+function minutosAhora() {
+    const [h, m] = new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/Mazatlan" }).split(":").map(Number);
+    return h * 60 + m;
+}
+function textoActividades(momentos: string[], total: number) {
+    const faltan = momentos.filter((m) => m !== "pasada").length;
+    if (total === 0) return "No hay actividades hoy";
+    if (faltan === 0) return `Ya terminaron las ${total} de hoy`;
+    return `${faltan} de ${total} por realizar o en curso`;
 }
 
 function textoDelDia(total: number, hoy: number) {

@@ -35,7 +35,7 @@ export default function Notificaciones() {
     ];
 
     return (
-        <PanelLayout titulo="Notificaciones" tema="contenidos">
+        <PanelLayout titulo="Notificaciones" tema="contenidos paleta">
             <div className="notif">
             <Migas raiz="Resumen" pasos={[["Notificaciones"]]} />
             <EncabezadoPagina

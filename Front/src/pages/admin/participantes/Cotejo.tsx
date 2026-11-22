@@ -40,7 +40,7 @@ function Cotejo() {
     const elegir = (f: FiltroCotejo) => { setFiltro(f); setPagina(0); };
 
     return (
-        <PanelLayout titulo="Participantes" tema="contenidos">
+        <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Cotejo de credenciales"], ["Bandeja"]]} />
                 <Encabezado etiqueta="Participantes · Cotejo" titulo="Cotejo de credenciales" texto="Compara los datos que la persona capturó en el portal con los del sistema de la biblioteca antes de vincular su cuenta." />
@@ -108,7 +108,7 @@ function Cotejo() {
 function Historial({ cotejos }: { cotejos: TipoCotejo[] }) {
     const resueltos = cotejos.filter((c) => c.estado !== "pendiente").sort((a, b) => b.folio.localeCompare(a.folio));
     return (
-        <PanelLayout titulo="Participantes" tema="contenidos">
+        <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Cotejo de credenciales", BASE_COTEJO], ["Historial"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Cotejo de credenciales", ruta: BASE_COTEJO }} etiqueta="Participantes · Cotejo" titulo="Historial de cotejos" texto="Registro de cada cotejo y quién lo resolvió." />
@@ -140,7 +140,7 @@ function Historial({ cotejos }: { cotejos: TipoCotejo[] }) {
 
 export function SinSistema() {
     return (
-        <PanelLayout titulo="Participantes" tema="contenidos">
+        <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Cotejo de credenciales", BASE_COTEJO], ["Sistema no disponible"]]} />
                 <Encabezado etiqueta="Participantes · Cotejo" titulo="Cotejo de credenciales" texto="No se pudo consultar el sistema de la biblioteca." />

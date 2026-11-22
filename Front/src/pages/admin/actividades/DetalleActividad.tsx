@@ -82,7 +82,7 @@ function Contenido({ actividad: a, previa }: { actividad: Actividad; previa: boo
     const resumen: [string, string][] = [["Folio", a.folio], ["Fecha", `${fechaCorta(a.fecha)} · ${a.inicio || "--:--"}`], ["Cupo", a.cupo || "—"]];
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades", BASE_PROPUESTAS], [ventana === "publicar" || ventana === "error" ? "Confirmar publicación" : ventana === "archivar" ? "Archivar actividad" : "Detalle"]]} />
 

@@ -21,7 +21,7 @@ const fecha = (iso: string) => new Date(iso).toLocaleString('es-MX', { dateStyle
 
 export default function ModeracionForo() {
     const identidad = useContext(ContextoPanel);
-    return <PanelLayout titulo="Participantes" tema="contenidos">
+    return <PanelLayout titulo="Participantes" tema="contenidos paleta">
         <Migas raiz="Participantes" pasos={[['Bibliocomunidad']]} />
         <EncabezadoPagina etiqueta="Participantes · Bibliocomunidad" titulo="Moderación del foro"
             texto="Revisa las publicaciones nuevas y atiende los reportes. Cada decisión requiere un motivo y queda en el historial. Los logros no conceden permisos." />
@@ -176,8 +176,8 @@ function Paginas({ pagina, total, alCambiar }: { pagina: number; total: number; 
     const paginas = Math.ceil(total / 20);
     return <div className="contenidos-lista__pie"><p>{total} en total</p>
         <div className="contenidos-paginas" role="group" aria-label="Páginas">
-            <button type="button" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>‹ Anterior</button>
+            <button type="button" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>Anterior</button>
             <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-            <button type="button" disabled={pagina + 1 >= paginas} onClick={() => alCambiar(pagina + 1)}>Siguiente ›</button>
+            <button type="button" disabled={pagina + 1 >= paginas} onClick={() => alCambiar(pagina + 1)}>Siguiente</button>
         </div></div>;
 }

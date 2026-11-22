@@ -45,7 +45,7 @@ export const SECCIONES_MENU: SeccionMenu[] = [
         icono: iconoCalendario,
         prefijo: "/admin/actividades",
         subitems: [
-            { texto: "Propuestas de actividades", ruta: "/admin/actividades/propuestas" },
+            { texto: "Propuesta de act.", ruta: "/admin/actividades/propuestas" },
             { texto: "Calendario y salas", ruta: "/admin/actividades/calendario" },
             { texto: "Visitas y uso de espacios", ruta: "/admin/actividades/visitas" },
             { texto: "Cambios y cancelaciones", ruta: "/admin/actividades/cambios" },

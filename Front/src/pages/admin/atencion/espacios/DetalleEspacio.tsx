@@ -147,7 +147,7 @@ function DetalleEspacio() {
 
     if (!carga || "error" in carga) {
         return (
-            <PanelLayout titulo="Atención" tema="contenidos">
+            <PanelLayout titulo="Atención" tema="contenidos paleta">
                 {!carga ? <div className="contenidos-formulario" aria-busy="true" role="status"><span className="tr-oculto">Cargando la solicitud {folio}…</span><div className="at-columna"><Bloque clase="tr-esqueleto tr-esqueleto--alto" /><Bloque clase="tr-esqueleto tr-esqueleto--alto" /></div><Bloque clase="tr-esqueleto tr-esqueleto--alto" /></div> : (
                     <p role="alert">
                         {carga.error}{" "}
@@ -373,7 +373,7 @@ function DetalleEspacio() {
     const otrasAreas = areas.filter((a) => a.slug !== actual.espacio?.slug);
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <DetalleSolicitud
                 area="espacios"
                 solicitud={solicitud}

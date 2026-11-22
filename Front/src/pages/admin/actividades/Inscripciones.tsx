@@ -29,7 +29,7 @@ const ESTADO_FILTRO: Record<Exclude<FiltroSesiones, 'todas'>, string> = { progra
 
 export default function Inscripciones() {
     const identidad = useContext(ContextoPanel);
-    return <PanelLayout titulo="Actividades" tema="contenidos">
+    return <PanelLayout titulo="Actividades" tema="contenidos paleta">
         <Migas raiz="Actividades" pasos={[['Inscripciones y cupos']]} />
         <EncabezadoPagina etiqueta="Actividades · Inscripciones" titulo="Inscripciones y cupos"
             texto="Elige una sesión para ver quién se inscribió, cuántos lugares quedan y decidir cada solicitud." />
@@ -177,7 +177,7 @@ export function InscritosActividad() {
     const { folio, id } = useParams();
     const identidad = useContext(ContextoPanel);
     const conocida = folio ? sesionConocida(folio) : undefined;
-    return <PanelLayout titulo="Actividades" tema="contenidos">
+    return <PanelLayout titulo="Actividades" tema="contenidos paleta">
         <Migas raiz="Actividades" pasos={[['Inscripciones y cupos', BASE], [conocida?.actividad.titulo ?? 'Sesión']]} />
         <EncabezadoPagina volver={{ texto: 'Volver a inscripciones y cupos', ruta: BASE }} etiqueta="Actividades · Inscripciones"
             titulo={conocida?.actividad.titulo ?? 'Inscripciones de la sesión'}
@@ -262,9 +262,9 @@ function ListaSesion({ sesion, seleccionada }: { sesion: string; seleccionada?: 
             {visibles.length > 0 && <PieLista texto={`Mostrando ${enPagina.length} de ${visibles.length} inscripciones`} pagina={pagLista} paginas={paginasLista} alCambiar={setPaginaLista} />}
             {actual?.solicitudes && (pagina > 0 || actual.solicitudes.length >= 20) && <div className="contenidos-lista__pie"><p>Página {pagina + 1}</p>
                 <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                    <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>‹ Anterior</button>
+                    <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button>
                     <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1}</button>
-                    <button type="button" disabled={actual.solicitudes.length < 20} onClick={() => setPagina(x => x + 1)}>Siguiente ›</button>
+                    <button type="button" disabled={actual.solicitudes.length < 20} onClick={() => setPagina(x => x + 1)}>Siguiente</button>
                 </div></div>}
         </SeccionLista>
     </>;

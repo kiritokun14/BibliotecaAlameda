@@ -54,7 +54,7 @@ function ErrorCarga({ texto, alReintentar }: { texto: string; alReintentar: () =
 
 function Pantalla({ migas, children }: { migas: [string, string?][]; children: ReactNode }) {
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[["Consulta de cuentas", RUTA], ...migas]} />
             {children}
         </PanelLayout>
@@ -97,7 +97,7 @@ export default function Cuentas() {
     const filtros: Filtro[] = ["todas", "Activa", "Pendiente de activar", "Suspendida", "Bloqueada"];
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[["Consulta de cuentas"]]} />
             <EncabezadoPagina etiqueta="Atención · Consulta de cuentas" titulo="Consulta de cuentas" texto="Consulta datos de cuentas para atender dudas. Ver datos sensibles requiere indicar un motivo." />
 
@@ -148,9 +148,9 @@ export default function Cuentas() {
                         <p aria-live="polite">Mostrando {visibles.length} de {total} cuentas</p>
                         <span />
                         <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                            <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>‹ Anterior</button>
+                            <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>Anterior</button>
                             <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                            <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(pagina + 1)}>Siguiente ›</button>
+                            <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(pagina + 1)}>Siguiente</button>
                         </div>
                     </div>
                 )}

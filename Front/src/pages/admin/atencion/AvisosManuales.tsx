@@ -22,7 +22,7 @@ const fecha = (iso: string) => new Date(iso).toLocaleString('es-MX', { dateStyle
 export default function AvisosManuales() {
     const identidad = useContext(ContextoPanel);
     // Reinicia todos los datos personales cuando cambia la cuenta autorizada.
-    return <PanelLayout titulo="Atención" tema="contenidos"><Bandeja key={identidad?.acceso.usuarioId ?? 'sin-cuenta'} /></PanelLayout>;
+    return <PanelLayout titulo="Atención" tema="contenidos paleta"><Bandeja key={identidad?.acceso.usuarioId ?? 'sin-cuenta'} /></PanelLayout>;
 }
 
 function Bandeja() {
@@ -68,9 +68,9 @@ function Bandeja() {
             {(actual?.total ?? 0) > POR_PAGINA && (
                 <div className="contenidos-lista__pie"><p>{actual?.total} avisos en total</p>
                     <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                        <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>‹ Anterior</button>
+                        <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button>
                         <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                        <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(x => x + 1)}>Siguiente ›</button>
+                        <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(x => x + 1)}>Siguiente</button>
                     </div>
                 </div>
             )}

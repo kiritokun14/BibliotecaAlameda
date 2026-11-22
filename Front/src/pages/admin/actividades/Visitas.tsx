@@ -60,7 +60,7 @@ function Visitas() {
     const historial = filtradas.filter((v) => enFiltro(v, "realizada") || enFiltro(v, "cancelada")).sort((a, b) => cuando(b).localeCompare(cuando(a)));
 
     if (cargando) return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios"]]} />
                 <EsqueletoLista texto="Cargando visitas…" />
@@ -69,7 +69,7 @@ function Visitas() {
     );
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 {error && <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar las visitas" texto={error} accion={{ texto: "Reintentar", alPresionar: reintentar }} />}
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios"], [vista === "uso" ? "Registro de uso" : "Bandeja"]]} />

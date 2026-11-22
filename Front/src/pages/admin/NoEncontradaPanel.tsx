@@ -7,7 +7,7 @@ import { ContenidoNoEncontrada } from "./EstadosPanel";
 export default function NoEncontradaPanel() {
     const { pathname } = useLocation();
     return (
-        <PanelLayout titulo={seccionDeRuta(pathname)} tema="contenidos" sinDemo>
+        <PanelLayout titulo={seccionDeRuta(pathname)} tema="contenidos paleta" sinDemo>
             <ContenidoNoEncontrada />
         </PanelLayout>
     );

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     contarPorPlazo,
     diasParaVencer,
+    momentosDelDia,
     filtrarPendientes,
     ordenarPorVencimiento,
     pendientesPorRuta,
@@ -41,5 +42,18 @@ describe("Resumen · pendientes por vencimiento", () => {
             "/admin/atencion/propuestas": { total: 2, hoy: 1 },
             "/admin/actividades/visitas": { total: 1, hoy: 0 },
         });
+    });
+});
+
+describe("Resumen · actividades de hoy", () => {
+    const horas = ["09:00", "11:00", "16:00"];
+    it("marca la que está ahora, la que sigue y las que pasaron", () => {
+        expect(momentosDelDia(horas, 11 * 60 + 30)).toEqual(["pasada", "ahora", "siguiente"]);
+        expect(momentosDelDia(horas, 8 * 60)).toEqual(["siguiente", "despues", "despues"]);
+        expect(momentosDelDia(horas, 23 * 60)).toEqual(["pasada", "pasada", "pasada"]);
+    });
+    it("una actividad deja de estar en curso a los 90 min o cuando empieza la siguiente", () => {
+        expect(momentosDelDia(["09:00", "09:30"], 9 * 60 + 40)).toEqual(["pasada", "ahora"]);
+        expect(momentosDelDia(["09:00"], 10 * 60 + 31)).toEqual(["pasada"]);
     });
 });

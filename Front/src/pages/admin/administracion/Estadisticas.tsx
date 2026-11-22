@@ -1,10 +1,13 @@
 // Administración › Estadísticas (Figma 580:49970). Datos de ejemplo (./datos.ts, TODO backend).
 // 21 nov 2026: con las piezas del panel: sección y periodo en filtros segmentados, indicadores como cifras, la gráfica en
 // su tarjeta y, al lado, la lista de lo más visto con su porcentaje en barra.
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Ventana } from "../Ventana";
 import { simulacion } from "../../../servicios/simulacion";
-import { estadisticas, porcentaje, type Periodo, type SeccionEstadistica } from "./datos";
+import { porcentaje, type Estadisticas as DatosEstadisticas, type Periodo, type SeccionEstadistica } from "./datos";
+import { consultarEstadisticas } from "../../../servicios/estadisticas";
+import { mensajeError } from "../../../servicios/api";
+import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 import { ErrorCarga, Pantalla } from "./comun";
 import { descargarCsv } from "./utiles";
 import { Aviso, Cifra, Encabezado, Segmentado, Tarjeta, Vacio, type NombreIcono } from "../piezasPanel";
@@ -21,10 +24,25 @@ export default function Estadisticas() {
     const [exportando, setExportando] = useState(false);
     const [exportado, setExportado] = useState("");
     const [errorExportar, setErrorExportar] = useState(false);
-    const [cargaRecuperada, setCargaRecuperada] = useState(false);
-    const modo = simulacion(); // ?simular=error | sin-datos | error-exportar
-    const errorCarga = modo === "error" && !cargaRecuperada;
-    const datos = estadisticas(seccion, periodo);
+    const [intento, setIntento] = useState(0);
+    const modo = simulacion(); // ?simular=error-exportar
+    // Datos reales del backend (antes eran de ejemplo); se muestra lo último recibido mientras llega lo nuevo
+    const clave = `${seccion}:${periodo}:${intento}`;
+    const [resultado, setResultado] = useState<{ clave: string; datos?: DatosEstadisticas; error?: string }>({ clave: "" });
+    useEffect(() => {
+        let vigente = true;
+        consultarEstadisticas(seccion, periodo)
+            .then((datos) => { if (vigente) setResultado({ clave, datos }); })
+            .catch((error) => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
+        return () => { vigente = false; };
+    }, [clave, seccion, periodo]);
+    const [ultimos, setUltimos] = useState<DatosEstadisticas>();
+    if (resultado.datos && resultado.datos !== ultimos) setUltimos(resultado.datos);
+    const errorCarga = resultado.clave === clave ? resultado.error : undefined;
+    const datos = (resultado.clave === clave ? resultado.datos : undefined) ?? ultimos ?? { indicadores: [], serie: [], tituloSerie: "", tabla: [], tituloTabla: "" };
+    const cargando = !ultimos && !errorCarga;
+    const sinDatos = !cargando && !errorCarga && datos.serie.every((s) => s.valor === 0) && datos.tabla.every((f) => f.valor === 0)
+        && datos.indicadores.every((i) => i.valor === "0" || i.valor === "Sin listas");
     const nombreSeccion = SECCIONES.find((s) => s.valor === seccion)!.texto;
     const nombrePeriodo = PERIODOS.find((p) => p.valor === periodo)!.texto.toLowerCase();
     const maximo = Math.max(...datos.serie.map((s) => s.valor), 1);
@@ -60,8 +78,10 @@ export default function Estadisticas() {
                 {errorExportar && <Aviso tono="error" titulo="No se pudo exportar." texto="Inténtalo de nuevo en unos minutos." />}
 
                 {errorCarga ? (
-                    <ErrorCarga titulo="No se pudieron cargar las estadísticas" texto="Revisa tu conexión e inténtalo de nuevo." alReintentar={() => setCargaRecuperada(true)} />
-                ) : modo === "sin-datos" ? (
+                    <ErrorCarga titulo="No se pudieron cargar las estadísticas" texto={errorCarga} alReintentar={() => setIntento((x) => x + 1)} />
+                ) : cargando ? (
+                    <EsqueletoLista texto="Cargando estadísticas…" />
+                ) : sinDatos ? (
                     <section className="pz-tarjeta"><Vacio icono="estadisticas" titulo="Sin datos para este periodo" texto="Prueba con otro periodo." /></section>
                 ) : (
                     <>
@@ -70,7 +90,7 @@ export default function Estadisticas() {
                         </div>
 
                         <div className="pz-columnas pz-columnas--libre">
-                            <Tarjeta icono="estadisticas" id={`${id}-serie`} titulo={datos.tituloSerie} texto="Últimas 5 semanas. Pasa el cursor o el foco por una barra para ver su valor">
+                            <Tarjeta icono="estadisticas" id={`${id}-serie`} titulo={datos.tituloSerie} texto={`${periodo === "anio" ? "Por mes" : "Por semana"}. Pasa el cursor o el foco por una barra para ver su valor`}>
                                 <div className="ad-grafica" role="img" aria-label={`${datos.tituloSerie}: ${datos.serie.map((s) => `${s.etiqueta} ${s.valor}`).join(", ")}`}>
                                     {datos.serie.map((s) => (
                                         <div key={s.etiqueta} className="ad-grafica__columna" tabIndex={0} aria-label={`${s.etiqueta}: ${s.valor.toLocaleString("es-MX")}`}>
@@ -82,7 +102,7 @@ export default function Estadisticas() {
                                 <div className="ad-grafica__ejes" aria-hidden="true">{datos.serie.map((s) => <span key={s.etiqueta}>{s.etiqueta}</span>)}</div>
                                 <table className="solo-lectores">
                                     <caption>{datos.tituloSerie}</caption>
-                                    <thead><tr><th>Semana</th><th>Valor</th></tr></thead>
+                                    <thead><tr><th>{periodo === "anio" ? "Mes" : "Semana"}</th><th>Valor</th></tr></thead>
                                     <tbody>{datos.serie.map((s) => <tr key={s.etiqueta}><td>{s.etiqueta}</td><td>{s.valor}</td></tr>)}</tbody>
                                 </table>
                             </Tarjeta>

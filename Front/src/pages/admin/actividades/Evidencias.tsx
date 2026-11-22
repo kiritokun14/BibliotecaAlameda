@@ -91,7 +91,7 @@ function Evidencias() {
     const delMes = evidencias.filter((e) => diaLocal(e.fecha).slice(0, 7) === mes).length;
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Evidencias privadas"]]} />
             <EncabezadoPagina etiqueta="Actividades · Evidencias" titulo="Evidencias privadas"
                 texto="Fotos, listas firmadas e informes que respaldan las actividades. Solo las ve el personal autorizado."
@@ -195,7 +195,7 @@ export function SubirEvidencia() {
     }
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], ["Subir evidencia"]]} />
             <EncabezadoPagina volver={{ texto: "Volver a Evidencias privadas", ruta: BASE }} etiqueta="Actividades · Evidencias" titulo="Subir evidencia" texto="Respalda una actividad con un archivo privado." />
             {problema && <AvisoResultado tono="error" titulo="No se pudo subir el archivo" texto={problema} chip="Error" />}
@@ -281,7 +281,7 @@ export function DetalleEvidencia() {
 
     if (!e) {
         return (
-            <PanelLayout titulo="Actividades" tema="contenidos">
+            <PanelLayout titulo="Actividades" tema="contenidos paleta">
                 <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [folio]]} />
                 <EncabezadoPagina volver={volver} etiqueta={`Evidencia ${folio}`} titulo="Evidencia" texto="Detalle de la evidencia privada." />
                 {carga.cargando ? <CargandoFilas texto="Cargando evidencia…" filas={3} /> : <ErrorCarga error={carga.error} reintentar={carga.reintentar} />}
@@ -307,7 +307,7 @@ export function DetalleEvidencia() {
 
     if (!e.puedeVer) {
         return (
-            <PanelLayout titulo="Actividades" tema="contenidos">
+            <PanelLayout titulo="Actividades" tema="contenidos paleta">
                 <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], ["Acceso restringido"]]} />
                 <EncabezadoPagina volver={volver} etiqueta={`Evidencia ${e.folio}`} titulo="Acceso restringido" texto="Esta evidencia no está disponible con tu cuenta." />
                 <AvisoResultado tono={e.solicitada ? "espera" : "error"} titulo={e.solicitada ? "Ya pediste acceso" : "No tienes permiso para abrirla"}
@@ -323,7 +323,7 @@ export function DetalleEvidencia() {
     }
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [e.folio]]} />
             <EncabezadoPagina volver={volver} etiqueta={`Evidencia ${e.folio}`} titulo={`${e.tipo} · ${e.actividadTexto.split(" · ")[0]}`}
                 texto={`Subida por ${e.subio} el ${fechaLocal(e.fecha)}.`} accion={chipAcceso(e)} />
@@ -420,7 +420,7 @@ export function ResultadoEvidencia({ tipo }: { tipo: "guardada" | "solicitado" |
     const datosRecibidos = recibido?.folio === folio ? recibido : carga.datos;
     if (!datosRecibidos) {
         return (
-            <PanelLayout titulo="Actividades" tema="contenidos">
+            <PanelLayout titulo="Actividades" tema="contenidos paleta">
                 <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [folio]]} />
                 {carga.cargando ? <CargandoFilas texto="Cargando evidencia…" filas={2} /> : <ErrorCarga error={carga.error} reintentar={carga.reintentar} />}
             </PanelLayout>
@@ -433,7 +433,7 @@ export function ResultadoEvidencia({ tipo }: { tipo: "guardada" | "solicitado" |
         retirada: { titulo: "Evidencia retirada", texto: "Ya no está disponible para el personal. El registro se conserva.", tono: "error" as const, linea: `Motivo: ${e.retiro?.motivo ?? ""}`, chip: "Retirada" },
     }[tipo];
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [datos.titulo]]} />
             <EncabezadoPagina etiqueta={`Evidencia ${e.folio}`} titulo={datos.titulo} texto={datos.texto} />
             <AvisoResultado tono={datos.tono} titulo={`${e.tipo} · ${e.actividadTexto}`} texto={datos.linea} chip={datos.chip} />
