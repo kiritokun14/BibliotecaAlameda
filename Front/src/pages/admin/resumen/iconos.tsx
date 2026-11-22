@@ -10,7 +10,18 @@ function Trazo({ children }: { children: ReactNode }) {
     );
 }
 
-const TRAZOS: Record<IconoAcceso | "hoy" | "alerta" | "lista" | "reloj" | "check" | "info" | "usuario" | "portal" | "salir", ReactNode> = {
+const TRAZOS: Record<IconoAcceso | "hoy" | "alerta" | "lista" | "reloj" | "check" | "info" | "usuario" | "portal" | "salir" | "grupo", ReactNode> = {
+    estadisticas: <><path d="M4 20h16" /><path d="M7 16v-5M12 16V7M17 16v-8" /></>,
+    bitacora: <><rect x="4.5" y="3.5" width="15" height="17" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></>,
+    configuracion: <><circle cx="12" cy="12" r="3" /><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8" /></>,
+    estados: <><path d="M3 12h4l2.5-6 4 12 2.5-6H21" /></>,
+    fuentes: <><path d="M5 4.5h10a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3V4.5Z" /><path d="M5 17a3 3 0 0 1 3-3h10M9 8.5h5" /></>,
+    recompensa: <><circle cx="12" cy="9" r="5" /><path d="m9 13.5-1.5 7 4.5-2.5 4.5 2.5-1.5-7" /></>,
+    recuperacion: <><circle cx="8.5" cy="12" r="3.5" /><path d="M12 12h8.5M17 12v3M20 12v2" /></>,
+    evidencias: <><rect x="3.5" y="6" width="17" height="13" rx="2" /><circle cx="12" cy="12.5" r="3.2" /><path d="M8.5 6 10 3.8h4L15.5 6" /></>,
+    buscarCuenta: <><circle cx="10.5" cy="10.5" r="6" /><path d="m20 20-5-5" /><circle cx="10.5" cy="9" r="1.8" /><path d="M7.6 13.4c.6-1.2 1.6-1.8 2.9-1.8s2.3.6 2.9 1.8" /></>,
+    revision: <><path d="M14 3.5H6.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V9L14 3.5Z" /><path d="M14 3.5V9h5.5" /><path d="m9 14.5 2 2 4-4" /></>,
+    grupo: <><circle cx="9" cy="8.5" r="3" /><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6" /><circle cx="16.5" cy="9.5" r="2.4" /><path d="M16 14.2c2.3 0 4 1.4 4.5 4" /></>,
     salir: <><path d="M14 4.5h3.5a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H14" /><path d="M10 8l-4 4 4 4M6 12h9" /></>,
     portal: <><path d="M3.5 11 12 4l8.5 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M10 20v-5.5h4V20" /></>,
     credencial: <><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="11" r="2.2" /><path d="M5.8 16c.6-1.5 1.8-2.3 3.2-2.3s2.6.8 3.2 2.3M14.5 10h4M14.5 13.5h3" /></>,
