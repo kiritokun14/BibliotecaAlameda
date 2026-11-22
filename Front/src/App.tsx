@@ -24,11 +24,11 @@ const RecuperacionAsistida = lazy(() => import("./pages/acceso/recuperar/Recuper
 
 const AltaAsistida = lazy(() => import("./pages/personal/AltaAsistida"));
 
-const ModeracionForo = lazy(() => import("./pages/admin/participantes/ModeracionForo.tsx"));
 const AvisosManuales = lazy(() => import("./pages/admin/atencion/AvisosManuales.tsx"));
 const Tramites = lazy(() => import("./pages/publico/tramites/Tramites.tsx"));
-const Credenciales = lazy(() => import("./pages/admin/atencion/AtencionTramites.tsx"));
-const DetalleCredencial = lazy(() => import("./pages/admin/atencion/AtencionTramites.tsx"));
+// Solicitudes de credencial rehechas con las piezas del panel (perfil de Préstamos, 22 nov 2026); Propuestas sigue en AtencionTramites
+const Credenciales = lazy(() => import("./pages/admin/atencion/credenciales/SolicitudesCredencial.tsx"));
+const DetalleCredencial = lazy(() => import("./pages/admin/atencion/credenciales/SolicitudesCredencial.tsx").then(m => ({ default: m.DetalleCredencial })));
 const Espacios = lazy(() => import("./pages/admin/atencion/espacios/Espacios.tsx"));
 const DetalleEspacio = lazy(() => import("./pages/admin/atencion/espacios/DetalleEspacio.tsx"));
 const Propuestas = lazy(() => import("./pages/admin/atencion/AtencionTramites.tsx"));
@@ -203,7 +203,8 @@ function App() {
         <Route path="/recuperar/enlace-vencido" element={<EnlaceVencido />} />
         <Route path="/recuperar/asistida" element={<RecuperacionAsistida />} />
 
-        <Route path="/admin/participantes/foro" element={<AccesoPanel><ModeracionForo /></AccesoPanel>} />
+        {/* Bibliocomunidad se eliminó (Aldahir, 22 nov 2026): sus direcciones llevan al Resumen */}
+        <Route path="/admin/participantes/foro" element={<Navigate to="/admin/resumen" replace />} />
         <Route path="/admin/atencion/avisos" element={<AccesoPanel><AvisosManuales /></AccesoPanel>} />
         {/* Panel del personal: bandejas de atención. */}
         <Route path="/admin" element={<AccesoPanel><Navigate to="/admin/atencion/credenciales" replace /></AccesoPanel>} />
@@ -239,7 +240,7 @@ function App() {
         <Route path="/admin/atencion/avisos/demostracion/:folio/retirado" element={<AccesoPanel><ResultadoAviso tipo="retirado" /></AccesoPanel>} />
         <Route path="/admin/atencion/avisos/demostracion/:folio/borrador" element={<AccesoPanel><ResultadoAviso tipo="borrador" /></AccesoPanel>} />
 
-        <Route path="/admin/atencion/bibliocomunidad" element={<AccesoPanel><AtencionComunidad key="bibliocomunidad" bibliocomunidad /></AccesoPanel>} />
+        <Route path="/admin/atencion/bibliocomunidad" element={<Navigate to="/admin/resumen" replace />} />
         <Route path="/admin/atencion/contactos" element={<AccesoPanel><AtencionComunidad key="contactos" /></AccesoPanel>} />
         <Route path="/admin/administracion/fuentes" element={<AccesoPanel><FuentesAsistente /></AccesoPanel>} />
         {/* Administración: Cuentas y permisos, Estadísticas, Bitácora y Configuración */}

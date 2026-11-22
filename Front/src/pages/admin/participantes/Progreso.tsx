@@ -1,220 +1,196 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
 import "../contenidos/Contenidos.css";
 import "../actividades/EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import "../actividades/Actividades.css";
-import { BloqueResumen, Buscador, Chip, Encabezado, EstadoVacio, Filtros, Migas, Pagina, Paginacion, PieDatos, Tabla, Tarjeta } from "../contenidoDemo/piezas";
-import { clasesBoton, paginar } from "../contenidoDemo/utiles";
+import { Migas } from "../contenidoDemo/piezas";
+import { Buscador, Chip, Cifra, Encabezado, Icono, Plegable, Segmentado, Tarjeta, Vacio, type TonoEstado } from "../piezasPanel";
 import { fechaCorta } from "../actividades/datos";
-import {
-    avanceDe, disponibilidad, estadoRecompensa, NOMBRE_ESTADO_RECOMPENSA, obtenerMeta, obtenerRecompensa, porEntregarDe, useProgreso,
-    type Entrega, type Meta, type Participante, type Recompensa,
-} from "./progreso";
+import { avanceDe, disponibilidad, estadoRecompensa, NOMBRE_ESTADO_RECOMPENSA, obtenerMeta, obtenerRecompensa, porEntregarDe, useProgreso } from "./progreso";
 import { BASE_PROGRESO, TONO_RECOMPENSA } from "./utiles";
-import iconoCheck from "../../../assets/admin/contenidos/resumen-check.svg";
-import iconoReloj from "../../../assets/admin/contenidos/resumen-reloj-dorado.svg";
-import iconoArchivo from "../../../assets/admin/participantes/resumen-archivo-guinda.svg";
-import iconoEstrella from "../../../assets/admin/participantes/tarjeta-estrella.svg";
-import iconoLista from "../../../assets/admin/contenidos/tarjeta-lista.svg";
-import vacioArchivo from "../../../assets/admin/actividades/vacio-archivo.svg";
-import vacioBuscar from "../../../assets/admin/contenidos/vacio-buscar.svg";
+
+// Participantes · Progreso y recompensas: lista (Figma 572:27482), reglas (572:29055), recompensas (572:30815),
+// historial de entregas (637:51129); vacíos 572:31267 y 572:31491. Rehecho con las piezas del panel (22 nov 2026).
+// Los datos siguen siendo de ejemplo (progreso.ts); el backend lo prepara otro programador.
 
 type Vista = "participantes" | "reglas" | "recompensas" | "historial";
-const POR_PAGINA = 6;
+const tono = (t: string): TonoEstado => (t === "azul" ? "verde" : (t as TonoEstado));
 
-// Barra de avance (la misma que el cupo de Actividades)
-function BarraAvance({ hechas, necesarias }: { hechas: number; necesarias: number }) {
+function Avance({ hechas, necesarias }: { hechas: number; necesarias: number }) {
+    const p = Math.min(100, (hechas / Math.max(1, necesarias)) * 100);
     return (
-        <span className="ac-cupo">
-            <span className="ac-cupo__barra" role="img" aria-label={`${hechas} de ${necesarias} actividades`}>
-                <span className="ac-cupo__relleno ac-cupo__relleno--verde" style={{ width: `${Math.min(100, (hechas / Math.max(1, necesarias)) * 100)}%` }} />
-            </span>
-            <strong>{Math.min(hechas, necesarias)} / {necesarias}</strong>
+        <span className="ins-cupo" role="img" aria-label={`${hechas} de ${necesarias} actividades`}>
+            <span className="ins-cupo__texto"><strong>{Math.min(hechas, necesarias)}</strong> de {necesarias}<small>{p >= 100 ? "Cumplida" : `${Math.round(p)}%`}</small></span>
+            <span className="pz-ocupacion" aria-hidden="true"><span className={`pz-ocupacion__relleno pz-ocupacion__relleno--${p >= 100 ? "verde" : "dorado"}`} style={{ width: `${p}%` }} /></span>
         </span>
     );
 }
 
-// Participantes · Progreso y recompensas: lista (Figma 572:27482), reglas (572:29055), recompensas (572:30815),
-// historial de entregas (637:51129); vacíos 572:31267 y 572:31491
 function Progreso() {
     const [params, setParams] = useSearchParams();
-    const navigate = useNavigate();
     const { participantes, metas, recompensas, entregas, ajustesMes } = useProgreso();
     const vista = (["participantes", "reglas", "recompensas", "historial"].includes(params.get("vista") ?? "") ? params.get("vista") : "participantes") as Vista;
     const [busqueda, setBusqueda] = useState("");
-    const [pagina, setPagina] = useState(0);
     const texto = busqueda.trim().toLowerCase();
-    const ir = (v: Vista) => { setParams(v === "participantes" ? {} : { vista: v }); setBusqueda(""); setPagina(0); };
+    const ir = (v: Vista) => { setParams(v === "participantes" ? {} : { vista: v }); setBusqueda(""); };
 
     const mes = new Date().toISOString().slice(0, 7);
     const cumplidasMes = participantes.filter((p) => avanceDe(p).cumplida && (p.entregada?.fecha.startsWith(mes) || p.avances[0]?.fecha.startsWith(mes))).length;
-    const porEntregar = participantes.filter((p) => estadoRecompensa(p) === "por-entregar").length;
-
-    const pestanas = (
-        <div className="cn-barra">
-            <Filtros
-                etiqueta="Qué ver"
-                valor={vista === "historial" ? "recompensas" : vista}
-                alCambiar={ir}
-                opciones={[{ valor: "participantes", texto: "Participantes" }, { valor: "reglas", texto: "Reglas de progreso" }, { valor: "recompensas", texto: vista === "historial" ? "Historial de entregas" : "Recompensas" }]}
-            />
-            <Buscador
-                texto={vista === "participantes" ? "Buscar por nombre o credencial" : vista === "reglas" ? "Buscar meta" : vista === "historial" ? "Buscar persona o recompensa" : "Buscar recompensa"}
-                valor={busqueda}
-                alCambiar={(v) => { setBusqueda(v); setPagina(0); }}
-            />
-        </div>
-    );
-    const sinResultados = (cosa: string) => (
-        <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para «${busqueda.trim()}»`} texto={`Prueba con otro nombre de ${cosa}.`} accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
-    );
-
-    const encabezado = {
-        participantes: { etiqueta: "Participantes · Progreso", titulo: "Progreso y recompensas", texto: "Cómo avanzan las personas en las metas de lectura y participación, y qué recompensas les corresponden.", miga: "Lista" },
-        reglas: { etiqueta: "Participantes · Progreso", titulo: "Reglas de progreso", texto: "Metas y puntos que definen cuándo una persona gana una recompensa.", miga: "Reglas" },
-        recompensas: { etiqueta: "Participantes · Progreso", titulo: "Recompensas", texto: "Catálogo de lo que se puede entregar y cuánto hay.", miga: "Recompensas" },
-        historial: { etiqueta: "Participantes · Historial", titulo: "Historial de entregas", texto: "Quién recibió cada recompensa, cuándo y quién la entregó.", miga: "Historial de entregas" },
+    const pendientes = participantes.filter((p) => estadoRecompensa(p) === "por-entregar");
+    const textos = {
+        participantes: { titulo: "Avance de las personas", texto: "Quien está más cerca de su meta va primero", buscar: "Buscar por nombre o credencial", icono: "grupo" as const },
+        reglas: { titulo: "Metas", texto: "Cuándo una persona gana una recompensa", buscar: "Buscar meta", icono: "lista" as const },
+        recompensas: { titulo: "Catálogo de recompensas", texto: "Lo que se puede entregar y cuánto queda", buscar: "Buscar recompensa", icono: "recompensa" as const },
+        historial: { titulo: "Historial de entregas", texto: "Quién recibió cada recompensa, cuándo y quién la entregó", buscar: "Buscar persona o recompensa", icono: "bitacora" as const },
     }[vista];
+    const accion = vista === "reglas" ? <Link to={`${BASE_PROGRESO}/metas/nueva`} className="pz-boton pz-boton--chico">Nueva meta</Link>
+        : vista === "recompensas" ? <Link to={`${BASE_PROGRESO}/recompensas/nueva`} className="pz-boton pz-boton--chico">Nueva recompensa</Link> : undefined;
+    const sinResultados = (cosa: string) => <Vacio icono="buscarCuenta" titulo={`Sin resultados para «${busqueda.trim()}»`} texto={`Prueba con otro nombre de ${cosa}.`}
+        accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => setBusqueda("")}>Limpiar búsqueda</button>} />;
 
-    let contenido;
+    let lista;
     if (vista === "participantes") {
-        const filas = participantes.filter((p) => !texto || p.nombre.toLowerCase().includes(texto) || p.folio.toLowerCase().includes(texto) || p.credencial.toLowerCase().includes(texto)).sort((a, b) => b.folio.localeCompare(a.folio));
-        const { paginas, actual, visibles } = paginar(filas, pagina, POR_PAGINA);
-        contenido = (
-            <Tarjeta icono={iconoEstrella} titulo="Avance de las personas">
-                {pestanas}
-                {participantes.length === 0 ? (
-                    <EstadoVacio icono={vacioArchivo} titulo="Aún no hay participantes" texto="Cuando alguien con cuenta asista a una actividad, aparecerá aquí su avance." />
-                ) : filas.length === 0 ? sinResultados("persona o credencial") : (
-                    <Tabla
-                        columnas={[
-                            { titulo: "N.º", ancho: 80, folio: true, celda: (p: Participante) => p.folio },
-                            { titulo: "Persona", fuerte: true, celda: (p: Participante) => p.nombre },
-                            { titulo: "Meta actual", ancho: 160, celda: (p: Participante) => obtenerMeta(p.meta)?.nombre ?? "Sin meta" },
-                            { titulo: "Avance", ancho: 170, celda: (p: Participante) => { const a = avanceDe(p); return <BarraAvance hechas={a.hechas} necesarias={a.necesarias} />; } },
-                            { titulo: "Puntos", ancho: 80, celda: (p: Participante) => avanceDe(p).puntos },
-                            { titulo: "Recompensa", ancho: 160, celda: (p: Participante) => { const e = estadoRecompensa(p); return <Chip tono={TONO_RECOMPENSA[e]} ancho={150}>{NOMBRE_ESTADO_RECOMPENSA[e]}</Chip>; } },
-                            { titulo: "Acción", ancho: 70, celda: (p: Participante) => <Link to={`${BASE_PROGRESO}/${p.folio}`} className="cn-enlace">Ver<span className="cn-solo-lectores"> {p.nombre}</span></Link> },
-                        ]}
-                        filas={visibles}
-                        clave={(p) => p.folio}
-                    />
-                )}
-                {filas.length > 0 && (
-                    <div className="cn-pie-tabla">
-                        <p>Mostrando {visibles.length} de {filas.length}</p>
-                        <Paginacion pagina={actual} paginas={paginas} alCambiar={setPagina} />
-                    </div>
-                )}
-            </Tarjeta>
-        );
+        const filas = participantes.filter((p) => !texto || p.nombre.toLowerCase().includes(texto) || p.folio.toLowerCase().includes(texto) || p.credencial.toLowerCase().includes(texto))
+            .sort((a, b) => { const x = avanceDe(a), y = avanceDe(b); return y.hechas / Math.max(1, y.necesarias) - x.hechas / Math.max(1, x.necesarias); });
+        lista = participantes.length === 0 ? <Vacio icono="grupo" titulo="Aún no hay participantes" texto="Cuando alguien con cuenta asista a una actividad, aparecerá aquí su avance." />
+            : filas.length === 0 ? sinResultados("persona o credencial") : (
+                <ul className="pz-filas">
+                    {filas.map((p) => {
+                        const a = avanceDe(p);
+                        const e = estadoRecompensa(p);
+                        return (
+                            <li key={p.folio}>
+                                <article className={`pz-fila pr-fila${e === "por-entregar" ? " pz-fila--espera" : ""}`}>
+                                    <span className="pz-rol-avatar pz-tono-rol--usuario ins-avatar" aria-hidden="true">{p.nombre.charAt(0)}</span>
+                                    <div className="pz-fila__textos">
+                                        <h4 className="pz-fila__titulo">{p.nombre}</h4>
+                                        <p className="pz-fila__detalle"><span className="pz-fila__folio">{p.folio}</span><span>{obtenerMeta(p.meta)?.nombre ?? "Sin meta"}</span><span>{a.puntos} puntos</span></p>
+                                    </div>
+                                    <Avance hechas={a.hechas} necesarias={a.necesarias} />
+                                    <Chip tono={tono(TONO_RECOMPENSA[e])}>{NOMBRE_ESTADO_RECOMPENSA[e]}</Chip>
+                                    <Link to={`${BASE_PROGRESO}/${p.folio}`} className={`pz-boton pz-boton--chico${e === "por-entregar" ? "" : " pz-boton--contorno"}`}>{e === "por-entregar" ? "Entregar" : "Ver"}<span className="solo-lectores"> {p.nombre}</span></Link>
+                                </article>
+                            </li>
+                        );
+                    })}
+                </ul>
+            );
     } else if (vista === "reglas") {
         const filas = metas.filter((m) => !texto || m.nombre.toLowerCase().includes(texto));
-        contenido = (
-            <>
-                <Tarjeta icono={iconoLista} titulo="Metas activas">
-                    {pestanas}
-                    {filas.length === 0 ? (texto ? sinResultados("meta") : <EstadoVacio icono={vacioArchivo} titulo="Aún no hay metas" texto="Crea la primera con «Nueva meta»." />) : (
-                        <Tabla
-                            columnas={[
-                                { titulo: "Meta", ancho: 190, folio: true, celda: (m: Meta) => m.nombre },
-                                { titulo: "Condición", fuerte: true, celda: (m: Meta) => `${m.necesarias} actividades en ${m.plazo}` },
-                                { titulo: "Recompensa", ancho: 200, celda: (m: Meta) => obtenerRecompensa(m.recompensa)?.nombre.replace(/ «.*»/, "") ?? "Sin recompensa" },
-                                { titulo: "Personas", ancho: 90, celda: (m: Meta) => participantes.filter((p) => p.meta === m.id).length },
-                                { titulo: "Estado", ancho: 130, celda: (m: Meta) => <Chip tono={m.estado === "activa" ? "verde" : "gris"} ancho={120}>{m.estado === "activa" ? "Activa" : "Borrador"}</Chip> },
-                                { titulo: "Acción", ancho: 90, celda: (m: Meta) => <Link to={`${BASE_PROGRESO}/metas/${m.id}`} className="cn-enlace">Editar<span className="cn-solo-lectores"> {m.nombre}</span></Link> },
-                            ]}
-                            filas={filas}
-                            clave={(m) => m.id}
-                        />
-                    )}
-                </Tarjeta>
-                <div className="cn-acciones"><Link to={`${BASE_PROGRESO}/metas/nueva`} className={clasesBoton("verde")}>Nueva meta</Link></div>
-            </>
+        lista = filas.length === 0 ? (texto ? sinResultados("meta") : <Vacio icono="lista" titulo="Aún no hay metas" texto="Crea la primera con «Nueva meta»." />) : (
+            <ul className="pz-filas">
+                {filas.map((m) => (
+                    <li key={m.id}>
+                        <article className="pz-fila">
+                            <span className="pz-fila__icono" aria-hidden="true"><Icono nombre="lista" /></span>
+                            <div className="pz-fila__textos">
+                                <h4 className="pz-fila__titulo">{m.nombre}</h4>
+                                <p className="pz-fila__detalle"><span>{m.necesarias} actividades en {m.plazo}</span><span>Recompensa: {obtenerRecompensa(m.recompensa)?.nombre.replace(/ «.*»/, "") ?? "sin recompensa"}</span>
+                                    <span>{participantes.filter((p) => p.meta === m.id).length} personas</span></p>
+                            </div>
+                            <Chip tono={m.estado === "activa" ? "verde" : "gris"}>{m.estado === "activa" ? "Activa" : "Borrador"}</Chip>
+                            <Link to={`${BASE_PROGRESO}/metas/${m.id}`} className="pz-boton pz-boton--contorno pz-boton--chico">Editar<span className="solo-lectores"> {m.nombre}</span></Link>
+                        </article>
+                    </li>
+                ))}
+            </ul>
         );
     } else if (vista === "recompensas") {
         const filas = recompensas.filter((r) => !texto || r.nombre.toLowerCase().includes(texto));
-        contenido = (
-            <>
-                <Tarjeta icono={iconoEstrella} titulo="Catálogo">
-                    {pestanas}
-                    {filas.length === 0 ? (texto ? sinResultados("recompensa") : <EstadoVacio icono={vacioArchivo} titulo="Aún no hay recompensas" texto="Crea la primera con «Nueva recompensa»." />) : (
-                        <>
-                            <Tabla
-                                columnas={[
-                                    { titulo: "Recompensa", folio: true, celda: (r: Recompensa) => <Link to={`${BASE_PROGRESO}/recompensas/${r.id}`} className="cn-enlace">{r.nombre}</Link> },
-                                    { titulo: "Tipo", ancho: 130, celda: (r: Recompensa) => <strong>{r.tipo}</strong> },
-                                    { titulo: "Existencias", ancho: 110, celda: (r: Recompensa) => (r.existencias === null ? "—" : r.existencias) },
-                                    { titulo: "Entregadas", ancho: 100, celda: (r: Recompensa) => r.entregadas },
-                                    { titulo: "Por entregar", ancho: 130, celda: (r: Recompensa) => { const n = porEntregarDe(r.id); return <Chip tono={n > 0 ? "dorado" : "verde"} ancho={110}>{n}</Chip>; } },
-                                    { titulo: "Estado", ancho: 130, celda: (r: Recompensa) => { const d = disponibilidad(r); return <Chip tono={d.tono} ancho={120}>{d.texto}</Chip>; } },
-                                ]}
-                                filas={filas}
-                                clave={(r) => r.id}
-                            />
-                            <p className="cn-nota">{filas.length} recompensas</p>
-                        </>
-                    )}
-                </Tarjeta>
-                <div className="cn-acciones">
-                    <Link to={`${BASE_PROGRESO}/recompensas/nueva`} className={clasesBoton("verde")}>Nueva recompensa</Link>
-                    <button type="button" className={clasesBoton("verde")} onClick={() => ir("historial")}>Ver historial de entregas</button>
-                </div>
-            </>
+        lista = filas.length === 0 ? (texto ? sinResultados("recompensa") : <Vacio icono="recompensa" titulo="Aún no hay recompensas" texto="Crea la primera con «Nueva recompensa»." />) : (
+            <ul className="pz-filas">
+                {filas.map((r) => {
+                    const d = disponibilidad(r);
+                    const n = porEntregarDe(r.id);
+                    return (
+                        <li key={r.id}>
+                            <article className="pz-fila pr-fila">
+                                <span className="pz-fila__icono" aria-hidden="true"><Icono nombre="recompensa" /></span>
+                                <div className="pz-fila__textos">
+                                    <h4 className="pz-fila__titulo">{r.nombre}</h4>
+                                    <p className="pz-fila__detalle"><span>{r.tipo}</span><span>{r.entregadas} entregadas</span>{n > 0 && <span className="pz-fila__plazo pr-pendiente">{n} por entregar</span>}</p>
+                                </div>
+                                <span className="ins-cupo"><span className="ins-cupo__texto"><strong>{r.existencias === null ? "Sin límite" : r.existencias}</strong>{r.existencias !== null && " en existencia"}</span></span>
+                                <Chip tono={tono(d.tono)}>{d.texto}</Chip>
+                                <Link to={`${BASE_PROGRESO}/recompensas/${r.id}`} className="pz-boton pz-boton--contorno pz-boton--chico">Abrir<span className="solo-lectores"> {r.nombre}</span></Link>
+                            </article>
+                        </li>
+                    );
+                })}
+            </ul>
         );
     } else {
         const filas = entregas.filter((e) => !texto || e.persona.toLowerCase().includes(texto) || (obtenerRecompensa(e.recompensa)?.nombre ?? "").toLowerCase().includes(texto));
-        contenido = (
-            <>
-                <Tarjeta icono={iconoEstrella} titulo="Entregas">
-                    {pestanas}
-                    {filas.length === 0 ? (texto ? sinResultados("persona o recompensa") : <EstadoVacio icono={vacioArchivo} titulo="Aún no hay entregas" texto="Las recompensas entregadas aparecerán aquí." />) : (
-                        <>
-                            <Tabla
-                                columnas={[
-                                    { titulo: "Recompensa", folio: true, celda: (e: Entrega) => obtenerRecompensa(e.recompensa)?.nombre ?? e.recompensa },
-                                    { titulo: "Persona", ancho: 200, fuerte: true, celda: (e: Entrega) => e.persona },
-                                    { titulo: "Fecha", ancho: 110, celda: (e: Entrega) => fechaCorta(e.fecha) },
-                                    { titulo: "Entregó", ancho: 150, celda: (e: Entrega) => e.entrego },
-                                    { titulo: "Aviso", ancho: 130, celda: (e: Entrega) => <Chip tono={e.aviso === "enviado" ? "dorado" : "verde"} ancho={120}>{e.aviso === "enviado" ? "Enviado" : "Sin contacto"}</Chip> },
-                                    { titulo: "Estado", ancho: 130, celda: (e: Entrega) => <Chip tono={e.estado === "entregada" ? "verde" : "dorado"} ancho={120}>{e.estado === "entregada" ? "Entregada" : "Por recoger"}</Chip> },
-                                ]}
-                                filas={filas}
-                                clave={(e) => e.id}
-                            />
-                            <p className="cn-nota">{filas.length} entregas</p>
-                        </>
-                    )}
-                </Tarjeta>
-                <div className="cn-acciones"><button type="button" className={clasesBoton("verde")} onClick={() => ir("recompensas")}>Volver a Recompensas</button></div>
-            </>
+        lista = filas.length === 0 ? (texto ? sinResultados("persona o recompensa") : <Vacio icono="bitacora" titulo="Aún no hay entregas" texto="Las recompensas entregadas aparecerán aquí." />) : (
+            <ul className="pz-filas">
+                {filas.map((e) => {
+                    const [d, m] = fechaCorta(e.fecha).split(" ");
+                    return (
+                        <li key={e.id}>
+                            <article className="pz-fila">
+                                <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{(m ?? "").replace(".", "")}</span></span>
+                                <div className="pz-fila__textos">
+                                    <h4 className="pz-fila__titulo">{obtenerRecompensa(e.recompensa)?.nombre ?? e.recompensa}</h4>
+                                    <p className="pz-fila__detalle"><span>Para {e.persona}</span><span>Entregó {e.entrego}</span><span>{e.aviso === "enviado" ? "Aviso enviado" : "Sin contacto"}</span></p>
+                                </div>
+                                <Chip tono={e.estado === "entregada" ? "verde" : "dorado"}>{e.estado === "entregada" ? "Entregada" : "Por recoger"}</Chip>
+                                <span aria-hidden="true" />
+                            </article>
+                        </li>
+                    );
+                })}
+            </ul>
         );
     }
 
     return (
-        <PanelLayout titulo="Participantes" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Participantes"], ["Progreso y recompensas", vista === "participantes" ? undefined : BASE_PROGRESO], [encabezado.miga]]} />
-                <Encabezado etiqueta={encabezado.etiqueta} titulo={encabezado.titulo} texto={encabezado.texto} />
-                {vista === "participantes" && (
-                    <BloqueResumen
-                        insignia="Progreso y recompensas"
-                        titulo="Resumen del"
-                        resalte="programa"
-                        subtitulo="Metas, avances y recompensas de participantes"
-                        accesos={[
-                            { icono: iconoCheck, numero: participantes.length, titulo: "Participantes activos", texto: "Con cuenta", enlace: "", tono: "verde" },
-                            { icono: iconoCheck, numero: cumplidasMes, titulo: "Metas cumplidas", texto: "Este mes", enlace: "Ver metas", tono: "verde", alPresionar: () => ir("reglas") },
-                            { icono: iconoReloj, numero: porEntregar, titulo: "Recompensas por entregar", texto: "Pendientes", enlace: "Ver recompensas", tono: "dorado", alPresionar: () => ir("recompensas") },
-                            { icono: iconoArchivo, numero: ajustesMes, titulo: "Ajustes manuales", texto: "Este mes", enlace: "Ver ficha", tono: "guinda", alPresionar: () => { const p = participantes.find((x) => x.avances.some((a) => a.origen === "Ajuste manual")); if (p) navigate(`${BASE_PROGRESO}/${p.folio}`); } },
-                        ]}
-                    />
-                )}
-                {contenido}
-                <PieDatos />
-            </Pagina>
+        <PanelLayout titulo="Participantes" tema="contenidos paleta">
+            <Migas pasos={[["Participantes"], ["Progreso y recompensas"]]} />
+            <div className="pz-pagina">
+                <Encabezado titulo="Progreso y recompensas" texto="Cómo avanzan las personas en sus metas de lectura y participación, y qué recompensas les corresponden.">
+                    <Cifra icono="grupo" valor={participantes.length} texto="participantes" activa={vista === "participantes"} alPresionar={() => ir("participantes")} />
+                    <Cifra icono="check" valor={cumplidasMes} texto="metas cumplidas este mes" activa={vista === "reglas"} alPresionar={() => ir("reglas")} />
+                    <Cifra icono="recompensa" tono="vino" valor={pendientes.length} texto="por entregar" activa={vista === "recompensas"} alPresionar={() => ir("recompensas")} />
+                </Encabezado>
+                <div className="pz-columnas">
+                    <Tarjeta icono={textos.icono} id="progreso-lista" titulo={textos.titulo} texto={textos.texto} className="pz-pendientes" accion={accion}>
+                        <div className="pz-herramientas">
+                            <Segmentado<Vista> etiqueta="Qué ver" valor={vista} alCambiar={ir} opciones={[
+                                { valor: "participantes", texto: "Participantes", cantidad: participantes.length },
+                                { valor: "reglas", texto: "Metas", cantidad: metas.length },
+                                { valor: "recompensas", texto: "Recompensas", cantidad: recompensas.length },
+                                { valor: "historial", texto: "Entregas", cantidad: entregas.length },
+                            ]} />
+                            <Buscador etiqueta={textos.buscar} placeholder={textos.buscar} valor={busqueda} alCambiar={setBusqueda} />
+                        </div>
+                        <div className="pz-grupos" tabIndex={0} role="region" aria-label={textos.titulo}>{lista}</div>
+                    </Tarjeta>
+                    <aside className="pz-lateral" aria-label="Por entregar">
+                        <Tarjeta icono="recompensa" id="progreso-pendientes" titulo="Por entregar" texto={pendientes.length ? "Ya cumplieron su meta" : "Todo entregado"} className="pz-tarjeta--actividades">
+                            {pendientes.length ? (
+                                <ul className="ins-llenas">
+                                    {pendientes.map((p) => (
+                                        <li key={p.folio}>
+                                            <Link to={`${BASE_PROGRESO}/${p.folio}`} className="pz-enlace-fila">{p.nombre}</Link>
+                                            <small>{obtenerRecompensa(obtenerMeta(p.meta)?.recompensa ?? "")?.nombre ?? "Recompensa de su meta"}</small>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : <Vacio icono="check" titulo="Nada pendiente" texto="Cuando alguien cumpla su meta, aparecerá aquí para entregarle su recompensa." />}
+                            <p className="pz-acciones__nota">{ajustesMes} {ajustesMes === 1 ? "ajuste manual" : "ajustes manuales"} este mes.</p>
+                        </Tarjeta>
+                        <Plegable titulo="Cómo se gana una recompensa">
+                            <ul>
+                                <li>Cada actividad a la que asiste una persona con cuenta suma a su meta.</li>
+                                <li>Al cumplir la meta, su recompensa queda «Por entregar».</li>
+                                <li>Al entregarla, se registra quién la entregó y se avisa a la persona.</li>
+                            </ul>
+                        </Plegable>
+                    </aside>
+                </div>
+            </div>
         </PanelLayout>
     );
 }

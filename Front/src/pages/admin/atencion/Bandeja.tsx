@@ -1,20 +1,14 @@
+// Atención: bandeja compartida de Solicitudes de credencial, Solicitudes de espacios y Propuestas de eventos.
+// Rehecha con las piezas del panel (22 nov 2026): cifras que filtran → lista con los datos de cada solicitud en fichas
+// y la acción | lo que lleva más tiempo esperando y cómo se atiende. La configuración de cada área no cambia.
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
-import { Chip, EncabezadoPagina, EstadoVacio, Migas, type TonoChip } from "../componentes";
-import { IconoAviso, IconoBuscar, IconoLista, IconoReloj } from "../contenidos/piezas";
+import { Migas } from "../componentes";
+import { Buscador, Chip, Cifra, Encabezado, Icono, Plegable, Segmentado, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
 import type { Estado } from "./datos";
-import vacioCheck from "../../../assets/admin/vacio-check.svg";
-import vacioBuscar from "../../../assets/admin/vacio-search.svg";
 
-const TONO_ESTADO: Record<Estado, TonoChip> = {
-    pendiente: "guinda",
-    observaciones: "dorado",
-    aprobada: "verde",
-    rechazada: "gris",
-};
-
-const POR_PAGINA = 12;
-const EN_BANDEJA = 6;
+const TONO_ESTADO: Record<Estado, TonoEstado> = { pendiente: "dorado", observaciones: "guinda", aprobada: "verde", rechazada: "gris" };
+const ICONO_ESTADO: Record<Estado, NombreIcono> = { pendiente: "reloj", observaciones: "alerta", aprobada: "check", rechazada: "lista" };
 
 type SolicitudBase = { folio: string; persona: string; enviada: string; estado: Estado };
 
@@ -37,7 +31,7 @@ export type ConfigArea = {
     accionPendiente: string; // "Cotejar" / "Revisar"
     notaBandeja: string;
     textoVacio: string;
-    ejemplo?: boolean; // false cuando la lista ya viene del backend (quita los "")
+    ejemplo?: boolean; // false cuando la lista ya viene del backend
 };
 
 type BandejaProps<T extends SolicitudBase> = {
@@ -50,216 +44,114 @@ type BandejaProps<T extends SolicitudBase> = {
 
 type Filtro = "todas" | Estado;
 
+const diasDesde = (iso: string) => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
+const esperando = (iso: string) => { const d = diasDesde(iso); return d === 0 ? "Llegó hoy" : d === 1 ? "Espera desde ayer" : `Espera desde hace ${d} días`; };
+
 function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas, coincide }: BandejaProps<T>) {
     const [filtro, setFiltro] = useState<Filtro>(vista === "bandeja" ? "pendiente" : "todas");
     const [busqueda, setBusqueda] = useState("");
-    const [pagina, setPagina] = useState(0);
 
     const cuenta = (estado: Estado) => solicitudes.filter((s) => s.estado === estado).length;
     const pendientes = cuenta("pendiente");
     const observaciones = cuenta("observaciones");
     const resueltas = cuenta("aprobada") + cuenta("rechazada");
 
-    // En la bandeja van primero las más antiguas; en "Todas", las más recientes
+    // En la bandeja van primero las más antiguas; en «Todas», las más recientes
     const ordenadas = [...solicitudes].sort((a, b) => a.enviada.localeCompare(b.enviada) || a.folio.localeCompare(b.folio));
     if (vista === "todas") ordenadas.reverse();
-
     const texto = busqueda.trim().toLowerCase();
-    const filtradas = ordenadas.filter(
-        (s) => (filtro === "todas" || s.estado === filtro) && (!texto || coincide(s, texto)),
-    );
-
-    const inicio = vista === "todas" ? pagina * POR_PAGINA : 0;
-    const visibles = filtradas.slice(inicio, inicio + (vista === "todas" ? POR_PAGINA : EN_BANDEJA));
-
-    function elegirFiltro(nuevo: Filtro) {
-        setFiltro(nuevo);
-        setPagina(0);
-    }
-
-    function quitarFiltros() {
-        setBusqueda("");
-        elegirFiltro("todas");
-    }
-
-    const filtros: { valor: Filtro; texto: string }[] = [
-        { valor: "todas", texto: `Todas (${solicitudes.length})` },
-        { valor: "pendiente", texto: `${config.estados.pendiente} (${pendientes})` },
-        { valor: "observaciones", texto: `${config.filtroObservaciones} (${observaciones})` },
-        { valor: "aprobada", texto: "Aprobadas" },
-        { valor: "rechazada", texto: "Rechazadas" },
-    ];
-
-    // Bloque «Accesos rápidos»: mismas tarjetas que la bandeja del Editor
-    const tarjetasResumen: { tono: "gris" | "guinda" | "azul"; icono: ReactNode; cantidad: number; titulo: string; texto: string; enlace: string; filtro: Filtro }[] = [
-        { tono: "gris", icono: <IconoReloj />, cantidad: pendientes, titulo: config.estados.pendiente, texto: config.resumen[0].detalle, enlace: `Ver ${config.estados.pendiente.toLowerCase()}`, filtro: "pendiente" },
-        { tono: "guinda", icono: <IconoAviso />, cantidad: observaciones, titulo: config.filtroObservaciones, texto: config.resumen[1].detalle, enlace: "Ver observaciones", filtro: "observaciones" },
-        { tono: "azul", icono: <IconoCheck />, cantidad: resueltas, titulo: `Resueltas ${config.periodoResueltas}`, texto: "Aprobadas o rechazadas.", enlace: "Ver aprobadas", filtro: "aprobada" },
-    ];
-
-    const columnasRejilla = `90px ${columnas.map((c) => (c.ancho ? `${c.ancho}px` : "minmax(140px, 1fr)")).join(" ")} 140px 90px`;
-    const paginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA));
+    const filtradas = ordenadas.filter((s) => (filtro === "todas" || s.estado === filtro) && (!texto || coincide(s, texto)));
+    const antiguas = [...solicitudes].filter((s) => s.estado === "pendiente").sort((a, b) => a.enviada.localeCompare(b.enviada)).slice(0, 4);
+    const alternar = (f: Filtro) => setFiltro(filtro === f ? "todas" : f);
+    const [principal, ...demas] = columnas;
 
     return (
         <>
-            {vista === "bandeja" ? (
-                <>
-                    <Migas pasos={[[config.titulo]]} />
-                    <EncabezadoPagina
-                        etiqueta={`Atención · ${config.titulo}`}
-                        titulo={config.titulo}
-                        texto={config.descripcion}
-                    />
-                </>
-            ) : (
-                <>
-                    <Migas pasos={[[config.titulo, config.ruta], ["Todas"]]} />
-                    <EncabezadoPagina
-                        volver={{ texto: `Volver a ${config.titulo.toLowerCase()}`, ruta: config.ruta }}
-                        etiqueta="Atención · Listado completo"
-                        titulo={config.tituloTodas}
-                        texto="Consulta el historial completo, con cualquier estado."
-                    />
-                </>
-            )}
+            <Migas pasos={vista === "bandeja" ? [[config.titulo]] : [[config.titulo, config.ruta], ["Todas"]]} />
+            <div className="pz-pagina">
+                <Encabezado titulo={vista === "bandeja" ? config.titulo : config.tituloTodas} texto={vista === "bandeja" ? config.descripcion : "El historial completo, con cualquier estado; las más recientes primero."}>
+                    <Cifra icono="reloj" tono="vino" valor={pendientes} texto={config.estados.pendiente.toLowerCase()} activa={filtro === "pendiente"} alPresionar={() => alternar("pendiente")} />
+                    <Cifra icono="alerta" valor={observaciones} texto={config.filtroObservaciones.toLowerCase()} activa={filtro === "observaciones"} alPresionar={() => alternar("observaciones")} />
+                    <Cifra icono="check" valor={resueltas} texto={`resueltas ${config.periodoResueltas}`} activa={filtro === "aprobada"} alPresionar={() => alternar("aprobada")} />
+                </Encabezado>
 
-            {vista === "bandeja" && (
-                <section className="contenidos-resumen" aria-labelledby="atencion-resumen-titulo">
-                    <h2 id="atencion-resumen-titulo">Accesos rápidos</h2>
-                    <div className="contenidos-resumen__tarjetas">
-                        {tarjetasResumen.map((t) => (
-                            <article key={t.filtro} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${t.tono}${filtro === t.filtro ? " at-tarjeta--activa" : ""}`}>
-                                <div className="contenidos-resumen__fila">
-                                    <span className="contenidos-resumen__icono">{t.icono}</span>
-                                    <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.filtro} onClick={() => elegirFiltro(t.filtro)}>
-                                        {t.enlace}
-                                    </button>
-                                </div>
-                                <p className="contenidos-resumen__cifra">{t.cantidad}</p>
-                                <p className="contenidos-resumen__titulo">{t.titulo}</p>
-                                <p className="contenidos-resumen__texto">{t.texto}</p>
-                            </article>
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            <section className="contenidos-lista" aria-labelledby="atencion-lista-titulo">
-                <div className="contenidos-lista__cabecera">
-                    <span className="contenidos-lista__icono"><IconoLista /></span>
-                    <div>
-                        <h2 id="atencion-lista-titulo">{vista === "bandeja" ? `Bandeja de ${config.sustantivo}` : "Listado completo"}</h2>
-                        <p>
-                            {vista === "bandeja"
-                                ? "Ordenadas de la más antigua a la más reciente."
-                                : `Incluye ${config.sustantivo} ${config.estados.pendiente.toLowerCase()}, ${config.filtroObservaciones.toLowerCase()} y resueltas.`}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="contenidos-lista__herramientas">
-                    <div className="contenidos-filtros" role="group" aria-label="Filtrar por estado">
-                        {filtros.map((opcion) => (
-                            <button
-                                key={opcion.valor}
-                                type="button"
-                                className={`contenidos-filtro${filtro === opcion.valor ? " contenidos-filtro--activo" : ""}`}
-                                aria-pressed={filtro === opcion.valor}
-                                onClick={() => elegirFiltro(opcion.valor)}
-                            >
-                                {opcion.texto}
-                            </button>
-                        ))}
-                    </div>
-                    <label className="contenidos-buscar">
-                        <IconoBuscar />
-                        <input
-                            type="search"
-                            placeholder={`Buscar por ${config.buscarPor}`}
-                            aria-label={`Buscar por ${config.buscarPor}`}
-                            value={busqueda}
-                            onChange={(e) => {
-                                setBusqueda(e.target.value);
-                                setPagina(0);
-                            }}
-                        />
-                    </label>
-                </div>
-
-                {visibles.length === 0 ? (
-                    texto ? (
-                        <EstadoVacio
-                            icono={vacioBuscar}
-                            titulo="Sin resultados"
-                            texto={`No encontramos ${config.sustantivo} con esa búsqueda. Revisa el ${config.buscarPor}, o quita los filtros.`}
-                            accion={{ texto: "Quitar filtros", alPresionar: quitarFiltros }}
-                        />
-                    ) : (
-                        <EstadoVacio icono={vacioCheck} titulo={`No hay ${config.sustantivo} por ahora`} texto={config.textoVacio} />
-                    )
-                ) : (
-                    <div className="contenidos-tabla" tabIndex={0} role="table" aria-label={vista === "bandeja" ? `Bandeja de ${config.sustantivo}` : "Listado completo"}>
-                        <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row" style={{ gridTemplateColumns: columnasRejilla }}>
-                            <span role="columnheader">Folio</span>
-                            {columnas.map((columna) => <span key={columna.titulo} role="columnheader">{columna.titulo}</span>)}
-                            <span role="columnheader">Estado</span>
-                            <span role="columnheader">Acción</span>
+                <div className="pz-columnas">
+                    <Tarjeta icono="lista" id="atencion-lista" titulo={vista === "bandeja" ? `Bandeja de ${config.sustantivo}` : "Listado completo"} className="pz-pendientes"
+                        texto={vista === "bandeja" ? "Primero las que llevan más tiempo esperando" : `Incluye ${config.sustantivo} por revisar, con observaciones y resueltas`}
+                        accion={vista === "bandeja"
+                            ? <Link to={`${config.ruta}/todas`} className="pz-boton pz-boton--contorno pz-boton--chico">Ver todas</Link>
+                            : <Link to={config.ruta} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a la bandeja</Link>}>
+                        <div className="pz-herramientas pz-herramientas--apiladas">
+                            <Segmentado<Filtro> etiqueta="Filtrar por estado" valor={filtro} alCambiar={setFiltro} opciones={[
+                                { valor: "todas", texto: "Todas", cantidad: solicitudes.length },
+                                { valor: "pendiente", texto: config.estados.pendiente, cantidad: pendientes, urgente: true },
+                                { valor: "observaciones", texto: config.filtroObservaciones, cantidad: observaciones },
+                                { valor: "aprobada", texto: "Aprobadas", cantidad: cuenta("aprobada") },
+                                { valor: "rechazada", texto: "Rechazadas", cantidad: cuenta("rechazada") },
+                            ]} />
+                            <Buscador etiqueta={`Buscar por ${config.buscarPor}`} placeholder={`Buscar por ${config.buscarPor}`} valor={busqueda} alCambiar={setBusqueda} />
                         </div>
-
-                        {visibles.map((solicitud) => (
-                            <div key={solicitud.folio} className="contenidos-tabla__fila" role="row" style={{ gridTemplateColumns: columnasRejilla }}>
-                                <span role="cell" className="contenidos-tabla__folio">{solicitud.folio}</span>
-                                {columnas.map((columna) => (
-                                    <span key={columna.titulo} role="cell" className="at-celda">{columna.celda(solicitud)}</span>
-                                ))}
-                                <span role="cell">
-                                    <Chip tono={TONO_ESTADO[solicitud.estado]}>{config.estados[solicitud.estado]}</Chip>
-                                </span>
-                                <span role="cell">
-                                    <Link to={`${config.ruta}/${solicitud.folio}`} className="contenidos-tabla__accion">
-                                        {solicitud.estado === "pendiente" ? config.accionPendiente : "Ver"}<span className="solo-lectores"> {solicitud.folio}</span>
-                                    </Link>
-                                </span>
+                        {filtradas.length === 0 ? (
+                            texto || filtro !== "todas"
+                                ? <Vacio icono="buscarCuenta" titulo="Sin resultados" texto={`No hay ${config.sustantivo} con esa búsqueda o ese estado.`}
+                                    accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setBusqueda(""); setFiltro("todas"); }}>Quitar filtros</button>} />
+                                : <Vacio icono="check" titulo={`No hay ${config.sustantivo} por ahora`} texto={config.textoVacio} />
+                        ) : (
+                            <div className="pz-grupos" tabIndex={0} role="region" aria-label={`Lista de ${config.sustantivo}`}>
+                                <ul className="pz-filas">
+                                    {filtradas.map((s) => (
+                                        <li key={s.folio}>
+                                            <article className={`pz-fila ba-fila${s.estado === "pendiente" ? " pz-fila--espera" : ""}`}>
+                                                <span className={`pz-fila__icono ba-icono--${s.estado}`} aria-hidden="true"><Icono nombre={ICONO_ESTADO[s.estado]} /></span>
+                                                <div className="pz-fila__textos">
+                                                    <div className="pz-fila__titulo ba-titulo">{principal ? principal.celda(s) : s.persona}</div>
+                                                    <div className="ba-datos">
+                                                        <span className="pz-fila__folio">{s.folio}</span>
+                                                        {demas.map((c) => <span key={c.titulo} className="ba-dato"><small>{c.titulo}</small>{c.celda(s)}</span>)}
+                                                    </div>
+                                                    {s.estado === "pendiente" && <p className="pz-fila__plazo">{esperando(s.enviada)}</p>}
+                                                </div>
+                                                <Chip tono={TONO_ESTADO[s.estado]}>{config.estados[s.estado]}</Chip>
+                                                <Link to={`${config.ruta}/${s.folio}`} className={`pz-boton pz-boton--chico${s.estado === "pendiente" ? "" : " pz-boton--contorno"}`}>
+                                                    {s.estado === "pendiente" ? config.accionPendiente : "Ver"}<span className="solo-lectores"> {s.folio}</span>
+                                                </Link>
+                                            </article>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                        ))}
-                    </div>
-                )}
+                        )}
+                        <div className="pz-tarjeta__pie"><p aria-live="polite">{filtradas.length} de {solicitudes.length} {config.sustantivo}</p></div>
+                    </Tarjeta>
 
-                {vista === "bandeja" ? (
-                    <div className="contenidos-lista__pie">
-                        <p>
-                            Mostrando {visibles.length} de {solicitudes.length} {config.sustantivo}. {config.notaBandeja}
-                        </p>
-                        <Link to={`${config.ruta}/todas`} className="contenidos-boton contenidos-boton--oscuro">
-                            Ver todas las {config.sustantivo}
-                        </Link>
-                    </div>
-                ) : (
-                    filtradas.length > 0 && (
-                        <div className="contenidos-lista__pie">
-                            <p>
-                                Mostrando {inicio + 1} a {inicio + visibles.length} de {filtradas.length} {config.sustantivo}
-                            </p>
-                            <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                                <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>Anterior</button>
-                                <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                                <button type="button" disabled={inicio + POR_PAGINA >= filtradas.length} onClick={() => setPagina(pagina + 1)}>Siguiente</button>
-                            </div>
-                        </div>
-                    )
-                )}
-            </section>
+                    <aside className="pz-lateral" aria-label="Lo que espera más">
+                        <Tarjeta icono="reloj" id="atencion-antiguas" titulo="Llevan más tiempo esperando" texto={pendientes ? `${pendientes} ${config.estados.pendiente.toLowerCase()}` : "Estás al día"} className="pz-tarjeta--actividades">
+                            {antiguas.length ? (
+                                <ul className="ins-llenas">
+                                    {antiguas.map((s) => (
+                                        <li key={s.folio}>
+                                            <Link to={`${config.ruta}/${s.folio}`} className="pz-enlace-fila">{s.persona}</Link>
+                                            <small>{s.folio}. {esperando(s.enviada)}</small>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : <Vacio icono="check" titulo="Nada por revisar" texto={config.textoVacio} />}
+                        </Tarjeta>
+                        <Plegable titulo={`Cómo se atienden las ${config.sustantivo}`}>
+                            <ul>
+                                <li>Abre la más antigua y revisa sus datos.</li>
+                                <li>Apruébala, propón un cambio o recházala con motivo; la persona recibe un aviso.</li>
+                                <li>{config.notaBandeja}</li>
+                            </ul>
+                        </Plegable>
+                    </aside>
+                </div>
+            </div>
         </>
     );
 }
 
-const IconoCheck = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M20 6 9 17l-5-5" />
-    </svg>
-);
-
-// Celda de dos renglones (nombre + "(ejemplo)", fecha + horario...)
+// Dos renglones en una celda: lo principal arriba y el detalle abajo
 export function CeldaDoble({ arriba, abajo }: { arriba: ReactNode; abajo: ReactNode }) {
     return (
         <span className="at-celda-doble">

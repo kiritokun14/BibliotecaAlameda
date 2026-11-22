@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
 import "../contenidos/Contenidos.css";
 import "./EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import "./Calendario.css";
 import "../atencion/AtencionTramites.css";
-import { BloqueResumen, Encabezado, Migas, Pagina } from "../contenidoDemo/piezas";
-import { Chip, EstadoVacio, type TonoChip } from "../componentes";
-import BarraFiltros, { ChipsFiltro } from "../../../components/portal/BarraFiltros";
+import { Migas } from "../contenidoDemo/piezas";
+import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Icono, Plegable, Segmentado, Tarjeta, Vacio, type TonoEstado } from "../piezasPanel";
 import { fechaCorta } from "./datos";
 import { enFiltro, NOMBRE_ESTADO_VISITA, type EstadoVisita, type FiltroVisita, type Visita } from "./visitas";
 import { BASE_VISITAS } from "./utiles";
@@ -18,25 +17,20 @@ import { hoyISO } from "./salas";
 import { ocupa, sumarDias } from "./calendario";
 import type { Actividad } from "./datos";
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
-import iconoReloj from "../../../assets/admin/contenidos/resumen-reloj-dorado.svg";
-import iconoCheck from "../../../assets/admin/contenidos/resumen-check.svg";
-import iconoArchivo from "../../../assets/admin/actividades/resumen-archivo.svg";
-import iconoX from "../../../assets/admin/actividades/resumen-x-guinda.svg";
-import vacioArchivo from "../../../assets/admin/actividades/vacio-archivo.svg";
-import vacioBuscar from "../../../assets/admin/contenidos/vacio-buscar.svg";
 
-// Actividades · Visitas y uso de espacios (Figma 567:20782, sin solicitudes 567:24903, sin resultados 567:25143; uso 567:23137).
-// Filtros iguales a los del portal (Noticias). Las visitas se ordenan por lo que hay que hacer:
-// por confirmar (la más urgente primero), próximas confirmadas e historial.
+// Actividades · Visitas y uso de espacios (rehecho con las piezas del panel, 22 nov 2026).
+// Visitas: cifras que filtran → lista agrupada por lo que toca hacer (por confirmar, próximas, historial) | la próxima visita
+// y cómo se atiende. Uso de espacios: actividades por registrar | ocupación por sala este mes.
 
 type Vista = "visitas" | "uso";
-const TONO: Record<EstadoVisita, TonoChip> = { "por-confirmar": "dorado", propuesta: "dorado", confirmada: "verde", realizada: "gris", cancelada: "guinda", rechazada: "guinda" };
+const TONO: Record<EstadoVisita, TonoEstado> = { "por-confirmar": "dorado", propuesta: "dorado", confirmada: "verde", realizada: "gris", cancelada: "guinda", rechazada: "guinda" };
 const ESTADOS: { valor: FiltroVisita; texto: string }[] = [
-    { valor: "todas", texto: "Todos los estados" }, { valor: "por-confirmar", texto: "Por confirmar" }, { valor: "confirmada", texto: "Confirmadas" },
+    { valor: "todas", texto: "Todas" }, { valor: "por-confirmar", texto: "Por confirmar" }, { valor: "confirmada", texto: "Confirmadas" },
     { valor: "realizada", texto: "Realizadas" }, { valor: "cancelada", texto: "Canceladas o rechazadas" },
 ];
 const DETALLE = (folio: string) => `/admin/atencion/espacios/${folio}`;
 const cuando = (v: Visita) => `${v.fecha}${v.hora ?? ""}`;
+const partes = (iso: string) => { const [d, m] = fechaCorta(iso).split(" "); return [d, (m ?? "").replace(".", "")]; };
 
 function Visitas() {
     const [params, setParams] = useSearchParams();
@@ -49,103 +43,125 @@ function Visitas() {
 
     const cambiarVista = (v: Vista) => { setParams(v === "uso" ? { vista: "uso" } : {}); setBusqueda(""); };
     const limpiar = () => { setBusqueda(""); setFiltro("todas"); setEspacio(""); };
+    const alternar = (f: FiltroVisita) => setFiltro(filtro === f ? "todas" : f);
 
     const cuenta = (f: FiltroVisita) => visitas.filter((v) => enFiltro(v, f)).length;
     const espacios = [...new Set(visitas.map((v) => v.espacio).filter(Boolean))].sort();
     const filtradas = visitas.filter((v) => enFiltro(v, filtro) && (!espacio || v.espacio === espacio)
         && (!texto || v.folio.toLowerCase().includes(texto) || v.grupo.toLowerCase().includes(texto) || v.espacio.toLowerCase().includes(texto)));
-    // Grupos por lo que toca hacer
-    const porConfirmar = filtradas.filter((v) => enFiltro(v, "por-confirmar")).sort((a, b) => (a.responderAntes || cuando(a)).localeCompare(b.responderAntes || cuando(b)));
-    const proximas = filtradas.filter((v) => v.estado === "confirmada").sort((a, b) => cuando(a).localeCompare(cuando(b)));
-    const historial = filtradas.filter((v) => enFiltro(v, "realizada") || enFiltro(v, "cancelada")).sort((a, b) => cuando(b).localeCompare(cuando(a)));
+    const grupos = [
+        { id: "hoy", titulo: "Por confirmar", lista: filtradas.filter((v) => enFiltro(v, "por-confirmar")).sort((a, b) => (a.responderAntes || cuando(a)).localeCompare(b.responderAntes || cuando(b))), accion: "Revisar" },
+        { id: "manana", titulo: "Próximas confirmadas", lista: filtradas.filter((v) => v.estado === "confirmada").sort((a, b) => cuando(a).localeCompare(cuando(b))), accion: "Ver" },
+        { id: "semana", titulo: "Historial", lista: filtradas.filter((v) => enFiltro(v, "realizada") || enFiltro(v, "cancelada")).sort((a, b) => cuando(b).localeCompare(cuando(a))), accion: "Ver" },
+    ].filter((g) => g.lista.length);
+    const hoy = hoyISO();
+    const siguiente = visitas.filter((v) => v.estado === "confirmada" && v.fecha >= hoy).sort((a, b) => cuando(a).localeCompare(cuando(b)))[0];
+
+    const cabecera = (
+        <Encabezado titulo="Visitas y uso de espacios" texto={vista === "uso" ? "Cómo se usó cada sala, con las actividades del calendario." : "Solicitudes de visita de grupos: confirma, da seguimiento y consulta el historial."}>
+            {vista === "visitas" && <>
+                <Cifra icono="reloj" valor={cuenta("por-confirmar")} texto="por confirmar" tono="vino" activa={filtro === "por-confirmar"} alPresionar={() => alternar("por-confirmar")} />
+                <Cifra icono="check" valor={cuenta("confirmada")} texto="confirmadas" activa={filtro === "confirmada"} alPresionar={() => alternar("confirmada")} />
+                <Cifra icono="lista" valor={cuenta("realizada")} texto="realizadas" activa={filtro === "realizada"} alPresionar={() => alternar("realizada")} />
+            </>}
+        </Encabezado>
+    );
 
     if (cargando) return (
         <PanelLayout titulo="Actividades" tema="contenidos paleta">
-            <Pagina>
+            <div className="pz-pagina">
                 <Migas pasos={[["Actividades"], ["Visitas y uso de espacios"]]} />
+                {cabecera}
                 <EsqueletoLista texto="Cargando visitas…" />
-            </Pagina>
+            </div>
         </PanelLayout>
     );
 
     return (
         <PanelLayout titulo="Actividades" tema="contenidos paleta">
-            <Pagina>
-                {error && <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar las visitas" texto={error} accion={{ texto: "Reintentar", alPresionar: reintentar }} />}
-                <Migas pasos={[["Actividades"], ["Visitas y uso de espacios"], [vista === "uso" ? "Registro de uso" : "Bandeja"]]} />
-                <Encabezado etiqueta="Actividades · Visitas" titulo="Visitas y uso de espacios"
-                    texto={vista === "uso" ? "Registro de cómo se usó cada sala." : "Solicitudes de visita de grupos: confirma, da seguimiento y consulta el historial."} />
+            <div className="pz-pagina">
+                <Migas pasos={[["Actividades"], ["Visitas y uso de espacios"]]} />
+                {cabecera}
+                {error && <Aviso tono="error" titulo="No pudimos cargar las visitas." texto={error}>
+                    <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={reintentar}>Reintentar</button>
+                </Aviso>}
 
-                {vista === "visitas" && (
-                    <BloqueResumen
-                        insignia="Visitas y uso de espacios"
-                        titulo="Visitas por"
-                        resalte="atender"
-                        subtitulo="Solicitudes de visitas registradas en el portal"
-                        accesos={[
-                            { icono: iconoReloj, numero: cuenta("por-confirmar"), titulo: "Por confirmar", texto: "Esperan respuesta", enlace: "Ver por confirmar", tono: "dorado", activo: filtro === "por-confirmar", alPresionar: () => setFiltro(filtro === "por-confirmar" ? "todas" : "por-confirmar") },
-                            { icono: iconoCheck, numero: cuenta("confirmada"), titulo: "Confirmadas", texto: "Próximas visitas", enlace: "Ver confirmadas", tono: "verde", activo: filtro === "confirmada", alPresionar: () => setFiltro(filtro === "confirmada" ? "todas" : "confirmada") },
-                            { icono: iconoArchivo, numero: cuenta("realizada"), titulo: "Realizadas", texto: "Visitas atendidas", enlace: "Ver realizadas", tono: "verde", activo: filtro === "realizada", alPresionar: () => setFiltro(filtro === "realizada" ? "todas" : "realizada") },
-                            { icono: iconoX, numero: cuenta("cancelada"), titulo: "Canceladas", texto: "O rechazadas", enlace: "Ver canceladas", tono: "guinda", activo: filtro === "cancelada", alPresionar: () => setFiltro(filtro === "cancelada" ? "todas" : "cancelada") },
-                        ]}
-                    />
-                )}
-
-                <section className="cal-controles" aria-label="Qué ver y filtros">
-                    <BarraFiltros
-                        arriba={<ChipsFiltro etiqueta="Qué ver" opciones={[{ valor: "visitas" as Vista, texto: `Visitas (${visitas.length})` }, { valor: "uso" as Vista, texto: "Uso de espacios" }]} activa={vista} alElegir={cambiarVista} />}
-                        etiquetaBusqueda={vista === "uso" ? "Buscar por sala o fecha" : "Buscar por folio, grupo o espacio"}
-                        marcador={vista === "uso" ? "Sala o fecha…" : "Folio, grupo o espacio…"}
-                        texto={busqueda}
-                        alBuscar={setBusqueda}
-                        grupos={[
-                            ...(vista === "visitas" ? [{ etiqueta: "Estado", opciones: ESTADOS, activa: filtro, alElegir: (v: string) => setFiltro(v as FiltroVisita) }] : []),
-                            ...(espacios.length ? [{ etiqueta: "Espacio", opciones: [{ valor: "", texto: "Todos los espacios" }, ...espacios.map((e) => ({ valor: e, texto: e }))], activa: espacio, alElegir: setEspacio }] : []),
-                        ]}
-                        alLimpiar={limpiar}
-                    />
+                <section className="pz-tarjeta cal-barra" aria-label="Qué ver y filtros">
+                    <div className="cal-barra__fila">
+                        <Segmentado<Vista> etiqueta="Qué ver" valor={vista} alCambiar={cambiarVista}
+                            opciones={[{ valor: "visitas", texto: "Visitas", cantidad: visitas.length }, { valor: "uso", texto: "Uso de espacios" }]} />
+                        <Buscador etiqueta={vista === "uso" ? "Buscar por sala, actividad o fecha" : "Buscar por folio, grupo o espacio"} placeholder={vista === "uso" ? "Sala, actividad o fecha" : "Folio, grupo o espacio"} valor={busqueda} alCambiar={setBusqueda}>
+                            <FiltrosAvanzados activos={(vista === "visitas" && filtro !== "todas" ? 1 : 0) + (espacio ? 1 : 0)} alQuitar={() => { setFiltro("todas"); setEspacio(""); }} grupos={[
+                                ...(vista === "visitas" ? [{ titulo: "Estado", valor: filtro, alCambiar: (v: string) => setFiltro(v as FiltroVisita), opciones: ESTADOS.map((e) => ({ ...e, cantidad: cuenta(e.valor) })) }] : []),
+                                ...(espacios.length ? [{ titulo: "Espacio", valor: espacio, alCambiar: setEspacio, opciones: [{ valor: "", texto: "Todos" }, ...espacios.map((e) => ({ valor: e, texto: e, cantidad: visitas.filter((v) => v.espacio === e).length }))] }] : []),
+                            ]} />
+                        </Buscador>
+                    </div>
                 </section>
 
-                {vista === "uso" ? (
-                    <UsoEspacios texto={texto} espacio={espacio} />
-                ) : visitas.length === 0 ? (
-                    <EstadoVacio icono={vacioArchivo} titulo="Aún no hay solicitudes de visita" texto="Cuando un grupo pida una visita desde el portal, aparecerá aquí." />
-                ) : filtradas.length === 0 ? (
-                    <EstadoVacio icono={vacioBuscar} titulo="Sin resultados" texto="Ninguna visita coincide con la búsqueda o los filtros." accion={{ texto: "Quitar filtros", alPresionar: limpiar }} />
-                ) : (
-                    <div className="vis-grupos">
-                        <GrupoVisitas titulo="Por confirmar" texto="Responde primero las que vencen antes." tono="dorado" visitas={porConfirmar} accion="Revisar" />
-                        <GrupoVisitas titulo="Próximas confirmadas" texto="En orden de fecha de la visita." tono="verde" visitas={proximas} accion="Ver" />
-                        <GrupoVisitas titulo="Historial" texto="Realizadas, canceladas y rechazadas; las más recientes primero." tono="gris" visitas={historial} accion="Ver" />
+                {vista === "uso" ? <UsoEspacios texto={texto} espacio={espacio} /> : (
+                    <div className="pz-columnas">
+                        <Tarjeta icono="grupo" id="visitas-lista" titulo="Solicitudes de visita" texto="Primero las que hay que confirmar; responde antes las que vencen primero" className="pz-pendientes">
+                            {visitas.length === 0 ? <Vacio icono="grupo" titulo="Aún no hay solicitudes de visita" texto="Cuando un grupo pida una visita desde el portal, aparecerá aquí." />
+                                : grupos.length === 0 ? <Vacio icono="buscarCuenta" titulo="Sin resultados" texto="Ninguna visita coincide con la búsqueda o los filtros."
+                                    accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={limpiar}>Quitar filtros</button>} />
+                                : (
+                                    <div className="pz-grupos" tabIndex={0} role="region" aria-label="Visitas">
+                                        {grupos.map((g) => (
+                                            <div key={g.id} className="pz-grupo">
+                                                <p className={`pz-grupo__titulo pz-grupo__titulo--${g.id}`}>{g.titulo}<span>{g.lista.length}</span></p>
+                                                <ul className="pz-filas">
+                                                    {g.lista.map((v) => {
+                                                        const [d, m] = partes(v.fecha);
+                                                        return (
+                                                            <li key={v.folio}>
+                                                                <article className={`pz-fila${v.estado === "por-confirmar" ? " pz-fila--espera" : ""}`}>
+                                                                    <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{m}</span></span>
+                                                                    <div className="pz-fila__textos">
+                                                                        <h4 className="pz-fila__titulo">{v.grupo}</h4>
+                                                                        <p className="pz-fila__detalle">
+                                                                            <span className="pz-fila__folio">{v.folio}</span><span>{v.hora || "Hora por confirmar"}</span>
+                                                                            <span>{v.detallePersonas || `${v.personas} personas`}</span><span>{v.espacio || "Espacio por confirmar"}</span>
+                                                                        </p>
+                                                                        {v.estado === "por-confirmar" && v.responderAntes && <p className="pz-fila__plazo">Responder antes del {fechaCorta(v.responderAntes)}</p>}
+                                                                    </div>
+                                                                    <Chip tono={TONO[v.estado]}>{NOMBRE_ESTADO_VISITA[v.estado]}</Chip>
+                                                                    <Link to={DETALLE(v.folio)} className={`pz-boton pz-boton--chico${g.accion === "Revisar" ? "" : " pz-boton--contorno"}`}>{g.accion}<span className="solo-lectores"> {v.folio}</span></Link>
+                                                                </article>
+                                                            </li>
+                                                        );
+                                                    })}
+                                                </ul>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            <div className="pz-tarjeta__pie"><p aria-live="polite">{filtradas.length} de {visitas.length} visitas</p></div>
+                        </Tarjeta>
+                        <aside className="pz-lateral" aria-label="La próxima visita">
+                            <Tarjeta icono="hoy" id="visitas-proxima" titulo="La próxima visita" texto={siguiente ? fechaCorta(siguiente.fecha) : "Sin visitas confirmadas"} className="pz-tarjeta--actividades">
+                                {siguiente ? <>
+                                    <p className="vis-proxima__grupo">{siguiente.grupo}</p>
+                                    <Datos>
+                                        <Dato icono="reloj" etiqueta="Hora">{siguiente.hora || "Por confirmar"}</Dato>
+                                        <Dato icono="grupo" etiqueta="Personas">{siguiente.personas}</Dato>
+                                        <Dato ancho icono="espacios" etiqueta="Espacio">{siguiente.espacio || "Por confirmar"}</Dato>
+                                    </Datos>
+                                    <Link to={DETALLE(siguiente.folio)} className="pz-boton pz-boton--contorno pz-boton--chico cal-ver-dia">Ver la visita</Link>
+                                </> : <Vacio icono="calendario" titulo="Nada en puerta" texto="Cuando confirmes una visita, aparecerá aquí." />}
+                            </Tarjeta>
+                            <Plegable titulo="Cómo se atiende una visita">
+                                <ul>
+                                    <li>Revisa la solicitud: grupo, personas, fecha y espacio.</li>
+                                    <li>Confírmala, propón otra fecha o recházala con motivo antes del plazo.</li>
+                                    <li>El día de la visita, márcala como realizada.</li>
+                                </ul>
+                            </Plegable>
+                        </aside>
                     </div>
                 )}
-            </Pagina>
+            </div>
         </PanelLayout>
-    );
-}
-
-function GrupoVisitas({ titulo, texto, tono, visitas, accion }: { titulo: string; texto: string; tono: "dorado" | "verde" | "gris"; visitas: Visita[]; accion: string }) {
-    if (visitas.length === 0) return null;
-    return (
-        <section className={`contenidos-lista vis-grupo vis-grupo--${tono}`} aria-label={titulo}>
-            <div className="contenidos-lista__cabecera">
-                <div><h2>{titulo} <span className="vis-grupo__cuenta">{visitas.length}</span></h2><p>{texto}</p></div>
-            </div>
-            <div className="vis-grupo__lista">
-                {visitas.map((v) => (
-                    <Link key={v.folio} to={DETALLE(v.folio)} className="vis-fila">
-                        <span className="vis-fila__fecha"><strong>{fechaCorta(v.fecha)}</strong><small>{v.hora || "Hora por confirmar"}</small></span>
-                        <span className="vis-fila__textos">
-                            <strong>{v.grupo}</strong>
-                            <small>{v.detallePersonas || `${v.personas} personas`} · {v.espacio || "Espacio por confirmar"} · <span className="tr-codigo">{v.folio}</span></small>
-                        </span>
-                        {v.estado === "por-confirmar" && v.responderAntes && <span className="vis-fila__plazo">Responder antes del {fechaCorta(v.responderAntes)}</span>}
-                        <Chip tono={TONO[v.estado]}>{NOMBRE_ESTADO_VISITA[v.estado]}</Chip>
-                        <span className="vis-fila__accion">{accion}</span>
-                    </Link>
-                ))}
-            </div>
-        </section>
     );
 }
 
@@ -160,74 +176,70 @@ const horasDe = (a: Actividad) => {
 
 function UsoEspacios({ texto, espacio }: { texto: string; espacio: string }) {
     const { actividades, salas, cargando } = useCalendarioPersonal();
-    const ir = useNavigate();
     const hoy = hoyISO();
     const hace30 = sumarDias(hoy, -30);
-    const lunes = sumarDias(hoy, -((new Date(`${hoy}T12:00:00`).getDay() + 6) % 7));
-    const semana = Array.from({ length: 7 }, (_, i) => sumarDias(lunes, i));
     const mes = hoy.slice(0, 7);
     const validas = actividades.filter((a) => ocupa(a) && (!espacio || a.espacio === espacio)
         && (!texto || a.espacio.toLowerCase().includes(texto) || a.nombre.toLowerCase().includes(texto) || fechaCorta(a.fecha).includes(texto)));
     const porRegistrar = validas.filter((a) => a.fecha < hoy && a.fecha >= hace30).sort((a, b) => (b.fecha + b.inicio).localeCompare(a.fecha + a.inicio));
-    const enSemana = validas.filter((a) => semana.includes(a.fecha)).length;
     const delMes = validas.filter((a) => a.fecha.startsWith(mes));
-    const usadas = new Set(delMes.map((a) => a.espacio)).size;
     const porSala = salas.filter((s) => !espacio || s.nombre === espacio).map((s) => {
         const lista = delMes.filter((a) => a.espacio === s.nombre);
         return { sala: s, cantidad: lista.length, horas: lista.reduce((t, a) => t + horasDe(a), 0) };
-    });
+    }).sort((a, b) => b.cantidad - a.cantidad);
     const maximo = Math.max(1, ...porSala.map((x) => x.cantidad));
 
     if (cargando) return <EsqueletoLista texto="Cargando uso de espacios…" />;
     return (
-        <>
-            <BloqueResumen
-                insignia="Visitas y uso de espacios"
-                titulo="Uso de"
-                resalte="espacios"
-                subtitulo="Calculado con las actividades del calendario"
-                accesos={[
-                    { icono: iconoArchivo, numero: enSemana, titulo: "Usos esta semana", texto: "Actividades programadas", enlace: "Ver calendario", tono: "verde", alPresionar: () => { ir("/admin/actividades/calendario?vista=semana"); } },
-                    { icono: iconoCheck, numero: `${usadas} de ${salas.length}`, titulo: "Salas usadas este mes", texto: "Con al menos una actividad", enlace: "Ver salas", tono: "verde", alPresionar: () => { ir("/admin/actividades/calendario?vista=salas"); } },
-                    { icono: iconoReloj, numero: porRegistrar.length, titulo: "Por registrar", texto: "Actividades que ya pasaron", enlace: "Registrar uso", tono: "dorado", alPresionar: () => { ir(`${BASE_VISITAS}/uso/registrar`); } },
-                ]}
-            />
-
-            <section className="contenidos-lista vis-grupo vis-grupo--dorado" aria-labelledby="uso-pendiente">
-                <div className="contenidos-lista__cabecera">
-                    <div><h2 id="uso-pendiente">Por registrar <span className="vis-grupo__cuenta">{porRegistrar.length}</span></h2>
-                        <p>Actividades de los últimos 30 días. Registra cuántas personas asistieron y si hubo incidencias en la sala.</p></div>
-                    <Link to={`${BASE_VISITAS}/uso/registrar`} className="contenidos-boton contenidos-boton--oscuro contenidos-boton--chico">Registrar otro uso</Link>
-                </div>
+        <div className="pz-columnas">
+            <Tarjeta icono="reloj" id="uso-pendiente" titulo="Por registrar" texto="Actividades de los últimos 30 días: anota cuántas personas asistieron y si hubo incidencias" className="pz-pendientes"
+                accion={<Link to={`${BASE_VISITAS}/uso/registrar`} className="pz-boton pz-boton--chico">Registrar otro uso</Link>}>
                 {porRegistrar.length === 0
-                    ? <EstadoVacio icono={vacioArchivo} titulo="Nada por registrar" texto="Cuando pase una actividad del calendario, aparecerá aquí para registrar cómo se usó la sala." />
-                    : <div className="vis-grupo__lista">{porRegistrar.slice(0, 8).map((a) => (
-                        <Link key={`${a.folio}:${a.fecha}:${a.inicio}`} to={`${BASE_VISITAS}/uso/registrar`} className="vis-fila vis-fila--uso">
-                            <span className="vis-fila__fecha"><strong>{fechaCorta(a.fecha)}</strong><small>{a.inicio}{a.fin ? `–${a.fin}` : ""}</small></span>
-                            <span className="vis-fila__textos"><strong>{a.espacio}</strong><small>{a.nombre} · {a.inscritos} {a.inscritos === 1 ? "inscrita" : "inscritas"}</small></span>
-                            <Chip tono="dorado">Por registrar</Chip>
-                            <span className="vis-fila__accion">Registrar</span>
-                        </Link>
-                    ))}</div>}
-                {porRegistrar.length > 8 && <p className="contenidos-campo__ayuda">Y {porRegistrar.length - 8} más. Usa la búsqueda o el filtro de espacio para encontrarlas.</p>}
-            </section>
-
-            <section className="contenidos-lista" aria-labelledby="uso-salas">
-                <div className="contenidos-lista__cabecera">
-                    <div><h2 id="uso-salas">Ocupación por sala este mes</h2><p>Actividades y horas programadas en cada espacio.</p></div>
-                </div>
-                {porSala.length === 0
-                    ? <EstadoVacio icono={vacioBuscar} titulo="Sin salas con ese filtro" texto="Prueba con otro espacio." />
-                    : <ul className="uso-salas">{porSala.map(({ sala, cantidad, horas }) => (
-                        <li key={sala.id}>
-                            <span className="uso-salas__nombre"><strong>{sala.nombre}</strong><small>{sala.capacidad} personas</small></span>
-                            <span className="uso-salas__barra" aria-hidden="true"><span style={{ width: `${(cantidad / maximo) * 100}%` }} /></span>
-                            <span className="uso-salas__cifras"><strong>{cantidad}</strong> {cantidad === 1 ? "actividad" : "actividades"} · {horas % 1 ? horas.toFixed(1) : horas} h</span>
-                        </li>
-                    ))}</ul>}
-                <p className="contenidos-campo__ayuda">El registro de uso efectivo todavía no se guarda en el servidor; estas cifras salen del calendario de actividades.</p>
-            </section>
-        </>
+                    ? <Vacio icono="check" titulo="Nada por registrar" texto="Cuando pase una actividad del calendario, aparecerá aquí." />
+                    : (
+                        <div className="pz-grupos" tabIndex={0} role="region" aria-label="Por registrar">
+                            <ul className="pz-filas">
+                                {porRegistrar.map((a) => {
+                                    const [d, m] = partes(a.fecha);
+                                    return (
+                                        <li key={`${a.folio}:${a.fecha}:${a.inicio}`}>
+                                            <article className="pz-fila pz-fila--espera">
+                                                <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{m}</span></span>
+                                                <div className="pz-fila__textos">
+                                                    <h4 className="pz-fila__titulo">{a.espacio}</h4>
+                                                    <p className="pz-fila__detalle"><span>{a.nombre}</span><span>{a.inicio}{a.fin ? ` a ${a.fin}` : ""} h</span><span>{a.inscritos} {a.inscritos === 1 ? "inscrita" : "inscritas"}</span></p>
+                                                </div>
+                                                <Chip tono="dorado">Por registrar</Chip>
+                                                <Link to={`${BASE_VISITAS}/uso/registrar`} className="pz-boton pz-boton--chico">Registrar</Link>
+                                            </article>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
+                <div className="pz-tarjeta__pie"><p>{porRegistrar.length} {porRegistrar.length === 1 ? "actividad" : "actividades"} por registrar</p></div>
+            </Tarjeta>
+            <aside className="pz-lateral" aria-label="Ocupación por sala">
+                <Tarjeta icono="espacios" id="uso-salas" titulo="Ocupación por sala" texto="Este mes, según el calendario" className="pz-tarjeta--actividades">
+                    {porSala.length === 0 ? <Vacio icono="buscarCuenta" titulo="Sin salas con ese filtro" texto="Prueba con otro espacio." /> : (
+                        <ol className="pz-ranking">
+                            {porSala.map(({ sala, cantidad, horas }, n) => (
+                                <li key={sala.id}>
+                                    <span className="pz-ranking__lugar" aria-hidden="true"><Icono nombre="espacios" /></span>
+                                    <div className="pz-ranking__textos">
+                                        <p className="pz-ranking__nombre">{sala.nombre}</p>
+                                        <span className="pz-ranking__barra" aria-hidden="true"><span style={{ width: `${(cantidad / maximo) * 100}%`, animationDelay: `${Math.min(n * 60, 180)}ms` }} /></span>
+                                    </div>
+                                    <p className="pz-ranking__valor"><strong>{cantidad}</strong><span>{horas % 1 ? horas.toFixed(1) : horas} h</span></p>
+                                </li>
+                            ))}
+                        </ol>
+                    )}
+                    <p className="pz-acciones__nota">El uso efectivo todavía no se guarda en el servidor: estas cifras salen del calendario.</p>
+                </Tarjeta>
+            </aside>
+        </div>
     );
 }
 

@@ -52,7 +52,7 @@ export default function GestionActividades() {
         <Migas raiz="Actividades" pasos={enLista ? [['Propuestas de actividades']] : [['Propuestas de actividades', BASE], [nueva ? 'Nueva' : folio ?? '']]} />
         {!enLista && (!actual || actual.error) && <div className="pz-pagina"><EncabezadoPz titulo={titulo} texto={nueva ? 'Registra la actividad como borrador o envíala de una vez a revisión.' : 'Consultando la actividad…'} /></div>}
         {confirmado?.folio === folio && confirmado && <div className="at-bloque at-bloque--info" role="status"><strong>Listo</strong><p>{confirmado.texto}</p></div>}
-        {!actual && <div className="contenidos-tabla" aria-busy="true" role="status"><span className="tr-oculto">Cargando actividades…</span>{[0, 1, 2, 3].map(i => <Bloque key={i} clase="tr-esqueleto" />)}</div>}
+        {!actual && <div className="contenidos-tabla" aria-busy="true" role="status"><span className="solo-lectores">Cargando actividades…</span>{[0, 1, 2, 3].map(i => <Bloque key={i} clase="tr-esqueleto" />)}</div>}
         {actual?.error && <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar las actividades" texto={actual.error} accion={{ texto: 'Reintentar', alPresionar: () => recargar(x => x + 1) }} />}
         {actual && !actual.error && (nueva || editar) && <Formulario key={clave} actividad={actual.actividad} />}
         {actual?.lista && <Lista lista={actual.lista} />}
@@ -124,7 +124,7 @@ function Lista({ lista }: { lista: ActividadGestion[] }) {
                                                 </div>
                                                 <ChipPz tono={TONO_PZ[a.estado] ?? 'gris'}>{estados[a.estado] ?? a.estado}</ChipPz>
                                                 <Link to={`${BASE}/${a.folio}`} className={`pz-boton pz-boton--chico${a.estado === 'en-revision' || a.estado === 'aprobada' ? '' : ' pz-boton--contorno'}`}>
-                                                    {accionDe(a.estado)}<span className="tr-oculto"> {a.folio}</span>
+                                                    {accionDe(a.estado)}<span className="solo-lectores"> {a.folio}</span>
                                                 </Link>
                                             </article>
                                         </li>
@@ -311,7 +311,7 @@ function Formulario({ actividad }: { actividad?: ActividadGestion }) {
                                 return (
                                     <li key={r.campo} className={listo ? 'pz-envio__dato--listo' : undefined}>
                                         <span className="pz-envio__marca" aria-hidden="true">{listo && <IconoPz nombre="check" />}</span>
-                                        {r.texto}<span className="tr-oculto">{listo ? ', listo' : ', falta'}</span>
+                                        {r.texto}<span className="solo-lectores">{listo ? ', listo' : ', falta'}</span>
                                     </li>
                                 );
                             })}
