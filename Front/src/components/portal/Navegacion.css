@@ -112,6 +112,14 @@
   cursor: pointer;
 }
 
+/* «Volver al panel» (21 nov 2026): para el personal que vino desde el panel; se distingue de «Mi perfil» */
+.navegacion__boton--panel {
+  border-color: #2e4456;
+  background: #2e4456;
+  color: #fff;
+}
+.navegacion__boton--panel:hover { background: #22323f; }
+
 .navegacion__boton--relleno {
   border-color: #164f44;
   background: #164f44;

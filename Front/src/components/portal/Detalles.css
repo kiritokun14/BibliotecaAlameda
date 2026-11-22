@@ -78,7 +78,9 @@
   background: #e6d194; transform: scaleX(0); transition: transform 0.2s ease;
 }
 .pagina-publica .navegacion__enlace:not(.active):hover::after { transform: scaleX(1); }
-.pagina-publica .navegacion__boton:not(.navegacion__boton--relleno) { border-color: #164f44; color: #164f44; }
+.pagina-publica .navegacion__boton:not(.navegacion__boton--relleno):not(.navegacion__boton--panel) { border-color: #164f44; color: #164f44; }
+.pagina-publica .navegacion__boton--panel { border-color: #2e4456; background: #2e4456; color: #fff; } /* «Volver al panel» (21 nov) */
+.pagina-publica .navegacion__boton--panel:hover { background: #22323f; }
 .pagina-publica .navegacion__boton--relleno { background: linear-gradient(135deg, #1d6354, #123f37); }
 
 /* Campana y «Mi perfil» pulidos */

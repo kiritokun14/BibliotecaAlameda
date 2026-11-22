@@ -121,6 +121,6 @@ export default Noticias;
 // una foto de la biblioteca en lugar de un recuadro en blanco
 function FotoNoticia({ src, className }: { src?: string; className: string }) {
     const [fallo, setFallo] = useState(() => imagenFallo(src));
-    return <img className={className} src={src && !fallo ? src : fotoRespaldo} alt="" decoding="async"
+    return <img className={className} src={src && !fallo ? src : fotoRespaldo} alt="" loading="lazy" decoding="async"
         onError={() => { marcarImagenFallida(src); setFallo(true); }} />;
 }

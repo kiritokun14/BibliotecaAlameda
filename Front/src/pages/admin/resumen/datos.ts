@@ -70,6 +70,31 @@ export const prioridades: Prioridad[] = [
     { titulo: "7 casos de contacto abiertos", detalle: "Servicios Digitales · 2 recibidos hoy.", chip: { texto: "Sin vencer", tono: "gris" }, fondo: "blanco", icono: "correo", ruta: "/admin/atencion/contactos" },
 ];
 
+// ---------- Accesos rápidos (21 nov 2026) ----------
+// Las tareas más frecuentes del personal, con nombres sencillos. Cada una lleva a una pantalla que ya existe; solo se
+// muestran las que la cuenta puede abrir (vistaEnlace). El orden es el de uso diario.
+export type IconoAcceso = "credencial" | "propuesta" | "inscripciones" | "asistencia" | "calendario" | "mensajes" | "contenido" | "aviso" | "espacios" | "cuentas" | "foro" | "cotejo";
+export type AccesoRapido = { titulo: string; texto: string; ruta: string; icono: IconoAcceso };
+export const ACCESOS_RAPIDOS: AccesoRapido[] = [
+    { titulo: "Credenciales", texto: "Revisar solicitudes", ruta: "/admin/atencion/credenciales", icono: "credencial" },
+    { titulo: "Cotejo", texto: "Validar en Préstamos", ruta: "/admin/participantes/cotejo", icono: "cotejo" },
+    { titulo: "Propuestas", texto: "Revisar eventos propuestos", ruta: "/admin/atencion/propuestas", icono: "propuesta" },
+    { titulo: "Espacios", texto: "Solicitudes de salas", ruta: "/admin/atencion/espacios", icono: "espacios" },
+    { titulo: "Inscripciones", texto: "Cupos y lugares", ruta: "/admin/actividades/inscripciones", icono: "inscripciones" },
+    { titulo: "Pasar lista", texto: "Asistencia de hoy", ruta: "/admin/actividades/asistencia", icono: "asistencia" },
+    { titulo: "Calendario", texto: "Actividades y salas", ruta: "/admin/actividades/calendario", icono: "calendario" },
+    { titulo: "Mensajes", texto: "Contactos y sugerencias", ruta: "/admin/atencion/contactos", icono: "mensajes" },
+    { titulo: "Publicar", texto: "Noticias y reseñas", ruta: "/admin/contenidos/editor", icono: "contenido" },
+    { titulo: "Avisos", texto: "Enviar un aviso", ruta: "/admin/atencion/avisos", icono: "aviso" },
+    { titulo: "Foro", texto: "Moderar el club", ruta: "/admin/participantes/foro", icono: "foro" },
+    { titulo: "Cuentas", texto: "Personal y permisos", ruta: "/admin/administracion/cuentas", icono: "cuentas" },
+];
+export const MAXIMO_ACCESOS = 8;
+// Los accesos que la cuenta puede abrir, en su orden, hasta el máximo (los demás siguen en el menú)
+export function accesosDeLaCuenta(acceso: AccesoCuenta | null | undefined, lista = ACCESOS_RAPIDOS, maximo = MAXIMO_ACCESOS) {
+    return lista.filter((a) => vistaEnlace(a.ruta, acceso) === "enlace").slice(0, maximo);
+}
+
 export const actividadesHoy = [
     { titulo: "Taller de lectura en voz alta", detalle: "Sala de actividades · lista por pasar", chip: { texto: "Asistencia abierta", tono: "verde" as TonoEstado }, pasarLista: true },
     { titulo: "Cine debate", detalle: "Sala de lectura · cupo lleno", chip: { texto: "Confirmada", tono: "dorado" as TonoEstado }, pasarLista: false },

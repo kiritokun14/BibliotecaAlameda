@@ -1594,36 +1594,123 @@ a.panel-submenu__item.active {
     .panel-cuenta__nombre, .panel-cuenta__rol { overflow-wrap: anywhere; }
 }
 
-/* Iconos originales del menú en blanco, también en la sección activa. */
-.panel .panel-lateral .panel-menu__item img { filter: brightness(0) invert(1); opacity: 1; }
-.panel .panel-lateral a.panel-menu__item.active,
-.panel .panel-lateral a.panel-menu__item.active:hover { background: #164f44; color: #fff; }
-
-/* Navegación compacta: una sola jerarquía visual en todos los módulos. */
-.panel .panel-lateral { padding: 20px 14px 24px; gap: 4px; background: #0b3b33; }
-.panel .panel-marca { gap: 10px; padding: 0 8px 14px; }
-.panel .panel-marca__sello { width: 34px; height: 34px; border-radius: 10px; background: #164f44; }
+/* ---------- Menú lateral (21 nov 2026, Aldahir: con identidad, más limpio y sin franjas al costado) ----------
+   Fondo con las luces del portal (las de la franja y el pie). Arriba, la marca: el logo de Solón Argüello en blanco,
+   el nombre de la biblioteca y la pastilla «Panel del personal», cerrada por la línea de color del marco.
+   Cada sección es un grupo: al abrirse se vuelve una tarjeta translúcida que reúne sus opciones; la opción elegida es
+   una pastilla clara con su punto de color y la rayita bajo el nombre (AGENTS §3). Sin franjas al costado (§2).
+   Los colores salen de las variables --nav-* y --marco-* (verde y guinda en el panel, pizarra en el Resumen). */
+.panel .panel-lateral {
+    padding: 0 12px 12px; gap: 4px;
+    background: radial-gradient(circle at 0% 0%, var(--marco-luz-1), transparent 38%), radial-gradient(circle at 100% 100%, var(--marco-luz-2), transparent 42%), var(--nav-fondo);
+    scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+/* Marca */
+.panel .panel-marca {
+    position: relative; flex-direction: column; align-items: center; gap: 12px;
+    margin: 0 -12px 8px; padding: 24px 20px 20px; border-bottom: 0; text-align: center;
+}
+.panel .panel-marca::after { content: ""; position: absolute; inset: auto 28px 0; height: 2px; border-radius: 2px; background: var(--marco-linea); }
+.panel .panel-marca__sello {
+    display: none; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--nav-sello); box-shadow: 0 0 0 2px var(--nav-acento);
+}
 .panel .panel-marca__sello img { width: 20px; height: 20px; filter: brightness(0) invert(1); }
-.panel .panel-marca__nombre { font-size: 13px; line-height: 19px; font-weight: 600; }
-.panel .panel-marca__subtitulo { margin-top: 3px; color: #c8dcd5; font-size: 9px; line-height: 14px; letter-spacing: .7px; font-weight: 500; }
-.panel .panel-rol { margin: 0 8px 8px; padding: 12px 0; gap: 5px; border: 0; border-top: 1px solid #31594f; border-bottom: 1px solid #31594f; border-radius: 0; background: transparent; }
-.panel .panel-rol__titulo { color: #c8dcd5; font-size: 10px; line-height: 14px; font-weight: 500; }
-.panel .panel-rol__texto { color: #fff; font-size: 12px; line-height: 18px; }
-.panel .panel-lateral__espacio { display: none; }
-.panel .panel-lateral .panel-menu__item { min-height: 42px; height: auto; padding: 10px 12px; gap: 10px; border-radius: 8px; font-size: 13px; line-height: 20px; font-weight: 500; }
-.panel .panel-lateral .panel-menu__item img { width: 18px; height: 18px; flex-shrink: 0; }
-.panel .panel-lateral .panel-menu__item img:last-child:not(:first-child) { width: 14px; height: 14px; }
+.panel .panel-marca__logo {
+    display: block; width: 168px; height: 52px; background: #fff;
+    -webkit-mask: url("../../assets/comun/logos/logo-solon-arguello.png") no-repeat center / contain;
+    mask: url("../../assets/comun/logos/logo-solon-arguello.png") no-repeat center / contain;
+}
+.panel .panel-marca__textos { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.panel .panel-marca__nombre { color: var(--nav-texto-normal); font-size: 12.5px; line-height: 17px; font-weight: 600; }
+.panel .panel-marca__subtitulo {
+    display: inline-flex; align-items: center; gap: 7px; margin: 0; padding: 4px 11px; border: 1px solid var(--nav-acento); border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08); color: #fff; font-size: 12px; line-height: 15px; letter-spacing: 0; font-weight: 700;
+}
+.panel .panel-marca__subtitulo::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--nav-acento); }
+/* Título «Menú» */
+.panel .panel-lateral__titulo { margin: 6px 0 2px !important; padding: 0 12px; color: var(--nav-texto-suave); font-size: 12px; font-weight: 700; }
+/* Grupo de una sección: al abrirse es una tarjeta translúcida con sus opciones */
+.panel .panel-lateral .panel-grupo { padding: 0; border: 1px solid transparent; border-radius: 16px; transition: background-color 0.3s ease, border-color 0.3s ease, padding 0.35s ease; }
+.panel .panel-lateral .panel-grupo--abierto { padding: 3px; border-color: rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.06); }
+/* Secciones */
+.panel .panel-lateral .panel-menu__item {
+    width: 100%; min-height: 44px; height: auto; padding: 7px 10px; gap: 12px; border-radius: 12px; background: transparent; box-shadow: none;
+    color: var(--nav-texto-normal); font-size: 14px; line-height: 20px; font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.panel .panel-lateral .panel-menu__item img:not(.panel-menu__flecha) {
+    flex-shrink: 0; width: 30px; height: 30px; padding: 6px; box-sizing: border-box; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08); filter: brightness(0) invert(1); opacity: 0.9; transition: box-shadow 0.2s ease;
+}
+.panel .panel-lateral .panel-menu__item .panel-menu__flecha { width: 14px; height: 14px; margin-left: auto; opacity: 0.55; transition: opacity 0.2s ease, transform 0.35s ease; }
+.panel .panel-lateral .panel-grupo--abierto .panel-menu__flecha { transform: rotate(90deg); opacity: 1; }
+/* Despliegue: el marco anima su alto (0fr → 1fr) y las opciones bajan 6 px y aparecen, una tras otra */
+.panel .panel-lateral .panel-submenu-marco { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s ease; }
+.panel .panel-lateral .panel-grupo--abierto > .panel-submenu-marco { grid-template-rows: 1fr; }
+.panel .panel-lateral .panel-submenu-marco > .panel-submenu { min-height: 0; overflow: hidden; }
+.panel .panel-lateral .panel-submenu li { opacity: 0; transform: translateY(-6px); transition: opacity 0.2s ease, transform 0.2s ease; }
+.panel .panel-lateral .panel-grupo--abierto .panel-submenu li { opacity: 1; transform: none; transition-duration: 0.3s; }
+.panel .panel-lateral .panel-grupo--abierto .panel-submenu li:nth-child(2) { transition-delay: 40ms; }
+.panel .panel-lateral .panel-grupo--abierto .panel-submenu li:nth-child(3) { transition-delay: 80ms; }
+.panel .panel-lateral .panel-grupo--abierto .panel-submenu li:nth-child(4) { transition-delay: 120ms; }
+.panel .panel-lateral .panel-grupo--abierto .panel-submenu li:nth-child(n+5) { transition-delay: 160ms; }
 .panel .panel-lateral .panel-menu__item > span { min-width: 0; }
-.panel .panel-lateral .panel-menu__item--abierto { background: transparent; }
-.panel .panel-lateral .panel-menu__item--actual { font-weight: 700; }
-.panel .panel-lateral .panel-menu__item:hover { background: #164f44; }
-.panel .panel-lateral .panel-submenu { margin: 0 0 8px 20px; padding-left: 12px; gap: 2px; border-left: 1px solid #31594f; }
-.panel .panel-lateral .panel-submenu__item { min-height: 36px; height: auto; padding: 8px 10px; gap: 8px; border-radius: 7px; font-size: 12px; line-height: 18px; color: #dce9e4; }
+.panel .panel-lateral .panel-menu__item:hover { background: var(--nav-hover); color: #fff; }
+.panel .panel-lateral .panel-menu__item:hover .panel-menu__flecha { opacity: 1; }
+.panel .panel-lateral .panel-grupo--abierto > .panel-menu__item { color: #fff; font-weight: 700; }
+.panel .panel-lateral .panel-grupo--abierto > .panel-menu__item:hover { background: transparent; }
+/* Sección donde estás: ícono con aro del color de acento; Resumen activo, con fondo y rayita */
+.panel .panel-lateral :is(a.panel-menu__item.active, .panel-menu__item--actual) { color: #fff; font-weight: 700; box-shadow: none; }
+.panel .panel-lateral :is(a.panel-menu__item.active, .panel-menu__item--actual) img:not(.panel-menu__flecha) { box-shadow: 0 0 0 2px var(--nav-acento); opacity: 1; }
+.panel .panel-lateral a.panel-menu__item.active, .panel .panel-lateral a.panel-menu__item.active:hover,
+.panel .panel-lateral .panel-grupo:not(.panel-grupo--abierto) > .panel-menu__item--actual { background: var(--nav-activo); }
+/* Rayitas como en el menú del perfil y la barra del portal: al pasar el mouse se dibuja una fina (0.2 s); la opción elegida
+   lleva una más gruesa en degradado que entra dibujándose de izquierda a derecha al elegirla (0.35 s) */
+.panel .panel-lateral :is(.panel-menu__texto, .panel-submenu__texto) { position: relative; flex: 0 1 auto; }
+.panel .panel-lateral :is(.panel-menu__texto, .panel-submenu__texto)::after {
+    content: ""; position: absolute; right: 0; bottom: -4px; left: 0; height: 2px; border-radius: 2px;
+    background: var(--nav-acento); transform: scaleX(0); transform-origin: left center; transition: transform 0.2s ease;
+}
+.panel .panel-lateral :is(.panel-menu__item, a.panel-submenu__item):hover :is(.panel-menu__texto, .panel-submenu__texto)::after { transform: scaleX(1); }
+.panel .panel-lateral :is(a.panel-menu__item.active .panel-menu__texto, .panel-menu__item--actual .panel-menu__texto, a.panel-submenu__item.active .panel-submenu__texto)::after {
+    height: 3px; bottom: -5px; background: linear-gradient(90deg, var(--marco-acento-oscuro, #c9a24a), var(--nav-acento));
+    transform: scaleX(1); animation: panel-raya 0.35s ease-out;
+}
+@keyframes panel-raya { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* Opciones de la sección, alineadas a su texto, con un punto; la elegida, pastilla clara */
+.panel .panel-lateral .panel-submenu { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0 0 0 20px; border: 0; }
+/* El aire va dentro de lo que se recoge, así una sección cerrada no ocupa nada */
+.panel .panel-lateral .panel-submenu li:first-child { padding-top: 2px; }
+.panel .panel-lateral .panel-submenu li:last-child { padding-bottom: 2px; }
+.panel .panel-lateral .panel-submenu__item {
+    display: flex; align-items: center; min-height: 36px; height: auto; padding: 7px 10px; gap: 9px; border-radius: 10px; box-shadow: none; white-space: nowrap;
+    color: var(--nav-texto-suave); font-size: 13.5px; line-height: 19px; font-weight: 500; text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.panel .panel-lateral .panel-submenu__item::before {
+    content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.3); transition: background-color 0.2s ease;
+}
+.panel .panel-lateral a.panel-submenu__item:hover { background: var(--nav-hover); color: #fff; }
+.panel .panel-lateral a.panel-submenu__item:hover::before { background: #fff; }
 .panel .panel-lateral a.panel-submenu__item.active,
-.panel .panel-lateral a.panel-submenu__item.active:hover { background: #164f44; color: #fff; box-shadow: inset 3px 0 #fff; font-weight: 600; }
-.panel .panel-lateral a.panel-menu__item.active { box-shadow: inset 3px 0 #fff; font-weight: 600; }
-.panel .panel-lateral .etiqueta-pronto { margin-left: auto; padding: 1px 5px; background: transparent; border-color: #54776b; color: #dce9e4; font-size: 10px; font-weight: 500; }
-.panel .panel-lateral :is(a, button):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.panel .panel-lateral a.panel-submenu__item.active:hover {
+    background: #fff; color: var(--nav-fondo); font-weight: 700; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+.panel .panel-lateral a.panel-submenu__item.active::before { background: var(--marco-acento-oscuro, #c9a24a); }
+.panel .panel-lateral .panel-submenu__item--pronto { opacity: 0.7; }
+.panel .panel-lateral .etiqueta-pronto { margin-left: auto; padding: 1px 7px; border-radius: 999px; background: transparent; border-color: var(--nav-linea); color: var(--nav-texto-suave); font-size: 11px; font-weight: 600; }
+.panel .panel-lateral :is(a, button):focus-visible { outline: 3px solid var(--nav-acento); outline-offset: 2px; }
+/* Al elegir una opción, la pantalla nueva entra subiendo 10 px y apareciendo (0.4 s), como las páginas del portal */
+.panel .panel-desplazamiento > .panel-contenido { animation: panel-entra 0.4s ease-out; }
+@keyframes panel-entra { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+/* «Plegar menú» al pie de la barra, separado por una línea */
+.panel .panel-lateral__pie { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--nav-linea); }
+@media (prefers-reduced-motion: reduce) {
+    .panel .panel-lateral :is(.panel-grupo, .panel-menu__item, .panel-menu__texto, .panel-submenu__item, .panel-submenu__item::before, img, .panel-submenu-marco, .panel-submenu li) { transition: none; }
+    .panel .panel-lateral :is(.panel-menu__texto, .panel-submenu__texto)::after { transition: none; animation: none; }
+    .panel .panel-desplazamiento > .panel-contenido { animation: none; }
+}
 
 /* Encabezados y regreso · A-05 aprobado en Figma (9 noviembre 2026).
    Referencia: 558:16567. Título 32/44 en Figma, normalizado a 25/34 en web.

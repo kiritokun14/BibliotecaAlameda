@@ -3,7 +3,11 @@ import { lazy, Suspense } from "react";
 import { EsqueletoPagina } from "./components/portal/Esqueleto";
 const RetornoAuth = lazy(() => import("./pages/acceso/RetornoAuth"));
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+// Inicio va en el paquete principal: se probó descargarlo aparte (21 nov 2026) y la portada pintaba 1 s más tarde.
 import Inicio from "./pages/publico/inicio/Inicio.tsx";
+// En el panel la comprobación de permisos necesita la librería de sesión: se pide desde el arranque, en paralelo
+// con el código de la pantalla, en lugar de esperar a que llegue AccesoPanel.
+if (window.location.pathname.startsWith("/admin")) void import("./servicios/api").then((m) => m.obtenerSupabase()).catch(() => undefined);
 const Login = lazy(() => import("./pages/acceso/Login.tsx"));
 const CuentaDeshabilitada = lazy(() => import("./pages/acceso/CuentaDeshabilitada.tsx"));
 const SesionIniciada = lazy(() => import("./pages/acceso/SesionIniciada.tsx"));

@@ -132,6 +132,8 @@
 /* ---------- Armazón del panel (EsqueletoPanel) ---------- */
 .esqueleto-panel { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #f7f5f0; }
 .esqueleto-panel .esqueleto-pagina__franja { flex: none; height: 60px; }
+.esqueleto-panel__franja { display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding: 0 28px; color: #f6eeda; font-family: 'Noto Sans', system-ui, sans-serif; font-size: 13px; }
+.esqueleto-panel__franja strong { color: #e6d194; }
 .esqueleto-panel__cuerpo { display: flex; flex: 1; min-height: 0; }
 .esqueleto-panel__menu { display: flex; flex-direction: column; gap: 22px; width: 264px; flex: none; box-sizing: border-box; padding: 28px 22px; background: #0b3b33; }
 .esqueleto-panel__item { height: 18px; }
