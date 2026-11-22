@@ -2,10 +2,16 @@ import { useSyncExternalStore } from "react";
 // T-052 · Agenda pública: listado y filtros de actividades (Figma A-02, 476:11136).
 // TODO backend: GET /actividades?categoria=&desde=&hasta= con id, categoría, título, fecha (AAAA-MM-DD),
 // horario, lugar, público, cupo completo y si la actividad fue cancelada. Mientras, se usan los ejemplos de Figma.
-import foto from "../../../assets/comun/fotos/noticia-3.webp";
+import fotoTaller from "../../../assets/comun/fotos/actividad-taller.webp";
+import fotoClub from "../../../assets/comun/fotos/actividad-club.webp";
+import fotoVisita from "../../../assets/comun/fotos/actividad-visita.webp";
+import fotoEvento from "../../../assets/comun/fotos/actividad-evento.webp";
 import type { Actividad } from "../inicio/datos";
 
 export type Categoria = "taller" | "club" | "visita" | "evento";
+// Fotos reales de la biblioteca por tipo (Aldahir, 21 nov 2026). TODO backend: cuando /actividades/publicas
+// traiga la imagen de cada actividad, se usa esa y esta queda de respaldo.
+export const fotoCategoria: Record<Categoria, string> = { taller: fotoTaller, club: fotoClub, visita: fotoVisita, evento: fotoEvento };
 export const nombreCategoria: Record<Categoria, string> = {
     taller: "TALLER", club: "CLUB DE LECTURA", visita: "VISITA GUIADA", evento: "EVENTO",
 };
@@ -27,25 +33,25 @@ export type ActividadAgenda = {
 };
 
 export const agendaEjemplo: ActividadAgenda[] = [
-    { id: "agenda-escritura", categoria: "taller", titulo: "Taller de escritura creativa", fecha: "2026-11-14", horario: "10:00 a 12:00", lugar: "Sala de talleres", publico: "Jóvenes y adultos", imagen: foto,
+    { id: "agenda-escritura", categoria: "taller", titulo: "Taller de escritura creativa", fecha: "2026-11-14", horario: "10:00 a 12:00", lugar: "Sala de talleres", publico: "Jóvenes y adultos", imagen: fotoCategoria.taller,
         resumen: "Una mañana para escribir sin prisa, con ejercicios guiados y lectura en voz alta.",
         descripcion: [
             "Un taller para jóvenes y adultos que quieren escribir con regularidad. Cada sesión combina ejercicios breves, escritura libre y lectura en voz alta.",
             "No necesitas experiencia previa. Basta con venir con ganas de escribir; el material se proporciona en la sala.",
         ],
         cupo: { total: 20, ocupados: 12 } },
-    { id: "agenda-circulo", categoria: "club", titulo: "Círculo de lectura", fecha: "2026-11-14", horario: "12:00 a 13:30", lugar: "Sala de lectura", publico: "Público general", imagen: foto },
-    { id: "agenda-visita", categoria: "visita", titulo: "Visita guiada para grupos", fecha: "2026-11-18", horario: "11:00 a 12:00", lugar: "Entrada principal", publico: "Grupos escolares", imagen: foto },
-    { id: "agenda-cuentacuentos", categoria: "evento", titulo: "Tarde de cuentacuentos", fecha: "2026-11-20", horario: "17:00 a 18:00", lugar: "Parque Alameda", publico: "Familias", imagen: foto },
-    { id: "agenda-dibujo", categoria: "taller", titulo: "Iniciación al dibujo", fecha: "2026-11-21", horario: "10:00 a 12:00", lugar: "Sala de talleres", publico: "Todo público", cupoCompleto: true, imagen: foto, cupo: { total: 20, ocupados: 20 } },
-    { id: "agenda-tertulia", categoria: "club", titulo: "Tertulia mensual", fecha: "2026-11-22", horario: "12:00 a 13:30", lugar: "Sala de lectura", publico: "Público general", imagen: foto },
+    { id: "agenda-circulo", categoria: "club", titulo: "Círculo de lectura", fecha: "2026-11-14", horario: "12:00 a 13:30", lugar: "Sala de lectura", publico: "Público general", imagen: fotoCategoria.club },
+    { id: "agenda-visita", categoria: "visita", titulo: "Visita guiada para grupos", fecha: "2026-11-18", horario: "11:00 a 12:00", lugar: "Entrada principal", publico: "Grupos escolares", imagen: fotoCategoria.visita },
+    { id: "agenda-cuentacuentos", categoria: "evento", titulo: "Tarde de cuentacuentos", fecha: "2026-11-20", horario: "17:00 a 18:00", lugar: "Parque Alameda", publico: "Familias", imagen: fotoCategoria.evento },
+    { id: "agenda-dibujo", categoria: "taller", titulo: "Iniciación al dibujo", fecha: "2026-11-21", horario: "10:00 a 12:00", lugar: "Sala de talleres", publico: "Todo público", cupoCompleto: true, imagen: fotoCategoria.taller, cupo: { total: 20, ocupados: 20 } },
+    { id: "agenda-tertulia", categoria: "club", titulo: "Tertulia mensual", fecha: "2026-11-22", horario: "12:00 a 13:30", lugar: "Sala de lectura", publico: "Público general", imagen: fotoCategoria.club },
     // Pasadas (octubre)
-    { id: "agenda-poesia", categoria: "taller", titulo: "Taller de poesía", fecha: "2026-10-03", horario: "10:00 a 12:00", lugar: "Sala de talleres", publico: "Jóvenes y adultos", imagen: foto },
-    { id: "agenda-libro-regional", categoria: "evento", titulo: "Presentación de libro regional", fecha: "2026-10-08", horario: "18:00 a 19:30", lugar: "Auditorio", publico: "Público general", imagen: foto },
-    { id: "agenda-feria", categoria: "evento", titulo: "Feria del libro infantil", fecha: "2026-10-17", horario: "11:00 a 15:00", lugar: "Parque Alameda", publico: "Familias", imagen: foto },
-    { id: "agenda-visita-escuelas", categoria: "visita", titulo: "Visita guiada para escuelas", fecha: "2026-10-21", horario: "10:00 a 11:30", lugar: "Entrada principal", publico: "Grupos escolares", imagen: foto },
-    { id: "agenda-ajedrez", categoria: "club", titulo: "Club de ajedrez y lectura", fecha: "2026-10-24", horario: "16:00 a 17:30", lugar: "Sala de lectura", publico: "Jóvenes y adultos", imagen: foto },
-    { id: "agenda-circulo-oct", categoria: "club", titulo: "Círculo de lectura", fecha: "2026-10-31", horario: "12:00 a 13:30", lugar: "Sala de lectura", publico: "Público general", imagen: foto },
+    { id: "agenda-poesia", categoria: "taller", titulo: "Taller de poesía", fecha: "2026-10-03", horario: "10:00 a 12:00", lugar: "Sala de talleres", publico: "Jóvenes y adultos", imagen: fotoCategoria.taller },
+    { id: "agenda-libro-regional", categoria: "evento", titulo: "Presentación de libro regional", fecha: "2026-10-08", horario: "18:00 a 19:30", lugar: "Auditorio", publico: "Público general", imagen: fotoCategoria.evento },
+    { id: "agenda-feria", categoria: "evento", titulo: "Feria del libro infantil", fecha: "2026-10-17", horario: "11:00 a 15:00", lugar: "Parque Alameda", publico: "Familias", imagen: fotoCategoria.evento },
+    { id: "agenda-visita-escuelas", categoria: "visita", titulo: "Visita guiada para escuelas", fecha: "2026-10-21", horario: "10:00 a 11:30", lugar: "Entrada principal", publico: "Grupos escolares", imagen: fotoCategoria.visita },
+    { id: "agenda-ajedrez", categoria: "club", titulo: "Club de ajedrez y lectura", fecha: "2026-10-24", horario: "16:00 a 17:30", lugar: "Sala de lectura", publico: "Jóvenes y adultos", imagen: fotoCategoria.club },
+    { id: "agenda-circulo-oct", categoria: "club", titulo: "Círculo de lectura", fecha: "2026-10-31", horario: "12:00 a 13:30", lugar: "Sala de lectura", publico: "Público general", imagen: fotoCategoria.club },
 ];
 
 // TODO backend: inscripciones de la persona con sesión (ids de actividad). Ejemplo: el taller de escritura.

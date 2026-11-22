@@ -168,15 +168,6 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
-.etiqueta-ilustrativa {
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff;
-  font-size: 11px;
-  white-space: nowrap;
-}
-
 .nota-ejemplo {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.94);
@@ -524,18 +515,6 @@
 }
 
 .portada__foto--activa { opacity: 1; }
-
-/* Las actividades aún no tienen foto propia: se avisa que es ilustrativa */
-.portada__ilustrativa {
-  top: 548px;
-  right: 36px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(22, 26, 29, 0.72);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-}
 
 /* Tarjeta de la actividad: lleva a su detalle y cambia sola (Portada.tsx).
    Crece hacia arriba con el texto para que no se corten letras. */
@@ -1294,19 +1273,12 @@
 }
 
 .tarjeta-actividad__imagen img,
-.noticia-destacada__imagen > img.noticia-destacada__foto,
-.llamado__imagen > img {
+.noticia-destacada__imagen > img.noticia-destacada__foto {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.tarjeta-actividad__imagen .etiqueta-ilustrativa,
-.noticia-destacada__imagen .etiqueta-ilustrativa,
-.llamado__imagen .etiqueta-ilustrativa {
-  position: relative;
 }
 
 .tarjeta-actividad__contenido {
@@ -1549,138 +1521,135 @@
   color: #164f44;
 }
 
-/* ---------- Llamado a crear cuenta ---------- */
+/* ---------- Llamado «Crea tu cuenta» / «Consulta tu credencial» (21 nov 2026) ----------
+   Etiqueta, título, texto, tres pasos en tarjetas de vidrio y botones | foto con aro dorado y la credencial de muestra */
 .bloque.llamado {
   flex-direction: row;
+  align-items: center;
   justify-content: space-between;
+  gap: 56px;
   padding: 56px 64px;
 }
 
 .llamado__texto {
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex: 0 1 670px;
+  flex: 1 1 0;
   flex-direction: column;
   align-items: flex-start;
-  gap: 24px;
+  gap: 18px;
+  min-width: 0;
 }
 
-.llamado__icono {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 72px;
-  height: 72px;
-  border-radius: 999px;
-  background: #e6d194;
-}
-
-.llamado__icono img {
-  width: 26px;
-  height: 26px;
-}
-
-.pasos {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-  margin: 0;
+.llamado__pasos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin: 4px 0 0;
   padding: 0;
   list-style: none;
 }
 
-.pasos__paso {
+.llamado__paso {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px 16px;
+  border: 1px solid rgba(230, 209, 148, 0.35);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
-  font-size: 15px;
-  font-weight: 700;
 }
 
-.pasos__paso span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 17px;
+.llamado__paso strong { font-size: 15px; line-height: 20px; }
+.llamado__paso > span:last-child { color: rgba(255, 255, 255, 0.78); font-size: 13px; line-height: 18px; }
+
+.llamado__numero {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 6px;
+  border-radius: 50%;
   background: #e6d194;
-  color: #161a1d;
-  font-family: 'Noto Sans', sans-serif;
-  font-size: 16px;
-}
-
-.pasos__linea {
-  width: 22px;
-  height: 2px;
-  background: rgba(230, 209, 148, 0.6);
+  box-shadow: 0 0 0 3px rgba(230, 209, 148, 0.25);
+  color: #611232;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .llamado__botones {
   display: flex;
   gap: 12px;
+  margin-top: 6px;
 }
 
-.llamado__imagen {
+.llamado__visual {
   position: relative;
-  display: flex;
-  flex: 0 0 340px;
-  align-items: flex-end;
-  height: 380px;
-  padding: 14px;
-  box-sizing: border-box;
-  border: 4px solid #e6d194;
-  border-radius: 40px;
-  box-shadow: 0 20px 20px rgba(0, 0, 0, 0.35);
+  z-index: 1;
+  flex: 0 0 420px;
+  height: 400px;
 }
 
-.llamado__imagen > img {
-  border-radius: 36px;
+.llamado__foto {
+  position: absolute;
+  inset: 0 0 76px 56px;
+  overflow: hidden;
+  border-radius: 28px;
+  box-shadow: 0 0 0 4px #e6d194, 0 22px 34px rgba(0, 0, 0, 0.35);
 }
+
+.llamado__foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.llamado:hover .llamado__foto img { transform: scale(1.03); }
 
 .credencial-muestra {
   position: absolute;
-  top: 236px;
-  left: -102px;
+  bottom: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
-  width: 350px;
-  height: 214px;
+  width: 320px;
   overflow: hidden;
   box-sizing: border-box;
-  transform: rotate(6deg);
+  transform: rotate(-4deg);
   border: 2px solid #e6d194;
-  border-radius: 22px;
+  border-radius: 20px;
   background: #fffdf8;
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.4);
 }
 
 .credencial-muestra__encabezado {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 11px 18px;
+  gap: 12px;
+  padding: 10px 16px;
   background: #611232;
 }
 
-.credencial-muestra__encabezado strong {
-  font-size: 12px;
-  color: #fff;
-}
+.credencial-muestra__encabezado img { width: auto; height: 26px; }
 
 .credencial-muestra__encabezado span {
-  font-size: 11px;
-  font-weight: 500;
   color: #e6d194;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .credencial-muestra__cuerpo {
   display: flex;
-  flex: 1;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
+  gap: 12px;
+  padding: 14px 16px;
 }
 
 .credencial-muestra__cuerpo > div:first-child {
@@ -1690,24 +1659,40 @@
 }
 
 .credencial-muestra__cuerpo strong {
-  font-family: 'Noto Sans', sans-serif;
-  font-size: 24px;
+  color: #161a1d;
+  font-size: 22px;
+  line-height: 28px;
 }
 
 .credencial-muestra__cuerpo p {
-  font-size: 14px;
+  margin: 0;
   color: #4d4d4d;
+  font-size: 13px;
 }
 
-.credencial-muestra__cuerpo .credencial-muestra__numero {
-  font-size: 13px;
+.credencial-muestra__cuerpo .credencial-muestra__vigencia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #e4efeb;
+  color: #164f44;
+  font-size: 12px;
   font-weight: 700;
-  color: #6b4f12;
+}
+
+.credencial-muestra__vigencia span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1f6b5c;
 }
 
 .credencial-muestra__banda {
   height: 8px;
-  background: #e6d194;
+  background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
 }
 
 .codigo-qr {
@@ -1727,6 +1712,11 @@
 .codigo-qr__lleno {
   border-radius: 1px;
   background: #161a1d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .llamado__foto img { transition: none; }
+  .llamado:hover .llamado__foto img { transform: none; }
 }
 
 /* ---------- Contacto y mapa ---------- */

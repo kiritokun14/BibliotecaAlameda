@@ -158,6 +158,8 @@
 }
 .pagina-publica .pie-portal .redes--grandes li:hover { transform: translateY(-2px); background: rgba(201, 162, 74, 0.22); border-color: #c9a24a; }
 .pagina-publica .pie-portal .redes--grandes img { width: 20px; height: 20px; }
+/* La red con enlace (Facebook) ocupa todo su círculo para que se pueda tocar en cualquier parte */
+.pagina-publica .pie-portal .redes--grandes li a { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; }
 
 /* Línea legal con la misma franja de color, más fina */
 .pagina-publica .pie-portal__legal { border-top: 0; position: relative; }
@@ -294,6 +296,25 @@
 @media (min-width: 1025px) and (max-height: 900px) {
   /* los bloques dibujados al 95 % compensan su escala (0.855 = 0.9 × 0.95) para medir lo mismo */
   .pagina-publica .seccion-inicio:is(:has(.tarjeta-actividad), :has(.libro), :has(.noticia-destacada)) > .bloque { min-height: calc((100vh - 125px) / 0.855); }
+}
+
+/* 1280 × 720 (pendiente que Aldahir pidió para después, resuelto el 21 nov): con el zoom de 0.9 el bloque mide a 1280 px
+   lo mismo que a 1366, así que la regla vieja de «laptop» (accesos en dos filas y noticias apiladas) ya no hace falta:
+   se conservan las cuatro tarjetas en fila y la destacada junto a la lista, y en pantallas bajas se quita aire. */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .pagina-publica .tarjetas-acceso { grid-template-columns: repeat(4, 1fr); }
+  .pagina-publica .tarjeta-acceso { height: 230px; min-height: 0; }
+  .pagina-publica .noticias { flex-direction: row; }
+  .pagina-publica .noticia-destacada { flex: 0 1 696px; }
+  .pagina-publica .otras-noticias { flex: 1 1 480px; }
+}
+@media (min-width: 1025px) and (max-height: 760px) {
+  .pagina-publica .seccion-inicio:has(.tarjetas-acceso) > .bloque { padding-top: 36px; padding-bottom: 32px; gap: 20px; }
+  .pagina-publica .seccion-inicio .tarjeta-acceso { height: 200px; }
+  .pagina-publica .seccion-inicio:is(:has(.tarjeta-actividad), :has(.noticia-destacada)) > .bloque { padding-top: 40px; padding-bottom: 16px; }
+  .pagina-publica .bloque:has(.tarjeta-actividad) { gap: 8px; }
+  .pagina-publica .seccion-inicio .tarjeta-actividad .tarjeta-actividad__imagen { height: 124px; }
+  .pagina-publica .noticia-destacada__imagen { height: 210px; }
 }
 
 /* ---------- Carruseles del inicio: flechas hacia dentro y libros más grandes ----------
@@ -1517,6 +1538,15 @@
 .pagina-publica .historia-fuente { margin: 0; color: #8a6414; font-size: 12.5px; font-weight: 700; }
 .pagina-publica .historia-galeria { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .pagina-publica .historia-galeria .historia-foto img { height: 170px; }
+/* Fotos de Solón Argüello (21 nov): en Historia, retrato y foto de época lado a lado; en su sección, el retrato junto a la ficha */
+.pagina-publica .historia-solon { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 14px; }
+.pagina-publica .historia-solon .historia-foto img { height: 250px; }
+.pagina-publica .historia-foto--retrato img { object-position: 50% 25%; filter: sepia(0.15); }
+.pagina-publica .acerca-solon-ficha { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 18px; align-items: start; }
+.pagina-publica .acerca-solon-ficha .historia-foto img { height: 240px; }
+.pagina-publica .acerca-solon-ficha .perfil-datos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pagina-publica .historia-enlace { color: #164f44; font-weight: 700; text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease; }
+.pagina-publica .historia-enlace:hover { text-decoration-color: #c9a24a; }
 .pagina-publica .historia-panel-texto { margin: 0; color: #4d4d4d; font-size: 14px; }
 
 /* Etapas: tarjetas de lista sin franja al costado; número verde, fecha en pastilla dorada y detalle desplegable */
@@ -1980,6 +2010,12 @@
 /* Cuadrícula / Lista */
 .pagina-publica .selector-vista__opcion { transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
 .pagina-publica .selector-vista__opcion--activa { box-shadow: 0 6px 14px rgba(22, 79, 68, 0.22); }
+/* Las opciones que son enlace (p. ej. «Calendario» en Todas las actividades) se ven igual que los botones: sin subrayado;
+   las no elegidas se aclaran y suben 2 px al pasar el mouse */
+.pagina-publica a.selector-vista__opcion { text-decoration: none; }
+.pagina-publica .selector-vista__opcion:not(.selector-vista__opcion--activa) { transition: background-color 0.2s ease, transform 0.2s ease; }
+.pagina-publica .selector-vista__opcion:not(.selector-vista__opcion--activa):hover { background: #fff; transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .selector-vista__opcion:hover { transform: none; } }
 
 /* «Leer más» y «Leer la noticia»: subrayado dorado al pasar por la tarjeta */
 .pagina-publica .tarjeta-noticia__leer { text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 2px; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease; }
@@ -2636,6 +2672,586 @@
 }
 
 /* ==========================================================================
+   ESPACIOS (20 nov 2026 · plantilla C «Página de trámite», como Credencial; mapa 2D de Aldahir)
+   /espacios: franja compacta → pasos → mapa de la biblioteca | detalle del espacio + disponibilidad.
+   /espacios/solicitar: el formulario de Credencial | el espacio elegido + ayuda. Usa `cred-pagina` (área ajustada, pasos,
+   formulario, ayuda y animaciones de la plantilla) más `esp-pagina` para lo propio.
+   Orden: 1. columnas · 2. mapa · 3. detalle y leyenda · 4. formulario · 5. animaciones · 6. plantas.
+   ========================================================================== */
+
+/* 1. Columnas: el mapa manda el alto; la columna derecha (340 px) no lo estira (contain: size) y su detalle se desplaza por dentro */
+.pagina-publica .esp-pagina .contacto-columnas--nuevo { grid-template-columns: minmax(0, 1fr) 340px; }
+.pagina-publica .esp-pagina .contacto-lateral { contain: size; min-height: 0; }
+.pagina-publica .esp-pagina .contacto-lateral > :is(.perfil-tarjeta, .esp-tarjeta) { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+/* Tarjeta del detalle: blanca con franja verde arriba y la foto a lo ancho como portada (sin cabecera) */
+.pagina-publica .esp-tarjeta {
+  position: relative; padding: 0 0 16px; border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 26px rgba(22, 79, 68, 0.08);
+  animation: detalle-entrada 0.35s ease-out both;
+}
+.pagina-publica .esp-tarjeta::before { content: ""; position: absolute; z-index: 1; inset: 0 0 auto; height: 5px; border-radius: 24px 24px 0 0; background: #1f6b5c; }
+.pagina-publica .esp-tarjeta .esp-detalle > :not(.esp-detalle__portada) { margin-inline: 16px; }
+/* La tarjeta llena su columna: el detalle crece y las acciones quedan al pie, para que no sobre espacio abajo */
+.pagina-publica .esp-tarjeta { display: flex; flex-direction: column; }
+.pagina-publica .esp-tarjeta .esp-detalle { flex: 1; }
+.pagina-publica .esp-tarjeta .esp-detalle > .perfil-acciones:last-child, .pagina-publica .esp-tarjeta .esp-detalle > .perfil-acciones:nth-last-child(2) { margin-top: auto; }
+
+/* 2. Mapa: tarjeta blanca con franja guinda → dorado; barra con título y selector de planta; lienzo punteado */
+.pagina-publica .esp-mapa {
+  position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px 18px 14px; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 26px rgba(22, 79, 68, 0.08);
+}
+.pagina-publica .esp-mapa::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .esp-mapa__barra { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pagina-publica .esp-mapa__barra h2 { margin: 0; color: #161a1d; font-size: 20px; line-height: 26px; }
+.pagina-publica .esp-mapa__barra p { margin: 2px 0 0; color: #6b675e; font-size: 13.5px; line-height: 19px; }
+.pagina-publica .esp-mapa__barra .perfil-filtro { padding: 8px 16px; font-size: 13.5px; font-weight: 700; transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
+.pagina-publica .esp-mapa__lienzo {
+  position: relative; flex: 1; min-height: 0; border-radius: 16px;
+  background: #fbf9f4 radial-gradient(#ebe4d6 1px, transparent 1px) 0 0 / 18px 18px;
+}
+/* El lienzo toma el alto que sobra en la tarjeta y el plano se ajusta dentro (sin alto propio: no estira la fila) */
+.pagina-publica .esp-mapa__svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.pagina-publica .esp-zona { transition: filter 0.2s ease, opacity 0.2s ease; }
+.pagina-publica .esp-zona--libre { cursor: pointer; filter: url(#esp-sombra); }
+.pagina-publica .esp-zona--libre:hover { filter: drop-shadow(0 6px 8px rgba(43, 34, 20, 0.32)) brightness(1.05); }
+.pagina-publica .esp-zona--libre:focus-visible { outline: none; stroke: #c9a24a; stroke-width: 6; }
+/* Espacio elegido: el resto del plano se desenfoca y se apaga; el espacio queda nítido (copia recortada a su forma) con un
+   contorno dorado con brillo que aparece dibujándose (0.5 s) */
+.pagina-publica .esp-mapa__fondo { transition: filter 0.35s ease, opacity 0.35s ease; }
+.pagina-publica .esp-mapa__svg--foco .esp-mapa__fondo { filter: blur(2.5px) saturate(0.55); opacity: 0.55; }
+.pagina-publica .esp-mapa__foco { animation: esp-foco 0.35s ease-out both; }
+.pagina-publica .esp-mapa__luz { animation: esp-foco 0.6s ease-out 0.2s both; }
+@keyframes esp-foco { from { opacity: 0; } to { opacity: 1; } }
+.pagina-publica .esp-mapa__contorno { stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: esp-contorno 0.6s ease-out 0.05s forwards; }
+@keyframes esp-contorno { to { stroke-dashoffset: 0; } }
+.pagina-publica .esp-zona--tenue, .pagina-publica .esp-etiqueta--tenue { opacity: 0.25; }
+.pagina-publica .esp-etiqueta { transition: opacity 0.2s ease; }
+.pagina-publica .esp-mapa__svg--alta .esp-mapa__baja { opacity: 0.28; filter: grayscale(1); pointer-events: none; }
+.pagina-publica .esp-mapa__baja { transition: opacity 0.3s ease; }
+.pagina-publica .esp-mapa__pildora { cursor: pointer; transition: transform 0.2s ease; transform-box: fill-box; }
+.pagina-publica .esp-mapa__pildora:hover { transform: translateY(-2px); }
+.pagina-publica .esp-mapa__pildora:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pagina-publica .esp-mapa__globo {
+  position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 2px; max-width: 250px; padding: 9px 12px; pointer-events: none;
+  border-radius: 12px; background: #164f44; box-shadow: 0 10px 24px rgba(11, 59, 51, 0.3); color: #fff; animation: desplegable-entra 0.15s ease-out both;
+}
+.pagina-publica .esp-mapa__globo strong { font-size: 13.5px; line-height: 18px; }
+.pagina-publica .esp-mapa__globo span { color: #d6e8e1; font-size: 12px; line-height: 16px; }
+.pagina-publica .esp-mapa__globo em { color: #e6d194; font-size: 11.5px; font-style: normal; }
+
+/* 3. Detalle del espacio (chip, nombre, planta, capacidad, uso, condiciones y la acción) y leyenda de disponibilidad */
+/* Detalle limpio (Aldahir, 20 nov: «muy saturado»): portada a lo ancho → nombre y chip → capacidad y planta en una línea
+   con separador → «Ideal para» → «Ten en cuenta». Sin recuadros: cada sección se separa con una línea fina. */
+.pagina-publica .esp-detalle { display: flex; flex-direction: column; gap: 14px; animation: detalle-entrada 0.3s ease-out both; }
+/* Portada: la foto (botón que abre la vista previa) con un degradado verde abajo; encima, el ícono del espacio en su
+   círculo, el nombre en blanco y su chip. «Ver fotos» arriba a la derecha. La foto entra con un acercamiento leve. */
+.pagina-publica .esp-detalle__portada {
+  position: relative; flex: none; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; border-bottom: 3px solid #e6d194;
+  border-radius: 24px 24px 0 0; background: #164f44; transition: border-color 0.3s ease;
+}
+.pagina-publica .esp-detalle__portada:hover { border-bottom-color: #c9a24a; }
+.pagina-publica .esp-detalle__portada > button { position: absolute; inset: 0; display: block; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.pagina-publica .esp-detalle__portada > button::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(11, 59, 51, 0) 38%, rgba(11, 59, 51, 0.55) 68%, rgba(11, 59, 51, 0.92) 100%);
+}
+.pagina-publica .esp-detalle__portada img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; animation: esp-portada 0.6s ease-out both; }
+@keyframes esp-portada { from { transform: scale(1.06); } to { transform: none; } }
+.pagina-publica .esp-detalle__portada > button:hover img { transform: scale(1.03); }
+.pagina-publica .esp-detalle__portada > button span {
+  position: absolute; z-index: 1; top: 12px; right: 12px; padding: 5px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.92);
+  color: #164f44; font-size: 12.5px; font-weight: 700; line-height: 16px; transition: transform 0.2s ease;
+}
+.pagina-publica .esp-detalle__portada > button:hover span { transform: translateY(-2px); }
+.pagina-publica .esp-detalle__portada > button:focus-visible { outline: 3px solid #c9a24a; outline-offset: -3px; }
+.pagina-publica .esp-detalle__cabeza { display: flex; align-items: center; gap: 12px; }
+.pagina-publica .esp-detalle__cabeza > div { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.pagina-publica .esp-detalle__cabeza h3 { margin: 0; color: #161a1d; font-size: 20px; line-height: 25px; }
+.pagina-publica .esp-detalle__icono {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%;
+  background: #e4efeb; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e6d194;
+}
+.pagina-publica .esp-detalle__icono img { width: 22px; height: 22px; }
+.pagina-publica .esp-detalle__portada .esp-detalle__cabeza {
+  position: absolute; z-index: 1; right: 16px; bottom: 14px; left: 16px; margin: 0; pointer-events: none;
+  animation: detalle-entrada 0.4s ease-out 0.15s both;
+}
+.pagina-publica .esp-detalle__portada .esp-detalle__cabeza h3 { color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35); }
+.pagina-publica .esp-detalle__portada .esp-detalle__icono { background: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35); }
+.pagina-publica .esp-detalle__datos { display: grid; grid-template-columns: 1fr 1fr; margin: 0; padding: 12px 0; border-block: 1px solid #efebe2; }
+/* Cada dato con su ícono en un círculo verde claro a la izquierda (capacidad: persona; planta: pin) */
+.pagina-publica .esp-detalle__datos > div { display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: 10px; align-items: center; }
+.pagina-publica .esp-detalle__datos > div::before {
+  content: ""; grid-row: 1 / span 2; width: 32px; height: 32px; border-radius: 50%; background: #e4efeb var(--icono) center / 16px no-repeat;
+}
+.pagina-publica .esp-detalle__datos > div + div { padding-left: 14px; border-left: 1px solid #efebe2; }
+.pagina-publica .esp-detalle__datos dt { grid-column: 2; color: #6b675e; font-size: 12px; line-height: 16px; }
+.pagina-publica .esp-detalle__datos dd { grid-column: 2; margin: 1px 0 0; color: #161a1d; font-size: 14.5px; font-weight: 700; line-height: 19px; }
+.pagina-publica .esp-detalle__bloque { display: flex; flex-direction: column; gap: 4px; }
+.pagina-publica .esp-detalle__bloque h4 { margin: 0; color: #1f6b5c; font-size: 13px; font-weight: 700; line-height: 17px; }
+.pagina-publica .esp-detalle__bloque p { margin: 0; color: #4d4d4d; font-size: 14px; line-height: 21px; }
+.pagina-publica .esp-detalle__bloque ul { display: flex; flex-direction: column; gap: 5px; margin: 0; padding: 0; list-style: none; color: #4d4d4d; font-size: 13.5px; line-height: 19px; }
+/* Cómo se pide: tres pasos cortos con su número en círculo verde (solo en los espacios con pocas condiciones) */
+.pagina-publica .esp-detalle__pasos { display: flex; flex-direction: column; gap: 8px; margin: 2px 0 0; padding: 0; list-style: none; }
+.pagina-publica .esp-detalle__pasos li { display: flex; align-items: center; gap: 10px; color: #4d4d4d; font-size: 13.5px; line-height: 19px; }
+.pagina-publica .esp-detalle__pasos span {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%;
+  background: #1f6b5c; color: #fff; font-size: 12px; font-weight: 800;
+}
+.pagina-publica .esp-detalle .perfil-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 2px; }
+.pagina-publica .esp-detalle .perfil-acciones .perfil-boton { padding: 0 12px; }
+.pagina-publica .esp-detalle .perfil-acciones > :only-child { grid-column: 1 / -1; }
+
+/* Vista previa de fotos a pantalla completa: velo verde oscuro; arriba el nombre y «Cerrar»; la foto grande al centro con
+   «Anterior» y «Siguiente» a sus lados (pastillas blancas translúcidas que suben 2 px); abajo las miniaturas, la actual
+   con aro dorado. La foto entra con un fundido y un acercamiento leve (0.35 s). Va en el <body>, fuera de la página. */
+.esp-visor {
+  position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; gap: 16px; padding: 22px 32px 26px; box-sizing: border-box;
+  background: rgba(7, 33, 29, 0.92); font-family: 'Noto Sans', sans-serif; animation: mov-aparece 0.25s ease-out both;
+}
+.esp-visor__barra { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; max-width: 1180px; margin: 0 auto; }
+.esp-visor__barra h2 { margin: 0; color: #fff; font-size: 22px; font-weight: 700; line-height: 28px; }
+.esp-visor__barra h2::after { content: ""; display: block; width: 44px; height: 3px; margin-top: 6px; border-radius: 3px; background: #c9a24a; }
+.esp-visor__boton {
+  height: 40px; padding: 0 20px; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 999px; background: rgba(255, 255, 255, 0.1);
+  color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+.esp-visor__boton:hover { border-color: #e6d194; background: rgba(255, 255, 255, 0.18); transform: translateY(-2px); }
+.esp-visor__boton:active { transform: none; }
+.esp-visor__boton:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.esp-visor__escena { display: flex; flex: 1; min-height: 0; align-items: center; justify-content: center; gap: 20px; width: 100%; max-width: 1180px; margin: 0 auto; }
+.esp-visor__escena img {
+  display: block; min-width: 0; max-width: calc(100% - 260px); max-height: 100%; object-fit: contain; border-radius: 18px;
+  box-shadow: 0 0 0 3px rgba(230, 209, 148, 0.5), 0 30px 70px rgba(0, 0, 0, 0.45); animation: esp-visor-foto 0.35s ease-out both;
+}
+@keyframes esp-visor-foto { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: none; } }
+.esp-visor__lado { flex: none; width: 110px; }
+.esp-visor__miniaturas { display: flex; justify-content: center; gap: 10px; }
+.esp-visor__miniaturas button {
+  width: 96px; aspect-ratio: 16 / 9; padding: 0; overflow: hidden; border: 0; border-radius: 10px; background: #1f6b5c; cursor: pointer;
+  opacity: 0.55; transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.esp-visor__miniaturas button:hover { opacity: 0.9; transform: translateY(-2px); }
+.esp-visor__miniaturas img { width: 100%; height: 100%; object-fit: cover; }
+.esp-visor__miniaturas .esp-visor__miniatura--actual { opacity: 1; box-shadow: 0 0 0 2px #07211d, 0 0 0 4px #c9a24a; }
+.esp-visor__miniaturas button:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .esp-visor, .esp-visor__escena img { animation: none; }
+  .esp-visor__boton:hover, .esp-visor__miniaturas button:hover { transform: none; }
+  .pagina-publica .esp-detalle__portada img { transition: none; }
+  .pagina-publica .esp-tarjeta, .pagina-publica .esp-detalle__portada img, .pagina-publica .esp-detalle__portada .esp-detalle__cabeza { animation: none; }
+}
+.pagina-publica .esp-detalle--vacio p strong { display: block; margin-bottom: 4px; color: #161a1d; font-size: 15px; }
+/* Leyenda al pie del mapa: chips que resaltan su disponibilidad; la nota de capacidades a la derecha */
+.pagina-publica .esp-leyenda { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; }
+.pagina-publica .esp-leyenda__opcion {
+  display: flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid #e2ded5; border-radius: 999px; background: #fff; cursor: pointer;
+  color: #161a1d; font: inherit; font-size: 12.5px; font-weight: 700; line-height: 16px; white-space: nowrap;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.pagina-publica .esp-leyenda__opcion span { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+.pagina-publica .esp-leyenda__opcion:hover { border-color: #1f6b5c; background: #f1f7f4; transform: translateY(-2px); }
+.pagina-publica .esp-leyenda__opcion--activa { border-color: #1f6b5c; background: #e4efeb; animation: noticias-pulso 0.25s ease-out; }
+.pagina-publica .esp-leyenda__opcion:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pagina-publica .esp-leyenda__nota { margin: 0 0 0 auto; color: #6b675e; font-size: 12px; line-height: 16px; white-space: nowrap; }
+/* Lista de los espacios para eventos (columna derecha, sin elegir): sus filas se reparten todo el alto de la tarjeta
+   (Aldahir, 20 nov), cada una con el ícono del espacio en un círculo verde claro, su nombre, su cupo y su estado */
+.pagina-publica .esp-pagina .contacto-lateral > .perfil-tarjeta { display: flex; flex-direction: column; animation: detalle-entrada 0.35s ease-out both; }
+.pagina-publica .esp-lista { display: flex; flex: 1; flex-direction: column; gap: 8px; min-height: 0; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .esp-lista li { display: flex; flex: 1; min-height: 52px; }
+.pagina-publica .esp-lista__opcion {
+  display: flex; flex: 1; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 1px solid #e2ded5; border-radius: 16px; background: #fff;
+  cursor: pointer; font: inherit; text-align: left; transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-publica .esp-lista__icono {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #e4efeb;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e6d194; transition: background-color 0.2s ease;
+}
+.pagina-publica .esp-lista__icono img { width: 20px; height: 20px; }
+.pagina-publica .esp-lista__opcion:hover .esp-lista__icono { background: #fff; }
+.pagina-publica .esp-lista__opcion:hover { border-color: #1f6b5c; background: #f1f7f4; box-shadow: 0 8px 18px rgba(22, 79, 68, 0.1); transform: translateY(-2px); }
+.pagina-publica .esp-lista__opcion:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pagina-publica .esp-lista__textos { display: flex; flex: 1; flex-direction: column; gap: 1px; min-width: 0; color: #6b675e; font-size: 12.5px; line-height: 16px; }
+.pagina-publica .esp-lista__estado {
+  flex: none; width: 94px; padding: 4px 0; box-sizing: border-box; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 15px;
+  text-align: center; white-space: nowrap;
+}
+.pagina-publica .esp-lista__estado--disponible { background: #e4efeb; color: #164f44; }
+.pagina-publica .esp-lista__estado--ludico { background: #f6eeda; color: #8a6414; }
+.pagina-publica .esp-lista__estado--condiciones { background: #f6eaee; color: #9b2247; }
+.pagina-publica .esp-lista__textos strong { color: #161a1d; font-size: 14px; line-height: 19px; }
+.pagina-publica .esp-lista__textos { overflow: hidden; white-space: nowrap; }
+.pagina-publica .esp-lista__textos strong { white-space: normal; }
+.pagina-publica .esp-lista li { animation: detalle-entrada 0.4s ease-out both; }
+.pagina-publica .esp-lista li:nth-child(2) { animation-delay: 0.05s; }
+.pagina-publica .esp-lista li:nth-child(3) { animation-delay: 0.1s; }
+.pagina-publica .esp-lista li:nth-child(n+4) { animation-delay: 0.15s; }
+
+/* 4. Formulario: fecha, desde y hasta en una fila de tres; descripción en textarea de la plantilla */
+.pagina-publica .esp-fila-tres { grid-template-columns: 1.4fr 1fr 1fr; }
+.pagina-publica .esp-formulario .perfil-campo textarea {
+  width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #b9b3a5; border-radius: 12px; font: inherit; font-size: 15px; resize: vertical;
+}
+
+/* 4b. Seguimiento (/espacios/solicitud/:folio): el estado como el trámite de Credencial (foto del espacio a la izquierda;
+   chip, título, qué pasa, fichas Folio · Fecha · Horario y lo que se puede hacer a la derecha) y la ruta de cuatro pasos */
+.pagina-publica .esp-estado {
+  position: relative; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 22px; padding: 18px 22px; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 26px rgba(22, 79, 68, 0.08);
+  animation: acerca-entra 0.5s ease-out 0.2s both;
+}
+.pagina-publica .esp-estado::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .esp-estado__visual { display: flex; flex-direction: column; gap: 10px; }
+.pagina-publica .esp-estado__visual > img, .pagina-publica .esp-estado__sin-foto {
+  width: 100%; aspect-ratio: 4 / 3; border-radius: 16px; object-fit: cover; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e6d194;
+}
+.pagina-publica .esp-estado__sin-foto { display: flex; align-items: center; justify-content: center; background: #e4efeb; }
+.pagina-publica .esp-estado__sin-foto img { width: 40px; height: 40px; }
+.pagina-publica .esp-estado__visual p { display: flex; flex-direction: column; gap: 1px; margin: 0; color: #6b675e; font-size: 13px; line-height: 18px; }
+.pagina-publica .esp-estado__visual p strong { color: #161a1d; font-size: 15px; line-height: 20px; }
+.pagina-publica .esp-estado__textos { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.pagina-publica .esp-estado__textos h2 { margin: 0; color: #161a1d; font-size: 22px; line-height: 28px; }
+.pagina-publica .esp-estado__textos > p { margin: 0; color: #4d4d4d; font-size: 14.5px; line-height: 21px; }
+.pagina-publica .esp-estado .perfil-datos { gap: 8px; }
+.pagina-publica .esp-estado .perfil-dato { padding: 9px 12px; }
+.pagina-publica .esp-estado .perfil-nota { width: 100%; margin: 0; box-sizing: border-box; }
+.pagina-publica .esp-propuesta { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; border-radius: 16px; animation: acerca-despliega 0.3s ease-out both; }
+.pagina-publica .esp-propuesta > p { display: block; font-size: 14px; line-height: 20px; }
+.pagina-publica .esp-propuesta > p strong { display: block; color: #8a6414; }
+.pagina-publica .esp-propuesta .perfil-acciones { margin: 0; }
+.pagina-publica .esp-seguimiento__carga { flex: 1; justify-content: center; }
+.pagina-publica .esp-seguimiento__texto { margin: 0; color: #4d4d4d; font-size: 14px; line-height: 20px; }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .esp-estado, .pagina-publica .esp-propuesta { animation: none; } }
+
+/* 5. Animaciones (§3): el mapa entra con la columna; las zonas libres se elevan con sombra al pasar el mouse; el detalle cambia
+   bajando 8 px; las opciones de la leyenda suben 2 px y pulsan al elegir; las píldoras del mapa suben 2 px */
+.pagina-publica .esp-pagina .esp-mapa { animation: acerca-entra 0.5s ease-out 0.1s both; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .esp-pagina .esp-mapa, .pagina-publica .esp-detalle, .pagina-publica .esp-mapa__globo, .pagina-publica .esp-leyenda__opcion--activa { animation: none; }
+  .pagina-publica .esp-leyenda__opcion:hover, .pagina-publica .esp-mapa__pildora:hover, .pagina-publica .esp-lista__opcion:hover { transform: none; }
+  .pagina-publica .esp-lista li, .pagina-publica .esp-mapa__foco, .pagina-publica .esp-mapa__contorno { animation: none; }
+  .pagina-publica .esp-mapa__contorno { stroke-dashoffset: 0; }
+  .pagina-publica .esp-mapa__fondo { transition: none; }
+  .pagina-publica .esp-zona, .pagina-publica .esp-mapa__baja { transition: none; }
+}
+
+/* 6. Plantas propias de Espacios (en los márgenes, se mecen a destiempo): eucalipto arriba a la izquierda, cerezo arriba a la
+   derecha y espigas abajo a la izquierda. Reemplazan las de Credencial (misma plantilla). */
+@media (min-width: 1025px) {
+  .pagina-publica .esp-pagina::before { background-image: url("../../assets/inicio/adorno-eucalipto.svg"); }
+  .pagina-publica .esp-pagina::after { background-image: url("../../assets/inicio/adorno-cerezo.svg"); }
+  .pagina-publica .esp-pagina .contacto-columnas--nuevo::after { background-image: url("../../assets/inicio/adorno-espigas.svg"); }
+}
+
+/* ==========================================================================
+   EVENTOS · CONSULTA (20 nov 2026 · plantilla C «Página de consulta», con las piezas de Noticias)
+   /eventos: barra (tipos en chips | «Lista · Calendario» y «Ver todas») → destacada → «Más actividades».
+   /eventos/todas: panel de «Filtros» → «Actividades» con Cuadrícula | Lista → un grupo por mes.
+   /eventos/calendario: barra del mes → el mes en tarjeta blanca | el día elegido en tarjeta verde.
+   Clases de Noticias (`noticias-pagina`, `noticia-principal`, `tarjeta-noticia`…) + `eventos-pagina` para lo propio.
+   Orden: 1. barra y proponer · 2. tarjetas · 3. grupos por mes · 4. calendario · 5. plantas.
+   ========================================================================== */
+
+/* 1. Barra: a la derecha «Lista · Calendario» (pastillas segmentadas) y la acción; con sesión, proponer en una línea */
+.pagina-publica .evento-barra__acciones { display: flex; flex: none; align-items: center; gap: 10px; }
+.pagina-publica .evento-proponer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0; padding: 12px 16px; }
+.pagina-publica .evento-proponer p { margin: 0; color: #2b2f31; font-size: 14px; line-height: 20px; }
+.pagina-publica .evento-proponer p strong { color: #164f44; }
+.pagina-publica .evento-proponer .perfil-acciones { flex: none; flex-wrap: nowrap; margin: 0; }
+
+/* 1b. Agenda pulida (Aldahir, 20 nov): barra blanca con los tipos (pastillas con su punto de color) y «Ver como»;
+   la destacada y la tarjeta verde «Participa» en dos columnas del mismo alto; «Más actividades» con «Ver todas» a la derecha */
+.pagina-publica .evento-herramientas {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 10px 12px;
+  border: 1px solid #e2ded5; border-radius: 22px; background: #fff; box-shadow: 0 8px 20px rgba(22, 79, 68, 0.06);
+  animation: acerca-entra 0.5s ease-out both;
+}
+.pagina-publica .evento-herramientas__grupo { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 0 8px; }
+.pagina-publica .evento-herramientas__grupo + .evento-herramientas__grupo { margin-left: 8px; padding-left: 18px; border-left: 1px solid #efebe2; }
+.pagina-publica .evento-herramientas__etiqueta { flex: none; color: #6b675e; font-size: 13px; font-weight: 600; }
+.pagina-publica .evento-tipos { flex-wrap: nowrap; height: 44px; padding: 4px; box-sizing: border-box; background: #f7f5f0; box-shadow: inset 0 0 0 1px #efebe2; }
+.pagina-publica .evento-tipo { height: 36px; box-sizing: border-box; gap: 7px; padding: 0 14px; white-space: nowrap; color: #164f44; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.pagina-publica .evento-tipo:not(.perfil-filtro--activo):hover { background: #e4efeb; transform: translateY(-2px); }
+.pagina-publica .evento-tipo.perfil-filtro--activo { color: #fff; animation: noticias-pulso 0.25s ease-out; }
+.pagina-publica .evento-tipo:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pagina-publica .evento-tipo__punto { width: 8px; height: 8px; border-radius: 50%; background: #164f44; }
+.pagina-publica .evento-tipo__punto--club, .pagina-publica .evento-tipo__punto--evento { background: #c9a24a; }
+.pagina-publica .evento-tipo__punto--visita { background: #9b2247; }
+.pagina-publica .perfil-filtro--activo .evento-tipo__punto { box-shadow: 0 0 0 2px #fff; }
+
+/* «Ver como»: Lista · Calendario, dos opciones del mismo ancho con su ícono (verde; blanco en la elegida), en la misma
+   pastilla crema que los tipos y del mismo alto (44 px), para que la barra quede pareja */
+.pagina-publica .evento-vista { display: grid; grid-template-columns: repeat(2, 120px); height: 44px; padding: 4px; box-sizing: border-box; border-radius: 999px; background: #f7f5f0; box-shadow: inset 0 0 0 1px #efebe2; }
+.pagina-publica .evento-vista__opcion {
+  display: flex; align-items: center; justify-content: center; gap: 8px; height: 36px; border-radius: 999px; color: #164f44;
+  font-size: 13.5px; font-weight: 700; text-decoration: none; transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.pagina-publica .evento-vista__icono { width: 16px; height: 16px; background: currentColor; -webkit-mask: var(--icono) center / contain no-repeat; mask: var(--icono) center / contain no-repeat; }
+.pagina-publica .evento-vista__opcion:not(.evento-vista__opcion--activa):hover { background: #e4efeb; transform: translateY(-2px); }
+.pagina-publica .evento-vista__opcion--activa { background: #164f44; color: #fff; box-shadow: 0 6px 14px rgba(22, 79, 68, 0.22); }
+.pagina-publica .evento-vista__opcion:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .evento-vista__opcion:hover { transform: none; } }
+
+.pagina-publica .evento-principal { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; align-items: stretch; }
+.pagina-publica .evento-principal .noticia-principal { gap: 26px; height: 100%; box-sizing: border-box; }
+.pagina-publica .evento-principal .noticia-principal__imagen { width: 300px; height: 260px; flex: none; }
+.pagina-publica .evento-principal .noticia-principal__titulo { font-size: 27px; line-height: 33px; letter-spacing: -0.3px; }
+.pagina-publica .evento-principal .noticia-principal { align-items: center; }
+.pagina-publica .evento-principal .noticia-principal__meta { flex-wrap: wrap; }
+.pagina-publica .evento-principal .noticia-principal__resumen { font-size: 15.5px; line-height: 23px; }
+.pagina-publica .evento-principal > .perfil-vacio { margin: 0; }
+.pagina-publica .evento-participa {
+  position: relative; display: flex; flex-direction: column; gap: 10px; padding: 24px 22px 22px; overflow: hidden; border-radius: 28px; color: #fff;
+  background: radial-gradient(circle at 15% 0%, rgba(201, 162, 74, 0.32), transparent 45%), radial-gradient(circle at 90% 100%, rgba(155, 34, 71, 0.38), transparent 45%), linear-gradient(150deg, #0b3b33, #1f6b5c);
+  box-shadow: 0 14px 30px rgba(22, 79, 68, 0.2); animation: acerca-entra 0.5s ease-out 0.12s both;
+}
+.pagina-publica .evento-participa::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .evento-participa__insignia {
+  display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: #e6d194;
+  box-shadow: 0 0 0 4px rgba(242, 227, 184, 0.35); animation: acerca-aro 0.9s ease-out 0.6s 1 backwards;
+}
+.pagina-publica .evento-participa__insignia img { width: 22px; height: 22px; }
+.pagina-publica .evento-participa__textos { display: flex; flex-direction: column; gap: 10px; }
+.pagina-publica .evento-participa h2 { margin: 4px 0 0; font-size: 20px; line-height: 26px; }
+.pagina-publica .evento-participa__textos p { margin: 0; color: #e4efeb; font-size: 14px; line-height: 21px; }
+/* Horizontal (calendario): insignia | textos | botones en fila, a todo lo ancho bajo el calendario */
+.pagina-publica .evento-participa--horizontal { flex-direction: row; align-items: center; gap: 20px; padding: 20px 24px; }
+.pagina-publica .evento-participa--horizontal .evento-participa__insignia { flex: none; }
+.pagina-publica .evento-participa--horizontal .evento-participa__textos { flex: 1; gap: 4px; }
+.pagina-publica .evento-participa--horizontal h2 { margin: 0; }
+.pagina-publica .evento-participa--horizontal .evento-participa__acciones { flex: none; flex-direction: row; margin: 0; padding: 0; }
+.pagina-publica .evento-participa--horizontal .evento-participa__acciones .perfil-boton { width: auto; padding: 0 22px; }
+.pagina-publica .evento-participa__puntos { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 0; padding: 0; list-style: none; }
+.pagina-publica .evento-participa__puntos li {
+  padding: 8px 12px; border: 1px solid rgba(230, 209, 148, 0.28); border-radius: 12px; background: rgba(255, 255, 255, 0.07);
+  color: #fff; font-size: 13.5px; font-weight: 600; line-height: 18px;
+}
+.pagina-publica .evento-participa__acciones { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: 6px; }
+.pagina-publica .evento-participa .evento-participa__principal { width: 100%; border-color: #e6d194; background: #e6d194; color: #164f44; }
+.pagina-publica .evento-participa .evento-participa__principal:hover { background: #f2e3b8; }
+.pagina-publica .evento-participa .evento-participa__secundario { width: 100%; border-color: rgba(255, 255, 255, 0.55); background: transparent; color: #fff; }
+.pagina-publica .evento-participa .evento-participa__secundario:hover { border-color: #e6d194; background: rgba(255, 255, 255, 0.1); }
+.pagina-publica .evento-mas__encabezado { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .evento-herramientas, .pagina-publica .evento-participa, .pagina-publica .evento-participa__insignia, .pagina-publica .evento-tipo.perfil-filtro--activo { animation: none; }
+  .pagina-publica .evento-tipo:hover { transform: none; }
+}
+
+/* 2. Tarjetas: tipo en pastilla verde clara (dorada sobre la destacada), estado con su color, fecha sobre la foto */
+.pagina-publica .evento-pastilla { padding: 2px 10px; border-radius: 999px; background: #e4efeb; color: #164f44; font-size: 12px; font-weight: 700; line-height: 18px; }
+.pagina-publica .evento-pastilla--claro { background: #e6d194; color: #164f44; }
+.pagina-publica .evento-estado { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; line-height: 18px; }
+.pagina-publica .evento-estado--verde { background: #e4efeb; color: #164f44; }
+.pagina-publica .evento-estado--dorado { background: #f6eeda; color: #8a6414; }
+.pagina-publica .evento-estado--guinda { background: #f6eaee; color: #9b2247; }
+.pagina-publica .evento-estado--gris { background: #f1efea; color: #4d4d4d; }
+.pagina-publica .tarjeta-evento .tarjeta-noticia__imagen { position: relative; }
+.pagina-publica .tarjeta-evento__fecha {
+  position: absolute; z-index: 1; top: 10px; left: 10px; display: flex; flex-direction: column; align-items: center; min-width: 44px; padding: 5px 8px;
+  border-radius: 12px; background: #fff; box-shadow: 0 6px 14px rgba(11, 59, 51, 0.18); color: #6b4f12; font-size: 11px; font-weight: 700; line-height: 13px;
+}
+.pagina-publica .tarjeta-evento__fecha strong { color: #164f44; font-size: 18px; line-height: 21px; }
+.pagina-publica .tarjeta-evento--cancelada .tarjeta-noticia__imagen img { filter: grayscale(0.7); opacity: 0.7; }
+.pagina-publica .evento-destacada .noticia-principal__imagen { position: relative; }
+
+/* 3. Grupos por mes: el mes en verde con «Próximas» o «Ya pasaron» en pastilla y una línea fina; sin contadores */
+.pagina-publica .evento-grupo { display: flex; flex-direction: column; gap: 14px; }
+.pagina-publica .evento-grupo__encabezado { display: flex; align-items: center; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #e2ded5; }
+.pagina-publica .evento-grupo__encabezado h2 { margin: 0; color: #164f44; font-size: 22px; line-height: 28px; }
+.pagina-publica .evento-grupo__encabezado span { padding: 2px 10px; border-radius: 999px; background: #f6eeda; color: #8a6414; font-size: 12px; font-weight: 700; }
+
+/* 4. Calendario: barra con «Mes anterior · mes · Mes siguiente»; el mes en tarjeta blanca con franja; el día en tarjeta verde */
+/* El cambio de mes va dentro de la tarjeta del mes: «Mes anterior» y «Mes siguiente» a los lados y el mes al centro */
+.pagina-publica .evento-calendario__mes { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #efebe2; }
+.pagina-publica .evento-calendario__mes h2 { margin: 0; color: #161a1d; font-size: 22px; line-height: 28px; text-align: center; }
+.pagina-publica .evento-calendario__lateral { display: flex; flex-direction: column; gap: 16px; }
+/* Varios eventos en un día (Aldahir, 20 nov): la columna derecha no estira la fila (`contain: size`), así manda la tarjeta
+   del mes; la tarjeta del día toma el alto que queda sobre «Participa» y su lista se desplaza por dentro, con un
+   desvanecido abajo que avisa que hay más */
+.pagina-publica .evento-calendario__lateral { contain: size; min-height: 0; }
+.pagina-publica .evento-calendario__dia { flex: 1 1 auto; min-height: 0; }
+.pagina-publica .evento-calendario__dia ul {
+  flex: 1 1 auto; min-height: 0; margin-right: -8px; padding-right: 8px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(230, 209, 148, 0.6) transparent;
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(180deg, #000 calc(100% - 22px), transparent);
+}
+.pagina-publica .evento-calendario__dia li { flex: none; }
+.pagina-publica .evento-calendario__dia li:last-child { margin-bottom: 18px; }
+.pagina-publica .evento-calendario { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 24px; align-items: stretch; }
+.pagina-publica .evento-calendario__mes-tarjeta {
+  position: relative; padding: 20px 22px 16px; overflow: hidden; border: 1px solid #e2ded5; border-radius: 24px; background: #fff;
+  box-shadow: 0 10px 26px rgba(22, 79, 68, 0.08); animation: acerca-entra 0.5s ease-out 0.1s both;
+}
+.pagina-publica .evento-calendario__mes-tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .evento-calendario__mes-tarjeta .calendario-agenda__tabla { width: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.pagina-publica .evento-calendario__mes-tarjeta .calendario-agenda__tabla th { color: #6b675e; font-size: 12.5px; letter-spacing: 0; }
+.pagina-publica .calendario-agenda__dia--hoy .calendario-agenda__numero { box-shadow: 0 0 0 2px #e6d194; border-radius: 50%; }
+.pagina-publica .evento-calendario__dia {
+  position: relative; display: flex; flex-direction: column; gap: 6px; padding: 22px 20px; overflow: hidden; border-radius: 24px; color: #fff;
+  background: radial-gradient(circle at 15% 0%, rgba(201, 162, 74, 0.3), transparent 45%), radial-gradient(circle at 90% 100%, rgba(155, 34, 71, 0.35), transparent 45%), linear-gradient(150deg, #0b3b33, #1f6b5c);
+  box-shadow: 0 12px 26px rgba(22, 79, 68, 0.18); animation: acerca-entra 0.5s ease-out 0.2s both;
+}
+.pagina-publica .evento-calendario__dia::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .evento-calendario__semana { margin: 0; color: #e6d194; font-size: 13px; font-weight: 700; }
+.pagina-publica .evento-calendario__dia h3 { margin: 0 0 6px; font-size: 22px; line-height: 28px; }
+.pagina-publica .evento-calendario__dia ul { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .evento-calendario__dia li {
+  display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid rgba(230, 209, 148, 0.28); border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07); animation: detalle-entrada 0.35s ease-out both;
+}
+.pagina-publica .evento-calendario__tipo { display: flex; align-items: center; gap: 8px; margin: 0; color: #e6d194; font-size: 12.5px; font-weight: 700; }
+.pagina-publica .evento-calendario__dia h4 { margin: 0; font-size: 16px; line-height: 21px; }
+.pagina-publica .evento-calendario__lugar { margin: 0; color: #d6e8e1; font-size: 13px; line-height: 18px; }
+.pagina-publica .evento-calendario__ver { align-self: flex-start; margin-top: 4px; background: #e6d194; color: #164f44; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .evento-calendario__mes-tarjeta, .pagina-publica .evento-calendario__dia, .pagina-publica .evento-calendario__dia li { animation: none; }
+}
+
+/* 5. Plantas propias de Eventos (reemplazan las de Noticias): margaritas arriba a la izquierda, ginkgo arriba a la derecha
+   y flor de tallo abajo a la derecha */
+@media (min-width: 1025px) {
+  .pagina-publica .eventos-pagina .noticias-contenedor::before { background-image: url("../../assets/inicio/adorno-margaritas.svg"); }
+  .pagina-publica .eventos-pagina .noticias-contenedor::after { background-image: url("../../assets/inicio/adorno-ginkgo.svg"); }
+  .pagina-publica .eventos-pagina::after { background-image: url("../../assets/inicio/adorno-flor-tallo.svg"); }
+}
+
+/* ==========================================================================
+   EVENTOS · DETALLE DE UNA ACTIVIDAD (20 nov 2026 · plantilla C «Página de detalle», como Noticias y Memoria)
+   Franja compacta con el tipo y la próxima fecha en pastilla → foto montada, texto, requisitos, quién la organiza y
+   las sesiones (tarjetas de lista con «Mi inscripción» en el lugar) | al lado: sobre la actividad, «Dónde es» con el
+   mapa de la biblioteca (espacio resaltado) y la foto del lugar, y los botones.
+   Orden: 1. franja · 2. texto y sesiones · 3. «Dónde es» · 4. plantas.
+   ========================================================================== */
+
+/* 1. Franja: el tipo en pastilla dorada dentro de la pastilla de datos */
+.pagina-publica .detalle-evento__tipo { padding: 2px 10px; border-radius: 999px; background: #e6d194; color: #164f44; font-size: 12px; font-weight: 800; }
+
+/* 2. Texto: requisitos y responsable en dos tarjetas iguales; sesiones con las tarjetas de lista de Mis eventos */
+.pagina-publica .detalle-evento__bloques { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 6px 0 4px; }
+.pagina-publica .detalle-evento__bloques section {
+  display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid #d6e8e1; border-radius: 16px; background: #f1f7f4;
+}
+.pagina-publica .detalle-evento__bloques h2 { margin: 0; color: #1f6b5c; font-size: 13.5px; font-weight: 700; line-height: 18px; }
+.pagina-publica .detalle-evento__bloques p { margin: 0; color: #2b2f31; font-size: 14.5px; line-height: 21px; }
+/* Sesiones: TarjetaPerfil verde (cabecera con su ícono, título y qué hacer); dentro, las tarjetas de lista de cada sesión */
+.pagina-publica .detalle-evento__sesiones { margin-top: 10px; scroll-margin-top: 90px; }
+.pagina-publica .detalle-evento__sesiones .perfil-tarjeta { margin: 0; }
+/* Cada sesión (Aldahir, 20 nov: «mejora la etiqueta de sesión»): tarjeta blanca con borde parejo (sin franja al costado);
+   bloque de fecha con el día de la semana | la fecha y su chip en una línea y, debajo, horario, lugar y cupo con su ícono
+   en círculo verde claro | el botón. Al pasar el mouse se eleva; abierta, borde dorado y la inscripción baja dentro. */
+.pagina-publica .evento-sesiones { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .evento-sesion {
+  border: 1px solid #e2ded5; border-radius: 18px; background: #fff; box-shadow: 0 4px 12px rgba(22, 79, 68, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.pagina-publica .evento-sesion:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(22, 79, 68, 0.1); }
+.pagina-publica .evento-sesion--abierta { border-color: #e6d194; box-shadow: 0 12px 26px rgba(138, 100, 20, 0.12); }
+.pagina-publica .evento-sesion--gris { background: #fbfaf7; }
+.pagina-publica .evento-sesion__fila { display: grid; grid-template-columns: 62px minmax(0, 1fr); align-items: center; gap: 16px; padding: 14px 16px; }
+.pagina-publica .evento-sesion__fecha {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70px; border-radius: 14px;
+  background: #e4efeb; box-shadow: inset 0 0 0 1px #bfd9d0; color: #1f6b5c; font-size: 12px; font-weight: 700; line-height: 14px;
+}
+.pagina-publica .evento-sesion__fecha small { color: #6b675e; font-size: 11px; font-weight: 600; }
+.pagina-publica .evento-sesion__fecha strong { color: #164f44; font-size: 24px; line-height: 28px; }
+.pagina-publica .evento-sesion--gris .evento-sesion__fecha { background: #f1efea; box-shadow: inset 0 0 0 1px #e2ded5; color: #6b675e; }
+.pagina-publica .evento-sesion--gris .evento-sesion__fecha strong { color: #4d4d4d; }
+.pagina-publica .evento-sesion__textos { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pagina-publica .evento-sesion__cabeza { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #efebe2; }
+.pagina-publica .evento-sesion__titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.pagina-publica .evento-sesion__cabeza strong { color: #161a1d; font-size: 16px; line-height: 21px; }
+.pagina-publica .evento-sesion__datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.pagina-publica .evento-sesion__datos > div { position: relative; display: flex; flex-direction: column; padding-left: 32px; min-height: 26px; justify-content: center; }
+.pagina-publica .evento-sesion__datos > div::before {
+  content: ""; position: absolute; top: 50%; left: 0; width: 26px; height: 26px; margin-top: -13px; border-radius: 50%; background: #e4efeb;
+}
+.pagina-publica .evento-sesion__datos > div::after {
+  content: ""; position: absolute; top: 50%; left: 6px; width: 14px; height: 14px; margin-top: -7px; background: #1f6b5c;
+  -webkit-mask: var(--icono) center / contain no-repeat; mask: var(--icono) center / contain no-repeat;
+}
+.pagina-publica .evento-sesion__datos dt { color: #6b675e; font-size: 11.5px; line-height: 14px; }
+.pagina-publica .evento-sesion__datos dd { margin: 0; overflow: hidden; color: #161a1d; font-size: 13.5px; font-weight: 600; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
+.pagina-publica .evento-sesion__panel { margin: 0 16px 16px; padding-top: 14px; border-top: 1px solid #efebe2; animation: acerca-despliega 0.3s ease-out both; }
+/* Mi inscripción (detalle de la actividad y Mis eventos): «Tu lugar» con su chip y qué significa | acciones a la derecha;
+   la confirmación crece en el lugar (crema para pedir, rosa para cancelar) con «Sí, …» y «Volver»; el error en nota rosa */
+.pagina-publica .insc { display: flex; flex-direction: column; gap: 12px; }
+.pagina-publica .insc__fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pagina-publica .insc__estado { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 10px; min-width: 0; }
+.pagina-publica .insc__etiqueta { color: #6b675e; font-size: 12.5px; font-weight: 700; }
+.pagina-publica .insc__estado .cred-chip { justify-self: start; }
+.pagina-publica .insc__estado p { grid-column: 1 / -1; margin: 0; color: #4d4d4d; font-size: 14px; line-height: 20px; }
+.pagina-publica .insc__acciones { display: flex; flex: none; flex-wrap: nowrap; align-items: center; gap: 8px; }
+.pagina-publica .insc__confirmar {
+  flex-direction: column; align-items: stretch; gap: 10px; margin: 0; padding: 12px 16px; border-radius: 16px; overflow: hidden;
+  height: auto; interpolate-size: allow-keywords; transition: height 0.35s ease, opacity 0.25s ease, transform 0.3s ease-out;
+}
+@starting-style { .pagina-publica .insc__confirmar { height: 34px; opacity: 0; transform: translateY(-8px); } }
+.pagina-publica .insc__confirmar, .pagina-publica .insc__error { border-left-width: 1px; } /* sin franja al costado */
+.pagina-publica .insc__confirmar > p { display: block; margin: 0; font-size: 14px; line-height: 20px; }
+.pagina-publica .insc__confirmar > p strong { display: block; margin-bottom: 2px; color: #164f44; }
+.pagina-publica .insc__confirmar.perfil-nota--guinda > p strong { color: #9b2247; }
+.pagina-publica .insc__error { align-items: center; justify-content: space-between; gap: 12px; margin: 0; padding: 10px 14px; border-radius: 14px; animation: acerca-despliega 0.3s ease-out both; }
+.pagina-publica .insc__error p { margin: 0; font-size: 14px; line-height: 20px; }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .insc__confirmar { transition: none; } .pagina-publica .insc__error { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .evento-sesion:hover { transform: none; }
+  .pagina-publica .evento-sesion__panel { animation: none; }
+}
+.pagina-publica .detalle-evento__nota { margin: -4px 0 4px; color: #6b675e; font-size: 14px; line-height: 20px; }
+.pagina-publica .detalle-evento__sesiones .perfil-solicitudes { margin: 0; padding: 0; list-style: none; }
+.pagina-publica .detalle-evento__sesiones .perfil-solicitud { border-left-width: 1px; } /* sin franja al costado, como Mis eventos */
+
+/* 3. «Dónde es»: el mapa en un lienzo crema con el espacio resaltado; debajo, la foto del lugar (abre la vista previa) y su nombre */
+.pagina-publica .detalle-evento__mapa { position: relative; height: 230px; overflow: hidden; border: 1px solid #efebe2; border-radius: 14px; }
+.pagina-publica .detalle-evento__mapa .esp-mapa__lienzo { position: absolute; inset: 0; border-radius: 0; }
+.pagina-publica .detalle-evento__lugar { display: flex; align-items: center; gap: 12px; }
+.pagina-publica .detalle-evento__foto {
+  flex: none; width: 64px; height: 48px; padding: 0; overflow: hidden; border: 0; border-radius: 10px; cursor: zoom-in;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #e6d194; transition: box-shadow 0.3s ease;
+}
+.pagina-publica .detalle-evento__foto img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.pagina-publica .detalle-evento__foto:hover { box-shadow: 0 0 0 2px #fff, 0 0 0 3px #c9a24a; }
+.pagina-publica .detalle-evento__foto:hover img { transform: scale(1.03); }
+.pagina-publica .detalle-evento__foto:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+.pagina-publica .detalle-evento__lugar p { display: flex; flex-direction: column; gap: 1px; margin: 0; color: #6b675e; font-size: 13px; line-height: 18px; }
+.pagina-publica .detalle-evento__lugar p strong { color: #161a1d; font-size: 15px; line-height: 20px; }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .detalle-evento__foto img { transition: none; } }
+
+/* ==========================================================================
+   PROPUESTAS (20 nov 2026 · plantilla C «Página de trámite», como Credencial y Espacios)
+   /proponer: pasos → formulario de Contacto (qué, la actividad, cuándo y dónde, quién la organiza) | qué pasa + ayuda.
+   /proponer/:id: pasos → estado (insignia con el tipo, chip, qué pasa, fichas, observaciones, acciones) y la ruta |
+   resumen de la propuesta + ayuda. Usa `cred-pagina` (y las piezas de `esp-estado`) más `pro-pagina` para lo propio.
+   Orden: 1. formulario · 2. seguimiento · 3. plantas.
+   ========================================================================== */
+
+/* 1. Formulario: la página crece con él (no es área ajustada); «(opcional…)» en gris junto al título del grupo */
+.pagina-publica .pro-opcional { color: #6b675e; font-size: 13px; font-weight: 600; }
+/* La columna derecha acompaña al bajar (Aldahir, 21 nov), justo debajo de la barra fija */
+.pagina-publica .pro-lateral { position: sticky; top: 84px; align-self: start; }
+
+/* 2. Seguimiento: insignia dorada con la estrella y el nombre de la propuesta en lugar de la foto; resumen en datos */
+.pagina-publica .pro-estado__visual { justify-content: center; }
+.pagina-publica .pro-estado__insignia {
+  display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 4 / 3; border-radius: 16px;
+  background: radial-gradient(circle at 30% 20%, rgba(242, 227, 184, 0.9), transparent 60%), linear-gradient(150deg, #0b3b33, #1f6b5c);
+  box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e6d194;
+}
+.pagina-publica .pro-estado__insignia img { width: 56px; height: 56px; padding: 14px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); animation: acerca-aro 0.9s ease-out 0.5s 1 backwards; }
+.pagina-publica .pro-resumen { display: flex; flex-direction: column; gap: 0; margin: 0; }
+.pagina-publica .pro-resumen > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #efebe2; }
+.pagina-publica .pro-resumen dt { color: #6b675e; font-size: 13px; }
+.pagina-publica .pro-resumen dd { margin: 0; color: #161a1d; font-size: 14px; font-weight: 700; text-align: right; }
+.pagina-publica .pro-resumen__texto { margin: 10px 0 0; color: #4d4d4d; font-size: 14px; line-height: 21px; }
+@media (prefers-reduced-motion: reduce) { .pagina-publica .pro-estado__insignia img { animation: none; } }
+
+/* 3. Plantas propias de Propuestas (reemplazan las de Credencial): tulipanes, bayas y corazones */
+@media (min-width: 1025px) {
+  .pagina-publica .pro-pagina::before { background-image: url("../../assets/inicio/adorno-tulipanes.svg"); }
+  .pagina-publica .pro-pagina::after { background-image: url("../../assets/inicio/adorno-bayas.svg"); }
+  .pagina-publica .pro-pagina .contacto-columnas--nuevo::after { background-image: url("../../assets/inicio/adorno-corazones.svg"); }
+}
+
+/* ==========================================================================
    MI PERFIL · MIS MENSAJES (18 nov 2026, rehecho con el patrón de Mis eventos)
    Una sola lista con filtros (Todos · En proceso · Atendidos); cada mensaje es una tarjeta de lista con su
    bloque de fecha, folio corto y chip; «Ver seguimiento» abre los pasos, la respuesta y el folio completo
@@ -2732,7 +3348,6 @@
 .pagina-publica .tarjeta-lectura__accion:focus-visible { text-decoration-color: #c9a24a; }
 .pagina-publica .rejilla-resenas { gap: 24px; }
 .pagina-publica .tarjeta-lectura .tarjeta-memoria__contenido { gap: 6px; padding: 16px 20px 20px; }
-.pagina-publica .etiqueta-ilustrativa { display: none; } /* sin avisos de relleno (AGENTS §2) */
 
 /* 4. Estados (sin resultados, no disponible, restringido, error): el vacío importante; guinda si es error */
 .pagina-publica .estado-lecturas-nuevo { margin: 8px 0 0; }
@@ -2841,4 +3456,422 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .pagina-publica .lecturas-pagina::before, .pagina-publica .lecturas-pagina::after, .pagina-publica .lecturas-pagina .lecturas-contenedor::after { animation: none; }
+}
+
+/* ==========================================================================
+   CATÁLOGO (21 nov 2026 · plantilla C, como Credencial; usa `cred-pagina` + `cat-pagina`)
+   Franja compacta con ícono → fila de datos → el catálogo (foto | qué buscar y «Abrir el catálogo») y «Cómo encontrar
+   un libro» (RutaCredencial) | preguntas frecuentes + tarjeta verde. Sin Koha configurado: el vacío importante en guinda.
+   Orden: 1. tarjeta del catálogo · 2. animaciones · 3. plantas.
+   ========================================================================== */
+
+/* 1. Tarjeta del catálogo: blanca con la franja guinda → dorado, foto con aro dorado a la izquierda */
+.pagina-publica .cat-tarjeta {
+  position: relative; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 24px; align-items: center;
+  padding: 22px; overflow: hidden; border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 24px rgba(11, 59, 51, 0.06);
+}
+.pagina-publica .cat-tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .cat-tarjeta__foto { margin: 0; overflow: hidden; border-radius: 18px; box-shadow: 0 0 0 3px #f2e3b8, 0 10px 20px rgba(0, 0, 0, 0.12); }
+.pagina-publica .cat-tarjeta__foto img { display: block; width: 100%; height: 230px; object-fit: cover; transition: transform 0.3s ease; }
+.pagina-publica .cat-tarjeta:hover .cat-tarjeta__foto img { transform: scale(1.03); }
+.pagina-publica .cat-tarjeta__textos { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.pagina-publica .cat-tarjeta h2 { margin: 0; color: #164f44; font-size: 24px; line-height: 30px; }
+.pagina-publica .cat-tarjeta p { margin: 0; color: #4d4d4d; font-size: 14.5px; line-height: 22px; }
+.pagina-publica .cat-tarjeta .cat-tarjeta__subtitulo { margin-top: 4px; color: #6b4f12; font-size: 13px; font-weight: 700; }
+.pagina-publica .cat-tarjeta__chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; padding: 0; list-style: none; }
+.pagina-publica .cat-tarjeta__chips li { padding: 5px 12px; border-radius: 999px; background: #e4efeb; color: #164f44; font-size: 13px; font-weight: 700; }
+.pagina-publica .cat-tarjeta__boton { min-width: 220px; }
+/* El alto que sobra en el área de trabajo lo toma la tarjeta del catálogo (su foto crece); la ruta mide lo suyo */
+.pagina-publica .cat-pagina .cred-principal > .perfil-tarjeta { flex: none; }
+.pagina-publica .cat-pagina .cred-principal > :is(.cat-tarjeta, .cat-vacio) { flex: 1; min-height: 0; }
+.pagina-publica .cat-tarjeta { align-items: stretch; }
+.pagina-publica .cat-tarjeta__foto img { height: 100%; min-height: 230px; }
+.pagina-publica .cat-tarjeta__textos { justify-content: center; }
+.pagina-publica .cat-vacio { min-height: 300px; margin: 0; }
+
+/* 2. Animaciones: la tarjeta entra como las demás de la página */
+.pagina-publica .cat-pagina .cat-tarjeta { animation: detalle-entrada 0.5s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .cat-pagina .cat-tarjeta { animation: none; }
+  .pagina-publica .cat-tarjeta:hover .cat-tarjeta__foto img { transform: none; }
+}
+
+/* 3. Plantas propias del Catálogo (reemplazan las de Credencial): cafeto, jacaranda y trébol */
+@media (min-width: 1025px) {
+  .pagina-publica .cat-pagina::before { background-image: url("../../assets/inicio/adorno-cafeto.svg"); }
+  .pagina-publica .cat-pagina::after { background-image: url("../../assets/inicio/adorno-jacaranda.svg"); }
+  .pagina-publica .cat-pagina .contacto-columnas--nuevo::after { background-image: url("../../assets/inicio/adorno-trebol.svg"); }
+}
+
+/* ==========================================================================
+   CLUB ALAMEDA (21 nov 2026 · plantilla C; antes ClubAlameda.css, ya borrado)
+   Inicio: franja compacta con ícono → temas (EtiquetaPerfil + tarjetas con su color) | normas + tarjeta verde.
+   Conversación: la misma franja y columnas: publicación inicial (TarjetaPerfil dorada), respuestas, responder | normas.
+   Orden: 1. franja · 2. columnas · 3. temas · 4. conversación · 5. campos y ventana del reporte · 6. animaciones · 7. plantas.
+   ========================================================================== */
+
+/* 1. Franja compacta */
+.pagina-publica:has(.club-pagina) .encabezado-publico { gap: 10px; padding: 26px 24px 30px; }
+.pagina-publica:has(.club-pagina) .encabezado-publico h1 { max-width: 900px; font-size: 36px; line-height: 42px; letter-spacing: -0.5px; }
+.pagina-publica:has(.club-pagina) .encabezado-publico p { max-width: 640px; font-size: 15px; line-height: 22px; }
+
+/* 2. Columnas: principal | lateral de 340 px que acompaña al bajar */
+.pagina-publica .club-pagina { position: relative; background: #f7f5f0; }
+.pagina-publica .club-columnas {
+  position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start;
+  width: min(1120px, calc(100% - 48px)); margin: 0 auto; padding: 32px 0 64px;
+}
+.pagina-publica .club-principal { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.pagina-publica .club-principal > .perfil-tarjeta { margin: 0; }
+.pagina-publica .club-lateral { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 14px; }
+.pagina-publica .club-lateral > .perfil-tarjeta { margin: 0; }
+.pagina-publica .club-lateral .contacto-seguimiento { gap: 6px; padding: 18px 20px; }
+.pagina-publica .club-ayuda-tarjeta .contacto-seguimiento__insignia::after {
+  -webkit-mask-image: url("../../assets/inicio/etiqueta-usuarios.svg"); mask-image: url("../../assets/inicio/etiqueta-usuarios.svg");
+}
+.pagina-publica .club-volver { width: 100%; }
+.pagina-publica .club-grupo__encabezado { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #e2ded5; }
+.pagina-publica .club-grupo__encabezado p { margin: 0; color: #6b675e; font-size: 14px; }
+.pagina-publica .club-normas { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .club-normas li { display: flex; align-items: flex-start; gap: 10px; color: #4d4d4d; font-size: 14px; line-height: 20px; }
+.pagina-publica .club-normas li > span {
+  display: grid; flex: none; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: #f6eeda; box-shadow: 0 0 0 2px #e6d194; color: #6b4f12; font-size: 12px; font-weight: 800;
+}
+.pagina-publica .club-paginas { display: flex; align-items: center; justify-content: center; gap: 12px; color: #6b675e; font-size: 14px; }
+
+/* 3. Temas: tarjeta clicable con franja de su color, ícono en círculo claro con aro dorado y «Entrar» con subrayado dorado */
+.pagina-publica .club-temas { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .club-tema {
+  --franja: #1f6b5c; --claro: #e4efeb; --tinta: #164f44;
+  position: relative; display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 18px; align-items: center;
+  padding: 20px 22px; overflow: hidden; border: 1px solid #e2ded5; border-radius: 24px; background: #fff;
+  box-shadow: 0 10px 24px rgba(11, 59, 51, 0.06); color: inherit; text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-publica .club-tema::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--franja); }
+.pagina-publica .club-tema--dorado { --franja: #c9a24a; --claro: #f6eeda; --tinta: #6b4f12; }
+.pagina-publica .club-tema--rosa { --franja: #9b2247; --claro: #f6eaee; --tinta: #9b2247; }
+.pagina-publica .club-tema--gris { --franja: #b9b3a5; --claro: #f1efea; --tinta: #611232; }
+.pagina-publica .club-tema:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(22, 79, 68, 0.14); }
+.pagina-publica .club-tema__icono { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--claro); box-shadow: 0 0 0 3px #fff, 0 0 0 5px #f2e3b8; }
+.pagina-publica .club-tema__icono img { width: 44px; height: 44px; }
+.pagina-publica .club-tema__textos { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pagina-publica .club-tema__numero { align-self: flex-start; padding: 2px 10px; border-radius: 999px; background: var(--claro); color: var(--tinta); font-size: 12px; font-weight: 700; }
+.pagina-publica .club-tema__titulo { color: #161a1d; font-size: 19px; line-height: 25px; font-weight: 700; }
+.pagina-publica .club-tema__descripcion { color: #4d4d4d; font-size: 14px; line-height: 21px; }
+.pagina-publica .club-tema__meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 2px; color: #6b675e; font-size: 12.5px; font-weight: 600; }
+.pagina-publica .club-tema__entrar {
+  color: var(--tinta); font-size: 14px; font-weight: 700; white-space: nowrap;
+  text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease;
+}
+.pagina-publica .club-tema:hover .club-tema__entrar { text-decoration-color: #c9a24a; }
+.pagina-publica .club-tema:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+
+/* 4. Conversación */
+.pagina-publica .club-inicial { display: flex; flex-direction: column; gap: 6px; }
+.pagina-publica .club-inicial strong { color: #164f44; font-size: 16px; }
+.pagina-publica .club-inicial p { margin: 0; color: #161a1d; font-size: 15px; line-height: 23px; white-space: pre-line; }
+.pagina-publica .club-vacio { margin: 0; padding: 18px 20px; border: 1px dashed #d8d2c5; border-radius: 18px; background: #fbfaf7; color: #6b675e; font-size: 14px; }
+.pagina-publica .club-respuesta {
+  display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border: 1px solid #e2ded5; border-radius: 22px; background: #fff;
+  box-shadow: 0 6px 16px rgba(11, 59, 51, 0.05);
+}
+.pagina-publica .club-respuesta--revision { border-style: dashed; border-color: #c9a24a; background: #fffdf7; }
+.pagina-publica .club-respuesta p { margin: 0; }
+.pagina-publica .club-respuesta__participante { display: flex; align-items: center; gap: 12px; }
+.pagina-publica .club-respuesta__nombre { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #164f44; font-size: 15px; font-weight: 700; }
+.pagina-publica .club-respuesta__fecha { color: #6b675e; font-size: 12.5px; }
+.pagina-publica .club-respuesta__texto { color: #161a1d; font-size: 15px; line-height: 23px; overflow-wrap: anywhere; white-space: pre-line; }
+.pagina-publica .club-respuesta__acciones { display: flex; justify-content: flex-end; gap: 8px; }
+.pagina-publica .club-avatar {
+  display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: #e4efeb; box-shadow: 0 0 0 2px #f2e3b8; color: #164f44; font-size: 16px; font-weight: 800;
+}
+.pagina-publica .club-avatar--rosa { background: #f6eaee; color: #9b2247; }
+.pagina-publica .club-avatar--dorado { background: #f6eeda; color: #6b4f12; }
+.pagina-publica .club-avatar--gris { background: #f1efea; color: #611232; }
+.pagina-publica .club-chip { padding: 2px 10px; border-radius: 999px; background: #f6eeda; color: #6b4f12; font-size: 12px; font-weight: 700; }
+.pagina-publica .club-reportada { color: #6b675e; font-size: 13px; font-weight: 700; }
+.pagina-publica .club-nota {
+  display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 10px 12px; border: 1px solid #cfe3dc; border-left: 4px solid #1f6b5c;
+  border-radius: 12px; background: #e4efeb; color: #164f44; font-size: 13px; font-weight: 600; line-height: 19px;
+}
+.pagina-publica .club-nota img { flex: none; width: 18px; height: 18px; }
+.pagina-publica .club-responder {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 22px; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; box-shadow: 0 10px 24px rgba(11, 59, 51, 0.06);
+}
+.pagina-publica .club-responder::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica .club-responder h2 { margin: 0; color: #164f44; font-size: 20px; line-height: 26px; }
+.pagina-publica .club-responder > p { margin: 0; color: #4d4d4d; font-size: 14px; line-height: 21px; }
+.pagina-publica .club-responder .perfil-boton--guardar { width: auto; min-width: 200px; }
+
+/* 5. Campos (formulario y ventana del reporte): 44 px, radio 12, aro dorado al enfocar */
+.club-campo { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.club-campo label { color: #161a1d; font-size: 14px; font-weight: 700; }
+.club-campo label span { color: #6b675e; font-size: 13px; font-weight: 400; }
+.club-campo :is(textarea, select) {
+  width: 100%; box-sizing: border-box; border: 1px solid #b9b3a5; border-radius: 12px; background: #fff; color: #161a1d;
+  font-family: inherit; font-size: 15px; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.club-campo textarea { min-height: 120px; padding: 12px 14px; line-height: 22px; resize: vertical; }
+.club-campo textarea.club-campo__corto { min-height: 84px; }
+.club-campo select { height: 44px; padding: 0 12px; }
+.club-campo textarea::placeholder { color: #6b675e; }
+.club-campo [aria-invalid="true"] { border-color: #9b2247; }
+.club-campo :is(textarea, select):focus { border-color: #164f44; outline: none; box-shadow: 0 0 0 3px rgba(230, 209, 148, 0.55); }
+.club-ayuda { margin: 0; color: #6b675e; font-size: 12.5px; line-height: 18px; }
+.club-error { margin: 0; color: #9b2247; font-size: 13px; font-weight: 700; animation: detalle-entrada 0.3s ease-out both; }
+.modal-agenda .modal-agenda__acciones .perfil-boton { flex: 1; }
+
+/* 6. Animaciones: columnas y tarjetas entran subiendo 14 px, una tras otra */
+.pagina-publica .club-principal > *, .pagina-publica .club-lateral > * { animation: detalle-entrada 0.5s ease-out both; }
+.pagina-publica .club-lateral > * { animation-delay: 0.12s; }
+.pagina-publica .club-temas > li { animation: acerca-entra 0.5s ease-out both; }
+.pagina-publica .club-temas > li:nth-child(2) { animation-delay: 0.06s; }
+.pagina-publica .club-temas > li:nth-child(n+3) { animation-delay: 0.12s; }
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica :is(.club-principal > *, .club-lateral > *, .club-temas > li, .club-error) { animation: none; }
+  .pagina-publica .club-tema:hover { transform: none; }
+}
+
+/* 7. Plantas propias del Club: albahaca arriba a la izquierda y lirios abajo a la derecha */
+@media (min-width: 1025px) {
+  .pagina-publica .club-pagina::before,
+  .pagina-publica .club-pagina::after {
+    content: ""; position: absolute; z-index: 0; pointer-events: none; background-repeat: no-repeat; background-size: contain;
+    filter: drop-shadow(0 8px 12px rgba(11, 59, 51, 0.16)); animation: detalle-mecer 9s ease-in-out infinite alternate;
+  }
+  .pagina-publica .club-pagina::before {
+    top: 30px; left: calc(50% - 560px - 160px); width: 134px; height: 201px;
+    background-image: url("../../assets/inicio/adorno-albahaca.svg"); transform-origin: 50% 100%;
+  }
+  .pagina-publica .club-pagina::after {
+    bottom: 40px; right: calc(50% - 560px - 164px); width: 140px; height: 205px;
+    background-image: url("../../assets/inicio/adorno-lirios.svg"); transform-origin: 50% 100%; animation-delay: -4s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .club-pagina::before, .pagina-publica .club-pagina::after { animation: none; }
+}
+
+/* ==========================================================================
+   SERVICIOS Y PROGRAMAS (21 nov 2026 · plantilla C «Página pública de consulta»)
+   Franja compacta con ícono → «Servicios» y «Programas» con EtiquetaPerfil (sin contadores) y tarjetas con la foto
+   real del servicio, su insignia, tipo en pastilla, título, texto y la acción como enlace con subrayado dorado →
+   tarjeta verde de ayuda a todo lo ancho. Orden: 1. franja · 2. grupos y tarjetas · 3. ayuda · 4. animaciones · 5. plantas.
+   ========================================================================== */
+
+/* 1. Franja compacta */
+.pagina-publica:has(.servicios-pagina) .encabezado-publico { gap: 10px; padding: 26px 24px 30px; }
+.pagina-publica:has(.servicios-pagina) .encabezado-publico h1 { font-size: 36px; line-height: 42px; letter-spacing: -0.5px; }
+.pagina-publica:has(.servicios-pagina) .encabezado-publico p { max-width: 640px; font-size: 15px; line-height: 22px; }
+
+/* 2. Grupos y tarjetas */
+.pagina-publica .servicios-pagina { position: relative; background: #f7f5f0; }
+.pagina-publica .servicios-contenedor {
+  position: relative; z-index: 1; display: flex; flex-direction: column; gap: 34px;
+  width: min(1120px, calc(100% - 48px)); margin: 0 auto; padding: 36px 0 64px;
+}
+.pagina-publica .servicios-grupo2 { display: flex; flex-direction: column; gap: 16px; }
+.pagina-publica .servicios-grupo2__encabezado { padding-bottom: 10px; border-bottom: 1px solid #e2ded5; }
+.pagina-publica .servicios-rejilla { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin: 0; padding: 0; list-style: none; }
+
+.pagina-publica .servicio-tarjeta { --franja: #1f6b5c; display: flex; min-width: 0; }
+.pagina-publica .servicio-tarjeta--programa { --franja: #c9a24a; }
+.pagina-publica .servicio-tarjeta__cuerpo {
+  position: relative; display: flex; flex: 1; flex-direction: column; overflow: hidden;
+  border: 1px solid #e2ded5; border-radius: 24px; background: #fff; color: inherit; text-decoration: none;
+  box-shadow: 0 10px 24px rgba(11, 59, 51, 0.06); transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-publica .servicio-tarjeta__cuerpo::before { content: ""; position: absolute; inset: 0 0 auto; z-index: 2; height: 4px; background: var(--franja); }
+.pagina-publica .servicio-tarjeta--destacada .servicio-tarjeta__cuerpo::before { background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.pagina-publica a.servicio-tarjeta__cuerpo:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(22, 79, 68, 0.14); }
+
+.pagina-publica .servicio-tarjeta__foto { position: relative; display: block; height: 170px; background: #e4efeb; }
+.pagina-publica .servicio-tarjeta__foto img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.pagina-publica a.servicio-tarjeta__cuerpo:hover .servicio-tarjeta__foto img { transform: scale(1.03); }
+.pagina-publica .servicio-tarjeta__foto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(11, 59, 51, 0.35)); }
+/* Insignia del servicio montada sobre la foto: círculo verde claro con aro dorado */
+.pagina-publica .servicio-tarjeta__insignia {
+  position: absolute; left: 18px; bottom: -22px; z-index: 1; display: grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 50%; background: #e4efeb; box-shadow: 0 0 0 4px #fff, 0 0 0 6px #f2e3b8;
+}
+.pagina-publica .servicio-tarjeta__insignia::after { content: ""; width: 22px; height: 22px; background: #164f44; -webkit-mask: var(--icono) center / contain no-repeat; mask: var(--icono) center / contain no-repeat; }
+.pagina-publica .servicio-tarjeta--programa .servicio-tarjeta__insignia { background: #f6eeda; }
+.pagina-publica .servicio-tarjeta--programa .servicio-tarjeta__insignia::after { background: #6b4f12; }
+
+.pagina-publica .servicio-tarjeta__textos { display: flex; flex: 1; flex-direction: column; align-items: flex-start; gap: 6px; padding: 32px 20px 20px; }
+.pagina-publica .servicio-tarjeta__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pagina-publica .servicio-tarjeta__tipo {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+  background: #e4efeb; color: #164f44; font-size: 12px; font-weight: 700;
+}
+.pagina-publica .servicio-tarjeta__tipo > span { width: 7px; height: 7px; border-radius: 50%; background: #1f6b5c; }
+.pagina-publica .servicio-tarjeta__tipo--programa { background: #f6eeda; color: #6b4f12; }
+.pagina-publica .servicio-tarjeta__tipo--programa > span { background: #c9a24a; }
+.pagina-publica .servicio-tarjeta__tipo--pronto { background: #f6eaee; color: #611232; }
+.pagina-publica .servicio-tarjeta__tipo--pronto > span { background: #9b2247; }
+.pagina-publica .servicio-tarjeta__titulo { margin-top: 4px; color: #161a1d; font-size: 19px; line-height: 25px; font-weight: 700; }
+.pagina-publica .servicio-tarjeta__descripcion { flex: 1; color: #4d4d4d; font-size: 14px; line-height: 21px; }
+.pagina-publica .servicio-tarjeta__accion {
+  margin-top: 8px; color: #164f44; font-size: 14px; font-weight: 700;
+  text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease;
+}
+.pagina-publica a.servicio-tarjeta__cuerpo:hover .servicio-tarjeta__accion { text-decoration-color: #c9a24a; }
+.pagina-publica .servicio-tarjeta__nota { margin-top: 8px; color: #6b675e; font-size: 13px; font-weight: 600; }
+
+/* 3. Ayuda: tarjeta verde con luces a todo lo ancho (insignia | textos | botones) */
+.pagina-publica .servicios-ayuda {
+  position: relative; display: flex; align-items: center; gap: 20px; overflow: hidden; padding: 24px 28px; border-radius: 28px;
+  background:
+    linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194) top / 100% 4px no-repeat,
+    radial-gradient(circle at 10% 0%, rgba(201, 162, 74, 0.3), transparent 45%),
+    radial-gradient(circle at 90% 100%, rgba(155, 34, 71, 0.3), transparent 50%),
+    linear-gradient(160deg, #0b3b33, #1f6b5c);
+  box-shadow: 0 16px 32px rgba(11, 59, 51, 0.18); color: #fff;
+}
+.pagina-publica .servicios-ayuda__insignia {
+  flex: none; width: 56px; height: 56px; border-radius: 50%; background: #f2e3b8; box-shadow: 0 0 0 4px rgba(230, 209, 148, 0.35);
+  -webkit-mask: none; position: relative;
+}
+.pagina-publica .servicios-ayuda__insignia::after {
+  content: ""; position: absolute; inset: 15px; background: #164f44;
+  -webkit-mask: var(--icono-seccion) center / contain no-repeat; mask: var(--icono-seccion) center / contain no-repeat;
+}
+.pagina-publica .servicios-ayuda__textos { display: flex; flex: 1; flex-direction: column; gap: 4px; min-width: 0; }
+.pagina-publica .servicios-ayuda h2 { margin: 0; color: #fff; font-size: 22px; line-height: 28px; }
+.pagina-publica .servicios-ayuda p { margin: 0; color: #e4efeb; font-size: 14.5px; line-height: 21px; }
+.pagina-publica .servicios-ayuda__botones { display: flex; flex: none; gap: 12px; }
+.pagina-publica .servicios-ayuda .perfil-boton { min-width: 190px; }
+.pagina-publica .servicios-ayuda__principal { border: none; background: #e6d194; color: #3f2f0b; }
+.pagina-publica .servicios-ayuda__secundario { border: 1.5px solid rgba(230, 209, 148, 0.8); background: transparent; color: #fff; }
+
+/* 4. Animaciones: los grupos y la ayuda aparecen subiendo 14 px al entrar en pantalla */
+@supports (animation-timeline: view()) {
+  .servicios-pagina :is(.servicio-tarjeta, .servicios-ayuda) { animation: acerca-entra 0.5s ease-out both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .servicios-pagina :is(.servicio-tarjeta, .servicios-ayuda) { animation: none; }
+  .pagina-publica a.servicio-tarjeta__cuerpo:hover, .pagina-publica a.servicio-tarjeta__cuerpo:hover img { transform: none; }
+}
+
+/* 5. Plantas propias de Servicios: romero arriba a la izquierda y amapolas abajo a la derecha */
+@media (min-width: 1025px) {
+  .pagina-publica .servicios-pagina::before,
+  .pagina-publica .servicios-pagina::after {
+    content: ""; position: absolute; z-index: 0; pointer-events: none; background-repeat: no-repeat; background-size: contain;
+    filter: drop-shadow(0 8px 12px rgba(11, 59, 51, 0.16)); animation: detalle-mecer 9s ease-in-out infinite alternate;
+  }
+  .pagina-publica .servicios-pagina::before {
+    top: 30px; left: calc(50% - 560px - 166px); width: 140px; height: 215px;
+    background-image: url("../../assets/inicio/adorno-romero.svg"); transform-origin: 47% 100%;
+  }
+  .pagina-publica .servicios-pagina::after {
+    bottom: 40px; right: calc(50% - 560px - 170px); width: 146px; height: 200px;
+    background-image: url("../../assets/inicio/adorno-amapolas.svg"); transform-origin: 50% 100%; animation-delay: -4s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .servicios-pagina::before, .pagina-publica .servicios-pagina::after { animation: none; }
+}
+
+/* ==========================================================================
+   FOTOS EN LAS FRANJAS (21 nov 2026, Aldahir: fotos de la biblioteca en todos los apartados)
+   Cada sección lleva detrás de su franja verde de título una foto real de la biblioteca (`--foto-franja`, la pone
+   PaginaPublica con fotosFranja.ts). Va bajo el mismo velo verde con sus luces, así el texto blanco se lee igual.
+   ========================================================================== */
+.pagina-publica :is(.encabezado-publico, .perfil-encabezado, .detalle-noticia__encabezado--compacto) {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(201, 162, 74, 0.26), transparent 40%),
+    radial-gradient(circle at 85% 100%, rgba(155, 34, 71, 0.32), transparent 44%),
+    linear-gradient(166deg, rgba(11, 59, 51, 0.93) 0%, rgba(31, 107, 92, 0.84) 71%),
+    var(--foto-franja, none) center / cover no-repeat,
+    #0b3b33;
+}
+
+/* ==========================================================================
+   RESPONSIVO · PÁGINAS DE TRÁMITE Y DE CONSULTA (21 nov 2026, pasada responsiva pedida por Aldahir)
+   Credencial, Espacios, Propuestas, Contacto, Catálogo, Servicios, Club Alameda, Historia y Solón Argüello y el
+   bloque «Crea tu cuenta» del inicio. Tableta (≤ 1024 px): una columna, laterales que dejan de acompañar al bajar,
+   rejillas a dos. Teléfono (≤ 600 px): todo a una columna, botones a todo lo ancho, 16 px a los lados.
+   ========================================================================== */
+@media (max-width: 1024px) {
+  /* Plantilla C: la columna lateral pasa debajo y ya no recorta su alto */
+  .pagina-publica .contacto-columnas.contacto-columnas--nuevo,
+  .pagina-publica .esp-pagina .contacto-columnas--nuevo { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cred-pagina { min-height: 0; padding: 20px 24px 32px; }
+  .pagina-publica .cred-pagina .contacto-lateral:has(.preguntas-tarjeta) { contain: none; }
+  .pagina-publica .cred-pagina .contacto-datos .tarjeta-datos__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pagina-publica .cred-pagina .perfil-credencial-estado { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cred-ruta { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; row-gap: 12px; }
+  .pagina-publica :is(.pro-lateral, .club-lateral) { position: static; }
+  /* Espacios: el plano no tiene alto propio (lo da la columna en escritorio); aquí lo da su proporción */
+  .pagina-publica .esp-pagina .contacto-lateral { contain: none; }
+  .pagina-publica .esp-pagina .contacto-lateral > :is(.perfil-tarjeta, .esp-tarjeta) { overflow: visible; }
+  .pagina-publica .esp-mapa__lienzo { flex: none; height: min(62vw, 560px); }
+
+  /* Servicios, Catálogo y Club */
+  .pagina-publica .servicios-rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pagina-publica .servicios-ayuda { flex-wrap: wrap; }
+  .pagina-publica .servicios-ayuda__textos { flex-basis: calc(100% - 80px); }
+  .pagina-publica .servicios-ayuda__botones { width: 100%; }
+  .pagina-publica .servicios-ayuda__botones .perfil-boton { flex: 1; }
+  .pagina-publica .club-columnas { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cat-tarjeta { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cat-tarjeta__foto img { height: 220px; min-height: 0; }
+
+  /* Inicio · «Crea tu cuenta»: texto arriba y la foto con la credencial debajo, centradas */
+  .pagina-publica .bloque.llamado { flex-direction: column; align-items: stretch; gap: 32px; padding: 40px 32px; }
+  .pagina-publica .llamado__visual { flex: none; width: min(420px, 100%); height: 380px; margin: 0 auto; }
+}
+
+@media (max-width: 600px) {
+  .pagina-publica .cred-pagina { padding: 16px 16px 28px; }
+  .pagina-publica .cred-pagina .contacto-datos .tarjeta-datos__lista,
+  .pagina-publica .cred-ruta,
+  .pagina-publica .servicios-rejilla,
+  .pagina-publica .cred-pagina .perfil-datos--tres,
+  .pagina-publica :is(.historia-solon, .acerca-solon-ficha),
+  .pagina-publica .llamado__pasos { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .cred-pagina .perfil-acciones { flex-wrap: wrap; }
+  .pagina-publica .cred-pagina .perfil-acciones > .perfil-boton { flex: 1 1 100%; }
+
+  /* Servicios y Club: contenedores a 16 px de la orilla */
+  .pagina-publica :is(.servicios-contenedor, .club-columnas) { width: calc(100% - 32px); padding: 24px 0 40px; }
+  .pagina-publica .servicios-ayuda { padding: 22px 20px; text-align: left; }
+  .pagina-publica .servicios-ayuda__botones { flex-direction: column; }
+  .pagina-publica .servicios-ayuda .perfil-boton { min-width: 0; width: 100%; }
+  .pagina-publica .club-tema { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; padding: 18px; }
+  .pagina-publica .club-tema__icono { width: 56px; height: 56px; }
+  .pagina-publica .club-tema__icono img { width: 34px; height: 34px; }
+  .pagina-publica .club-tema__entrar { grid-column: 2; }
+  .pagina-publica .club-grupo__encabezado { flex-wrap: wrap; }
+  .pagina-publica .club-respuesta__acciones { flex-wrap: wrap; justify-content: stretch; }
+  .pagina-publica .club-respuesta__acciones .perfil-boton { flex: 1; }
+  .pagina-publica .club-responder .perfil-boton--guardar { width: 100%; }
+
+  /* Espacios */
+  .pagina-publica .esp-mapa__barra { flex-wrap: wrap; }
+  .pagina-publica .esp-leyenda { flex-wrap: wrap; }
+  .pagina-publica .esp-mapa__lienzo { height: 92vw; }
+
+  /* Catálogo */
+  .pagina-publica .cat-tarjeta { padding: 16px; }
+  .pagina-publica .cat-tarjeta__boton { width: 100%; }
+
+  /* Historia y Solón Argüello */
+  .pagina-publica .historia-solon .historia-foto img { height: 220px; }
+  .pagina-publica .acerca-solon-ficha .historia-foto { max-width: 220px; }
+
+  /* Inicio · «Crea tu cuenta» */
+  .pagina-publica .bloque.llamado { padding: 32px 20px; }
+  .pagina-publica .llamado__paso { display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 12px; align-items: center; padding: 10px 14px; }
+  .pagina-publica .llamado__numero { grid-row: span 2; margin: 0; }
+  .pagina-publica .llamado__botones { flex-direction: column; width: 100%; }
+  .pagina-publica .llamado__botones > * { width: 100%; }
+  .pagina-publica .llamado__visual { height: 330px; }
+  .pagina-publica .llamado__foto { inset: 0 0 70px 24px; }
+  .pagina-publica .credencial-muestra { width: 280px; }
+  .pagina-publica .credencial-muestra__cuerpo strong { font-size: 19px; }
 }

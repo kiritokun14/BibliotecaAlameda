@@ -8,7 +8,8 @@ import { type Actividad, type TipoActividad } from "./datos";
 import { consultarAgenda, type ActividadPublica } from "../../../servicios/actividades";
 import { Bloque as BloqueEsqueleto } from "../../../components/portal/Esqueleto";
 import { mensajeError } from "../../../servicios/api";
-import imagenActividad from "../../../assets/comun/fotos/noticia-3.webp";
+import { IMAGEN_TIPO } from "./eventosPortada";
+import { sesionVigente } from "../../../servicios/vigenciaActividades";
 import circulo1 from "../../../assets/comun/iconos/bloque-circulo-1.svg";
 import circulo2 from "../../../assets/comun/iconos/bloque-circulo-2.svg";
 import textura from "../../../assets/inicio/actividades-textura.svg";
@@ -42,13 +43,14 @@ const filtros: { texto: string; tipo: TipoActividad | null; icono: string }[] = 
 
 const hoyTepic = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mazatlan' });
 
-function aActividades(lista: ActividadPublica[], desde: string): Actividad[] {
-    return lista.map(a => {
-        const sesion = a.sesiones.find(s => s.fecha >= desde);
-        return { id: a.folio, titulo: a.nombre,
-            tipo: a.tipo === 'Taller' ? 'Taller' : ['Presentación', 'Exposición'].includes(a.tipo) ? 'Agenda cultural' : 'Actividad',
-            fecha: sesion?.fecha ?? a.fecha,
-            horario: `${sesion?.inicio ?? a.inicio} a ${sesion?.fin ?? a.fin} h`, publico: a.publico, imagen: imagenActividad };
+// Solo lo que todavía no termina: cada actividad con su próxima sesión vigente (las terminadas no se muestran)
+function aActividades(lista: ActividadPublica[]): Actividad[] {
+    return lista.flatMap(a => {
+        const sesion = sesionVigente(a);
+        if (!sesion) return [];
+        const tipo: TipoActividad = a.tipo === 'Taller' ? 'Taller' : ['Presentación', 'Exposición'].includes(a.tipo) ? 'Agenda cultural' : 'Actividad';
+        return [{ id: a.folio, titulo: a.nombre, tipo, fecha: sesion.fecha,
+            horario: `${sesion.inicio} a ${sesion.fin} h`, publico: a.publico, imagen: IMAGEN_TIPO[tipo] }];
     });
 }
 
@@ -64,7 +66,7 @@ function Actividades() {
             const desde = hoyTepic();
             consultarAgenda({ desde, limite: 6 }).then(lista => {
                 if (!vigente) return;
-                ultimas = aActividades(lista.actividades, desde);
+                ultimas = aActividades(lista.actividades);
                 setResultado({ actividades: ultimas });
             }).catch(error => { if (vigente) setResultado(previo => previo && !previo.error ? previo : { actividades: [], error: mensajeError(error) }); });
         };
@@ -116,7 +118,6 @@ function Actividades() {
                             <article key={actividad.id} className="tarjeta-actividad">
                                 <div className="tarjeta-actividad__imagen">
                                     <img decoding="async" src={actividad.imagen} alt="" />
-                                    <span className="etiqueta-ilustrativa">Imagen ilustrativa</span>
                                 </div>
                                 <div className="tarjeta-actividad__contenido">
                                     <Etiqueta icono={iconosTipo[actividad.tipo]} className="etiqueta-inicio--dorada">

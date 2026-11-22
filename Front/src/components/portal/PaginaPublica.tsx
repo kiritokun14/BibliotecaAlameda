@@ -7,6 +7,7 @@ import "./Detalles.css"; // retoques: tamaño, franja y pie con los detalles del
 import { EncabezadoPortal, PiePortal } from "./Portal";
 import Navegacion from "./Navegacion";
 import BotonAsistente from "./BotonAsistente";
+import { fotoFranja } from "./fotosFranja";
 import circulo1 from "../../assets/comun/iconos/encabezado-circulo-1.svg";
 import circulo2 from "../../assets/comun/iconos/encabezado-circulo-2.svg";
 
@@ -43,7 +44,7 @@ export default function PaginaPublica({ children, alCambiarSesion }: PaginaPubli
     const { pathname } = useLocation();
     useEffect(() => { ubicarAlCambiar(pathname); }, [pathname]);
     return (
-        <div className="pagina-inicio pagina-publica">
+        <div className="pagina-inicio pagina-publica" style={{ "--foto-franja": `url("${fotoFranja(pathname)}")` } as CSSProperties}>
             <a className="saltar-contenido" href="#contenido">Saltar al contenido</a>
             <EncabezadoPortal />
             <Navegacion alCambiarSesion={alCambiarSesion} />

@@ -79,13 +79,13 @@ function Cotejo() {
                     ) : (
                         <Tabla
                             columnas={[
-                                { titulo: "FOLIO", ancho: 90, folio: true, celda: (c: TipoCotejo) => c.folio },
-                                { titulo: "PERSONA", fuerte: true, celda: (c: TipoCotejo) => c.persona },
-                                { titulo: "CREDENCIAL", ancho: 150, celda: (c: TipoCotejo) => c.portal.credencial },
-                                { titulo: "SE REGISTRÓ", ancho: 110, celda: (c: TipoCotejo) => fechaCorta(c.registro) },
-                                { titulo: "RESULTADO", ancho: 170, celda: (c: TipoCotejo) => { const r = textoResultado(c); return <Chip tono={r.tono} ancho={160}>{r.texto}</Chip>; } },
-                                { titulo: "ESTADO", ancho: 160, celda: (c: TipoCotejo) => <Chip tono={TONO_COTEJO[c.estado]} ancho={150}>{NOMBRE_ESTADO_COTEJO[c.estado]}</Chip> },
-                                { titulo: "ACCIÓN", ancho: 90, celda: (c: TipoCotejo) => <Link to={`${BASE_COTEJO}/${c.folio}`} className="cn-enlace">{c.estado === "pendiente" ? "Cotejar" : "Ver"} →<span className="cn-solo-lectores"> {c.persona}</span></Link> },
+                                { titulo: "Folio", ancho: 90, folio: true, celda: (c: TipoCotejo) => c.folio },
+                                { titulo: "Persona", fuerte: true, celda: (c: TipoCotejo) => c.persona },
+                                { titulo: "Credencial", ancho: 150, celda: (c: TipoCotejo) => c.portal.credencial },
+                                { titulo: "Se registró", ancho: 110, celda: (c: TipoCotejo) => fechaCorta(c.registro) },
+                                { titulo: "Resultado", ancho: 170, celda: (c: TipoCotejo) => { const r = textoResultado(c); return <Chip tono={r.tono} ancho={160}>{r.texto}</Chip>; } },
+                                { titulo: "Estado", ancho: 160, celda: (c: TipoCotejo) => <Chip tono={TONO_COTEJO[c.estado]} ancho={150}>{NOMBRE_ESTADO_COTEJO[c.estado]}</Chip> },
+                                { titulo: "Acción", ancho: 90, celda: (c: TipoCotejo) => <Link to={`${BASE_COTEJO}/${c.folio}`} className="cn-enlace">{c.estado === "pendiente" ? "Cotejar" : "Ver"}<span className="cn-solo-lectores"> {c.persona}</span></Link> },
                             ]}
                             filas={visibles}
                             clave={(c) => c.folio}
@@ -119,11 +119,11 @@ function Historial({ cotejos }: { cotejos: TipoCotejo[] }) {
                         <>
                             <Tabla
                                 columnas={[
-                                    { titulo: "FOLIO", ancho: 90, folio: true, celda: (c: TipoCotejo) => <Link to={`${BASE_COTEJO}/${c.folio}`} className="cn-enlace">{c.folio}</Link> },
-                                    { titulo: "PERSONA", fuerte: true, celda: (c: TipoCotejo) => c.persona },
-                                    { titulo: "RESULTADO", ancho: 170, celda: (c: TipoCotejo) => <Chip tono={TONO_COTEJO[c.estado]} ancho={160}>{NOMBRE_ESTADO_COTEJO[c.estado]}</Chip> },
-                                    { titulo: "RESOLVIÓ", ancho: 160, celda: (c: TipoCotejo) => c.resolucion?.quien ?? "—" },
-                                    { titulo: "FECHA", ancho: 110, celda: (c: TipoCotejo) => fechaCorta(c.resolucion?.fecha ?? "") },
+                                    { titulo: "Folio", ancho: 90, folio: true, celda: (c: TipoCotejo) => <Link to={`${BASE_COTEJO}/${c.folio}`} className="cn-enlace">{c.folio}</Link> },
+                                    { titulo: "Persona", fuerte: true, celda: (c: TipoCotejo) => c.persona },
+                                    { titulo: "Resultado", ancho: 170, celda: (c: TipoCotejo) => <Chip tono={TONO_COTEJO[c.estado]} ancho={160}>{NOMBRE_ESTADO_COTEJO[c.estado]}</Chip> },
+                                    { titulo: "Resolvió", ancho: 160, celda: (c: TipoCotejo) => c.resolucion?.quien ?? "—" },
+                                    { titulo: "Fecha", ancho: 110, celda: (c: TipoCotejo) => fechaCorta(c.resolucion?.fecha ?? "") },
                                 ]}
                                 filas={resueltos}
                                 clave={(c) => c.folio}

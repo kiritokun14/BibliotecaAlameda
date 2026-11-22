@@ -56,7 +56,6 @@ export function EncabezadoTarjeta({ volver, titulo, texto }: { volver: { texto: 
     return (
         <header className="cn-encabezado-tarjeta">
             <Link to={volver.ruta} className="cn-volver">
-                <span className="cn-volver__circulo" aria-hidden="true">←</span>
                 {volver.texto}
             </Link>
             <h1 className="cn-titulo">{titulo}</h1>
@@ -152,7 +151,7 @@ export function BloqueResumen({ insignia, titulo, resalte, subtitulo, accesos }:
                         <>
                             <span className="cn-acceso__fila">
                                 <span className="cn-acceso__icono" aria-hidden="true"><img src={a.icono} alt="" /></span>
-                                {a.enlace && <span className="cn-acceso__enlace">{a.enlace} →</span>}
+                                {a.enlace && <span className="cn-acceso__enlace">{a.enlace}</span>}
                             </span>
                             <span className="cn-acceso__numero">{a.numero}</span>
                             <span className="cn-acceso__titulo">{a.titulo}</span>
@@ -225,7 +224,7 @@ export function Paginacion({ pagina, paginas, alCambiar }: { pagina: number; pag
     if (paginas <= 1) return null;
     return (
         <div className="cn-paginacion" role="group" aria-label="Páginas">
-            <button type="button" className="cn-paginacion__paso" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>‹ Anterior</button>
+            <button type="button" className="cn-paginacion__paso" disabled={pagina === 0} onClick={() => alCambiar(pagina - 1)}>Anterior</button>
             {Array.from({ length: paginas }, (_, i) => (
                 <button
                     key={i}
@@ -237,7 +236,7 @@ export function Paginacion({ pagina, paginas, alCambiar }: { pagina: number; pag
                     {i + 1}
                 </button>
             ))}
-            <button type="button" className="cn-paginacion__paso" disabled={pagina >= paginas - 1} onClick={() => alCambiar(pagina + 1)}>Siguiente ›</button>
+            <button type="button" className="cn-paginacion__paso" disabled={pagina >= paginas - 1} onClick={() => alCambiar(pagina + 1)}>Siguiente</button>
         </div>
     );
 }

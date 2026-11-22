@@ -269,7 +269,7 @@ function TarjetaResumen({ tono, icono, cifra, titulo, texto, enlace, activa, alP
         <article className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${tono}${activa ? " rv-tarjeta--activa" : ""}`}>
             <div className="contenidos-resumen__fila">
                 <span className="contenidos-resumen__icono">{icono}</span>
-                <button type="button" className="contenidos-resumen__enlace" aria-pressed={activa} onClick={alPresionar}>{enlace} →</button>
+                <button type="button" className="contenidos-resumen__enlace" aria-pressed={activa} onClick={alPresionar}>{enlace}</button>
             </div>
             <p className="contenidos-resumen__cifra">{cifra}</p>
             <p className="contenidos-resumen__titulo">{titulo}</p>
@@ -386,7 +386,7 @@ export function BandejaRevision() {
                             <span role="cell">{c.enviadoEn ? cuandoRelativo(c.enviadoEn) : "—"}</span>
                             <span role="cell">
                                 <Link to={`${BASE}/${c.folio}`} className="contenidos-tabla__accion">
-                                    {c.estado === "en_revision" ? "Revisar" : "Ver"} →<span className="solo-lectores"> {c.folio}</span>
+                                    {c.estado === "en_revision" ? "Revisar" : "Ver"}<span className="solo-lectores"> {c.folio}</span>
                                 </Link>
                             </span>
                         </div>
@@ -1084,10 +1084,10 @@ export function HistorialPublicaciones({ retirar }: { retirar?: string }) {
                             <span role="cell">
                                 {c.estado === "publicado" ? (
                                     <button type="button" className="contenidos-tabla__accion" onClick={() => { setAviso(""); setRetirando(c.folio); }}>
-                                        Retirar →<span className="solo-lectores"> {c.folio}</span>
+                                        Retirar<span className="solo-lectores"> {c.folio}</span>
                                     </button>
                                 ) : (
-                                    <Link to={`${BASE}/${c.folio}`} className="contenidos-tabla__accion">Ver →<span className="solo-lectores"> {c.folio}</span></Link>
+                                    <Link to={`${BASE}/${c.folio}`} className="contenidos-tabla__accion">Ver<span className="solo-lectores"> {c.folio}</span></Link>
                                 )}
                             </span>
                         </div>

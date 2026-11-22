@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-const servidor = vi.hoisted(() => ({ solicitarCredencial: vi.fn(), cancelarSolicitudCredencial: vi.fn() }));
-vi.mock('../src/servicios/tramites', () => ({ solicitarCredencial: servidor.solicitarCredencial, cancelarSolicitudCredencial: servidor.cancelarSolicitudCredencial }));
+const servidor = vi.hoisted(() => ({ solicitarCredencial: vi.fn(), cancelarSolicitudCredencial: vi.fn(), listarTramites: vi.fn() }));
+vi.mock('../src/servicios/tramites', () => ({ solicitarCredencial: servidor.solicitarCredencial, cancelarSolicitudCredencial: servidor.cancelarSolicitudCredencial, listarTramites: servidor.listarTramites }));
 import {
-    cancelarSolicitud, consultarTramite, enviarCorreccion, enviarSolicitud, fechaLarga, pasoDelEstado, puedeCancelar, puedeSolicitar,
+    cancelarSolicitud, consultarTramite, sincronizarTramite, enviarCorreccion, enviarSolicitud, fechaLarga, pasoDelEstado, puedeCancelar, puedeSolicitar,
     validarCorreccion, validarSolicitud, verEjemplo, type SolicitudCredencial,
 } from '../src/pages/publico/credencial/datos';
 
@@ -26,6 +26,18 @@ describe('Credencial con sesión · trámite', () => {
         expect(servidor.solicitarCredencial).toHaveBeenCalledWith('renovacion', 'Horario preferido para el cotejo: Mañana\nGracias');
         expect(t).toMatchObject({ estado: 'en-revision', tipo: 'renovacion', folio: 'abcd1234-0000-4000-8000-000000000001' });
         expect(consultarTramite().estado).toBe('en-revision');
+    });
+    it('al volver a entrar lee el estado de /credenciales/solicitudes/me y no pierde una recién enviada', async () => {
+        servidor.solicitarCredencial.mockResolvedValue({ id: 'f1', creadaEn: '2026-11-12T10:00:00Z' });
+        await enviarSolicitud(solicitud);
+        servidor.listarTramites.mockResolvedValueOnce({ total: 1, solicitudes: [{ id: 'f1', tipoSolicitud: 'obtencion', estadoSolicitud: 'en_atencion', creadaEn: '2026-11-12T10:00:00Z', historial: [] }] });
+        await sincronizarTramite();
+        expect(consultarTramite()).toMatchObject({ estado: 'en-revision', folio: 'f1' });
+        servidor.solicitarCredencial.mockResolvedValue({ id: 'f2', creadaEn: '2026-11-13T10:00:00Z' });
+        await enviarSolicitud(solicitud);
+        servidor.listarTramites.mockResolvedValueOnce({ total: 0, solicitudes: [] });
+        await sincronizarTramite();
+        expect(consultarTramite()).toMatchObject({ estado: 'en-revision', folio: 'f2' });
     });
     it('si el servidor falla, el trámite no cambia', async () => {
         servidor.solicitarCredencial.mockRejectedValue(new Error('sin conexión'));

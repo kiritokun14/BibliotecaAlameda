@@ -42,14 +42,14 @@ const configEspacios: ConfigArea = {
 };
 
 const columnas: Columna<SolicitudEspacioReal>[] = [
-    { titulo: "PERSONA SOLICITANTE", celda: (s) => <CeldaDoble arriba={s.persona} abajo={s.api.tipo === "visita" ? "Visita guiada" : "Uso de un área"} /> },
-    { titulo: "ÁREA", celda: (s) => s.area },
+    { titulo: "Persona solicitante", celda: (s) => <CeldaDoble arriba={s.persona} abajo={s.api.tipo === "visita" ? "Visita guiada" : "Uso de un área"} /> },
+    { titulo: "Área", celda: (s) => s.area },
     {
-        titulo: "FECHA Y HORARIO",
+        titulo: "Fecha y horario",
         ancho: 160,
         celda: (s) => <CeldaDoble arriba={formatearFecha(s.fecha)} abajo={s.horario || "Horario por confirmar"} />,
     },
-    { titulo: "PERSONAS", ancho: 90, celda: (s) => s.personas },
+    { titulo: "Personas", ancho: 90, celda: (s) => s.personas },
 ];
 
 function Espacios({ vista }: { vista: "bandeja" | "todas" }) {

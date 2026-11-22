@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import { EtiquetaPerfil, TarjetaPerfil } from "../perfil/piezas";
 import { datosHistoria, etapas, type Etapa } from "./datos";
 import fotoFachada from "../../../assets/acerca/foto-fachada.webp";
 import fotoEstudio from "../../../assets/acerca/foto-sala-estudio.webp";
 import fotoActividades from "../../../assets/acerca/foto-presentaciones.webp";
 import fotoInfantil from "../../../assets/acerca/foto-sala-infantil.webp";
+import solonRetrato from "../../../assets/acerca/solon-retrato.webp";
+import solonMultitud from "../../../assets/acerca/solon-multitud.webp";
+import tarjetaUsuario from "../../../assets/perfil/tarjeta-usuario.svg";
 import iconoReloj from "../../../assets/acerca/pestana-reloj.svg";
 import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
 import tarjetaEstrella from "../../../assets/perfil/tarjeta-estrella.svg";
@@ -33,6 +37,22 @@ function Historia() {
                     </figure>
                 </div>
                 <p className="historia-fuente">Datos de la investigación de la Dra. Alma Delia Sánchez Andrade.</p>
+            </TarjetaPerfil>
+
+            {/* Fotos de Solón Argüello que compartió Aldahir (21 nov 2026) */}
+            <TarjetaPerfil color="rosa" icono={tarjetaUsuario} titulo="El nombre de la biblioteca"
+                texto="La biblioteca lleva el nombre de José Solón Argüello, poeta, maestro y periodista que vivió y enseñó en Tepic.">
+                <div className="historia-solon">
+                    <figure className="historia-foto historia-foto--retrato">
+                        <img loading="lazy" decoding="async" src={solonRetrato} alt="Retrato de José Solón Argüello" />
+                        <figcaption>José Solón Argüello Escobar</figcaption>
+                    </figure>
+                    <figure className="historia-foto">
+                        <img loading="lazy" decoding="async" src={solonMultitud} alt="Solón Argüello entre la gente, con el sombrero en alto" />
+                        <figcaption>Solón Argüello entre la gente, a inicios del siglo XX</figcaption>
+                    </figure>
+                </div>
+                <p className="historia-fuente"><Link to="/acerca/solon-arguello" className="historia-enlace">Conoce su vida y su obra</Link></p>
             </TarjetaPerfil>
 
             <TarjetaPerfil color="dorada" icono={tarjetaEstrella} titulo="La biblioteca por dentro" texto="Un recorrido por sus espacios.">

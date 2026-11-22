@@ -6,7 +6,7 @@ import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-r
 import PanelLayout from "../PanelLayout";
 import { AvisoResultado, Chip, EncabezadoPagina, EstadoVacio, Migas } from "../componentes";
 import { Ventana } from "../Ventana";
-import { IconoAviso, IconoBandera, IconoInfo, IconoLista, IconoMas, IconoReloj } from "../contenidos/piezas";
+import { IconoAviso, IconoBandera, IconoInfo, IconoLista, IconoReloj } from "../contenidos/piezas";
 import { paginar } from "../contenidoDemo/utiles";
 import { fechaCorta, obtenerActividad, useActividades, type Actividad } from "./datos";
 import { useInscripciones } from "./inscripciones";
@@ -108,7 +108,7 @@ function Asistencia() {
                                 celda: (a) => {
                                     const e = estadoLista(a.folio, new Date(), listas).clave;
                                     if (e === "cancelada") return <span className="ac-sin-accion">—</span>;
-                                    return <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="contenidos-tabla__accion">{e === "cerrada" ? "Ver lista" : e === "pendiente" ? "Pasar lista" : "Ver inscritos"} →<span className="tr-oculto"> {a.nombre}</span></Link>;
+                                    return <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="contenidos-tabla__accion">{e === "cerrada" ? "Ver lista" : e === "pendiente" ? "Pasar lista" : "Ver inscritos"}<span className="tr-oculto"> {a.nombre}</span></Link>;
                                 },
                             },
                         ]}
@@ -234,7 +234,7 @@ export function PasarLista() {
                                                 ))}
                                             </span>
                                         )}
-                                        {cerrada && !p.extra && <button type="button" className="contenidos-tabla__accion ac-boton-texto" onClick={() => abrirCorreccion(p.id, p.persona)}>Corregir →<span className="tr-oculto"> {p.persona}</span></button>}
+                                        {cerrada && !p.extra && <button type="button" className="contenidos-tabla__accion ac-boton-texto" onClick={() => abrirCorreccion(p.id, p.persona)}>Corregir<span className="tr-oculto"> {p.persona}</span></button>}
                                     </div>
                                 </li>
                             );
@@ -254,7 +254,7 @@ export function PasarLista() {
 
             {!cerrada && (
                 <div className="ac-barra-acciones">
-                    <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => { setNombre(""); setContacto(""); setErrorCampo(""); setVentana("agregar"); }}><IconoMas /> Agregar persona sin inscripción</button>
+                    <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => { setNombre(""); setContacto(""); setErrorCampo(""); setVentana("agregar"); }}>Agregar persona sin inscripción</button>
                     <span className="ac-barra-acciones__derecha">
                         <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => void guardar()}>Guardar y seguir</button>
                         <button type="button" className="contenidos-boton contenidos-boton--oscuro" onClick={() => setVentana("cerrar")}>Cerrar lista</button>

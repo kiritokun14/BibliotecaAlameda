@@ -132,7 +132,7 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                                 <div className="contenidos-resumen__fila">
                                     <span className="contenidos-resumen__icono">{t.icono}</span>
                                     <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.filtro} onClick={() => elegirFiltro(t.filtro)}>
-                                        {t.enlace} →
+                                        {t.enlace}
                                     </button>
                                 </div>
                                 <p className="contenidos-resumen__cifra">{t.cantidad}</p>
@@ -217,7 +217,7 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                                 </span>
                                 <span role="cell">
                                     <Link to={`${config.ruta}/${solicitud.folio}`} className="contenidos-tabla__accion">
-                                        {solicitud.estado === "pendiente" ? config.accionPendiente : "Ver"} →<span className="solo-lectores"> {solicitud.folio}</span>
+                                        {solicitud.estado === "pendiente" ? config.accionPendiente : "Ver"}<span className="solo-lectores"> {solicitud.folio}</span>
                                     </Link>
                                 </span>
                             </div>

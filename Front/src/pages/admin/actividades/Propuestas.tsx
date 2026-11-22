@@ -36,14 +36,14 @@ function Propuestas() {
     }
 
     const columnas: Columna<Actividad>[] = [
-        { titulo: "FOLIO", ancho: 90, folio: true, celda: (a) => a.folio },
-        { titulo: "ACTIVIDAD", fuerte: true, celda: (a) => a.nombre },
-        { titulo: "TIPO", ancho: 110, celda: (a) => a.tipo },
-        { titulo: "FECHA", ancho: 120, celda: (a) => fechaCorta(a.fecha) },
-        { titulo: "ESPACIO", ancho: 150, celda: (a) => a.espacio || "Por definir" },
-        { titulo: "CUPO", ancho: 60, celda: (a) => a.cupo || "—" },
-        { titulo: "ESTADO", ancho: 150, celda: (a) => <Chip tono={TONO_ACTIVIDAD[a.estado]} ancho={150}>{NOMBRE_ESTADO_ACTIVIDAD[a.estado]}</Chip> },
-        { titulo: "ACCIÓN", ancho: 80, celda: (a) => <Link to={`${BASE_PROPUESTAS}/${a.folio}`} className="cn-enlace">Abrir →<span className="cn-solo-lectores"> {a.folio}</span></Link> },
+        { titulo: "Folio", ancho: 90, folio: true, celda: (a) => a.folio },
+        { titulo: "Actividad", fuerte: true, celda: (a) => a.nombre },
+        { titulo: "Tipo", ancho: 110, celda: (a) => a.tipo },
+        { titulo: "Fecha", ancho: 120, celda: (a) => fechaCorta(a.fecha) },
+        { titulo: "Espacio", ancho: 150, celda: (a) => a.espacio || "Por definir" },
+        { titulo: "Cupo", ancho: 60, celda: (a) => a.cupo || "—" },
+        { titulo: "Estado", ancho: 150, celda: (a) => <Chip tono={TONO_ACTIVIDAD[a.estado]} ancho={150}>{NOMBRE_ESTADO_ACTIVIDAD[a.estado]}</Chip> },
+        { titulo: "Acción", ancho: 80, celda: (a) => <Link to={`${BASE_PROPUESTAS}/${a.folio}`} className="cn-enlace">Abrir<span className="cn-solo-lectores"> {a.folio}</span></Link> },
     ];
 
     return (

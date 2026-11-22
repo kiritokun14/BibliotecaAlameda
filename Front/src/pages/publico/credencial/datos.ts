@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { consultarMisSolicitudes, type SolicitudCredencialBack } from "../perfil/solicitudes";
 import { sesionSimulada } from "../perfil/usarSesion";
-import { cancelarSolicitudCredencial, solicitarCredencial } from "../../../servicios/tramites";
+import { cancelarSolicitudCredencial, listarTramites, solicitarCredencial } from "../../../servicios/tramites";
 // Credencial · trámite de la persona con sesión iniciada (Figma A-02, 476:9983).
 // El estado se lee del backend real con GET /mis-solicitudes (solicitudes_credencial, la más reciente) cuando hay sesión.
 // Enviar la solicitud usa el servicio real POST /credenciales/solicitudes (servicios/tramites.ts), así que al recargar
@@ -81,14 +81,38 @@ export function mapearCredencial(s: SolicitudCredencialBack | undefined, hoy = n
     return { ...base, estado: vence < hoy ? "vencida" : "vigente", emision, vencimiento };
 }
 
+// Bug del 20 nov (Aldahir: «no se queda en la fase 3, se regresa a la fase 1»), corregido así:
+// 1. El estado se lee con GET /credenciales/solicitudes/me, la misma función de la base con la que se crea la solicitud
+//    (`/mis-solicitudes` lee la tabla directo y podía no traerla); si falla, se intenta `/mis-solicitudes`.
+// 2. Mientras no llega la respuesta, `listo` es falso y ninguna pantalla redirige ni muestra el paso 1 (antes, en ese
+//    instante el trámite parecía «sin solicitud» y el seguimiento mandaba a la información).
+// 3. Si el servidor todavía no refleja una solicitud recién enviada en esta pestaña, se conserva la que ya conocemos.
 let sincronizado = false;
+let listo = sesionSimulada;
+async function ultimaSolicitud(): Promise<SolicitudCredencialBack | undefined> {
+    try {
+        const r = await listarTramites("credencial", true);
+        const s = r.solicitudes[0];
+        return s && {
+            id: s.id, tipoSolicitud: s.tipoSolicitud === "renovacion" ? "renovacion" : "obtencion",
+            estadoSolicitud: s.estadoSolicitud as SolicitudCredencialBack["estadoSolicitud"],
+            fechaCita: s.fechaCita ?? null, observaciones: s.observaciones ?? null, creadaEn: s.creadaEn,
+        };
+    } catch {
+        return (await consultarMisSolicitudes()).solicitudes_credencial?.[0];
+    }
+}
 export async function sincronizarTramite() {
     if (sesionSimulada || sincronizado) return;
     sincronizado = true;
     try {
-        const h = await consultarMisSolicitudes();
-        establecer(mapearCredencial(h.solicitudes_credencial?.[0]));
+        const ultima = await ultimaSolicitud();
+        const nuevo = mapearCredencial(ultima);
+        const conocida = tramite.folio && tramite.estado !== "sin-solicitud" && ultima?.id !== tramite.folio;
+        establecer(nuevo.estado === "sin-solicitud" && conocida ? tramite : nuevo);
     } catch { sincronizado = false; } // sin sesión o sin servicio: se queda como está y se intenta en la siguiente pantalla
+    listo = true;
+    oyentes.forEach((o) => o());
 }
 
 function suscribir(o: () => void) { oyentes.add(o); return () => { oyentes.delete(o); }; }
@@ -96,6 +120,10 @@ function suscribir(o: () => void) { oyentes.add(o); return () => { oyentes.delet
 export function useTramite(): TramiteCredencial {
     useEffect(() => { void sincronizarTramite(); }, []);
     return useSyncExternalStore(suscribir, () => tramite, () => tramite);
+}
+// ¿Ya se sabe el estado real? Hasta entonces las pantallas muestran «Revisando…» y no redirigen.
+export function useTramiteListo(): boolean {
+    return useSyncExternalStore(suscribir, () => listo, () => listo);
 }
 
 export type SolicitudCredencial = {

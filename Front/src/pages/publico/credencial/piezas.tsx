@@ -20,11 +20,14 @@ import circulo2 from "../../../assets/credencial/tarjeta-circulo-2.svg";
 // se puede solicitar; Seguimiento si ya hay una solicitud.
 const nombresPasos = ["Información", "Solicitud", "Seguimiento"];
 const rutasPasos = ["/credencial", "/credencial/solicitud", "/credencial/seguimiento"];
-export function PasosTramite({ actual, pagina, solicitar = false }: { actual: number; pagina: number; solicitar?: boolean }) {
+// Otro trámite (Espacios) pasa sus propios `nombres` y `rutas`.
+export function PasosTramite({ actual, pagina, solicitar = false, nombres = nombresPasos, rutas = rutasPasos }: {
+    actual: number; pagina: number; solicitar?: boolean; nombres?: string[]; rutas?: string[];
+}) {
     return (
         <nav className="cred-pasos-franja" aria-label="Pasos del trámite">
             <ol className="cred-pasos">
-                {nombresPasos.map((nombre, i) => {
+                {nombres.map((nombre, i) => {
                     const numero = i + 1;
                     const estado = numero < actual ? "hecho" : numero === actual ? "actual" : "pendiente";
                     const visitable = (numero === 1 && actual < 3) || (numero === 2 && solicitar) || (numero === 3 && actual >= 3);
@@ -37,12 +40,30 @@ export function PasosTramite({ actual, pagina, solicitar = false }: { actual: nu
                     return (
                         <li key={nombre} className={`cred-paso cred-paso--${estado}${numero === pagina ? " cred-paso--aqui" : ""}`}
                             aria-current={numero === pagina ? "page" : undefined}>
-                            {visitable && numero !== pagina ? <Link to={rutasPasos[i]} className="cred-paso__enlace">{contenido}</Link> : contenido}
+                            {visitable && numero !== pagina ? <Link to={rutas[i]} className="cred-paso__enlace">{contenido}</Link> : contenido}
                         </li>
                     );
                 })}
             </ol>
         </nav>
+    );
+}
+
+// ---------- «¿Necesitas ayuda?»: tarjeta verde con los canales (Credencial, Espacios y lo que siga con un trámite) ----------
+// compacta: sin insignia ni texto, cuando la columna no tiene alto de sobra.
+export function AyudaTramite({ compacta = false, texto = "El personal te orienta con tu trámite." }: { compacta?: boolean; texto?: string }) {
+    return (
+        <section className={`contacto-seguimiento cred-ayuda${compacta ? " cred-ayuda--compacta" : ""}`} aria-labelledby="titulo-ayuda-tramite">
+            <span className="contacto-seguimiento__insignia" aria-hidden="true" />
+            <h2 id="titulo-ayuda-tramite">¿Necesitas ayuda?</h2>
+            <p>{texto}</p>
+            <ul className="cred-ayuda__canales">
+                <li><span>Horario</span><strong>Lunes a viernes, de 8:00 a 19:30 h</strong></li>
+                <li><span>En la biblioteca</span><strong>Pide apoyo en Préstamos</strong></li>
+                <li><span>Correo</span><a href="mailto:bp0165@dgb.gob.mx">bp0165@dgb.gob.mx</a></li>
+            </ul>
+            <a href="tel:+523112128989" className="perfil-boton perfil-boton--guardar">Llamar al 311 212 8989</a>
+        </section>
     );
 }
 
@@ -106,12 +127,14 @@ export function EstadoCredencial({ datos, titular, tramite, nivel = 3, children 
 
 // ---------- Los cuatro pasos en fila, unidos por una línea (Credencial y su seguimiento) ----------
 // Sin etapas (sin sesión) solo dicen quién hace cada paso; con etapas, el chip de cada uno (completado, en curso, pendiente).
+// Otro trámite (Espacios) pasa sus propios `pasos` (cuatro, con quién, título y texto).
 const colorEtapa = { hecho: "verde", actual: "dorado", pendiente: "gris" } as const;
 const textoEtapa = { hecho: "Completado", actual: "En curso", pendiente: "Pendiente" } as const;
-export function RutaCredencial({ etapas }: { etapas?: Etapa[] | null }) {
+export type PasoRuta = { titulo: string; texto: string; quien: string };
+export function RutaCredencial({ etapas, pasos = pasosCredencial }: { etapas?: Etapa[] | null; pasos?: PasoRuta[] }) {
     return (
         <ol className="perfil-niveles perfil-niveles--ruta cred-ruta">
-            {pasosCredencial.map((p, i) => {
+            {pasos.map((p, i) => {
                 const estado = etapas?.[i]?.estado;
                 return (
                     <li key={p.titulo} className={`perfil-nivel perfil-nivel--${estado ? colorEtapa[estado] : "verde"}`}

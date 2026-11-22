@@ -196,6 +196,51 @@ El frontend no necesita cambios si la ruta respeta el contrato de abajo.
   «Por ahora no se puede cancelar en línea…» con el teléfono; un `409` dice que la solicitud ya cambió de estado.
 - **Pendiente:** todo lo de «Tarea para el agente de backend», arriba.
 
+## 7. Espacios: registrar los seis espacios del mapa — prioridad alta (Aldahir, 20 nov 2026)
+
+La página **Espacios** (`/espacios`) ahora es un **mapa 2D de la biblioteca** (levantamiento de Aldahir) donde la persona elige el espacio
+para su evento y luego llena fecha y datos (`/espacios/solicitar?espacio=<slug>`). El formulario sigue usando
+`POST /espacios/solicitudes` sin cambios (`areaId` = `slug`). Lo que falta es que **la base tenga los espacios del mapa**:
+hoy `public.espacio` solo tiene tres provisionales (`sala-lectura`, `sala-usos-multiples`, `area-infantil`).
+
+| Número en el plano | `slug` | Nombre | Capacidad | Descripción (uso) |
+|---|---|---|---|---|
+| 04 | `sala-general` | Sala general | 120 | Presentaciones de libro, lecturas, conferencias y eventos amplios. Se comparte con las personas usuarias en horario de servicio. |
+| 14 | `sala-usos-multiples` | Sala Braille y de usos múltiples | 40 | Talleres, conferencias, presentaciones y actividades inclusivas (≈24 con mesas). |
+| 10 | `vestibulo` | Vestíbulo | 35 | Inauguraciones, exposiciones temporales y recepción de invitados. Exterior techado. |
+| 05 | `coliseo-bibliografico` | Coliseo bibliográfico | 25 | Círculos de lectura, charlas y presentaciones en formato íntimo. |
+| 06 | `area-infantil` | Área infantil | 30 | Solo actividades lúdicas: cuentos, visitas de preescolar y talleres infantiles. |
+| M | `mesanim` | Mesanim (planta alta) | 50 | Eventos pequeños; piso de duela, sin alimentos, solo por escalera y sujeto a aprobación de la Dirección. |
+
+- **Qué hacer:** un SQL que inserte o actualice esos seis (`ON CONFLICT (slug) DO UPDATE`) y desactive `sala-lectura` (`activo = false`),
+  que no está en el mapa. Las capacidades son aproximadas (según el tamaño del área); la biblioteca puede ajustarlas.
+- **Mientras tanto:** con una cuenta real, el mapa pregunta `GET /espacios/areas`; si un espacio aún no está registrado,
+  su detalle dice «Este espacio todavía no se puede pedir en línea. Llama al 311 212 8989» en lugar del botón.
+- **Horario de la biblioteca:** el frontend ya solo deja pedir de **lunes a viernes, de 8:00 a 19:30 h** (`HORARIO` en
+  `Front/src/pages/publico/espacios/datosSesion.ts`). `POST /espacios/solicitudes` debería rechazar lo mismo (`422` con un `detail` claro)
+  por si alguien llama la API directo; y si la biblioteca cambia su horario, avisar al frontend.
+- **A futuro (opcional):** el mapa original permitía elegir **varios espacios** para un mismo evento. Hoy una solicitud es por un espacio
+  (`areaId`). Si la biblioteca lo quiere, haría falta aceptar una lista (`areaIds`) y revisar la disponibilidad de todos.
+- **Frontend:** `Front/src/pages/publico/espacios/datos.ts` (zonas y espacios del mapa, con su `slug`), `MapaBiblioteca.tsx`,
+  `Espacios.tsx` (paso 1) y `Solicitar.tsx` (paso 2). Para verlo sin backend: `/espacios?simular=sesion`.
+
+## 8. Propuestas: la persona edita y cancela su propia propuesta — prioridad media (Aldahir, 21 nov 2026)
+
+En **Seguimiento de tu propuesta** (`/proponer/:id`) hay dos botones nuevos: «Editar propuesta» (abre `/proponer/:id/editar`, el mismo
+formulario ya lleno) y «Cancelar propuesta» (confirmación en el lugar, igual que en Credencial). Hoy la base no deja hacer todo:
+
+- **Editar mientras está `en_revision`:** `privado.atencion_solicitudes`, operación `corregir`, solo acepta `borrador` y
+  `requiere_correccion` (`55000` si no). Pedido: aceptar también `en_revision` cuando lo hace la persona titular, siempre que el personal
+  no haya resuelto (mismo `PUT /propuestas/{id}/corregir` con `actualizadoEn`; `409` si cambió). Queda en `en_revision` y se anota en el historial.
+  Cuando exista, en el frontend se cambia `EDITAR_EN_REVISION = true` en `Front/src/pages/publico/proponer/datos.ts` (hoy el botón solo sale con cambios pedidos o en borrador).
+- **Cancelar:** no existe. Pedido: `POST /propuestas/{id}/cancelar` con `{ "actualizadoEn": "<fecha>" }` → `200` con la propuesta en
+  `cancelada`. Solo la titular (`403` si no), solo desde `borrador`, `en_revision` o `requiere_correccion` (`409` si ya se aprobó,
+  rechazó o canceló), `404` si no existe, `401` sin sesión. En el historial: `accion = 'cancelar'`, nota «La persona canceló su propuesta desde el portal.».
+  Mientras no exista, el botón responde `404` y la pantalla dice «Por ahora no se puede cancelar en línea…» con el teléfono.
+- **Frontend:** `cancelarPropuestaPropia` (`Front/src/servicios/tramites.ts`), `editarPropuestaUsuario` (`servicios/propuestasUsuario.ts`),
+  `puedeEditar`, `puedeCancelar` y `propuestaDesdeSolicitud` (`proponer/datos.ts`), `EditarPropuesta` y `CancelarPropuesta` (`proponer/Proponer.tsx`).
+  Para verlo sin backend: `/proponer?simular=sesion`, enviar, y en el seguimiento usar los dos botones.
+
 ## Cómo probar
 
 - **Backend local:** `.\.venv\Scripts\python.exe -m uvicorn Back.main:app --reload` desde la raíz (puerto 8000).

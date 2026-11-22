@@ -104,7 +104,7 @@ export default function AtencionComunidad({ bibliocomunidad = false }: { biblioc
                             <span role="cell"><Estado estado={c.estadoAtencion} /></span>
                             <span role="cell">
                                 <button type="button" className="contenidos-tabla__accion" aria-pressed={seleccion?.id === c.id} onClick={() => setSeleccion(c)}>
-                                    Ver caso →<span className="solo-lectores"> de {c.nombreRemitente}</span>
+                                    Ver caso<span className="solo-lectores"> de {c.nombreRemitente}</span>
                                 </button>
                             </span>
                         </div>

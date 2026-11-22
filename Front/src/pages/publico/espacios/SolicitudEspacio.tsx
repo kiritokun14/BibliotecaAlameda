@@ -1,260 +1,248 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
-import PaginaPublica from "../../../components/portal/PaginaPublica";
+import { Link, Navigate, useLocation, useParams, useSearchParams } from "react-router";
+import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import CorregirSolicitudEspacio from './CorregirSolicitudEspacio';
-import { EncabezadoNoticias } from "../noticias/piezas";
-import "../noticias/Noticias.css";
-import "../../../components/portal/Visitante.css";
-import { Chip, DatoCred, EtapasTramite, Nota } from "../credencial/piezas";
-import "../credencial/CredencialSesion.css";
-import { ModalAgenda } from "../eventos/DetalleActividad";
-import { NoAprobada } from "../proponer/Proponer";
-import "../eventos/Agenda.css";
+import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 import { mensajeError } from "../../../servicios/api";
 import {
     cancelarMiSolicitud, diaLocal, horarioLocal, obtenerMiSolicitud, responderPropuesta, type SolicitudEspacioApi,
 } from "../../../servicios/espacios";
-import { fechaCorta, motivosCancelacion, nombreEstado } from "./datosSesion";
-import "./EspaciosSesion.css";
-import checkEnviada from "../../../assets/credencial/enviada-check.svg";
-import checkPaso from "../../../assets/credencial/paso-check.svg";
-import infoDorado from "../../../assets/credencial/info-dorado.svg";
-import alerta from "../../../assets/credencial/alerta-guinda.svg";
-import relojBlanco from "../../../assets/comun/iconos/reloj-blanco.svg";
-import archivoBlanco from "../../../assets/perfil/chip-archivo.svg";
+import { TarjetaPerfil } from "../perfil/piezas";
+import { iconosSeccion } from "../perfil/iconos";
+import { sesionSimulada, useSesion } from "../perfil/usarSesion";
+import { Chip, PasosTramite, RutaCredencial } from "../credencial/piezas";
+import PedirSesion from "../sesion/PedirSesion";
+import { pasosEspacio, rutasEspacio, zonaPorSlug } from "./datos";
+import {
+    cancelarSimulada, estaEnProceso, etapasEspacio, fechaCorta, motivosCancelacion, nombreEstado, olvidarSolicitud, pasosSolicitudEspacio,
+    recordarSolicitud, solicitudSimulada, textosEstado,
+} from "./datosSesion";
+import { DetalleEspacio } from "./piezas";
+import { fotosDe } from "./fotos";
+import "../contacto/Contacto.css";
+import "../perfil/Perfil.css";
+import "../credencial/CredencialSesion.css";
+import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
+import notaInfo from "../../../assets/perfil/nota-info.svg";
+import notaInfoDorada from "../../../assets/perfil/nota-info-dorada.svg";
 
-import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
-const regreso = { texto: "Volver a Agenda de espacios", ruta: "/espacios" };
-const regresoPerfil = { texto: "Volver a Mis espacios", ruta: "/mi-perfil/espacios" };
+// Espacios · paso 3: seguimiento de una solicitud (/espacios/solicitud/:folio), con la plantilla C de Credencial
+// (Aldahir, 20 nov 2026). Franja compacta → pasos (1 y 2 hechos, 3 en curso) → dos columnas del mismo alto:
+//   izquierda: el estado (foto del espacio, chip, qué pasa, folio, fecha y horario, y lo que se puede hacer:
+//   cancelar, responder un cambio propuesto o pedir otro espacio) y «Cómo avanza tu solicitud» en cuatro pasos;
+//   derecha: el detalle del espacio con su foto.
+// Al enviar se llega aquí con el aviso de que quedó registrada. Mientras esté en proceso, entrar a Espacios trae aquí.
 
-// «Solicitud enviada» (Figma A-02, 476:28602). El folio llega en ?folio= desde la agenda.
+// /espacios/enviada (de antes): ya no hay pantalla aparte; con folio va a su seguimiento
 export function SolicitudEnviada() {
     const [parametros] = useSearchParams();
     const folio = parametros.get("folio");
+    return <Navigate to={folio ? `/espacios/solicitud/${encodeURIComponent(folio)}` : "/espacios"} replace state={{ enviada: true }} />;
+}
+
+type Carga = { solicitud: SolicitudEspacioApi } | { error: string } | null;
+
+export function GestionarSolicitud() {
+    const { id: folio = "" } = useParams();
+    const sesion = useSesion();
+    const enviada = (useLocation().state as { enviada?: boolean } | null)?.enviada === true;
+    const [carga, setCarga] = useState<Carga>(null);
+    const [intento, setIntento] = useState(0);
+
+    useEffect(() => {
+        if (!sesion) return;
+        let vigente = true;
+        const pedir = sesionSimulada
+            ? Promise.resolve(solicitudSimulada()).then((s) => { if (!s || s.folio !== folio) throw new Error("No encontramos esta solicitud. Revisa tus solicitudes en Mi perfil."); return s; })
+            : obtenerMiSolicitud(folio);
+        pedir.then((solicitud) => { recordarSolicitud(solicitud); if (vigente) setCarga({ solicitud }); })
+            .catch((e) => { olvidarSolicitud(folio); if (vigente) setCarga({ error: e instanceof Error && sesionSimulada ? e.message : mensajeError(e) }); });
+        return () => { vigente = false; };
+    }, [folio, intento, sesion]);
+
+    if (sesion === null) {
+        return (
+            <PaginaPublica>
+                <PedirSesion titulo="Inicia sesión para ver tu solicitud" texto="El seguimiento de tus solicitudes de espacio está en tu cuenta." />
+            </PaginaPublica>
+        );
+    }
+    const s = carga && "solicitud" in carga ? carga.solicitud : null;
+    const vigente = s ? (s.acuerdo ?? { espacio: s.espacio, inicio: s.inicio, fin: s.fin, condiciones: null }) : null;
+    const zona = vigente?.espacio ? zonaPorSlug(vigente.espacio.slug) : undefined;
+
     return (
         <PaginaPublica>
-            <EncabezadoNoticias regreso={regreso} etiqueta="AGENDA DE ESPACIOS" titulo="Solicitud enviada" texto="Esto es una solicitud, no una reserva." />
-            <div className="espacios-cuerpo">
-                <section className="cred-tarjeta espacios-enviada">
-                    <span className="espacios-enviada__icono"><img src={checkEnviada} alt="" /></span>
-                    <h2>Recibimos tu solicitud</h2>
-                    <Chip color="dorado">{folio ? `Folio ${folio}` : "Folio por asignar"}</Chip>
-                    <Nota color="dorada" icono={infoDorado}>Esto NO es una reserva. El personal revisará la disponibilidad y te responderá en tus notificaciones.</Nota>
-                    <ol className="cred-pasos espacios-pasos espacios-pasos--centro">
-                        <li className="cred-paso cred-paso--hecho"><span className="cred-paso__numero"><img src={checkPaso} alt="Completado:" /></span>Recibido</li>
-                        <li className="cred-paso cred-paso--actual" aria-current="step"><span className="cred-paso__numero">2</span>En atención</li>
-                        <li className="cred-paso cred-paso--pendiente"><span className="cred-paso__numero">3</span>Cerrado</li>
-                    </ol>
-                    <p>Puedes consultarla en Mis espacios. Si cambias de planes, cancélala desde ahí.</p>
-                    <div className="cred-acciones">
-                        <Link to={folio ? `/espacios/solicitud/${encodeURIComponent(folio)}` : "/mi-perfil/espacios"} className="boton-visitante">Ver mi solicitud</Link>
-                        <Link to="/espacios" className="boton-visitante cred-boton-contorno">Volver a la agenda</Link>
-                    </div>
-                </section>
-            </div>
+            <EncabezadoPublico icono={iconosSeccion.espacios} etiqueta="Espacios" titulo={<>Seguimiento de tu <span>solicitud</span></>}
+                texto="En qué va tu solicitud de espacio; los cambios del personal se reflejan aquí." />
+            <section className="contacto-seccion contacto-seccion--crema cred-pagina esp-pagina">
+                <div className="contacto-pila">
+                    <PasosTramite nombres={pasosEspacio} rutas={rutasEspacio(zona ? vigente?.espacio?.slug : undefined)}
+                        actual={s?.estado === "aprobada" ? 4 : 3} pagina={3} />
+                    {!s ? (
+                        <section className="esp-mapa esp-seguimiento__carga">
+                            {!carga ? <EsqueletoDetalle texto="Cargando tu solicitud…" /> : (
+                                <div className="perfil-vacio perfil-vacio--eventos">
+                                    <h2>No pudimos abrir tu solicitud</h2>
+                                    <p role="alert">{"error" in carga ? carga.error : ""}</p>
+                                    <div className="perfil-acciones perfil-acciones--centro">
+                                        <button type="button" className="perfil-boton" onClick={() => { setCarga(null); setIntento((x) => x + 1); }}>Reintentar</button>
+                                        <Link to="/mi-perfil/espacios" className="perfil-boton perfil-boton--contorno">Ir a Mis espacios</Link>
+                                    </div>
+                                </div>
+                            )}
+                        </section>
+                    ) : (
+                        <div className="contacto-columnas contacto-columnas--nuevo">
+                            <div className="cred-principal">
+                                <Estado solicitud={s} enviada={enviada} alCambiar={(solicitud) => { recordarSolicitud(solicitud); setCarga({ solicitud }); }} />
+                                <CorregirSolicitudEspacio key={s.actualizadoEn} solicitud={s} alGuardar={solicitud => setCarga({ solicitud })} />
+                                <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo avanza tu solicitud"
+                                    texto={s.estado === "aprobada" ? "Solo falta tu actividad." : "Te avisaremos en tus notificaciones de cada cambio."}>
+                                    <RutaCredencial pasos={pasosSolicitudEspacio} etapas={etapasEspacio(s.estado)} />
+                                </TarjetaPerfil>
+                            </div>
+                            <div className="contacto-lateral">
+                                {zona ? (
+                                    <section className="esp-tarjeta" aria-label={`Tu espacio: ${zona.nombre}`}>
+                                        <DetalleEspacio key={zona.id} zona={zona} />
+                                    </section>
+                                ) : (
+                                    <TarjetaPerfil color="verde" icono={tarjetaLista} titulo="Visita guiada">
+                                        <p className="esp-seguimiento__texto">El personal te dirá qué espacio usarán al confirmar la visita.</p>
+                                    </TarjetaPerfil>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </section>
         </PaginaPublica>
     );
 }
 
-type Carga = { solicitud: SolicitudEspacioApi } | { error: string } | null;
-type Modal = "cancelar" | "rechazar-propuesta" | null;
+// ---------- El estado de la solicitud (como el trámite por estados de Credencial) ----------
+function Estado({ solicitud: s, enviada, alCambiar }: { solicitud: SolicitudEspacioApi; enviada: boolean; alCambiar: (s: SolicitudEspacioApi) => void }) {
+    const datos = textosEstado[s.estado];
+    const vigente = s.acuerdo ?? { espacio: s.espacio, inicio: s.inicio, fin: s.fin, condiciones: null };
+    const foto = vigente.espacio ? fotosDe(vigente.espacio.slug)[0] : undefined;
+    const texto = s.estado === "rechazada" && s.observaciones ? s.observaciones
+        : s.estado === "cancelada" && s.historial.at(-1)?.porPersonal ? `La biblioteca canceló esta solicitud.${s.observaciones ? ` ${s.observaciones}` : ""}`
+        : datos.texto;
+    return (
+        <section className="esp-estado" aria-labelledby="titulo-estado-espacio">
+            <div className="esp-estado__visual">
+                {foto ? <img src={foto.mini} alt="" /> : <span className="esp-estado__sin-foto"><img src={iconosSeccion.espacios} alt="" /></span>}
+                <p><strong>{vigente.espacio?.nombre ?? "Visita guiada"}</strong>{s.tipo === "visita" ? "Visita guiada" : "Actividad o evento"}</p>
+            </div>
+            <div className="esp-estado__textos">
+                <Chip color={datos.color}>{nombreEstado[s.estado]}</Chip>
+                <h2 id="titulo-estado-espacio">{datos.titulo}</h2>
+                <p>{texto}</p>
+                <dl className="perfil-datos perfil-datos--tres">
+                    <div className="perfil-dato"><dt>Folio</dt><dd>{s.folio}</dd></div>
+                    <div className="perfil-dato"><dt>Fecha</dt><dd>{fechaCorta(diaLocal(vigente.inicio))}</dd></div>
+                    <div className="perfil-dato"><dt>Horario</dt><dd>{horarioLocal(vigente.inicio, vigente.fin) || "Por confirmar"}</dd></div>
+                </dl>
+                {enviada && s.estado === "en_revision" && (
+                    <p className="perfil-nota cred-aviso" role="status">
+                        <img src={notaInfo} alt="" />
+                        <span><strong>Tu solicitud quedó registrada.</strong> Ya está en proceso; aquí verás cada cambio.</span>
+                    </p>
+                )}
+                {s.estado === "aprobada" && (
+                    <div className="perfil-nota perfil-nota--dorada">
+                        <img src={notaInfoDorada} alt="" />
+                        <p>{vigente.condiciones ? `Condiciones de uso: ${vigente.condiciones} ` : ""}Si necesitas cambiarla o cancelarla, llama al 311 212 8989.</p>
+                    </div>
+                )}
+                {s.estado === "requiere_correccion" && s.propuesta && <Propuesta solicitud={s} alCambiar={alCambiar} />}
+                {estaEnProceso(s) && <Cancelar solicitud={s} alCambiar={alCambiar} />}
+                {(s.estado === "cancelada" || s.estado === "rechazada") && (
+                    <div className="perfil-acciones">
+                        <Link to="/espacios?nueva=1" className="perfil-boton">Pedir otro espacio</Link>
+                        <Link to="/mi-perfil/espacios" className="perfil-boton perfil-boton--contorno">Mis espacios</Link>
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
 
-// «Mi solicitud de espacio» (Figma A-02, 476:28713) y modal «¿Cancelar tu solicitud de espacio?» (476:28858).
-// La ruta es /espacios/solicitud/:id con el folio (SE-0001).
-export function GestionarSolicitud() {
-    const { id: folio = "" } = useParams();
-    const [carga, setCarga] = useState<Carga>(null);
-    const [intento, setIntento] = useState(0);
-    const [modal, setModal] = useState<Modal>(null);
-    const [motivo, setMotivo] = useState("");
+// ---------- La biblioteca propone otro espacio u horario: aceptar o decir que no funciona ----------
+function Propuesta({ solicitud: s, alCambiar }: { solicitud: SolicitudEspacioApi; alCambiar: (s: SolicitudEspacioApi) => void }) {
+    const p = s.propuesta!;
+    const [rechazando, setRechazando] = useState(false);
     const [comentarios, setComentarios] = useState("");
-    const [errorAccion, setErrorAccion] = useState("");
     const [guardando, setGuardando] = useState(false);
-    const bloqueo = useRef(false);
-
-    useEffect(() => {
-        let vigente = true;
-        obtenerMiSolicitud(folio)
-            .then((solicitud) => { if (vigente) setCarga({ solicitud }); })
-            .catch((e) => { if (vigente) setCarga({ error: mensajeError(e) }); });
-        return () => { vigente = false; };
-    }, [folio, intento]);
-
-    async function ejecutar(accion: () => Promise<SolicitudEspacioApi>) {
-        if (bloqueo.current) return;
-        bloqueo.current = true;
-        setGuardando(true);
-        setErrorAccion("");
-        try {
-            const solicitud = await accion();
-            setCarga({ solicitud });
-            setModal(null);
-            setMotivo("");
-            setComentarios("");
-        } catch (e) {
-            setErrorAccion(mensajeError(e));
-        } finally {
-            bloqueo.current = false;
-            setGuardando(false);
-        }
+    const [error, setError] = useState("");
+    function responder(acepta: boolean) {
+        setGuardando(true); setError("");
+        responderPropuesta(s.folio, acepta, acepta ? "" : comentarios, s.actualizadoEn)
+            .then(alCambiar)
+            .catch((e) => { setError(mensajeError(e)); setGuardando(false); });
     }
-
-    if (!carga || "error" in carga) {
-        return (
-            <PaginaPublica>
-                <EncabezadoNoticias regreso={regresoPerfil} etiqueta="AGENDA DE ESPACIOS › MIS SOLICITUDES" titulo="Mi solicitud de espacio" texto={`Folio ${folio}`} />
-                <div className="espacios-cuerpo">
-                    <section className="cred-tarjeta">
-                        {!carga ? <EsqueletoDetalle texto="Cargando tu solicitud…" /> : (
-                            <>
-                                <p className="cred-texto" role="alert">{carga.error}</p>
-                                <div className="cred-acciones">
-                                    <button type="button" className="boton-visitante cred-boton-contorno" onClick={() => { setCarga(null); setIntento((x) => x + 1); }}>Reintentar</button>
-                                    <Link to="/mi-perfil/espacios" className="boton-visitante">Ir a Mis espacios</Link>
-                                </div>
-                            </>
-                        )}
-                    </section>
+    return (
+        <div className="perfil-nota perfil-nota--dorada esp-propuesta">
+            <p><strong>Te proponen</strong>{p.espacio?.nombre ?? "El mismo espacio"}, {fechaCorta(diaLocal(p.inicio))}, de {horarioLocal(p.inicio, p.fin)} h.{p.mensaje ? ` ${p.mensaje}` : ""}</p>
+            {rechazando && (
+                <div className="perfil-campo">
+                    <label htmlFor="esp-respuesta">Qué te funcionaría mejor<span>(opcional)</span></label>
+                    <input id="esp-respuesta" maxLength={300} value={comentarios} onChange={(e) => setComentarios(e.target.value)} placeholder="Ej. Me funciona mejor por la tarde" />
                 </div>
-            </PaginaPublica>
+            )}
+            {error && <p className="cred-error-campo" role="alert">{error}</p>}
+            <div className="perfil-acciones">
+                {rechazando ? <>
+                    <button type="button" className="perfil-boton perfil-boton--chico" disabled={guardando} onClick={() => responder(false)}>{guardando ? "Enviando…" : "Enviar respuesta"}</button>
+                    <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" disabled={guardando} onClick={() => setRechazando(false)}>Volver</button>
+                </> : <>
+                    <button type="button" className="perfil-boton perfil-boton--chico" disabled={guardando} onClick={() => responder(true)}>{guardando ? "Enviando…" : "Aceptar el cambio"}</button>
+                    <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" disabled={guardando} onClick={() => setRechazando(true)}>No me funciona</button>
+                </>}
+            </div>
+        </div>
+    );
+}
+
+// ---------- Cancelar en el lugar (como en Credencial): el botón guinda se vuelve una nota rosa que anima su alto ----------
+function Cancelar({ solicitud, alCambiar }: { solicitud: SolicitudEspacioApi; alCambiar: (s: SolicitudEspacioApi) => void }) {
+    const [confirmando, setConfirmando] = useState(false);
+    const [cerrando, setCerrando] = useState(false);
+    const [motivo, setMotivo] = useState("");
+    const [cancelando, setCancelando] = useState(false);
+    const [error, setError] = useState("");
+    const bloqueo = useRef(false);
+    function cancelar() {
+        if (bloqueo.current) return;
+        if (!motivo.trim()) { setError('Selecciona el motivo de la cancelación.'); return; }
+        bloqueo.current = true; setCancelando(true); setError("");
+        const pedir = sesionSimulada ? Promise.resolve(cancelarSimulada(motivo)!) : cancelarMiSolicitud(solicitud.folio, motivo, "", solicitud.actualizadoEn);
+        pedir.then(alCambiar).catch((e) => { setError(mensajeError(e)); setCancelando(false); bloqueo.current = false; });
+    }
+    if (!confirmando) {
+        return (
+            <div key="boton" className="perfil-acciones">
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={() => setConfirmando(true)}>Cancelar solicitud</button>
+            </div>
         );
     }
-
-    const s = carga.solicitud;
-    if (s.estado === "rechazada") {
-        return <NoAprobada etiqueta="MIS ESPACIOS" titulo={s.espacio?.nombre ?? "Solicitud de visita"} folio={s.folio} tipo="espacio" regreso={regresoPerfil} />;
-    }
-    // Lo vigente: lo acordado con el personal o, si no hay, lo que pidió la persona
-    const vigente = s.acuerdo ?? { espacio: s.espacio, inicio: s.inicio, fin: s.fin, condiciones: null };
-    const puedeCancelar = s.estado === "en_revision" || s.estado === "requiere_correccion";
-    const colorChip = s.estado === "aprobada" ? "verde" : s.estado === "cancelada" ? "gris" : s.estado === "requiere_correccion" ? "guinda" : "dorado";
-    const respuesta = s.estado === "aprobada" ? "hecho" : s.estado === "requiere_correccion" ? "actual" : "pendiente";
-
     return (
-        <PaginaPublica>
-            <EncabezadoNoticias regreso={regresoPerfil} etiqueta="AGENDA DE ESPACIOS › MIS SOLICITUDES" titulo="Mi solicitud de espacio"
-                texto="Consulta el estado de tu solicitud. Mientras esté en revisión puedes cancelarla; el personal revisa la disponibilidad y te responde." />
-            <div className="espacios-cuerpo">
-                {s.estado === "requiere_correccion" && s.propuesta && (
-                    <section className="cred-tarjeta" aria-labelledby="titulo-propuesta">
-                        <div className="espacios-plano__cabecera">
-                            <span className="espacios-icono-dorado"><img src={relojBlanco} alt="" /></span>
-                            <h2 id="titulo-propuesta">La biblioteca te propone un cambio</h2>
-                        </div>
-                        {s.propuesta.mensaje && <p className="cred-texto">{s.propuesta.mensaje}</p>}
-                        <dl className="cred-datos">
-                            <DatoCred etiqueta="ÁREA PROPUESTA" valor={s.propuesta.espacio?.nombre ?? "Por confirmar"} />
-                            <DatoCred etiqueta="FECHA PROPUESTA" valor={fechaCorta(diaLocal(s.propuesta.inicio))} />
-                            <DatoCred etiqueta="HORARIO PROPUESTO" valor={horarioLocal(s.propuesta.inicio, s.propuesta.fin)} />
-                        </dl>
-                        <p className="cred-texto">Si aceptas, tu solicitud vuelve a revisión con estos datos para que el personal la apruebe.</p>
-                        {errorAccion && !modal && <p className="cred-error-campo espacios-error" role="alert">{errorAccion}</p>}
-                        <div className="cred-acciones">
-                            <button type="button" className="boton-visitante" disabled={guardando} onClick={() => ejecutar(() => responderPropuesta(s.folio, true, "", s.actualizadoEn))}>
-                                Aceptar el cambio
-                            </button>
-                            <button type="button" className="boton-visitante cred-boton-contorno" disabled={guardando} onClick={() => { setErrorAccion(""); setModal("rechazar-propuesta"); }}>
-                                No me funciona
-                            </button>
-                        </div>
-                    </section>
-                )}
-                <CorregirSolicitudEspacio key={s.actualizadoEn} solicitud={s} alGuardar={solicitud => setCarga({ solicitud })} />
-                <div className="espacios-columnas espacios-columnas--gestion">
-                    <section className="cred-tarjeta" aria-labelledby="titulo-estado">
-                        <div className="espacios-plano__cabecera">
-                            <span className="espacios-icono-dorado"><img src={relojBlanco} alt="" /></span>
-                            <h2 id="titulo-estado">Estado de tu solicitud</h2>
-                        </div>
-                        <Chip color={colorChip}>{nombreEstado[s.estado]}</Chip>
-                        {!!s.versiones?.length && <><h3>Versiones guardadas</h3><ol>{s.versiones.map(v => <li key={v.numero}>Versión {v.numero} · {v.motivo} · {new Date(v.fecha).toLocaleString('es-MX')}</li>)}</ol></>}
-                        <EtapasTramite etapas={[
-                            { titulo: "Solicitud enviada", texto: `Por ti · ${fechaCorta(diaLocal(s.creadaEn))}`, estado: "hecho" },
-                            { titulo: "En revisión por el personal", texto: "Se verifica disponibilidad del área", estado: s.estado === "en_revision" ? "actual" : s.estado === "cancelada" ? "pendiente" : "hecho" },
-                            { titulo: "Respuesta del personal", texto: s.estado === "requiere_correccion" ? "Te propuso un cambio: responde arriba" : "Aprobación o rechazo, con motivo", estado: respuesta },
-                        ]} />
-                        {s.estado === "cancelada" && (
-                            <p className="cred-texto" role="status">
-                                {s.historial.at(-1)?.porPersonal ? `La biblioteca canceló esta solicitud.${s.observaciones ? " " + s.observaciones : ""}` : "Esta solicitud se canceló. El área quedó libre para otras solicitudes."}
-                            </p>
-                        )}
-                        {s.estado === "aprobada" && (
-                            <p className="cred-texto" role="status">
-                                Tu solicitud fue aprobada.{vigente.condiciones ? ` Condiciones de uso: ${vigente.condiciones}` : ""} Si necesitas cambiarla o cancelarla, contacta a la biblioteca.
-                            </p>
-                        )}
-                        {errorAccion && !modal && s.estado !== "requiere_correccion" && <p className="cred-error-campo espacios-error" role="alert">{errorAccion}</p>}
-                        {(puedeCancelar || s.estado === "aprobada") && (
-                            <div className="cred-acciones">
-                                <Link to="/contacto" className="boton-visitante cred-boton-contorno">Solicitar un cambio</Link>
-                                {puedeCancelar && (
-                                    <button type="button" className="boton-visitante espacios-boton-guinda" onClick={() => { setErrorAccion(""); setModal("cancelar"); }}>Cancelar solicitud</button>
-                                )}
-                            </div>
-                        )}
-                    </section>
-                    <aside className="cred-tarjeta" aria-labelledby="titulo-datos">
-                        <div className="espacios-plano__cabecera">
-                            <span className="espacios-icono-verde"><img src={archivoBlanco} alt="" /></span>
-                            <h2 id="titulo-datos">Datos de la solicitud</h2>
-                        </div>
-                        <dl className="cred-datos">
-                            <DatoCred etiqueta="TIPO" valor={s.tipo === "visita" ? "Visita guiada" : "Uso de un área"} />
-                            <DatoCred etiqueta="ÁREA" valor={vigente.espacio?.nombre ?? "Por confirmar"} />
-                            <DatoCred etiqueta="FECHA" valor={fechaCorta(diaLocal(vigente.inicio))} />
-                            <DatoCred etiqueta="HORARIO" valor={horarioLocal(vigente.inicio, vigente.fin) || "Por confirmar"} />
-                            <DatoCred etiqueta="PERSONAS" valor={String(s.personas)} />
-                            <DatoCred etiqueta="MOTIVO" valor={s.motivo} />
-                            {s.institucion && <DatoCred etiqueta="INSTITUCIÓN" valor={s.institucion} />}
-                            <DatoCred etiqueta="FOLIO" valor={s.folio} />
-                        </dl>
-                        <Nota color="dorada" icono={infoDorado}>
-                            Una solicitud no reserva el espacio hasta que el personal la aprueba.
-                        </Nota>
-                    </aside>
-                </div>
+        <div key="confirmacion" className={`perfil-nota perfil-nota--guinda cred-cancelar${cerrando ? " cred-cancelar--cerrando" : ""}`} role="group" aria-labelledby="titulo-cancelar-espacio">
+            <p><strong id="titulo-cancelar-espacio">¿Cancelar tu solicitud {solicitud.folio}?</strong>El espacio quedará libre para otras solicitudes.</p>
+            <div className="perfil-campo">
+                <label htmlFor="esp-motivo-cancelar">Motivo<span>(obligatorio)</span></label>
+                <select id="esp-motivo-cancelar" value={motivo} onChange={(e) => setMotivo(e.target.value)} disabled={cancelando}>
+                    <option value="">Selecciona un motivo</option>
+                    {motivosCancelacion.map((m) => <option key={m}>{m}</option>)}
+                </select>
             </div>
-            {modal === "cancelar" && (
-                <ModalAgenda titulo="¿Cancelar tu solicitud de espacio?" icono={alerta} iconoGuinda alCerrar={() => setModal(null)}>
-                    <p className="modal-agenda__texto">La solicitud quedará cancelada y el motivo se conservará en su historial. Esta acción no se puede deshacer.</p>
-                    <div className="cred-campo espacios-modal-campo">
-                        <label htmlFor="cancelar-motivo">Motivo de la cancelación (obligatorio)</label>
-                        <select id="cancelar-motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)}>
-                            <option value="">Selecciona un motivo</option>
-                            {motivosCancelacion.map((m) => <option key={m}>{m}</option>)}
-                        </select>
-                    </div>
-                    <div className="cred-campo espacios-modal-campo">
-                        <label htmlFor="cancelar-comentarios">Comentarios (opcional)</label>
-                        <input id="cancelar-comentarios" placeholder="Escribe un comentario" maxLength={300} value={comentarios} onChange={(e) => setComentarios(e.target.value)} />
-                    </div>
-                    {errorAccion && <p className="cred-error-campo espacios-error" role="alert">{errorAccion}</p>}
-                    <div className="modal-agenda__acciones">
-                        <button type="button" className="agenda-boton agenda-boton--contorno-verde" onClick={() => setModal(null)}>Mantener solicitud</button>
-                        <button type="button" className="agenda-boton agenda-boton--guinda" disabled={guardando || !motivo}
-                            onClick={() => ejecutar(() => cancelarMiSolicitud(s.folio, motivo, comentarios, s.actualizadoEn))}>
-                            {guardando ? "Cancelando…" : "Sí, cancelar solicitud"}
-                        </button>
-                    </div>
-                </ModalAgenda>
-            )}
-            {modal === "rechazar-propuesta" && (
-                <ModalAgenda titulo="¿No te funciona el cambio?" icono={alerta} iconoGuinda alCerrar={() => setModal(null)}>
-                    <p className="modal-agenda__texto">Tu solicitud vuelve a revisión con los datos que pediste. Cuéntale al personal qué te funcionaría mejor.</p>
-                    <div className="cred-campo espacios-modal-campo">
-                        <label htmlFor="respuesta-comentarios">Comentarios (opcional)</label>
-                        <input id="respuesta-comentarios" placeholder="Ej. Me funciona mejor por la tarde" maxLength={300} value={comentarios} onChange={(e) => setComentarios(e.target.value)} />
-                    </div>
-                    {errorAccion && <p className="cred-error-campo espacios-error" role="alert">{errorAccion}</p>}
-                    <div className="modal-agenda__acciones">
-                        <button type="button" className="agenda-boton agenda-boton--contorno-verde" onClick={() => setModal(null)}>Volver</button>
-                        <button type="button" className="agenda-boton agenda-boton--guinda" disabled={guardando}
-                            onClick={() => ejecutar(() => responderPropuesta(s.folio, false, comentarios, s.actualizadoEn))}>
-                            {guardando ? "Enviando…" : "Enviar respuesta"}
-                        </button>
-                    </div>
-                </ModalAgenda>
-            )}
-        </PaginaPublica>
+            {error && <p className="cred-error-campo" role="alert">{error}</p>}
+            <div className="perfil-acciones">
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={cancelar} disabled={cancelando}>{cancelando ? "Cancelando…" : "Sí, cancelar"}</button>
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" disabled={cancelando}
+                    onClick={() => { setCerrando(true); window.setTimeout(() => { setConfirmando(false); setCerrando(false); setError(""); }, 300); }}>No, conservarla</button>
+            </div>
+        </div>
     );
 }

@@ -8,11 +8,11 @@ import { consultarDomicilio, formatearFecha, nombreCompleto } from "../perfil/da
 import { Dato, TarjetaPerfil } from "../perfil/piezas";
 import { Campo } from "../perfil/secciones";
 import { iconosSeccion } from "../perfil/iconos";
-import { EstadoCredencial, PasosTramite, RutaCredencial, SelectorEstados } from "./piezas";
+import { AyudaTramite, EstadoCredencial, PasosTramite, RutaCredencial, SelectorEstados } from "./piezas";
 import {
     cancelarSolicitud, enviarCorreccion, enviarSolicitud, estadosCredencial, etapasCredencial, fechaCorta, horariosCotejo, pasoDelEstado,
     puedeCancelar, puedeSolicitar,
-    useTramite, validarCorreccion, validarSolicitud, verEjemplo, type ErroresSolicitud, type TipoTramite, type TramiteCredencial,
+    useTramite, useTramiteListo, validarCorreccion, validarSolicitud, verEjemplo, type ErroresSolicitud, type TipoTramite, type TramiteCredencial,
 } from "./datos";
 import "../contacto/Contacto.css";
 import "../perfil/Perfil.css";
@@ -40,6 +40,7 @@ export default function Tramite({ vista }: { vista: Vista }) {
     const usuario = useSesion();
     const carga = usePerfil(usuario);
     const tramite = useTramite();
+    const listo = useTramiteListo();
     // Al llegar desde otra pantalla del trámite (tras enviar), la página entra sin esperas: no parpadea.
     const sigue = (useLocation().state as { enviada?: boolean } | null)?.enviada === true;
 
@@ -50,11 +51,11 @@ export default function Tramite({ vista }: { vista: Vista }) {
             </PaginaPublica>
         );
     }
-    if (!carga || "error" in carga) {
+    if (!carga || "error" in carga || (!listo && vista !== "solicitud")) {
         return (
             <PaginaPublica>
                 <div className="cred-estado">
-                    {carga ? <>
+                    {carga && "error" in carga ? <>
                         <h1>No se pudieron cargar tus datos</h1>
                         <p role="alert">{carga.error}</p>
                         <Link className="perfil-boton" to={carga.ingresar ? "/iniciar-sesion" : "/credencial"}>
@@ -111,17 +112,7 @@ function Lateral({ children, compacta = false }: { children: ReactNode; compacta
     return (
         <div className="contacto-lateral">
             {children}
-            <section className={`contacto-seguimiento cred-ayuda${compacta ? " cred-ayuda--compacta" : ""}`} aria-labelledby="titulo-ayuda-credencial">
-                <span className="contacto-seguimiento__insignia" aria-hidden="true" />
-                <h2 id="titulo-ayuda-credencial">¿Necesitas ayuda?</h2>
-                <p>El personal te orienta con tu trámite.</p>
-                <ul className="cred-ayuda__canales">
-                    <li><span>Horario</span><strong>Lunes a viernes, de 8:00 a 19:30 h</strong></li>
-                    <li><span>En la biblioteca</span><strong>Pide apoyo en Préstamos</strong></li>
-                    <li><span>Correo</span><a href="mailto:bp0165@dgb.gob.mx">bp0165@dgb.gob.mx</a></li>
-                </ul>
-                <a href="tel:+523112128989" className="perfil-boton perfil-boton--guardar">Llamar al 311 212 8989</a>
-            </section>
+            <AyudaTramite compacta={compacta} />
         </div>
     );
 }

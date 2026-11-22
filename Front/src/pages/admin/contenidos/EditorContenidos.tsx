@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router";
-import { IconoAviso, IconoBuscar, IconoDocumento, IconoLapiz, IconoLista, IconoMas, IconoReloj, Migas } from "./piezas";
+import { IconoAviso, IconoBuscar, IconoDocumento, IconoLapiz, IconoLista, IconoReloj, Migas } from "./piezas";
 import PanelLayout from "../PanelLayout";
 import { mensajeError } from "../../../servicios/api";
 import {
@@ -79,7 +79,7 @@ function TarjetaResumen({ tono, icono, cifra, titulo, texto, enlace, alPresionar
             <div className="contenidos-resumen__fila">
                 <span className="contenidos-resumen__icono">{icono}</span>
                 <button type="button" className="contenidos-resumen__enlace" onClick={alPresionar}>
-                    {enlace} →
+                    {enlace}
                 </button>
             </div>
             <p className="contenidos-resumen__cifra">{cifra}</p>
@@ -155,7 +155,6 @@ function EditorContenidos() {
                     <h1>Editor de contenidos</h1>
                 </div>
                 <Link to="/admin/contenidos/editor/nuevo" className="contenidos-boton contenidos-boton--principal">
-                    <IconoMas />
                     Nuevo contenido
                 </Link>
             </div>
@@ -253,12 +252,12 @@ function EditorContenidos() {
                             <span role="cell">{formatoFecha.format(new Date(c.actualizadoEn))}</span>
                             <span role="cell">
                                 {c.estadoPantalla === "con_observaciones" ? (
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/corregir`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion} →</Link>
+                                    <Link to={`/admin/contenidos/editor/${c.folio}/corregir`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion}</Link>
                                 ) : c.estadoPantalla === "borrador" ? (
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/editar`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion} →</Link>
+                                    <Link to={`/admin/contenidos/editor/${c.folio}/editar`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion}</Link>
                                 ) : (
                                     // TODO: pantalla para ver un contenido enviado o publicado
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/ver`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion} →</Link>
+                                    <Link to={`/admin/contenidos/editor/${c.folio}/ver`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion}</Link>
                                 )}
                             </span>
                         </div>

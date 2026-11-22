@@ -6,7 +6,7 @@ import {
     aprobarEspacio, cancelarMiSolicitud, corregirMiSolicitud, diaLocal, enviarSolicitud, horarioLocal, proponerEspacio, responderPropuesta,
     type SolicitudEspacioPersonal,
 } from '../src/servicios/espacios';
-import { validarSolicitud, type DatosSolicitud } from '../src/pages/publico/espacios/datosSesion';
+import { folioEnProceso, olvidarSolicitud, recordarSolicitud, validarSolicitud, type DatosSolicitud } from '../src/pages/publico/espacios/datosSesion';
 import { aSolicitudAdmin } from '../src/pages/admin/atencion/espacios/mapeo';
 
 const ok: DatosSolicitud = { tipo: 'uso_espacio', fecha: '2026-11-20', horaInicio: '16:00', horaFin: '18:00', personas: '15', motivo: 'Taller de lectura', institucion: '' };
@@ -26,7 +26,15 @@ describe('Espacios con sesión (T-076)', () => {
         expect(validarSolicitud(ok, '2026-11-03')).toEqual({});
         const e = validarSolicitud({ ...ok, fecha: '2026-11-01', horaInicio: '18:00', horaFin: '16:00', personas: '0', motivo: ' ' }, '2026-11-03');
         expect(Object.keys(e).sort()).toEqual(['fecha', 'horaFin', 'motivo', 'personas']);
-        expect(validarSolicitud({ ...ok, personas: '25' }, '2026-11-03', 20).personas).toBe('El área admite hasta 20 personas.');
+        expect(validarSolicitud({ ...ok, personas: '25' }, '2026-11-03', 20).personas).toBe('El espacio admite hasta 20 personas.');
+    });
+    it('solo acepta el horario de la biblioteca: lunes a viernes, de 8:00 a 19:30', () => {
+        expect(validarSolicitud({ ...ok, fecha: '2026-11-21' }, '2026-11-03').fecha).toBe('La biblioteca abre de lunes a viernes; elige otro día.');
+        expect(validarSolicitud({ ...ok, fecha: '2026-11-22' }, '2026-11-03').fecha).toBeDefined();
+        expect(validarSolicitud({ ...ok, horaInicio: '07:30' }, '2026-11-03').horaInicio).toBe('La biblioteca abre a las 8:00.');
+        expect(validarSolicitud({ ...ok, horaInicio: '19:30', horaFin: '20:00' }, '2026-11-03').horaInicio).toBe('La biblioteca cierra a las 19:30.');
+        expect(validarSolicitud({ ...ok, horaFin: '20:00' }, '2026-11-03').horaFin).toBe('Debe terminar a más tardar a las 19:30.');
+        expect(validarSolicitud({ ...ok, horaInicio: '08:00', horaFin: '19:30' }, '2026-11-03')).toEqual({});
     });
     it('envía la solicitud con sesión y sin pedir credencial', async () => {
         await enviarSolicitud({ tipo: 'uso_espacio', areaId: 'sala-lectura', fecha: '2026-11-20', horaInicio: '16:00', horaFin: '18:00', personas: 15, motivo: 'Taller' });
@@ -70,5 +78,18 @@ describe('Espacios con sesión (T-076)', () => {
             horario: '15:00 a 17:00', contacto: 'ana@correo.mx · 3110000000', resolucion: { mensaje: 'Otro día' },
         });
         expect(aSolicitudAdmin({ ...base, estado: 'cancelada', canceladaEn: '2026-11-10T18:00:00Z' }).resolucion).toMatchObject({ cancelada: true });
+    });
+});
+
+describe('Solicitud en proceso (para volver a su seguimiento)', () => {
+    it('se recuerda mientras está en proceso y se olvida al terminar', () => {
+        if (typeof sessionStorage === 'undefined') return;
+        recordarSolicitud({ folio: 'SE-0007', estado: 'en_revision' });
+        expect(folioEnProceso()).toBe('SE-0007');
+        recordarSolicitud({ folio: 'SE-0007', estado: 'cancelada' });
+        expect(folioEnProceso()).toBeNull();
+        recordarSolicitud({ folio: 'SE-0008', estado: 'requiere_correccion' });
+        olvidarSolicitud('SE-0008');
+        expect(folioEnProceso()).toBeNull();
     });
 });

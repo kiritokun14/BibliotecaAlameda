@@ -22,7 +22,7 @@
 .panel--contenidos .cn-entrada,
 .panel--contenidos .cn-entrada--grande { margin-top: 8px; color: var(--solon-gris); font-size: 13px; line-height: 20px; }
 
-.panel--contenidos .cn-encabezado-tarjeta { gap: 0; padding: 24px 28px; border: 1px solid var(--solon-borde); border-left: 4px solid var(--solon-azul); border-radius: 18px; }
+.panel--contenidos .cn-encabezado-tarjeta { gap: 0; padding: 24px 28px; border: 1px solid var(--solon-borde); border-radius: 18px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194) top / 100% 4px no-repeat, #fff; }
 .panel--contenidos .cn-encabezado-tarjeta::before { display: none; }
 .panel--contenidos .cn-encabezado-tarjeta .cn-etiqueta { margin-bottom: 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; }
 .panel--contenidos .cn-volver { gap: 8px; margin-bottom: 14px; padding: 4px 14px 4px 4px; border-color: var(--solon-primario); background: var(--solon-azul-suave); font-size: 13px; }

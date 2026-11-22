@@ -38,18 +38,18 @@ function BandejaRevision() {
     }
 
     const columnas: Columna<Contenido>[] = [
-        { titulo: "FOLIO", ancho: 110, folio: true, celda: (c) => c.folio },
-        { titulo: "TÍTULO", fuerte: true, celda: (c) => tituloDe(c.tipo, c.valores) },
-        { titulo: "TIPO", ancho: 130, celda: (c) => nombreTipo(c.tipo) },
-        { titulo: "REDACTÓ", ancho: 150, celda: redactoCorto },
-        { titulo: "ESTADO", ancho: 190, celda: (c) => <ChipEstado estado={c.estado} ancho /> },
-        { titulo: "ENVIADO", ancho: 120, celda: (c) => cuandoSeActualizo(c.enviado ?? c.actualizado) },
+        { titulo: "Folio", ancho: 110, folio: true, celda: (c) => c.folio },
+        { titulo: "Título", fuerte: true, celda: (c) => tituloDe(c.tipo, c.valores) },
+        { titulo: "Tipo", ancho: 130, celda: (c) => nombreTipo(c.tipo) },
+        { titulo: "Redactó", ancho: 150, celda: redactoCorto },
+        { titulo: "Estado", ancho: 190, celda: (c) => <ChipEstado estado={c.estado} ancho /> },
+        { titulo: "Enviado", ancho: 120, celda: (c) => cuandoSeActualizo(c.enviado ?? c.actualizado) },
         {
-            titulo: "ACCIÓN",
+            titulo: "Acción",
             ancho: 110,
             celda: (c) => (
                 <Link to={`/admin/contenidos/revision/${c.folio}`} className="cn-enlace">
-                    {c.estado === "por-autorizar" ? "Revisar" : "Ver"} →<span className="cn-solo-lectores"> {c.folio}</span>
+                    {c.estado === "por-autorizar" ? "Revisar" : "Ver"}<span className="cn-solo-lectores"> {c.folio}</span>
                 </Link>
             ),
         },

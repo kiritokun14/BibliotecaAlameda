@@ -142,7 +142,7 @@ function Evidencias() {
                             { titulo: "Actividad", celda: (e) => <CeldaDoble arriba={e.actividadTexto} abajo={e.tipo} /> },
                             { titulo: "Subió", celda: (e) => <CeldaDoble arriba={e.subio} abajo={fechaLocal(e.fecha)} /> },
                             { titulo: "Acceso", celda: chipAcceso },
-                            { titulo: "Acción", celda: (e) => <Link to={`${BASE}/${e.folio}`} className="contenidos-tabla__accion">{e.puedeVer ? "Abrir" : "Pedir acceso"} →<span className="tr-oculto"> {e.folio}</span></Link> },
+                            { titulo: "Acción", celda: (e) => <Link to={`${BASE}/${e.folio}`} className="contenidos-tabla__accion">{e.puedeVer ? "Abrir" : "Pedir acceso"}<span className="tr-oculto"> {e.folio}</span></Link> },
                         ]}
                     />
                 )}

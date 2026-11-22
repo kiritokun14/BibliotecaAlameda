@@ -179,7 +179,6 @@ function Portada({ sesion = false }: { sesion?: boolean }) {
                             src={src} alt="" decoding="async" />
                     ))}
                 </div>
-                {evento && <span className="portada__ilustrativa">Imagen ilustrativa</span>}
 
                 {eventos !== undefined && <TarjetaEvento evento={evento} posicion={indice} total={total} pausar={pausar} />}
 

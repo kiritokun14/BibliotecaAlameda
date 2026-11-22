@@ -36,12 +36,12 @@ const RUTA = "/admin/atencion/espacios";
 
 const textos: TextosEstado = {
     pendiente: {
-        etiqueta: "POR REVISAR",
+        etiqueta: "Por revisar",
         titulo: "Revisión de la solicitud",
         texto: "Verifica que el área esté libre y decide la solicitud.",
     },
     observaciones: {
-        etiqueta: "CAMBIO PROPUESTO",
+        etiqueta: "Cambio propuesto",
         titulo: "Esperando respuesta de la persona",
         texto: "Propusiste un cambio de espacio, fecha u horario. Cuando la persona responda, la solicitud vuelve a revisión.",
         aviso: {
@@ -52,7 +52,7 @@ const textos: TextosEstado = {
         },
     },
     aprobada: {
-        etiqueta: "APROBADA",
+        etiqueta: "Aprobada",
         titulo: "Solicitud aprobada",
         texto: "El espacio quedó apartado para la persona. Puedes reprogramarla o cancelarla; ella recibe un aviso.",
         aviso: {
@@ -63,7 +63,7 @@ const textos: TextosEstado = {
         },
     },
     rechazada: {
-        etiqueta: "RECHAZADA",
+        etiqueta: "Rechazada",
         titulo: "Solicitud rechazada",
         texto: "La solicitud no se aprobó. Aquí puedes consultar el motivo y el historial.",
         aviso: {
@@ -77,7 +77,7 @@ const textos: TextosEstado = {
 
 // Si se canceló la solicitud (la persona o el personal), cambian los textos
 const textosCancelada: TextosEstado["rechazada"] = {
-    etiqueta: "CANCELADA",
+    etiqueta: "Cancelada",
     titulo: "Solicitud cancelada",
     texto: "El espacio quedó libre. Aquí puedes consultar el motivo y el historial.",
     aviso: {
@@ -284,9 +284,9 @@ function DetalleEspacio() {
                 ) : (
                     <div className="tabla" role="table">
                         <div className="tabla__fila tabla__fila--encabezado" role="row">
-                            <span role="columnheader" style={{ width: 170 }}>HORARIO</span>
-                            <span role="columnheader" style={{ flex: 1 }}>ACTIVIDAD</span>
-                            <span role="columnheader" style={{ width: 170 }}>ESTADO</span>
+                            <span role="columnheader" style={{ width: 170 }}>Horario</span>
+                            <span role="columnheader" style={{ flex: 1 }}>Actividad</span>
+                            <span role="columnheader" style={{ width: 170 }}>Estado</span>
                         </div>
                         {ocupacion.map((o) => (
                             <div key={`${o.tipo}-${o.folio ?? o.titulo}-${o.inicio}`} className="tabla__fila" role="row">

@@ -36,7 +36,7 @@ function NuevoContenido() {
                                 <h2>{esquema.nombre}</h2>
                                 <p>{esquema.descripcionTipo}</p>
                                 <button type="button" className={clasesBoton("verde", "cn-boton--chico")} onClick={() => elegir(tipo)}>
-                                    Elegir →<span className="cn-solo-lectores"> {esquema.nombre}</span>
+                                    Elegir<span className="cn-solo-lectores"> {esquema.nombre}</span>
                                 </button>
                             </li>
                         );

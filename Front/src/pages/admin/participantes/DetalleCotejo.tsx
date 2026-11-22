@@ -68,10 +68,10 @@ export function DetalleCotejo() {
                     {c.sistema ? (
                         <Tabla
                             columnas={[
-                                { titulo: "DATO", ancho: 200, folio: true, celda: (f: Fila) => f.dato },
-                                { titulo: "EN EL PORTAL", fuerte: true, celda: (f: Fila) => f.portal },
-                                { titulo: "EN EL SISTEMA DE LA BIBLIOTECA", celda: (f: Fila) => f.sistema },
-                                { titulo: "RESULTADO", ancho: 150, celda: (f: Fila) => <Chip tono={f.coincide ? "verde" : "guinda"} ancho={140}>{f.coincide ? "Coincide" : "No coincide"}</Chip> },
+                                { titulo: "Dato", ancho: 200, folio: true, celda: (f: Fila) => f.dato },
+                                { titulo: "En el portal", fuerte: true, celda: (f: Fila) => f.portal },
+                                { titulo: "En el sistema de la biblioteca", celda: (f: Fila) => f.sistema },
+                                { titulo: "Resultado", ancho: 150, celda: (f: Fila) => <Chip tono={f.coincide ? "verde" : "guinda"} ancho={140}>{f.coincide ? "Coincide" : "No coincide"}</Chip> },
                             ]}
                             filas={comparar(c)}
                             clave={(f) => f.dato}

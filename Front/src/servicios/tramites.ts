@@ -62,6 +62,13 @@ export function cancelarPropuesta(anterior: SolicitudAtencion, motivoCambio: str
         method: 'POST', body: JSON.stringify({ actualizadoEn: anterior.actualizadoEn, motivoCambio: motivoCambio.trim() }),
     });
 }
+// La persona cancela su propia propuesta (borrador, en revisión o con cambios pedidos).
+// POST /propuestas/{id}/cancelar con { actualizadoEn }: TODO backend, aún no existe (PARA_BACKEND.md, punto 8).
+export function cancelarPropuestaPropia(anterior: SolicitudAtencion) {
+    return pedir<SolicitudAtencion>('propuesta', `/${encodeURIComponent(anterior.id)}/cancelar`, {
+        method: 'POST', body: JSON.stringify({ actualizadoEn: anterior.actualizadoEn }),
+    });
+}
 export function resolverTramite(tipo: TipoTramite, anterior: SolicitudAtencion, estado: string, nota: string, fechaCita?: string, acuerdoDireccion?: AcuerdoDireccion) {
     const cuerpo = tipo === 'credencial' ? { estadoSolicitud: estado, actualizadaEn: anterior.actualizadaEn,
         observaciones: nota.trim() || null, fechaCita: fechaCita || null }

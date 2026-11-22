@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="210" viewBox="0 0 140 210" fill="none">
+  <!-- Albahaca: tallo recto con pares de hojas redondas y una espiga de florecitas doradas arriba -->
+  <path d="M70 208 C70 160 70 110 70 40" stroke="#164f44" stroke-width="3" stroke-linecap="round"/>
+  <path d="M70 120 C58 108 48 100 34 96" stroke="#164f44" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M70 140 C84 128 96 122 110 120" stroke="#164f44" stroke-width="2.2" stroke-linecap="round"/>
+  <g fill="#1f6b5c">
+    <path d="M70 186 C50 190 36 180 34 164 C52 160 66 170 70 186Z"/>
+    <path d="M70 182 C90 186 104 176 106 160 C88 156 74 166 70 182Z"/>
+    <path d="M70 150 C54 152 44 144 42 130 C58 128 68 136 70 150Z"/>
+    <path d="M110 120 C124 112 132 100 130 88 C116 92 108 104 110 120Z"/>
+    <path d="M34 96 C20 90 12 78 14 66 C28 70 36 82 34 96Z"/>
+    <path d="M70 92 C56 92 48 84 46 72 C60 70 68 78 70 92Z"/>
+    <path d="M70 88 C84 88 92 80 94 68 C80 66 72 74 70 88Z"/>
+  </g>
+  <g stroke="#e4efeb" stroke-width="1.1" stroke-linecap="round" opacity="0.75">
+    <path d="M70 186 C58 180 46 172 36 166"/><path d="M70 182 C82 176 94 168 104 162"/><path d="M70 150 C60 144 50 138 44 132"/>
+    <path d="M70 92 C62 86 54 80 48 74"/><path d="M70 88 C78 82 86 76 92 70"/>
+  </g>
+  <g fill="#c9a24a"><circle cx="70" cy="36" r="4.5"/><circle cx="64" cy="46" r="3.5"/><circle cx="76" cy="46" r="3.5"/><circle cx="70" cy="56" r="3.5"/><circle cx="70" cy="22" r="3.5"/></g>
+  <g fill="#e6d194"><circle cx="66" cy="28" r="2.5"/><circle cx="74" cy="28" r="2.5"/></g>
+  <circle cx="70" cy="14" r="3" fill="#9b2247"/>
+</svg>

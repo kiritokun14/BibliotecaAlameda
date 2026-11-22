@@ -41,22 +41,22 @@ function HistorialPublicaciones() {
     ];
 
     const columnas: Columna<Contenido>[] = [
-        { titulo: "FOLIO", ancho: 110, folio: true, celda: (c) => c.folio },
-        { titulo: "CONTENIDO", fuerte: true, celda: (c) => tituloDe(c.tipo, c.valores) },
-        { titulo: "TIPO", ancho: 120, celda: (c) => nombreTipo(c.tipo) },
-        { titulo: "AUTORIZÓ", ancho: 190, celda: (c) => c.publicacion!.autorizo },
-        { titulo: "PUBLICADO", ancho: 130, celda: (c) => fechaCorta(c.publicacion!.fecha) },
-        { titulo: "VERSIÓN", ancho: 80, celda: (c) => c.publicacion!.version },
-        { titulo: "ESTADO", ancho: 150, celda: (c) => <ChipEstado estado={c.estado} ancho /> },
+        { titulo: "Folio", ancho: 110, folio: true, celda: (c) => c.folio },
+        { titulo: "Contenido", fuerte: true, celda: (c) => tituloDe(c.tipo, c.valores) },
+        { titulo: "Tipo", ancho: 120, celda: (c) => nombreTipo(c.tipo) },
+        { titulo: "Autorizó", ancho: 190, celda: (c) => c.publicacion!.autorizo },
+        { titulo: "Publicado", ancho: 130, celda: (c) => fechaCorta(c.publicacion!.fecha) },
+        { titulo: "Versión", ancho: 80, celda: (c) => c.publicacion!.version },
+        { titulo: "Estado", ancho: 150, celda: (c) => <ChipEstado estado={c.estado} ancho /> },
         {
-            titulo: "ACCIÓN",
+            titulo: "Acción",
             ancho: 100,
             celda: (c) => c.estado === "publicado" ? (
                 <button type="button" className="cn-enlace" onClick={() => { setAviso(""); setRetirando(c); }}>
-                    Retirar →<span className="cn-solo-lectores"> {c.folio}</span>
+                    Retirar<span className="cn-solo-lectores"> {c.folio}</span>
                 </button>
             ) : (
-                <Link to={`${BASE}/${c.folio}`} className="cn-enlace">Ver →<span className="cn-solo-lectores"> {c.folio}</span></Link>
+                <Link to={`${BASE}/${c.folio}`} className="cn-enlace">Ver<span className="cn-solo-lectores"> {c.folio}</span></Link>
             ),
         },
     ];
