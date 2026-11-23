@@ -11,6 +11,7 @@ from fastapi import APIRouter, Path, Query, Response
 from pydantic import AwareDatetime, Field, StringConstraints, model_validator
 
 from Back.actividades import ejecutar as ejecutar_agenda
+from Back.actividades import ejecutar_cambio
 from Back.contenidos import Cliente
 from Back.registro import DatosBase
 
@@ -131,3 +132,15 @@ def aplicar(folio: Folio, datos: AplicacionCambio, cliente: Cliente, response: R
 @router.post('/{folio}/reintentar-avisos')
 def reintentar(folio: Folio, datos: AplicacionCambio, cliente: Cliente, response: Response):
     return ejecutar(cliente, 'reintentar_avisos', {'folio': folio, **datos.model_dump(mode='json')}, response)
+
+
+@router.get('/{folio}/correos')
+def estado_correos(folio: Folio, cliente: Cliente, response: Response):
+    response.headers['Cache-Control'] = 'private, no-store'
+    return ejecutar_cambio(cliente, 'correos_cambio_actividad', {'p_folio': folio, 'p_reintentar': False})
+
+
+@router.post('/{folio}/correos/reintentar')
+def reintentar_correos(folio: Folio, cliente: Cliente, response: Response):
+    response.headers['Cache-Control'] = 'private, no-store'
+    return ejecutar_cambio(cliente, 'correos_cambio_actividad', {'p_folio': folio, 'p_reintentar': True})

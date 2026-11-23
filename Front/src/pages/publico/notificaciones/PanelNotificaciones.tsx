@@ -1,7 +1,10 @@
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useNavigate } from "react-router";
 import { nombreArea, notificaciones, sinLeer, useNotificaciones, type Area } from "./datos";
 import { iconosSeccion } from "../perfil/iconos";
+import { sesionSimulada } from "../perfil/usarSesion";
+import { consultarAvisosCambios } from "../../../servicios/cambiosActividad";
+import { obtenerSupabase, pedirApi } from "../../../servicios/api";
 import "./PanelNotificaciones.css";
 
 // Panel que se abre desde la campana (Figma 476:14320): las tres más recientes sin leer y «Ver todas».
@@ -17,6 +20,29 @@ export default function PanelNotificaciones({ id, alCerrar }: { id: string; alCe
     const lista = useNotificaciones();
     const pendientes = sinLeer(lista);
     const recientes = lista.filter((n) => !n.leida).slice(0, 3);
+    const [avisosReales, setAvisosReales] = useState<{ titulo: string; fecha: string }[]>();
+    const [errorReales, setErrorReales] = useState(false);
+    useEffect(() => {
+        if (sesionSimulada) return;
+        let vigente = true;
+        async function cargar() {
+            const { data, error } = await (await obtenerSupabase()).auth.getSession();
+            if (error || !data.session) throw new Error('No hay sesión');
+            const [cambios, actividades] = await Promise.all([
+                consultarAvisosCambios(),
+                pedirApi<{ titulo: string; creadoEn: string }[]>('/notificaciones/actividades?pagina=0', {
+                    headers: { Authorization: `Bearer ${data.session.access_token}` },
+                }),
+            ]);
+            return [
+                ...cambios.avisos.map(a => ({ titulo: a.titulo, fecha: a.fecha })),
+                ...actividades.map(a => ({ titulo: a.titulo, fecha: a.creadoEn })),
+            ].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 3);
+        }
+        cargar().then(avisos => { if (vigente) setAvisosReales(avisos); })
+            .catch(() => { if (vigente) setErrorReales(true); });
+        return () => { vigente = false; };
+    }, []);
     function abrir(idNotificacion: string, ruta?: string) {
         notificaciones.marcarLeida(idNotificacion);
         alCerrar();
@@ -27,9 +53,16 @@ export default function PanelNotificaciones({ id, alCerrar }: { id: string; alCe
             style={{ "--icono-seccion": `url("${iconosSeccion.avisos}")` } as CSSProperties}>
             <div className="panel-notif__cabecera">
                 <p className="panel-notif__titulo">Notificaciones</p>
-                {pendientes > 0 && <span className="panel-notif__cuenta">{pendientes} sin leer</span>}
+                {sesionSimulada && pendientes > 0 && <span className="panel-notif__cuenta">{pendientes} sin leer</span>}
             </div>
-            {recientes.length ? (
+            {!sesionSimulada ? (
+                errorReales ? <p role="alert">No se pudieron cargar los avisos. Abre tus notificaciones para intentarlo de nuevo.</p> :
+                !avisosReales ? <p role="status">Cargando avisos…</p> : avisosReales.length ? <ul className="panel-notif__lista">
+                    {avisosReales.map((aviso, i) => <li key={`${aviso.fecha}-${i}`}><Link className="panel-notif__item" to="/notificaciones" onClick={alCerrar}>
+                        <span className="panel-notif__textos"><strong>{aviso.titulo}</strong><small>{new Date(aviso.fecha).toLocaleString('es-MX', { timeZone: 'America/Mazatlan' })}</small></span>
+                    </Link></li>)}
+                </ul> : <div className="panel-notif__vacio"><strong>No hay avisos de actividades</strong></div>
+            ) : recientes.length ? (
                 <ul className="panel-notif__lista">
                     {recientes.map((n) => (
                         <li key={n.id}>

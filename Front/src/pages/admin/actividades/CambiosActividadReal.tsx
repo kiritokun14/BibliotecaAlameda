@@ -1,14 +1,20 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import PanelLayout from '../PanelLayout';
 import PaginaPublica from '../../../components/portal/PaginaPublica';
 import { CampoTexto, EncabezadoTarjeta, Pagina } from '../contenidoDemo/piezas';
 import { clasesBoton } from '../contenidoDemo/utiles';
+import { Chip, EncabezadoPagina, EstadoVacio, Migas } from '../componentes';
+import { Icono } from '../piezasPanel';
+import { AccesosRapidos, ControlesLista, CuerpoLista, SeccionLista } from './PiezasLista';
+import { IconoAviso, IconoBandera, IconoLista, IconoReloj } from '../contenidos/piezas';
+import vacioBuscar from '../../../assets/admin/vacio-search.svg';
 import '../contenidoDemo/Contenidos.css';
 import { mensajeError } from '../../../servicios/api';
 import { consultarEspaciosAgenda, type ActividadPublica } from '../../../servicios/actividades';
 import { actividadesParaCambio, aplicarCambioActividad, listarCambiosActividad, obtenerCambioActividad,
     reintentarAvisosCambio, resolverCambioActividad, solicitarCambioActividad,
+    consultarCorreosCambio, reintentarCorreosCambio, type EstadoCorreos,
     type AcuerdoCambio, type CambioActividad, type ProgramacionCambio } from '../../../servicios/cambiosActividad';
 
 const ESTADOS = { pendiente: 'Pendiente de resolución', autorizado: 'Autorizado, pendiente de aplicar', rechazado: 'Rechazado', aplicado: 'Aplicado' };
@@ -35,6 +41,10 @@ export default function CambiosActividadReal({ propia = false }: { propia?: bool
         return () => { vigente = false; };
     }, [clave, folio, formulario, pagina, propia]);
 
+    if (!propia && !folio && !formulario) {
+        return <BandejaCambios carga={actual} pagina={pagina} setPagina={setPagina} recargar={() => recargar(x => x + 1)} />;
+    }
+
     const contenido = <Pagina>
         <EncabezadoTarjeta volver={{ texto: propia ? 'Volver a mis propuestas' : 'Volver a Actividades', ruta: propia ? '/mi-perfil/propuestas' : '/admin/actividades/propuestas' }} etiqueta="Actividades" titulo="Cambios y cancelaciones"
             texto="Solicitar no modifica el horario oficial. El personal registra la autorización institucional antes de aplicar el cambio." />
@@ -58,6 +68,81 @@ export default function CambiosActividadReal({ propia = false }: { propia?: bool
                     </section>}
     </Pagina>;
     return propia ? <PaginaPublica>{contenido}</PaginaPublica> : <PanelLayout titulo="Actividades" tema="contenidos">{contenido}</PanelLayout>;
+}
+
+function BandejaCambios({ carga, pagina, setPagina, recargar }: {
+    carga?: { lista?: CambioActividad[]; total?: number; error?: string };
+    pagina: number; setPagina: (pagina: number) => void; recargar: () => void;
+}) {
+    const [parametros] = useSearchParams();
+    const historial = parametros.get('vista') === 'historial';
+    const [busqueda, setBusqueda] = useState('');
+    const [estado, setEstado] = useState('todos');
+    const [tipo, setTipo] = useState('');
+    const lista = carga?.lista ?? [];
+    const texto = busqueda.trim().toLocaleLowerCase('es');
+    const visibles = lista.filter(c => (!historial || c.estado === 'aplicado' || c.estado === 'rechazado')
+        && (estado === 'todos' || c.estado === estado)
+        && (!tipo || c.tipo === tipo)
+        && (!texto || `${c.folio} ${c.nombre}`.toLocaleLowerCase('es').includes(texto)));
+    const limpiar = () => { setBusqueda(''); setEstado('todos'); setTipo(''); };
+    const tonos = { pendiente: 'guinda', autorizado: 'dorado', aplicado: 'verde', rechazado: 'gris' } as const;
+    return <PanelLayout titulo="Actividades" tema="contenidos">
+        <Migas raiz="Actividades" pasos={historial ? [["Cambios y cancelaciones", '/admin/actividades/cambios'], ['Historial']] : [["Cambios y cancelaciones"]]} />
+        <EncabezadoPagina etiqueta="Actividades · Cambios" titulo={historial ? 'Historial de cambios' : 'Cambios y cancelaciones'}
+            texto="Revisa las solicitudes y registra su resolución antes de aplicar un cambio."
+            accion={<Link className="contenidos-boton contenidos-boton--oscuro" to="/admin/actividades/cambios/reprogramar">Solicitar reprogramación</Link>} />
+        <div className="cn-acciones"><Link className={clasesBoton('contorno-guinda')} to="/admin/actividades/cambios/cancelar">Solicitar cancelación</Link></div>
+        {carga && !carga.error && <AccesosRapidos titulo="Resumen de esta página" accesos={[
+            { clave: 'pendiente', icono: <IconoReloj />, cifra: lista.filter(c => c.estado === 'pendiente').length, titulo: 'Pendientes', texto: 'Esperan resolución.', tono: 'guinda', enlace: 'Ver pendientes', activo: estado === 'pendiente', alPresionar: () => setEstado(estado === 'pendiente' ? 'todos' : 'pendiente') },
+            { clave: 'aplicado', icono: <IconoBandera />, cifra: lista.filter(c => c.estado === 'aplicado').length, titulo: 'Aplicados', texto: 'Cambios aplicados.', tono: 'azul', enlace: 'Ver aplicados', activo: estado === 'aplicado', alPresionar: () => setEstado(estado === 'aplicado' ? 'todos' : 'aplicado') },
+            { clave: 'rechazado', icono: <IconoAviso />, cifra: lista.filter(c => c.estado === 'rechazado').length, titulo: 'Rechazados', texto: 'Solicitudes rechazadas.', tono: 'gris', enlace: 'Ver rechazados', activo: estado === 'rechazado', alPresionar: () => setEstado(estado === 'rechazado' ? 'todos' : 'rechazado') },
+        ]} />}
+        <ControlesLista etiqueta="Filtros de cambios" chips={{ etiqueta: 'Estado', activa: estado, alElegir: setEstado, opciones: [
+            { valor: 'todos', texto: 'Todos' }, { valor: 'pendiente', texto: 'Pendientes' },
+            { valor: 'autorizado', texto: 'Autorizados' }, { valor: 'aplicado', texto: 'Aplicados' }, { valor: 'rechazado', texto: 'Rechazados' },
+        ] }} busqueda={{ etiqueta: 'Buscar en esta página', marcador: 'Folio o actividad…', texto: busqueda, alBuscar: setBusqueda }}
+            grupos={[{ etiqueta: 'Tipo de cambio', activa: tipo, alElegir: setTipo, opciones: [
+                { valor: '', texto: 'Todos los tipos' }, { valor: 'reprogramacion', texto: 'Reprogramación' }, { valor: 'cancelacion', texto: 'Cancelación' },
+            ] }]} alLimpiar={limpiar} />
+        <SeccionLista id="cambios-lista" icono={<IconoLista />} titulo={historial ? 'Historial de cambios' : 'Cambios solicitados'} texto="Los filtros y la búsqueda se aplican a la página mostrada."
+            extra={<Link className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" to={historial ? '/admin/actividades/cambios' : '/admin/actividades/cambios?vista=historial'}>{historial ? 'Ver solicitudes' : 'Ver historial'}</Link>}>
+            <CuerpoLista>
+                {!carga ? <p role="status">Cargando solicitudes…</p> : carga.error ? <div role="alert"><p>{carga.error}</p><button type="button" onClick={recargar}>Reintentar</button></div> :
+                    visibles.length === 0 ? <EstadoVacio icono={vacioBuscar} titulo={lista.length ? 'No hay cambios con estos filtros' : 'No hay solicitudes en esta página'} texto="Prueba otro filtro o consulta otra página." /> :
+                    historial ? <ol className="tr-eventos ac-historial" aria-label="Historial de cambios">
+                        {visibles.map(c => <li key={c.folio} className={c.estado === 'aplicado' ? 'tr-eventos--hecho' : 'tr-eventos--ultimo'}>
+                            <article className="ac-historial__tarjeta">
+                                <header className="ac-historial__cabecera"><span><strong>{c.tipo === 'cancelacion' ? 'Cancelación' : 'Reprogramación'} · {c.nombre}</strong>
+                                    <small>{fecha(c.historial.at(-1)?.fecha ?? c.solicitado)} · <Link to={`/admin/actividades/cambios/${c.folio}`}>{c.folio}</Link></small></span>
+                                    <Chip tono={tonos[c.estado]}>{ESTADOS[c.estado]}</Chip></header>
+                                <p className="ac-historial__motivo">Motivo: {c.motivo}</p>
+                                <small>Avisos registrados en el portal: {c.avisos.registrados} · Fallidos: {c.avisos.fallidos}</small>
+                            </article>
+                        </li>)}
+                    </ol> : <ul className="pz-filas" aria-label="Cambios solicitados">{visibles.map(c => <li key={c.folio}>
+                        <article className={`pz-fila cb-fila${c.estado === 'pendiente' ? ' pz-fila--espera' : ''}`}>
+                            <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={c.tipo === 'cancelacion' ? 'alerta' : 'calendario'} /></span>
+                            <div className="pz-fila__textos"><h4 className="pz-fila__titulo">{c.nombre}</h4>
+                                <p className="pz-fila__detalle"><span>{c.tipo === 'cancelacion' ? 'Cancelación' : 'Reprogramación'}</span><span>{c.folio}</span><span>{fecha(c.solicitado)}</span></p></div>
+                            <Chip tono={tonos[c.estado]}>{ESTADOS[c.estado]}</Chip>
+                            <Link className="pz-boton pz-boton--chico" to={`/admin/actividades/cambios/${c.folio}`}>Abrir</Link>
+                            <div className="cb-fila__cambio">{c.anterior.map(a => {
+                                const nueva = c.programacion.find(p => p.sesionId === a.sesionId);
+                                return <div className="cb-mini" key={a.sesionId}>
+                                    <div className="cb-mini__caja cb-mini__caja--antes"><small>Antes</small><strong>{fecha(a.inicio)}</strong><span>{a.espacio}</span></div>
+                                    <span className="cb-mini__paso" aria-hidden="true">pasa a</span>
+                                    <div className={`cb-mini__caja ${c.tipo === 'cancelacion' ? 'cb-mini__caja--cancela' : 'cb-mini__caja--despues'}`}><small>Después</small>
+                                        <strong>{c.tipo === 'cancelacion' ? 'Se cancela' : nueva ? `${nueva.fecha} · ${nueva.inicio} a ${nueva.fin}` : 'Sin cambio propuesto'}</strong><span>{nueva?.espacio ?? ''}</span></div>
+                                </div>;
+                            })}</div>
+                        </article></li>)}</ul>}
+            </CuerpoLista>
+            {carga && !carga.error && <div className="cn-acciones"><button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>Anterior</button>
+                <span>Página {pagina + 1} · {carga.total ?? 0} solicitudes</span>
+                <button type="button" disabled={(pagina + 1) * 20 >= (carga.total ?? 0)} onClick={() => setPagina(pagina + 1)}>Siguiente</button></div>}
+        </SeccionLista>
+    </PanelLayout>;
 }
 
 function FormularioCambio({ base, cancelacion }: { base: string; cancelacion: boolean }) {
@@ -128,6 +213,15 @@ function FormularioCambio({ base, cancelacion }: { base: string; cancelacion: bo
 }
 
 function FichaCambio({ cambio: c, base, actualizar }: { cambio: CambioActividad; base: string; actualizar: () => void }) {
+    const [correos, setCorreos] = useState<EstadoCorreos>();
+    const [errorCorreos, setErrorCorreos] = useState('');
+    useEffect(() => {
+        if (!c.puedeResolver) return;
+        let vigente = true;
+        consultarCorreosCambio(c.folio).then(datos => { if (vigente) setCorreos(datos); })
+            .catch(e => { if (vigente) setErrorCorreos(mensajeError(e)); });
+        return () => { vigente = false; };
+    }, [c.folio, c.puedeResolver, c.version]);
     const [error, setError] = useState('');
     const [ocupado, setOcupado] = useState(false);
     const [motivo, setMotivo] = useState('');
@@ -165,6 +259,9 @@ function FichaCambio({ cambio: c, base, actualizar }: { cambio: CambioActividad;
         {c.puedeResolver && c.estado === 'autorizado' && bloque('Aplicar autorización', <><p>Se comprobará nuevamente la programación y la disponibilidad. Después se actualizarán las sesiones y se registrarán avisos del portal.</p>
             <button className={clasesBoton(c.tipo === 'cancelacion' ? 'guinda' : 'verde')} disabled={ocupado} onClick={() => void operar(() => aplicarCambioActividad(c))}>Aplicar {c.tipo === 'cancelacion' ? 'cancelación autorizada' : 'reprogramación autorizada'}</button></>)}
         {bloque('Avisos', <><p>{c.avisos.registrados} avisos registrados en el portal · {c.avisos.fallidos} registros fallidos. Registrar un aviso no acredita entrega de correo.</p>
+            {correos && <p>Correos aceptados por Brevo: {correos.enviados} · Pendientes: {correos.pendientes} · Fallidos: {correos.fallidos} · Sin resultado confirmado: {correos.inciertos}.</p>}
+            {errorCorreos && <p role="alert">No se pudo consultar el estado de los correos: {errorCorreos}</p>}
+            {correos && correos.fallidos > 0 && <button disabled={ocupado} onClick={() => void operar(async () => { await reintentarCorreosCambio(c.folio); })}>Reintentar correos fallidos</button>}
             {c.puedeResolver && c.avisos.fallidos > 0 && <button disabled={ocupado} onClick={() => void operar(() => reintentarAvisosCambio(c))}>Reintentar avisos fallidos</button>}</>)}
         {bloque('Historial', <ol>{c.historial.map((h, i) => <li key={i}>{h.accion} · {fecha(h.fecha)} · Responsable: {h.responsable}{h.motivo && ` · ${h.motivo}`}</li>)}</ol>)}
         <Link className={clasesBoton('suave')} to={base}>Volver a solicitudes</Link>

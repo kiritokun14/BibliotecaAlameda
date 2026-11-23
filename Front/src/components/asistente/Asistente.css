@@ -747,8 +747,22 @@ a.fuente-asistente:hover { background: #d3e5df; text-decoration-color: #c9a24a; 
 }
 
 @media (max-width: 600px) {
-  .panel-asistente--compacto { right: 8px; bottom: 8px; width: calc(100% - 16px); max-height: calc(100dvh - 16px); border-radius: 20px; }
-  .velo-asistente { padding: 8px; }
+  .panel-asistente--compacto { left: 8px; right: 8px; bottom: max(8px, env(safe-area-inset-bottom)); width: auto; max-width: calc(100vw - 16px); max-height: calc(100dvh - 24px); border-radius: 20px; }
+  .velo-asistente { padding: 8px; box-sizing: border-box; }
+  .panel-asistente--expandido { width: 100%; height: 100%; max-height: calc(100dvh - 16px); border-radius: 20px; }
+  .panel-asistente .cabecera-asistente { height: auto; min-height: 68px; flex-wrap: wrap; gap: 8px; padding: 12px; }
+  .panel-asistente .cabecera-asistente__avatar { width: 36px; height: 36px; }
+  .panel-asistente .cabecera-asistente__textos { flex: 1 1 120px; }
+  .panel-asistente .cabecera-asistente h2 { font-size: 15px; line-height: 19px; }
+  .panel-asistente .cabecera-asistente__botones { flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+  .panel-asistente .boton-cabecera-asistente { width: 36px; height: 36px; }
+  .panel-asistente .boton-cabecera-asistente--texto { width: auto; padding: 0 10px; }
+  .panel-asistente--expandido .lateral-asistente { display: none; }
+  .panel-asistente--expandido .panel-asistente__conversacion { padding: 16px 12px; }
+  .panel-asistente--expandido .burbuja-asistente__acciones { flex-direction: column; }
+  .panel-asistente .entrada-asistente__fila { padding: 12px 12px 6px; gap: 8px; }
+  .panel-asistente .entrada-asistente__campo { font-size: 16px; }
+  .panel-asistente .entrada-asistente__enviar { padding-inline: 14px; }
   .actividades-asistente--dos,
   .panel-asistente--expandido .sugerencias-asistente { grid-template-columns: minmax(0, 1fr); }
 }

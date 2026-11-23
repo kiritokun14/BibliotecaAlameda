@@ -37,6 +37,9 @@ export const aplicarCambioActividad = (cambio: CambioActividad) =>
     consultar<CambioActividad>(`/${encodeURIComponent(cambio.folio)}/aplicar`, { version: cambio.version });
 export const reintentarAvisosCambio = (cambio: CambioActividad) =>
     consultar<CambioActividad>(`/${encodeURIComponent(cambio.folio)}/reintentar-avisos`, { version: cambio.version });
+export interface EstadoCorreos { pendientes: number; enviados: number; fallidos: number; inciertos: number }
+export const consultarCorreosCambio = (folio: string) => consultar<EstadoCorreos>(`/${encodeURIComponent(folio)}/correos`);
+export const reintentarCorreosCambio = (folio: string) => consultar<EstadoCorreos>(`/${encodeURIComponent(folio)}/correos/reintentar`, {});
 export interface AvisoCambioActividad { id: string; titulo: string; texto: string; fecha: string; leida: boolean }
 export const consultarAvisosCambios = (desplazamiento = 0) =>
     consultar<{ total: number; avisos: AvisoCambioActividad[] }>(`/avisos?desplazamiento=${desplazamiento}`);

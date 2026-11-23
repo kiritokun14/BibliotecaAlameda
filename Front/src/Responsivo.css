@@ -80,9 +80,9 @@
   html body .pagina-publica .tarjeta-acceso p { font-size: 12.5px; line-height: 17px; }
   html body .pagina-publica .tarjeta-acceso::after { bottom: 10px; }
 
-  /* Portada más corta: sin la composición de la foto (en teléfono la hacía el doble de larga) y con menos aire */
-  html body .pagina-publica .portada { gap: 0; padding-top: 24px; padding-bottom: 28px; min-height: 0; }
-  html body .pagina-publica .portada__composicion { display: none; }
+  /* La foto permanece visible en teléfono y se ajusta al ancho disponible. */
+  html body .pagina-publica .portada { gap: 24px; padding-top: 24px; padding-bottom: 28px; min-height: 0; }
+  html body .pagina-publica .portada__composicion { display: block; zoom: 1; }
   html body .pagina-publica .portada__texto { gap: 14px; }
   html body .pagina-publica .portada__titulo { font-size: 32px; line-height: 38px; }
   html body .pagina-publica .portada__descripcion { font-size: 16px; line-height: 24px; }

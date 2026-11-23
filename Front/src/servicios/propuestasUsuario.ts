@@ -1,6 +1,14 @@
 import type { DatosPropuesta } from '../pages/publico/proponer/datos';
 import { enviarPropuesta, type DatosPropuesta as EntradaServidor, type SolicitudAtencion } from './tramites';
 
+export function leerDescripcionPropuesta(descripcion: string | null | undefined) {
+    const [texto, pie = ''] = (descripcion ?? '').replace(/\r\n/g, '\n').split('\n\nDatos de la propuesta:');
+    const lineas = pie.split('\n');
+    const dato = (etiqueta: string) => lineas.find(linea => linea.startsWith(`${etiqueta}:`))?.slice(etiqueta.length + 1).trim() ?? '';
+    const material = dato('Material solicitado');
+    return { texto, dato, material: /^no especificado$/i.test(material) ? '' : material };
+}
+
 export function fechaHoyTepic(fecha = new Date()) {
     const partes = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mazatlan', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(fecha);
     const valor = (tipo: string) => partes.find(p => p.type === tipo)!.value;

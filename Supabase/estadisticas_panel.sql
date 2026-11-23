@@ -1,5 +1,5 @@
 -- Administración · Estadísticas (Figma 580:49970). Solo lectura y con datos reales de la BD.
--- Acceso: capacidad 'consultar_estadisticas' (cualquier ámbito). No expone datos personales: solo conteos.
+-- Acceso: capacidad global 'consultar_estadisticas'. No expone datos personales: solo conteos.
 -- Secciones:
 --   portal       → cuentas nuevas, mensajes de contacto, solicitudes de credencial y de espacio; serie de cuentas nuevas;
 --                  tabla de trámites recibidos por tipo.
@@ -20,7 +20,7 @@ DECLARE
  n1 bigint; n2 bigint; n3 bigint; n4 bigint; presentes bigint; registrados bigint;
 BEGIN
  actor := privado.comprobar_sesion_cuenta();
- IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(privado.permisos_de_cuenta(actor,true)) p WHERE p->>'capacidad'='consultar_estadisticas') THEN
+ IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(privado.permisos_de_cuenta(actor,true)) p WHERE p->>'capacidad'='consultar_estadisticas' AND p->>'ambito'='global') THEN
   RAISE EXCEPTION 'Sin permiso para consultar estadísticas.' USING ERRCODE='42501'; END IF;
  IF seccion IS NULL OR seccion NOT IN ('portal','actividades','contenidos') THEN
   RAISE EXCEPTION 'Elige la sección.' USING ERRCODE='22023'; END IF;

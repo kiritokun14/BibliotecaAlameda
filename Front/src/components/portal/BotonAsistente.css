@@ -21,6 +21,19 @@
   user-select: none;
 }
 
+@media (max-width: 600px) {
+  .asistente {
+    left: auto !important;
+    top: auto !important;
+    right: 12px !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    max-width: calc(100vw - 24px);
+    cursor: default;
+    touch-action: manipulation;
+  }
+  .asistente__globo { max-width: 100%; box-sizing: border-box; }
+}
+
 /* La burbuja se desliza suave hasta la orilla (pero no mientras se arrastra) */
 .asistente--minimizado:not(.asistente--arrastrando) {
   transition: left 0.35s ease, top 0.35s ease;

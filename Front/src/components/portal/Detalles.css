@@ -12,6 +12,8 @@
   .pagina-publica > :is(.encabezado-portal, .navegacion, main, .pie-portal) { zoom: 0.9; }
 }
 
+
+
 /* ---------- Franja guinda superior: los tres logos y las mismas luces del pie ---------- */
 .pagina-publica .encabezado-portal__logos {
   position: relative;
@@ -3874,4 +3876,36 @@
   .pagina-publica .llamado__foto { inset: 0 0 70px 24px; }
   .pagina-publica .credencial-muestra { width: 280px; }
   .pagina-publica .credencial-muestra__cuerpo strong { font-size: 19px; }
+}
+
+
+/* Inicio en móvil: una portada completa por vista y composición sin desbordes. */
+@media (max-width: 700px) {
+  .pagina-publica .seccion-inicio .carrusel:has(.tarjeta-actividad) { padding-inline: 42px; }
+  .pagina-publica .carrusel__pista--tarjetas { gap: 0; padding-inline: 0; }
+  .pagina-publica .carrusel__pista--tarjetas .tarjeta-actividad { flex: 0 0 100%; min-width: 0; }
+  .pagina-publica .tarjeta-actividad__contenido { min-width: 0; padding: 16px; }
+  .pagina-publica .tarjeta-actividad h3 { display: block; min-height: 0; overflow: visible; overflow-wrap: anywhere; }
+  .pagina-publica .seccion-inicio .carrusel:has(.libro) { padding-inline: 42px; }
+  .pagina-publica .carrusel:has(.libro) .carrusel__pista { gap: 0; padding-inline: 0; }
+  .pagina-publica .carrusel:has(.libro) .libro { flex: 0 0 100%; min-width: 0; }
+  .pagina-publica .libro h3 { width: 100%; min-height: 0; overflow: visible; display: block; overflow-wrap: anywhere; text-align: center; }
+  .pagina-publica .libro > p { white-space: normal; overflow: visible; overflow-wrap: anywhere; text-align: center; }
+  .pagina-publica .carrusel .portada-libro { zoom: 1; max-width: 100%; }
+  .pagina-publica .portada-libro__foto { object-fit: contain; }
+  .pagina-publica .portada-libro__foto--lista { background: #fff; }
+  .pagina-publica .actividades-pie { flex-direction: column; align-items: stretch; padding-inline: 0; gap: 16px; }
+  .pagina-publica .actividades-pie .aviso-catalogo { width: 100%; flex-wrap: wrap; padding: 16px; border-radius: 20px; }
+  .pagina-publica .aviso-catalogo p { flex: 1 1 calc(100% - 40px); min-width: 0; }
+  .pagina-publica .aviso-catalogo .boton-contorno-verde { width: 100%; height: auto; min-height: 44px; white-space: normal; text-align: center; }
+  .pagina-publica .actividades-pie .boton-dorado { width: 100%; min-width: 0; height: auto; min-height: 46px; white-space: normal; text-align: center; }
+  .pagina-publica .portada__acciones { width: 100%; flex-direction: column; align-items: stretch; }
+  .pagina-publica .portada__acciones :is(.boton-blanco, .boton-contorno) { width: 100%; min-width: 0; height: auto; min-height: 48px; white-space: normal; text-align: center; }
+  .pagina-publica .portada__composicion { zoom: 1; width: 100%; max-width: 440px; height: auto; aspect-ratio: 520 / 600; }
+  .pagina-publica .portada__marco { left: 14%; top: 0; width: 84%; height: 100%; border-radius: 50% 50% 32px 32px; }
+  .pagina-publica .portada__fotos { left: 18%; top: 4%; width: 78%; height: 91%; border-radius: 50% 50% 28px 28px; }
+  .pagina-publica .portada__tarjeta { left: 0; bottom: 4%; width: min(75%, 320px); min-height: 0; padding: 14px; }
+  .pagina-publica .portada__chip--credencial { top: 10%; left: 0; max-width: 70%; white-space: normal; }
+  .pagina-publica .portada__insignia { top: 2%; left: auto; right: 0; width: 88px; height: 88px; font-size: 11px; }
+  .pagina-publica .portada__insignia strong { font-size: 20px; }
 }

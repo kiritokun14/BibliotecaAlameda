@@ -1,4 +1,5 @@
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -20,6 +21,7 @@ from Back.contacto import router as contacto_router
 from Back.bibliocomunidad import router as bibliocomunidad_router
 
 from Back.asistente import router as asistente_router
+from Back.instagram import router as instagram_router
 from Back.asistente_fuentes import router as asistente_fuentes_router
 
 from Back.lectura import router as lectura_router
@@ -37,8 +39,20 @@ from Back.estadisticas import router as estadisticas_router
 
 from Back.inscripciones import router as inscripciones_router
 from Back.asistencia import router as asistencia_router
+from Back.correo_actividad import iniciar_procesador
 
-app = FastAPI(title='Biblioteca Alameda', version='0.1.0')
+@asynccontextmanager
+async def ciclo_aplicacion(_app):
+    detener, hilo = iniciar_procesador()
+    try:
+        yield
+    finally:
+        detener.set()
+        if hilo:
+            hilo.join(timeout=25)
+
+
+app = FastAPI(title='Biblioteca Alameda', version='0.1.0', lifespan=ciclo_aplicacion)
 app.include_router(agenda_router)
 app.include_router(registro_router)
 app.include_router(administracion_router)
@@ -51,6 +65,7 @@ app.include_router(publicacion_router)
 app.include_router(imagenes_router)
 app.include_router(lectura_router)
 app.include_router(asistente_router)
+app.include_router(instagram_router)
 app.include_router(asistente_fuentes_router)
 app.include_router(bibliocomunidad_router)
 app.include_router(contacto_router)

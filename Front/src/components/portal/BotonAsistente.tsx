@@ -112,6 +112,8 @@ function BotonAsistente() {
     // Al presionar se escucha el movimiento en TODA la ventana (no solo encima del asistente):
     // así no se pierde aunque el mouse se mueva rápido y salga de la burbuja.
     function alPresionar(e: PointerEvent<HTMLDivElement>) {
+        // En pantallas pequeñas se mantiene fijo para evitar arrastres al desplazarse.
+        if (window.matchMedia('(max-width: 600px)').matches) return;
         if (e.button !== 0 || !refCaja.current) return; // solo botón izquierdo
         // Los botones pequeños (cerrar mensaje, minimizar) no inician arrastre
         if ((e.target as HTMLElement).closest(".asistente__sin-arrastre")) return;

@@ -9,6 +9,7 @@ import Actividades from "./Actividades";
 import { consultarAgenda } from "../../../servicios/actividades";
 import { precargarPublicados } from "../../../servicios/publicacion";
 import Noticias from "./Noticias";
+import NoticiasCulturales from "./NoticiasCulturales";
 import LlamadoCuenta from "./LlamadoCuenta";
 import Contacto from "./Contacto";
 
@@ -35,6 +36,7 @@ function Inicio() {
             <Cifras />
             <Actividades />
             <Noticias />
+            <NoticiasCulturales />
             {sesionActiva !== null && <LlamadoCuenta sesion={sesionActiva} />}
             <Contacto />
         </PaginaPublica>

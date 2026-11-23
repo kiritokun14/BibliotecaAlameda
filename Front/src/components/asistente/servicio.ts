@@ -19,7 +19,7 @@ export type ActividadCitada = {
 
 export type RespuestaAsistente =
     // Respuesta con información publicada (breve o extensa), siempre con sus fuentes
-    | { tipo: "respuesta"; parrafos: string[]; actividades?: ActividadCitada[]; cierre?: string; fuentes: Fuente[] }
+    | { tipo: "respuesta"; parrafos: string[]; actividades?: ActividadCitada[]; cierre?: string; fuentes: Fuente[]; siguientes?: string[] }
     // La consulta requiere información adicional o atención del personal.
     | { tipo: "insuficiente" | "privada"; contacto?: "/contacto" }
     // La consulta se envió al personal de la biblioteca

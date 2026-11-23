@@ -1,6 +1,6 @@
 // Datos y validación del formulario de Aldahir; el envío se realiza mediante servicios/propuestasUsuario.ts.
 import type { SolicitudAtencion } from "../../../servicios/tramites";
-import { adaptarPropuesta } from "../../../servicios/propuestasUsuario";
+import { adaptarPropuesta, leerDescripcionPropuesta } from "../../../servicios/propuestasUsuario";
 import type { Etapa } from "../credencial/datos";
 import type { PasoRuta } from "../credencial/piezas";
 import { esDiaHabil, HORARIO } from "../espacios/datosSesion";
@@ -49,14 +49,11 @@ export function validarPropuesta(d: DatosPropuesta, hoy: string): ErroresPropues
 
 // Para editar: el formulario se llena con lo que se envió. Los datos complementarios viajan como texto en la
 // descripción (ver adaptarPropuesta), así que se leen de ahí; lo que diga «Por acordar» queda vacío.
-const PIE = "\n\nDatos de la propuesta:\n";
 const POR_ACORDAR = /^por acordar/i;
 export function propuestaDesdeSolicitud(s: SolicitudAtencion): DatosPropuesta {
-    const [texto, pie = ""] = (s.descripcion ?? "").split(PIE);
-    const dato = (etiqueta: string) => pie.split("\n").find((l) => l.startsWith(`${etiqueta}: `))?.slice(etiqueta.length + 2).trim() ?? "";
+    const { texto, dato, material } = leerDescripcionPropuesta(s.descripcion);
     const fecha = dato("Fecha propuesta") || s.diasSolicitados || "";
     const horario = /^(\d{2}:\d{2}) a (\d{2}:\d{2})/.exec(s.horarioSolicitado ?? "");
-    const material = dato("Material solicitado");
     const espacio = s.necesidadEspacio ?? "";
     return {
         tipo: /club/i.test(s.tipoPropuesta ?? "") ? "club" : "evento",
@@ -65,7 +62,7 @@ export function propuestaDesdeSolicitud(s: SolicitudAtencion): DatosPropuesta {
         fecha: /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? fecha : "",
         horaInicio: horario?.[1] ?? "", horaFin: horario?.[2] ?? "",
         espacio: POR_ACORDAR.test(espacio) ? "" : espacio,
-        material: /^no especificado$/i.test(material) ? "" : material,
+        material,
         responsable: dato("Persona responsable"), telefono: dato("Teléfono de contacto").replace(/\D/g, ""),
         acepta: true, abiertaAlPublico: true, sinFinesDeLucro: true,
     };
