@@ -24,9 +24,16 @@
 - La fecha es opcional y utiliza el selector del navegador. Al guardar una propuesta nueva o editar una existente, el formulario valida que la fecha no sea pasada, sábado, domingo ni un feriado federal de fecha fija o calculable.
 - Los cierres locales de la biblioteca y las jornadas electorales requieren fechas específicas que esta validación aún no contempla.
 
+## Publicación de propuestas aprobadas
+
+- El formulario de publicación precarga el cupo con los participantes estimados y «Materiales o requisitos» con los requerimientos guardados en la propuesta.
+- El personal puede ajustar ambos valores antes de publicar y captura manualmente el área o responsable público. El nombre y el teléfono de contacto de la propuesta quedan fuera de los datos precargados para publicación.
+- Se reutilizan los datos de la propuesta que ya devuelve la base mediante el servicio de trámites. Este cambio no requiere una migración.
+
 ## Verificación
 
 - **Instagram:** 8 pruebas de backend con el proveedor simulado. Se comprobaron las rutas directa y a través del proxy.
 - **Propuestas:** 7 pruebas, incluidas fechas hábiles, fines de semana y feriados.
 - **Frontend:** se verificaron lint y compilación después de integrar Instagram y el cambio de domicilio. La validación final de feriados se verificó con las pruebas de propuestas.
+- **Publicación de propuestas:** 17 pruebas de trámites y propuestas. También se verificaron el lint de los archivos modificados y TypeScript.
 - **Conexión local:** `/api/salud/bd` devolvió HTTP 200 y confirmó la conexión a Supabase. Esa comprobación valida el acceso a la base. La lectura del domicilio real requiere aplicar el SQL indicado arriba.
