@@ -18,6 +18,8 @@ type Props = {
     // Sin elementos, o sin resultados con la búsqueda y los filtros
     hayElementos: boolean; sinResultados: boolean;
     vacio: { titulo: string; texto: string; accion?: ReactNode };
+    accion?: ReactNode; // botones a la derecha de la cabecera (p. ej. «Marcar todas como leídas»)
+    llenar?: boolean; // la tarjeta llena el alto de su columna (p. ej. igual que el lateral en Notificaciones)
     conFecha?: boolean; // filas con bloque de fecha (más altas): para el alto inicial, antes de medir
     pie?: ReactNode; // algo en el pie (p. ej. las páginas del servidor en Mis eventos)
     despues?: ReactNode; // algo debajo de la lista, dentro de la tarjeta (p. ej. «¿Falta un mensaje?»)
@@ -40,8 +42,8 @@ export function ListaPerfil(p: Props) {
         if (altoFila.current) caja.style.setProperty("--pl-alto-fila", `${altoFila.current}px`);
     }, [total, p.estado]);
     return (
-        <div className="perfil-listas">
-            <Tarjeta icono={p.icono} id={`${id}-lista`} titulo={p.titulo} texto={p.texto} className="pz-pendientes">
+        <div className={`perfil-listas${p.llenar ? " perfil-listas--llenar" : ""}`}>
+            <Tarjeta icono={p.icono} id={`${id}-lista`} titulo={p.titulo} texto={p.texto} className="pz-pendientes" accion={p.accion}>
                 <Buscador etiqueta={p.buscar.etiqueta} placeholder={p.buscar.placeholder} valor={p.buscar.valor} alCambiar={p.buscar.alCambiar}>
                     <FiltrosAvanzados grupos={p.filtros} activos={p.activos} alQuitar={p.alQuitar} />
                 </Buscador>

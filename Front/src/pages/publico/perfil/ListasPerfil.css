@@ -46,6 +46,14 @@
 }
 .perfil-listas .pl-filas--scroll:focus-visible { outline: 3px solid var(--pz-primario); outline-offset: 2px; border-radius: 12px; }
 
+/* «llenar»: la tarjeta toma el alto de su columna (en Notificaciones, el mismo que «Cómo te avisamos» + «Tus trámites»);
+   el área de la lista ocupa lo que sobra, nunca menos que 4 filas, y las filas se recorren dentro */
+.perfil-listas--llenar { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
+.perfil-listas--llenar > .pz-tarjeta { flex: 1 1 auto; min-height: 0; }
+.perfil-listas--llenar .pl-area { flex: 1 1 0; height: auto; min-height: calc(4 * var(--pl-alto-fila) + 3 * 8px + 8px); }
+.perfil-listas .pl-anuncio:empty { display: none; }
+.perfil-listas .pl-anuncio { margin: 0; color: var(--pz-primario); font-size: 13px; font-weight: 700; }
+
 /* Bloque de fecha del color del estado (como el chip) */
 .perfil-listas .pl-fecha--dorado { background: var(--pz-tono); color: var(--pz-tono-texto); }
 .perfil-listas .pl-fecha--guinda { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
@@ -67,6 +75,15 @@
 /* Opción elegida en «Filtros»: llena, como pide la pieza (en PanelPiezas.css la regla de las pastillas de tipo de
    actividad, que va después, la deja blanca) */
 .perfil-listas .pz-filtros-av .pz-pastilla--activa, .perfil-listas .pz-filtros-av .pz-pastilla--activa:hover { border-color: var(--pz-primario); background: var(--pz-primario); color: #fff; }
+
+/* Nota bajo la lista (p. ej. «Algunos avisos no se pudieron cargar») */
+.perfil-listas .pl-nota { margin: 0; color: var(--pz-urgente); font-size: 13px; font-weight: 700; }
+
+/* Aviso abierto en Notificaciones › Cambios y cancelaciones: texto completo, fecha y acciones */
+.perfil-listas .pl-aviso { display: flex; flex-direction: column; gap: 8px; }
+.perfil-listas .pl-aviso__texto { color: var(--pz-texto); font-size: 14px; line-height: 21px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.perfil-listas .pl-aviso__fecha { color: var(--pz-gris); font-size: 12.5px; }
+.perfil-listas .pl-aviso__acciones { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* El panel de filtros entra igual que en admin */
 @keyframes cab-entra { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
