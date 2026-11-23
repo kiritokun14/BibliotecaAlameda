@@ -350,12 +350,12 @@ function Respuesta({
                 <BurbujaAsistente variante="aviso">
                     <Aviso icono={iconoInfo} titulo="No encontré información suficiente" />
                     <p className="burbuja-asistente__texto burbuja-asistente__texto--aviso">
-                        No puedo responderte con certeza. Puedes reformular tu pregunta o enviarla al personal para que te respondan.
+                        Puedes reformular tu pregunta o ir a Contacto para comunicarte con la biblioteca.
                     </p>
                     <div className="burbuja-asistente__acciones">
-                        <button type="button" className="boton-asistente boton-asistente--verde" onClick={conversacion.hablarConPersonal} disabled={conversacion.ocupado}>
+                        <Link to={respuesta.contacto ?? "/contacto"} className="boton-asistente boton-asistente--verde" onClick={alAbrirFuente}>
                             Hablar con el personal
-                        </button>
+                        </Link>
                         <button type="button" className="boton-asistente boton-asistente--contorno" onClick={alReformular}>
                             Reformular mi pregunta
                         </button>
@@ -367,8 +367,13 @@ function Respuesta({
                 <BurbujaAsistente variante="aviso">
                     <Aviso icono={iconoCandado} titulo="Consulta privada" />
                     <p className="burbuja-asistente__texto burbuja-asistente__texto--aviso">
-                        No puedo compartir información personal de otros usuarios. Puedo ayudarte con tu propia cuenta o con dudas generales de la biblioteca.
+                        Para consultas sobre datos personales, contacta al personal. En Mi perfil puedes consultar tus propios trámites.
                     </p>
+                    <div className="burbuja-asistente__acciones">
+                        <Link to={respuesta.contacto ?? "/contacto"} className="boton-asistente boton-asistente--verde" onClick={alAbrirFuente}>
+                            Hablar con el personal
+                        </Link>
+                    </div>
                 </BurbujaAsistente>
             );
         case "enviada":
@@ -413,13 +418,15 @@ function Respuesta({
                         <p>Fuentes</p>
                         <ul>
                             {respuesta.fuentes.map((fuente) => (
-                                <li key={fuente.titulo}>
+                                <li key={fuente.id ?? fuente.titulo}>
                                     {fuente.ruta ? (
                                         <Link to={fuente.ruta} className="fuente-asistente" onClick={alAbrirFuente}>
                                             {fuente.titulo}
                                         </Link>
                                     ) : (
-                                        <span className="fuente-asistente">{fuente.titulo}</span>
+                                        <span className="fuente-asistente">
+                                            {fuente.titulo}{fuente.tipoFuente && ` · ${fuente.tipoFuente}`}{fuente.version && ` · versión ${fuente.version}`}
+                                        </span>
                                     )}
                                 </li>
                             ))}
