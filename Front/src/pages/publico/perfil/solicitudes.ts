@@ -34,15 +34,16 @@ export async function consultarMisSolicitudes(): Promise<HistorialSolicitudes> {
 
 // ---------- Cómo se muestra cada estado (chips de Figma) ----------
 export type ColorEstado = "dorado" | "guinda" | "gris" | "verde";
-export type GrupoFiltro = "atencion" | "observaciones" | "borradores" | "canceladas" | "otras";
+export type GrupoFiltro = "atencion" | "aceptadas" | "observaciones" | "borradores" | "canceladas" | "otras";
 
 type Presentacion = { texto: string; color: ColorEstado; grupo: GrupoFiltro; accion: string | null };
 
 export const estadoPropuesta: Record<EstadoRevision, Presentacion> = {
-    en_revision: { texto: "En atención", color: "dorado", grupo: "atencion", accion: "Ver" },
+    en_revision: { texto: "En revisión", color: "dorado", grupo: "atencion", accion: "Ver" },
     requiere_correccion: { texto: "Con observaciones", color: "guinda", grupo: "observaciones", accion: "Corregir" },
     borrador: { texto: "Borrador", color: "gris", grupo: "borradores", accion: "Continuar" },
-    aprobada: { texto: "Aprobada", color: "verde", grupo: "otras", accion: null },
+    // Aceptada: tiene su propio filtro y se puede abrir (Aldahir, 22 nov 2026)
+    aprobada: { texto: "Aceptada", color: "verde", grupo: "aceptadas", accion: "Ver" },
     rechazada: { texto: "No aprobada", color: "guinda", grupo: "otras", accion: "Ver" },
     cancelada: { texto: "Cancelada", color: "gris", grupo: "canceladas", accion: null },
 };
@@ -57,7 +58,7 @@ export const estadoEspacio: Record<EstadoRevision, Presentacion> = {
 };
 
 export function contarPorGrupo<T>(lista: T[], grupo: (x: T) => GrupoFiltro) {
-    const cuenta: Record<GrupoFiltro, number> = { atencion: 0, observaciones: 0, borradores: 0, canceladas: 0, otras: 0 };
+    const cuenta: Record<GrupoFiltro, number> = { atencion: 0, aceptadas: 0, observaciones: 0, borradores: 0, canceladas: 0, otras: 0 };
     for (const x of lista) cuenta[grupo(x)]++;
     return cuenta;
 }

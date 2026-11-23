@@ -2,6 +2,7 @@ import { useContext, useEffect, useId, useRef, useState, type CSSProperties, typ
 import { Link, useLocation, useNavigate } from "react-router";
 import { ContextoPanel, capacidadPanel, nombresRoles, permisoGlobal } from "../../servicios/accesoPanel";
 import { cerrarSesion } from "../../servicios/auth";
+import { salirConAnimacion } from "../../components/sesion/transicion";
 import { mensajeError } from "../../servicios/api";
 import { AREAS_NOTIFICACION, useNotificaciones, type AreaNotificacion, type Notificacion } from "./notificaciones/datos";
 import { Icono } from "./resumen/iconos";
@@ -151,7 +152,7 @@ function Perfil({ abierto, boton, alAlternar }: { abierto: boolean; boton: RefOb
 
     async function salir() {
         setSaliendo(true); setError("");
-        try { await cerrarSesion(); navegar("/iniciar-sesion", { replace: true }); }
+        try { await salirConAnimacion({ tema: "panel", cerrar: cerrarSesion, ir: () => navegar("/iniciar-sesion", { replace: true }) }); } // con la animación de salida
         catch (e) { setError(mensajeError(e)); setSaliendo(false); }
     }
 

@@ -4,7 +4,9 @@ import { IconoLibro } from "../../components/portal/PantallaEstado";
 import AccesoLayout from "../../components/acceso/AccesoLayout";
 import Aviso from "../../components/acceso/Aviso";
 import { Campo, CampoContrasena } from "../../components/acceso/Campo";
-import { iniciarSesion } from "../../servicios/auth";
+import { consultarMiAcceso, iniciarSesion } from "../../servicios/auth";
+import { tienePanel } from "../../servicios/accesoPanel";
+import { entrarConAnimacion } from "../../components/sesion/transicion";
 import { esCorreoValido, MENSAJE_CORREO } from "../../servicios/validaciones";
 import iconoCargando from "../../assets/comun/iconos/cargando.svg";
 import { mensajeError } from "../../servicios/api";
@@ -47,7 +49,16 @@ function Login() {
             if (resultado === "credenciales-incorrectas") setErrorAcceso(true);
             if (resultado === "cuenta-deshabilitada") navigate("/cuenta-deshabilitada");
             if (resultado === "correo-pendiente") navigate("/confirma-tu-correo", { state: { correo } });
-            if (resultado === "ok") navigate("/sesion-iniciada", { replace: true });
+            // Con la animación de entrada (components/sesion): «Iniciando tu sesión…» → «Te damos la bienvenida» → panel o
+            // inicio, sin pasar por la pantalla de espera. Si no se puede comprobar el acceso, /sesion-iniciada lo resuelve.
+            if (resultado === "ok") {
+                try {
+                    await entrarConAnimacion({
+                        preparar: async () => { const panel = tienePanel(await consultarMiAcceso()); return { ruta: panel ? "/admin" : "/", panel }; },
+                        ir: (ruta) => navigate(ruta, { replace: true }),
+                    });
+                } catch { navigate("/sesion-iniciada", { replace: true }); }
+            }
         } catch (error) { setErrorServicio(mensajeError(error)); }
         finally { setEnviando(false); }
     }
