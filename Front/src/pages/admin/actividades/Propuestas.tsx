@@ -47,7 +47,7 @@ function Propuestas() {
     ];
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades"], ["Lista"]]} />
 
@@ -88,11 +88,11 @@ function Propuestas() {
                     </div>
 
                     {vigentes.length === 0 ? (
-                        <EstadoVacio icono={vacioArchivo} titulo="Aún no hay actividades" texto="Crea la primera con «Nueva actividad»." />
+                        <EstadoVacio icono={vacioArchivo} titulo="Aún no hay actividades" texto="Crea la primera con Nueva actividad." />
                     ) : visibles.length === 0 ? (
                         <EstadoVacio
                             icono={vacioBuscar}
-                            titulo={busqueda.trim() ? `Sin resultados para «${busqueda.trim()}»` : "No hay actividades con este estado"}
+                            titulo={busqueda.trim() ? `Sin resultados para ${busqueda.trim()}` : "No hay actividades con este estado"}
                             texto="Prueba con otra palabra, otro estado o quita los filtros."
                             accion={{ texto: "Limpiar filtros", alPresionar: () => { setBusqueda(""); elegir("todas"); } }}
                         />

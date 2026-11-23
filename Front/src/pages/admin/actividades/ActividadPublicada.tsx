@@ -19,7 +19,7 @@ function ActividadPublicada() {
     if (!a || a.estado !== "publicada") return <Navigate to={a ? `${BASE_PROPUESTAS}/${a.folio}` : BASE_PROPUESTAS} replace />;
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades", BASE_PROPUESTAS], ["Publicada"]]} />
                 <Encabezado grande etiqueta={`Actividad ${a.folio} · Publicada`} titulo="Actividad publicada" texto={a.inscripcion ? "Ya aparece en Eventos y acepta inscripciones." : "Ya aparece en Eventos del portal."} />

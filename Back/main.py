@@ -32,6 +32,7 @@ from Back.avisos import router as avisos_router
 from Back.foro_moderacion import router as foro_router
 from Back.foro import router as participacion_foro_router
 from Back.evidencias import router as evidencias_router
+from Back.estadisticas import router as estadisticas_router
 
 from Back.inscripciones import router as inscripciones_router
 from Back.asistencia import router as asistencia_router
@@ -62,6 +63,7 @@ app.include_router(participacion_foro_router)
 app.include_router(inscripciones_router)
 app.include_router(asistencia_router)
 app.include_router(evidencias_router)
+app.include_router(estadisticas_router)
 
 
 @app.exception_handler(RequestValidationError)

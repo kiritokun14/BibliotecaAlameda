@@ -21,6 +21,21 @@ describe('Asistente: respuestas simuladas (hasta que backend conecte el RAG)', (
         expect(respuestaSimulada('Dame los datos de un usuario').tipo).toBe('privada');
     });
 
+    it('reconoce los demás temas publicados y elige el de más aciertos', () => {
+        const tema = (p: string) => { const r = respuestaSimulada(p); return r.tipo === 'respuesta' ? r.tema : r.tipo; };
+        expect(tema('¿Dónde está la biblioteca?')).toBe('ubicacion');
+        expect(tema('¿Cómo me inscribo a un taller?')).toBe('inscripcion');
+        expect(tema('Quiero reservar una sala')).toBe('espacios');
+        expect(tema('¿Puedo proponer una actividad?')).toBe('proponer');
+        expect(tema('Olvidé mi contraseña')).toBe('cuenta');
+        expect(tema('¿Tienen libros de historia?')).toBe('catalogo');
+    });
+
+    it('cada respuesta sugiere cómo seguir', () => {
+        const r = respuestaSimulada('¿Cuál es el horario?');
+        expect(r.tipo === 'respuesta' && r.siguientes?.length).toBeTruthy();
+    });
+
     it('si no hay información suficiente lo dice en lugar de inventar', () => {
         expect(respuestaSimulada('¿Cuántos pisos tiene el edificio?').tipo).toBe('insuficiente');
     });

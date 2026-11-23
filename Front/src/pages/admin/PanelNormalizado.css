@@ -115,9 +115,7 @@ body .panel .panel-contenido :is(input:not([type="checkbox"]):not([type="radio"]
   box-shadow: 0 0 0 3px rgba(230, 209, 148, 0.55) !important;
 }
 
-/* 7. Menú lateral: la sección activa con la rayita dorada, como el menú del perfil */
-body .panel .panel-lateral a.panel-menu__item.active,
-body .panel .panel-lateral a.panel-submenu__item.active { box-shadow: inset 3px 0 #e6d194; }
+/* 7. Menú lateral: ya no lleva franjas al costado; su estilo está en Panel.css («Menú lateral», 21 nov) */
 
 @media (prefers-reduced-motion: reduce) {
   body .panel *, body .panel *::before { transition: none !important; }

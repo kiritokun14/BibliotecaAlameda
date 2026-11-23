@@ -1,0 +1,59 @@
+/* Animación al iniciar y al cerrar sesión (TransicionSesion.tsx). Portal: verde con luz dorada, como la franja verde de
+   título. Panel: guinda con luz dorada y verde, como el marco del panel. Al entrar al panel, el fondo pasa de verde a
+   guinda (capa ::before que aparece). Solo transform y opacity (AGENTS §3). */
+.transicion {
+  --tr-luz-1: rgba(201, 162, 74, 0.35);
+  --tr-luz-2: rgba(230, 209, 148, 0.18);
+  --tr-acento: #e6d194;
+  position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; overflow: hidden;
+  background: linear-gradient(150deg, #0b3b33, #164f44 55%, #1f6b5c); color: #fff; font-family: 'Noto Sans', sans-serif;
+  animation: transicion-entra 0.35s ease-out both;
+}
+.transicion::before {
+  content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s ease;
+  background: linear-gradient(160deg, #4f0e28, #611232 50%, #6f1739);
+}
+.transicion--panel::before { opacity: 1; }
+.transicion--panel { --tr-luz-2: rgba(22, 79, 68, 0.55); }
+.transicion--saliendo { animation: transicion-sale 0.45s ease-in both; }
+
+/* Luces que flotan despacio detrás */
+.transicion__luz { position: absolute; border-radius: 50%; filter: blur(10px); pointer-events: none; }
+.transicion__luz--1 { top: -18vmax; left: -12vmax; width: 52vmax; height: 52vmax; background: radial-gradient(circle, var(--tr-luz-1), transparent 65%); animation: transicion-flota 6s ease-in-out infinite alternate; }
+.transicion__luz--2 { right: -16vmax; bottom: -20vmax; width: 60vmax; height: 60vmax; background: radial-gradient(circle, var(--tr-luz-2), transparent 65%); animation: transicion-flota 7s ease-in-out infinite alternate-reverse; }
+
+.transicion__centro { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px; text-align: center; animation: transicion-sube 0.45s 0.08s ease-out both; }
+.transicion__logo {
+  display: block; width: 150px; height: 60px; margin-bottom: 14px; background: #fff;
+  -webkit-mask: url("../../assets/comun/logos/logo-solon-arguello-pie.png") no-repeat center / contain;
+  mask: url("../../assets/comun/logos/logo-solon-arguello-pie.png") no-repeat center / contain;
+}
+
+/* Sello: aro que gira mientras se cierra; al terminar se completa y aparece la palomita */
+.transicion__sello { position: relative; display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 6px; }
+.transicion__sello svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; }
+.transicion__aro { stroke: var(--tr-acento); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 145; stroke-dashoffset: 105; transform-origin: center; animation: transicion-gira 0.9s linear infinite; }
+.transicion__palomita { inset: 14px !important; width: 36px !important; height: 36px !important; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; }
+.transicion__sello--listo { animation: transicion-pulso 0.4s ease-out; }
+.transicion__sello--listo .transicion__aro { stroke-dashoffset: 0; animation: none; transition: stroke-dashoffset 0.35s ease-out; }
+.transicion__sello--listo .transicion__palomita { stroke-dashoffset: 0; transition: stroke-dashoffset 0.35s 0.15s ease-out; }
+
+.transicion__titulo { margin: 0; color: #fff; font-size: 26px; line-height: 32px; font-weight: 800; letter-spacing: -0.3px; }
+.transicion__texto { margin: 0; color: rgba(255, 255, 255, 0.82); font-size: 15px; }
+.transicion--listo .transicion__titulo, .transicion--listo .transicion__texto { animation: transicion-sube 0.35s ease-out both; }
+.transicion__linea { display: block; width: 120px; height: 4px; margin-top: 12px; border-radius: 999px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); transform-origin: left; animation: transicion-linea 0.9s ease-out both; }
+
+@keyframes transicion-entra { from { opacity: 0; } to { opacity: 1; } }
+@keyframes transicion-sale { from { opacity: 1; } to { opacity: 0; } }
+@keyframes transicion-sube { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes transicion-gira { to { transform: rotate(360deg); } }
+@keyframes transicion-pulso { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes transicion-linea { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes transicion-flota { from { transform: translate(0, 0); } to { transform: translate(4vmax, 3vmax); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .transicion, .transicion--saliendo, .transicion__centro, .transicion__luz, .transicion__linea, .transicion__sello--listo,
+  .transicion--listo .transicion__titulo, .transicion--listo .transicion__texto { animation: none; }
+  .transicion__aro { animation: none; stroke-dashoffset: 0; }
+  .transicion__sello--listo :is(.transicion__aro, .transicion__palomita) { transition: none; }
+}

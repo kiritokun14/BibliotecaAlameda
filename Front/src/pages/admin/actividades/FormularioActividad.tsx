@@ -85,7 +85,7 @@ function Formulario({ actividad }: { actividad?: Actividad }) {
     });
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Propuestas de actividades", BASE_PROPUESTAS], [editando ? "Editar actividad" : faltan ? "Faltan datos" : "Nueva actividad"]]} />
 

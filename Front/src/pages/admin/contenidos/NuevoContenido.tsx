@@ -1,7 +1,11 @@
 import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { IconoFlechaIzq, IconoInfo, Migas } from "./piezas";
+import { IconoInfo, Migas } from "./piezas";
 import { TIPOS_CONTENIDO } from "./tipos";
+import { Encabezado as EncabezadoPz, Icono, type NombreIcono } from "../piezasPanel";
+
+// El mismo ícono por tipo que en la bandeja y en la revisión
+const ICONO_TIPO: Record<string, NombreIcono> = { noticia: "contenido", resena: "fuentes", acerca: "info", memoria: "evidencias" };
 import "./Contenidos.css";
 
 // Paso 1 de "Nuevo contenido": elegir qué tipo de contenido se va a redactar.
@@ -15,26 +19,15 @@ const PASOS = [
 
 function NuevoContenido() {
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <Migas actual="Elegir tipo" />
 
-            <div className="contenidos-encabezado contenidos-encabezado--tarjeta">
-                <div>
-                    <Link to="/admin/contenidos/editor" className="contenidos-volver">
-                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
-                        Volver a Mis contenidos
-                    </Link>
-                    <h1>¿Qué quieres redactar?</h1>
-                    <p className="contenidos-encabezado__texto">
-                        Elige el tipo de contenido. Después podrás guardarlo como borrador o enviarlo a autorización.
-                    </p>
-                </div>
-            </div>
+            <EncabezadoPz titulo="¿Qué quieres redactar?" texto="Elige el tipo de contenido. Después podrás guardarlo como borrador o enviarlo a autorización." />
 
             <ul className="contenidos-tipos">
                 {TIPOS_CONTENIDO.map((tipo) => (
                     <li key={tipo.valor} className="contenidos-tipo">
-                        <span className="contenidos-tipo__letra" aria-hidden="true">{tipo.letra}</span>
+                        <span className="contenidos-tipo__letra contenidos-tipo__letra--icono" aria-hidden="true"><Icono nombre={ICONO_TIPO[tipo.valor] ?? "contenido"} /></span>
                         <h2>{tipo.nombre}</h2>
                         <p>{tipo.descripcion}</p>
                         {tipo.ruta ? (

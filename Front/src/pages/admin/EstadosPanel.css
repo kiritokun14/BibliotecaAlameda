@@ -70,12 +70,3 @@
 }
 
 /* ---------- Catálogo «Estados del sistema» ---------- */
-.estados-catalogo { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
-.estados-catalogo__tarjeta { --franja: #164f44; display: flex; flex-direction: column; gap: 8px; padding: 20px 20px 18px; border: 1px solid #e2ded5; border-radius: 16px; background: linear-gradient(var(--franja), var(--franja)) top / 100% 4px no-repeat, #fff; transition: transform 0.2s ease, box-shadow 0.2s ease; } /* franja arriba, sin franja al costado (21 nov) */
-.estados-catalogo__tarjeta:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(22, 79, 68, 0.08); }
-.estados-catalogo__tarjeta--guinda { --franja: #9b2247; }
-.estados-catalogo__tarjeta--dorado { --franja: #c9a24a; }
-.estados-catalogo__tarjeta strong { font-size: 15px; }
-.estados-catalogo__tarjeta p { flex: 1; margin: 0; color: #4d4d4d; font-size: 13px; line-height: 1.5; }
-.estados-previa { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border: 1px dashed #c9a24a; border-radius: 14px; background: #fffaf0; font-size: 13px; }
-.estados-previa strong { margin-right: 6px; padding: 2px 8px; border-radius: 999px; background: #8a6414; color: #fff; font-size: 11px; text-transform: uppercase; }

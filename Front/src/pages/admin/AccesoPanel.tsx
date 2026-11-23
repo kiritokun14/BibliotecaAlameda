@@ -6,6 +6,7 @@ import { obtenerSupabase, ErrorServicio, mensajeError } from '../../servicios/ap
 import { EsqueletoPanel } from '../../components/portal/Esqueleto';
 import PantallaEstado, { IconoCandado } from '../../components/portal/PantallaEstado';
 import { VentanaSesionCaducada } from './EstadosPanel';
+import { precargarPanel } from './precargaPanel';
 import { capacidadPanel, permisoGlobal, rutaInicialPanel, tienePanel, ContextoPanel, type IdentidadPanel } from '../../servicios/accesoPanel';
 
 // Solo se descarga si hace falta: el aviso «Sin permiso» dentro del panel (Figma 583:45548)
@@ -37,6 +38,9 @@ async function comprobar(): Promise<Comprobacion> {
 export default function AccesoPanel({ children, libre = false }: { children: ReactNode; libre?: boolean }) {
     const { pathname, search } = useLocation();
     const [resultado, setResultado] = useState<Comprobacion | null>(ultima);
+    // Rendimiento (21 nov): mientras se comprueban los permisos se descarga ya el código de la pantalla (y sus datos,
+    // si tiene precarga); antes empezaba hasta que la comprobación terminaba. El backend sigue validando cada petición.
+    useEffect(() => { if (!ultima) precargarPanel(pathname); }, [pathname]);
     useEffect(() => {
         let activo = true;
         const revisar = () => comprobar().then((nueva) => {

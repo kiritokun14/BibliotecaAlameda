@@ -28,7 +28,7 @@ function CargarContenido({ children }: { children: (contenido: Contenido) => Rea
     if (actual?.contenido) return <>{children(actual.contenido)}</>;
 
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <Migas actual={folio} />
             {actual?.error ? (
                 <div className="contenidos-panel">

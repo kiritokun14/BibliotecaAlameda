@@ -14,6 +14,7 @@ import {
 } from "../../../../servicios/espacios";
 import { aSolicitudAdmin, vigente } from "./mapeo";
 import Flujo, { type Etapa, type IconoSiguiente } from "../Flujo";
+import MapaDonde from "../MapaDonde";
 import tarjetaCalendario from "../../../../assets/admin/tarjeta-calendar.svg";
 import tarjetaCheck from "../../../../assets/admin/tarjeta-check.svg";
 import tarjetaLista from "../../../../assets/admin/bandeja-list.svg";
@@ -102,11 +103,11 @@ function historial(s: SolicitudEspacioPersonal): EventoHistorial[] {
         const titulo = h.accion === "respuesta"
             ? (h.detalles?.acepta ? "La persona aceptó el cambio" : "La persona pidió otra opción")
             : NOMBRE_ACCION[h.accion] ?? h.accion;
-        const partes = [formatearFecha(diaLocal(h.fecha)), h.realizadoPor ? `por ${h.realizadoPor}` : "", h.nota ?? ""].filter(Boolean);
-        return { titulo, detalle: partes.join(" · "), tipo: "hecho" };
+        const partes = [formatearFecha(diaLocal(h.fecha)), h.realizadoPor ? `por ${h.realizadoPor}` : ""].filter(Boolean);
+        return { titulo, detalle: partes.join(", "), nota: h.nota || undefined, tipo: "hecho" };
     });
-    if (s.estado === "en_revision") eventos.push({ titulo: "Decisión del personal", detalle: "Pendiente", tipo: "proceso" });
-    if (s.estado === "requiere_correccion") eventos.push({ titulo: "Respuesta de la persona", detalle: "En espera", tipo: "proceso" });
+    if (s.estado === "en_revision") eventos.push({ titulo: "Esperando la decisión del personal", detalle: "En revisión", tipo: "proceso" });
+    if (s.estado === "requiere_correccion") eventos.push({ titulo: "Esperando la respuesta de la persona", detalle: "Se le pidió una corrección", tipo: "proceso" });
     return eventos;
 }
 
@@ -147,7 +148,7 @@ function DetalleEspacio() {
 
     if (!carga || "error" in carga) {
         return (
-            <PanelLayout titulo="Atención" tema="contenidos">
+            <PanelLayout titulo="Atención" tema="contenidos paleta">
                 {!carga ? <div className="contenidos-formulario" aria-busy="true" role="status"><span className="tr-oculto">Cargando la solicitud {folio}…</span><div className="at-columna"><Bloque clase="tr-esqueleto tr-esqueleto--alto" /><Bloque clase="tr-esqueleto tr-esqueleto--alto" /></div><Bloque clase="tr-esqueleto tr-esqueleto--alto" /></div> : (
                     <p role="alert">
                         {carga.error}{" "}
@@ -341,7 +342,7 @@ function DetalleEspacio() {
                 titulo="Esperando respuesta"
                 subtitulo="La persona debe aceptar o rechazar el cambio. Si ya no procede, puedes rechazar la solicitud."
                 peligro={rechazar}
-                nota="Cuando la persona responda, la solicitud vuelve a «Por revisar»."
+                nota="Cuando la persona responda, la solicitud vuelve a Por revisar."
             />
         );
     } else {
@@ -373,7 +374,7 @@ function DetalleEspacio() {
     const otrasAreas = areas.filter((a) => a.slug !== actual.espacio?.slug);
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <DetalleSolicitud
                 area="espacios"
                 solicitud={solicitud}
@@ -382,6 +383,7 @@ function DetalleEspacio() {
                 volver={{ texto: "Volver a solicitudes de espacios", ruta: RUTA }}
                 historial={historial(api)}
                 flujo={<Flujo {...flujoEspacio(api)} />}
+                mapa={<MapaDonde espacio={api.espacio?.nombre} />}
                 persona={<TarjetaPersona nombre={solicitud.persona} telefono={api.solicitante.telefono} correo={api.solicitante.correo} />}
                 principal={principal}
                 decision={decision}

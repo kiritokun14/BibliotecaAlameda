@@ -16,7 +16,9 @@ export type Consulta = { fecha: string; persona: string; accion: string };
 export type Evidencia = {
     folio: string; // EV-0001
     actividad: string; // AC-000016
-    actividadTexto: string; // "Club de lectura · 27 oct"
+    actividadTexto: string; // "Club de lectura, 27 oct" (para buscar)
+    actividadTitulo: string; // "Club de lectura"
+    sesion: string; // "27 oct 2026"
     tipo: TipoEvidencia;
     subio: string;
     fecha: string; // ISO
@@ -37,14 +39,14 @@ export type EvidenciaCompleta = Evidencia & {
 // "2026-10-27T16:00:00+00:00" → "27 oct 2026" en la hora de Tepic
 export const fechaLocal = (iso: string) => fechaCorta(diaLocal(iso));
 export const horaDe = (iso: string) => horaLocal(iso);
-export const textoSesion = (titulo: string, inicio: string) => `${titulo} · ${fechaLocal(inicio).split(" ").slice(0, 2).join(" ")}`;
+export const textoSesion = (titulo: string, inicio: string) => `${titulo}, ${fechaLocal(inicio).split(" ").slice(0, 2).join(" ")}`;
 
 function textoAccion(accion: AccionEvidencia, detalle: Record<string, unknown> | null) {
     switch (accion) {
         case "subio": return "Subió el archivo";
         case "consulto": return "Consultó";
         case "descargo": return "Descargó";
-        case "cambio_acceso": return `Cambió el acceso a «${NOMBRE_ACCESO[(detalle?.acceso as Acceso) ?? "personal"]}»`;
+        case "cambio_acceso": return `Cambió quién puede verla: ${NOMBRE_ACCESO[(detalle?.acceso as Acceso) ?? "personal"]}`;
         case "retiro": return "Retiró la evidencia";
         case "solicito_acceso": return "Pidió acceso";
     }
@@ -52,7 +54,7 @@ function textoAccion(accion: AccionEvidencia, detalle: Record<string, unknown> |
 
 export function aEvidencia(e: EvidenciaResumen): Evidencia {
     return {
-        folio: e.folio, actividad: e.actividad ?? "", actividadTexto: textoSesion(e.titulo, e.sesionInicio), tipo: NOMBRE_TIPO[e.tipo],
+        folio: e.folio, actividad: e.actividad ?? "", actividadTexto: textoSesion(e.titulo, e.sesionInicio), actividadTitulo: e.titulo, sesion: e.sesionInicio ? fechaLocal(e.sesionInicio) : "", tipo: NOMBRE_TIPO[e.tipo],
         subio: e.subio, fecha: e.subidaEn, acceso: e.acceso, puedeVer: e.puedeVer, retirada: e.retirada,
     };
 }

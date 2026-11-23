@@ -110,7 +110,7 @@ function ObservacionesEnviadas({ contenido }: { contenido: Contenido }) {
                 <Pasos
                     pasos={[
                         ["El Editor corrige", "Recibe un aviso con tus observaciones."],
-                        ["Vuelve a enviar", "El contenido regresa a tu bandeja como «Por autorizar»."],
+                        ["Vuelve a enviar", "El contenido regresa a tu bandeja como Por autorizar."],
                         ["Decides de nuevo", "Puedes autorizar, pedir más cambios o rechazar."],
                     ]}
                 />

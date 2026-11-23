@@ -1,6 +1,11 @@
 // Asistente de la biblioteca (RAG), versión visitante sin cuenta.
 // El frontend NUNCA llama a un modelo ni guarda claves: todo pasa por la API del backend (/api).
-// Por ahora las respuestas son simuladas; backend sustituye consultarAsistente() y enviarAlPersonal().
+// Mientras backend no tenga el RAG, responde con la información que el portal ya publica (temas.ts) y la agenda
+// pública real; backend sustituye consultarAsistente() y enviarAlPersonal().
+import { cargarAgendaPublica } from "../../servicios/agendaPublica";
+import { PRIVADA, elegirTema, normalizar } from "./temas";
+
+export { normalizar };
 
 // ---------- Tipos ----------
 
@@ -18,7 +23,8 @@ export type ActividadCitada = {
 
 export type RespuestaAsistente =
     // Respuesta con información publicada (breve o extensa), siempre con sus fuentes
-    | { tipo: "respuesta"; parrafos: string[]; actividades?: ActividadCitada[]; cierre?: string; fuentes: Fuente[] }
+    // `tema` dice de qué trata (para completar con datos reales) y `siguientes` son preguntas para seguir
+    | { tipo: "respuesta"; parrafos: string[]; actividades?: ActividadCitada[]; cierre?: string; fuentes: Fuente[]; tema?: string; siguientes?: string[] }
     // No hay información suficiente: se ofrece reformular o enviar la consulta al personal
     | { tipo: "insuficiente" }
     // Pide datos personales de otra persona: se rechaza
@@ -28,51 +34,37 @@ export type RespuestaAsistente =
 
 export type MensajeHistorial = { autor: "persona" | "asistente"; texto: string };
 
-// ---------- Simulación (solo mientras backend no exista) ----------
+// ---------- Respuesta con lo publicado (mientras backend no exista) ----------
 
-export function normalizar(texto: string) {
-    return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+// Decide qué responder con la información publicada en el portal. No inventa: si ningún tema coincide, lo dice.
+export function respuestaSimulada(pregunta: string): RespuestaAsistente {
+    if (PRIVADA.test(normalizar(pregunta))) return { tipo: "privada" };
+    const tema = elegirTema(pregunta);
+    return tema ? { ...tema.respuesta(), tema: tema.id } : { tipo: "insuficiente" };
 }
 
-const RESPUESTAS = {
-    horario: {
-        tipo: "respuesta",
-        parrafos: ["La biblioteca abre de lunes a viernes de 8:00 a 19:30 h y los sábados de 9:00 a 14:00 h. Los domingos y días festivos permanece cerrada."],
-        fuentes: [{ titulo: "Contacto y ubicación", ruta: "/contacto" }],
-    },
-    credencial: {
-        tipo: "respuesta",
-        parrafos: ["Puedes solicitarla desde el portal. El personal revisa tus datos y después acudes a Préstamos para el cotejo presencial."],
-        fuentes: [{ titulo: "Credencial de la biblioteca", ruta: "/credencial" }],
-    },
-    actividades: {
-        tipo: "respuesta",
-        parrafos: ["Estas son las próximas actividades publicadas en el portal (datos de ejemplo):"],
-        actividades: [
-            { dia: "14", mes: "NOV", titulo: "Taller de escritura creativa", detalle: "10:00 a 12:00 · Sala de talleres" },
-            { dia: "14", mes: "NOV", titulo: "Círculo de lectura", detalle: "12:00 a 13:30 · Sala de lectura" },
-            { dia: "18", mes: "NOV", titulo: "Visita guiada para grupos", detalle: "11:00 a 12:00 · Entrada principal" },
-            { dia: "20", mes: "NOV", titulo: "Tarde de cuentacuentos", detalle: "17:00 a 18:00 · Parque Alameda" },
-        ],
-        cierre: "Cada actividad tiene su detalle e inscripción en Eventos y actividades.",
-        fuentes: [
-            { titulo: "Eventos y actividades", ruta: "/eventos" },
-            { titulo: "Actividades y talleres", ruta: "/servicios" },
-        ],
-    },
-} satisfies Record<string, RespuestaAsistente>;
+// Las próximas 4 sesiones (no canceladas) de la agenda pública real, en los próximos 30 días
+const MESES = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+const fechaTepic = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: "America/Mazatlan" });
+export async function proximasActividades(hoy = new Date()): Promise<ActividadCitada[]> {
+    const hasta = new Date(hoy); hasta.setDate(hasta.getDate() + 30);
+    const sesiones = await cargarAgendaPublica(fechaTepic(hoy), fechaTepic(hasta));
+    return sesiones.filter((s) => !s.cancelada).slice(0, 4).map((s) => {
+        const [, mes, dia] = s.fecha.split("-");
+        return { dia: String(Number(dia)), mes: MESES[Number(mes) - 1] ?? "", titulo: s.titulo, detalle: [s.horario, s.lugar].filter(Boolean).join(" · ") };
+    });
+}
 
-// Decide qué respuesta de ejemplo corresponde. Es solo la simulación: el RAG real lo hará backend.
-export function respuestaSimulada(pregunta: string): RespuestaAsistente {
-    const texto = normalizar(pregunta);
-    // Datos personales de otras personas: nunca se responden
-    if (/(otra persona|otro usuario|otra usuaria|de alguien|prestados? (a|de) |tiene prestad|datos de )/.test(texto)) {
-        return { tipo: "privada" };
+// Completa la respuesta de actividades con la agenda real; si no hay o no responde, lo dice sin inventar
+async function conDatosReales(respuesta: RespuestaAsistente): Promise<RespuestaAsistente> {
+    if (respuesta.tipo !== "respuesta" || respuesta.tema !== "actividades") return respuesta;
+    try {
+        const actividades = await proximasActividades();
+        if (actividades.length) return { ...respuesta, actividades };
+        return { ...respuesta, parrafos: ["Por ahora no hay actividades publicadas para los próximos 30 días."], cierre: "Revisa Eventos y actividades más adelante: ahí se publican en cuanto se confirman." };
+    } catch {
+        return { ...respuesta, parrafos: ["No pude consultar la agenda en este momento."], cierre: "Puedes verla directamente en Eventos y actividades." };
     }
-    if (/(horario|hora|abren|abre|cierran|cierra)/.test(texto)) return RESPUESTAS.horario;
-    if (/(credencial|tramit|tarjeta)/.test(texto)) return RESPUESTAS.credencial;
-    if (/(actividad|evento|taller|agenda)/.test(texto)) return RESPUESTAS.actividades;
-    return { tipo: "insuficiente" };
 }
 
 // Para revisar el error sin backend: ?simular=error (solo en desarrollo)
@@ -92,9 +84,9 @@ const espera = (ms: number) => new Promise((resolver) => setTimeout(resolver, ms
 // Cuando exista: return pedirApi<RespuestaAsistente>("/asistente/consultas", { method: "POST", body: JSON.stringify({ pregunta, historial }) });
 export async function consultarAsistente(pregunta: string, historial: MensajeHistorial[] = []): Promise<RespuestaAsistente> {
     void historial; // el backend lo usará para entender preguntas de seguimiento
-    await espera(1400);
+    const [respuesta] = await Promise.all([conDatosReales(respuestaSimulada(pregunta)), espera(700)]);
     if (simulacion() === "error") throw new Error("El asistente no está disponible");
-    return respuestaSimulada(pregunta);
+    return respuesta;
 }
 
 // TODO backend: POST /api/asistente/derivaciones con la conversación. Debe crear la consulta para el

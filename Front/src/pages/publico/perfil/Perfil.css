@@ -1085,8 +1085,4 @@
 @media (max-width: 800px) { .perfil-esqueleto__cuerpo { grid-template-columns: minmax(0, 1fr); } .perfil-esqueleto__menu { display: none; } }
 
 
-/* ---------- Mis eventos: fila con panel para gestionar la inscripción ---------- */
-.perfil-solicitud--con-panel { flex-wrap: wrap; }
-.perfil-solicitud__acciones { display: flex; flex: none; flex-wrap: wrap; gap: 8px; }
-.perfil-solicitud__panel { flex-basis: 100%; }
 .perfil-mayuscula::first-letter { text-transform: uppercase; }

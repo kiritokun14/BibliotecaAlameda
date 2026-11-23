@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import type { NombreIcono, TonoEstado } from "../piezasPanel";
 
 // Cotejo de credenciales, SIMULADO: compara lo que la persona capturó en el portal con el sistema de la biblioteca
 // antes de vincular su cuenta. Se reinicia al recargar.
@@ -67,6 +68,8 @@ export function reiniciarCotejos() {
 }
 
 export const obtenerCotejo = (folio: string | undefined) => lista.find((c) => c.folio === folio);
+// Para pruebas y lecturas fuera de React
+export const leerCotejos = () => lista;
 
 // ---------- Comparación ----------
 export type Fila = { dato: string; portal: string; sistema: string; coincide: boolean };
@@ -155,4 +158,14 @@ export function enFiltroCotejo(c: Cotejo, f: FiltroCotejo) {
     if (f === "diferencias") return ["diferencias", "sin-coincidencia", "ya-vinculada"].includes(resultadoDe(c).tipo);
     if (f === "vencidas") return resultadoDe(c).tipo === "vencida";
     return true;
+}
+
+// Tono de cada estado con los colores de las piezas del panel
+export const TONO_ESTADO_COTEJO: Record<EstadoCotejo, TonoEstado> = { pendiente: "dorado", vinculada: "verde", correccion: "dorado", rechazada: "guinda", aviso: "dorado" };
+
+// Ícono de cada resultado (el mismo en la lista y en la ficha del cotejo)
+export function iconoResultado(c: Cotejo): NombreIcono {
+    if (c.estado === "vinculada") return "check";
+    if (c.estado !== "pendiente") return c.estado === "rechazada" ? "alerta" : "reloj";
+    return ({ coincide: "check", diferencias: "alerta", vencida: "reloj", "sin-coincidencia": "alerta", "ya-vinculada": "cotejo" } as const)[resultadoDe(c).tipo];
 }

@@ -65,7 +65,7 @@ function Cola() {
     const accion = (p: Publicacion) => (p.estado === "reportada" || p.estado === "pendiente" ? "Revisar" : "Ver");
 
     return (
-        <PanelLayout titulo="Participantes" tema="contenidos">
+        <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Bibliocomunidad"], ["Cola de moderación"]]} />
                 <Encabezado etiqueta="Participantes · Foro" titulo="Moderación de Bibliocomunidad" texto="Revisa las primeras respuestas y los reportes de Bibliocomunidad." />
@@ -98,7 +98,7 @@ function Cola() {
                     />
                     {filas.length === 0 ? (
                         busqueda.trim() ? (
-                            <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para «${busqueda.trim()}»`} texto="Prueba con otra palabra o el nombre de la persona." accion={{ texto: "Limpiar filtros", alPresionar: () => { setBusqueda(""); elegir("reportadas"); } }} />
+                            <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para ${busqueda.trim()}`} texto="Prueba con otra palabra o el nombre de la persona." accion={{ texto: "Limpiar filtros", alPresionar: () => { setBusqueda(""); elegir("reportadas"); } }} />
                         ) : (
                             <EstadoVacio icono={vacioCheck} titulo={filtro === "reportadas" ? "No hay publicaciones reportadas" : "No hay publicaciones en este filtro"} texto="Cuando alguien reporte una publicación, aparecerá aquí." />
                         )
@@ -106,7 +106,7 @@ function Cola() {
                         <Tabla
                             columnas={[
                                 { titulo: "Folio", ancho: 80, folio: true, celda: (p: Publicacion) => p.folio },
-                                { titulo: "Respuesta", fuerte: true, celda: (p: Publicacion) => `«${recortar(p.texto)}»` },
+                                { titulo: "Respuesta", fuerte: true, celda: (p: Publicacion) => `${recortar(p.texto)}` },
                                 { titulo: "Autor", celda: (p: Publicacion) => p.autor },
                                 { titulo: "Reportes", ancho: 80, celda: (p: Publicacion) => p.reportes },
                                 { titulo: "Motivo", ancho: 140, celda: (p: Publicacion) => p.motivo },
@@ -135,7 +135,7 @@ function Normas() {
     const t = busqueda.trim().toLowerCase();
     const filas = NORMAS.filter((n) => !t || n.nombre.toLowerCase().includes(t) || n.descripcion.toLowerCase().includes(t));
     return (
-        <PanelLayout titulo="Participantes" tema="contenidos">
+        <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], ["Normas del foro"]]} />
                 <Encabezado etiqueta="Participantes · Foro" titulo="Normas del foro" texto="Las reglas que usa el personal para decidir." />
@@ -145,7 +145,7 @@ function Normas() {
                         <Buscador texto="Buscar norma" valor={busqueda} alCambiar={setBusqueda} />
                     </div>
                     {filas.length === 0 ? (
-                        <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para «${busqueda.trim()}»`} texto="Prueba con otra palabra." accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
+                        <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para ${busqueda.trim()}`} texto="Prueba con otra palabra." accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
                     ) : (
                         <>
                             <Tabla
@@ -195,7 +195,7 @@ function Silenciadas() {
     if (fallo) return <ErrorDecision ocupado={ocupado} alReintentar={() => void restaurar()} alVolver={() => { setFallo(false); setElegido(null); }} />;
 
     return (
-        <PanelLayout titulo="Participantes" tema="contenidos">
+        <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], [elegido ? "Restaurar participación" : "Personas silenciadas"]]} />
                 <Encabezado etiqueta="Participantes · Foro" titulo="Personas silenciadas" texto="Quién no puede publicar y hasta cuándo." />
@@ -206,7 +206,7 @@ function Silenciadas() {
                     </div>
                     {filas.length === 0 ? (
                         t ? (
-                            <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para «${busqueda.trim()}»`} texto="Prueba con otro nombre." accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
+                            <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para ${busqueda.trim()}`} texto="Prueba con otro nombre." accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
                         ) : (
                             <EstadoVacio icono={vacioCheck} titulo="No hay personas silenciadas" texto="Cuando silencies a alguien, aparecerá aquí con la fecha en que termina." />
                         )

@@ -1,24 +1,43 @@
-// Administración › Bitácora de cambios (Figma 580:53590). Diseño del Editor. Datos de ejemplo (./datos.ts, TODO backend).
-import { useState } from "react";
+// Administración › Bitácora de cambios (Figma 580:53590). Datos de ejemplo (./datos.ts, TODO backend).
+// 21 nov 2026: con las piezas del panel: cifras que filtran; buscador con «Filtros» (módulo, tipo y fechas) sobre la lista con
+// bloque de fecha y scroll interno | lateral del mismo alto con los movimientos por módulo (también filtran) y la exportación.
+import { useId, useState } from "react";
 import { Link, Navigate, useParams } from "react-router";
-import { AvisoResultado, Chip, Dato, Datos, EncabezadoPagina, EstadoVacio, Tarjeta } from "../componentes";
-import { IconoAviso, IconoBuscar, IconoLista, IconoReloj } from "../contenidos/piezas";
 import { simulacion } from "../../../servicios/simulacion";
-import { MODULOS, MOVIMIENTOS, fechaHora, filtrarBitacora, type FiltrosBitacora } from "./datos";
-import { ErrorCarga, Pantalla, Pestanas, Resumen } from "./comun";
+import { MODULOS, MOVIMIENTOS, fechaHora, filtrarBitacora, type FiltrosBitacora, type ModuloBitacora, type Movimiento } from "./datos";
+import { ErrorCarga, Pantalla } from "./comun";
 import { descargarCsv } from "./utiles";
-import iconoReloj from "../../../assets/admin/tarjeta-clock.svg";
-import vacioBuscar from "../../../assets/admin/vacio-search.svg";
-import vacioCheck from "../../../assets/admin/vacio-check.svg";
+import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Nota, Paginas, Tarjeta, Vacio } from "../piezasPanel";
 
 const RUTA = "/admin/administracion/bitacora";
 const POR_PAGINA = 10;
 const SIN_FILTROS: FiltrosBitacora = { modulo: "todos", texto: "", tipo: "todos", desde: "", hasta: "" };
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+function Fecha({ iso }: { iso: string }) {
+    const [a, m, d] = iso.slice(0, 10).split("-").map(Number);
+    return <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{MESES[m - 1]} {String(a).slice(2)}</span></span>;
+}
+const hora = (iso: string) => iso.split("T")[1]?.slice(0, 5) ?? "";
+
+function FilaMovimiento({ m }: { m: Movimiento }) {
+    return (
+        <article className={`pz-fila${m.tipo === "Sensible" ? " pz-fila--sensible" : ""}`}>
+            <Fecha iso={m.fecha} />
+            <div className="pz-fila__textos">
+                <h4 className="pz-fila__titulo">{m.accion}</h4>
+                <p className="pz-fila__detalle"><span className="pz-fila__folio">{m.folio}</span><span>{m.persona}</span><span>{m.modulo}</span><span>{hora(m.fecha)} h</span></p>
+            </div>
+            {m.tipo === "Sensible" ? <Chip tono="guinda">Sensible</Chip> : <span />}
+            <Link to={`${RUTA}/${m.folio}`} className="pz-boton pz-boton--contorno pz-boton--chico">Ver detalle<span className="solo-lectores"> {m.folio}</span></Link>
+        </article>
+    );
+}
 
 export default function Bitacora() {
+    const id = useId();
     const [f, setF] = useState<FiltrosBitacora>(SIN_FILTROS);
-    const [avanzados, setAvanzados] = useState(false);
-    const [pagina, setPagina] = useState(0);
+    const [pagina, setPagina] = useState(1);
     const [exportado, setExportado] = useState("");
     const [errorExportar, setErrorExportar] = useState(false);
     const [cargaRecuperada, setCargaRecuperada] = useState(false);
@@ -27,13 +46,18 @@ export default function Bitacora() {
     const lista = modo === "vacia" ? [] : MOVIMIENTOS;
     const filtrados = filtrarBitacora(lista, f);
     const paginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
-    const actual = Math.min(pagina, paginas - 1);
-    const visibles = filtrados.slice(actual * POR_PAGINA, (actual + 1) * POR_PAGINA);
+    const actual = Math.min(pagina, paginas);
+    const visibles = filtrados.slice((actual - 1) * POR_PAGINA, actual * POR_PAGINA);
+    const hayFiltros = JSON.stringify(f) !== JSON.stringify(SIN_FILTROS);
+    const porModulo = (m: ModuloBitacora | "todos") => filtrarBitacora(lista, { ...f, modulo: m }).length;
+    const porTipo = (t: FiltrosBitacora["tipo"]) => filtrarBitacora(lista, { ...f, tipo: t }).length;
+    const activos = (f.modulo !== "todos" ? 1 : 0) + (f.tipo !== "todos" ? 1 : 0) + (f.desde || f.hasta ? 1 : 0);
 
     function cambiar<K extends keyof FiltrosBitacora>(campo: K, valor: FiltrosBitacora[K]) {
         setF((x) => ({ ...x, [campo]: valor }));
-        setPagina(0);
+        setPagina(1);
     }
+    const quitarFiltros = () => { setF(SIN_FILTROS); setPagina(1); };
 
     function exportar() {
         setExportado("");
@@ -46,91 +70,86 @@ export default function Bitacora() {
 
     return (
         <Pantalla migas={[["Bitácora de cambios"]]}>
-            <EncabezadoPagina etiqueta="Administración · Bitácora de cambios" titulo="Bitácora de cambios" texto="Registro de quién hizo qué en el panel. Historial de solo lectura." />
+            <div className="pz-pagina">
+                <Encabezado titulo="Bitácora de cambios" texto="Quién hizo qué en el panel, del más reciente al más antiguo. Es de solo lectura: nada se puede editar ni borrar.">
+                    <Cifra icono="bitacora" valor={lista.length} texto="movimientos" activa={!hayFiltros} alPresionar={quitarFiltros} />
+                    <Cifra icono="usuario" valor={new Set(lista.map((m) => m.persona)).size} texto="personas" />
+                    <Cifra icono="alerta" tono="vino" valor={lista.filter((m) => m.tipo === "Sensible").length} texto="cambios sensibles"
+                        activa={f.tipo === "Sensible"} alPresionar={() => cambiar("tipo", f.tipo === "Sensible" ? "todos" : "Sensible")} />
+                </Encabezado>
 
-            <Resumen titulo="Movimientos registrados" tarjetas={[
-                { tono: "azul", icono: <IconoLista />, cifra: lista.length, titulo: "Movimientos", texto: "En todo el panel." },
-                { tono: "gris", icono: <IconoReloj />, cifra: new Set(lista.map((m) => m.persona)).size, titulo: "Personas", texto: "Del personal." },
-                { tono: "guinda", icono: <IconoAviso />, cifra: lista.filter((m) => m.tipo === "Sensible").length, titulo: "Cambios sensibles", texto: "Permisos, cuentas y datos.", activa: f.tipo === "Sensible", alPresionar: () => cambiar("tipo", f.tipo === "Sensible" ? "todos" : "Sensible") },
-            ]} />
+                {exportado && <Aviso titulo="Exportación lista." texto={`Se descargó ${exportado}.`} />}
+                {errorExportar && <Aviso tono="error" titulo="No se pudo exportar." texto="Inténtalo de nuevo en unos minutos." />}
 
-            <div className="contenidos-previa__acciones">
-                <button type="button" className="contenidos-boton contenidos-boton--contorno" aria-expanded={avanzados} onClick={() => setAvanzados((x) => !x)}>Filtros avanzados</button>
-                <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={filtrados.length === 0} onClick={exportar}>Exportar</button>
-            </div>
-
-            {exportado && <AvisoResultado tono="exito" titulo="Exportación lista" texto={`Se descargó ${exportado}.`} chip="Listo" />}
-            {errorExportar && <AvisoResultado tono="error" titulo="No se pudo exportar" texto="Inténtalo de nuevo en unos minutos." chip="Error" />}
-
-            {avanzados && (
-                <section className="contenidos-panel" aria-label="Filtros avanzados">
-                    <div className="at-fila">
-                        <div className="contenidos-campo">
-                            <label htmlFor="bt-tipo">Tipo</label>
-                            <select id="bt-tipo" value={f.tipo} onChange={(e) => cambiar("tipo", e.target.value as FiltrosBitacora["tipo"])}>
-                                <option value="todos">Todos</option><option value="Normal">Normal</option><option value="Sensible">Sensible</option>
-                            </select>
-                        </div>
-                        <div className="contenidos-campo"><label htmlFor="bt-desde">Desde</label><input id="bt-desde" type="date" value={f.desde} onChange={(e) => cambiar("desde", e.target.value)} /></div>
-                        <div className="contenidos-campo"><label htmlFor="bt-hasta">Hasta</label><input id="bt-hasta" type="date" value={f.hasta} min={f.desde || undefined} onChange={(e) => cambiar("hasta", e.target.value)} /></div>
-                    </div>
-                    <button type="button" className="contenidos-boton contenidos-boton--suave-azul contenidos-boton--chico at-alinear-inicio" onClick={() => { setF(SIN_FILTROS); setPagina(0); }}>Quitar filtros</button>
-                </section>
-            )}
-
-            {errorCarga ? (
-                <ErrorCarga titulo="No se pudo cargar la bitácora" texto="Revisa tu conexión e inténtalo de nuevo." alReintentar={() => setCargaRecuperada(true)} />
-            ) : (
-                <section className="contenidos-lista" aria-labelledby="bt-lista-titulo">
-                    <div className="contenidos-lista__cabecera">
-                        <span className="contenidos-lista__icono"><IconoReloj /></span>
-                        <div><h2 id="bt-lista-titulo">Movimientos recientes</h2><p>Del más reciente al más antiguo.</p></div>
-                    </div>
-                    <div className="contenidos-lista__herramientas">
-                        <Pestanas etiqueta="Filtrar por módulo" valor={f.modulo} alCambiar={(v) => cambiar("modulo", v)}
-                            opciones={[{ valor: "todos" as const, texto: `Todos (${lista.length})` }, ...MODULOS.map((m) => ({ valor: m, texto: m }))]} />
-                        <label className="contenidos-buscar">
-                            <IconoBuscar />
-                            <input type="search" placeholder="Buscar por persona o acción" aria-label="Buscar por persona o acción" value={f.texto} onChange={(e) => cambiar("texto", e.target.value)} />
-                        </label>
-                    </div>
-
-                    {visibles.length === 0 ? (
-                        lista.length === 0
-                            ? <EstadoVacio icono={vacioCheck} titulo="Todavía no hay movimientos" texto="Cada acción del personal aparecerá aquí." />
-                            : <EstadoVacio icono={vacioBuscar} titulo="Sin resultados" texto="No hay movimientos con esos filtros." accion={{ texto: "Quitar filtros", alPresionar: () => setF(SIN_FILTROS) }} />
-                    ) : (
-                        <div className="contenidos-tabla ad-tabla-bitacora" tabIndex={0} role="table" aria-label="Movimientos">
-                            <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
-                                {["Folio", "Fecha y hora", "Persona", "Módulo", "Acción", "Tipo", ""].map((t, i) => <span key={i} role="columnheader">{t}</span>)}
-                            </div>
-                            {visibles.map((m) => (
-                                <div key={m.folio} className="contenidos-tabla__fila" role="row">
-                                    <span role="cell" className="contenidos-tabla__folio">{m.folio}</span>
-                                    <span role="cell" className="contenidos-tabla__titulo">{fechaHora(m.fecha)}</span>
-                                    <span role="cell" className="at-celda">{m.persona}</span>
-                                    <span role="cell">{m.modulo}</span>
-                                    <span role="cell" className="at-celda">{m.accion}</span>
-                                    <span role="cell"><Chip tono={m.tipo === "Sensible" ? "dorado" : "gris"}>{m.tipo}</Chip></span>
-                                    <span role="cell"><Link to={`${RUTA}/${m.folio}`} className="contenidos-tabla__accion">Ver<span className="solo-lectores"> {m.folio}</span></Link></span>
+                {errorCarga ? (
+                    <ErrorCarga titulo="No se pudo cargar la bitácora" texto="Revisa tu conexión e inténtalo de nuevo." alReintentar={() => setCargaRecuperada(true)} />
+                ) : (
+                    <div className="pz-columnas">
+                        <Tarjeta icono="bitacora" id={`${id}-lista`} titulo="Movimientos" texto="Del más reciente al más antiguo" className="pz-pendientes">
+                            <Buscador etiqueta="Buscar por persona, acción o folio" placeholder="Buscar por persona, acción o folio" valor={f.texto} alCambiar={(v) => cambiar("texto", v)}>
+                                <FiltrosAvanzados activos={activos} alQuitar={() => { setF((x) => ({ ...SIN_FILTROS, texto: x.texto })); setPagina(1); }} grupos={[
+                                    { titulo: "Módulo", valor: f.modulo, alCambiar: (v) => cambiar("modulo", v as ModuloBitacora | "todos"),
+                                        opciones: [{ valor: "todos", texto: "Todos", cantidad: porModulo("todos") }, ...MODULOS.map((m) => ({ valor: m, texto: m, cantidad: porModulo(m) }))] },
+                                    { titulo: "Tipo", valor: f.tipo, alCambiar: (v) => cambiar("tipo", v as FiltrosBitacora["tipo"]),
+                                        opciones: [{ valor: "todos", texto: "Todos", cantidad: porTipo("todos") }, { valor: "Normal", texto: "Normal", cantidad: porTipo("Normal") }, { valor: "Sensible", texto: "Sensible", cantidad: porTipo("Sensible") }] },
+                                ]} extra={
+                                    <fieldset className="pz-filtros-av__grupo">
+                                        <legend>Fechas</legend>
+                                        <div className="pz-campos-fila">
+                                            <label className="pz-campo pz-campo--lleno"><span>Desde</span><input type="date" value={f.desde} onChange={(e) => cambiar("desde", e.target.value)} /></label>
+                                            <label className="pz-campo pz-campo--lleno"><span>Hasta</span><input type="date" value={f.hasta} min={f.desde || undefined} onChange={(e) => cambiar("hasta", e.target.value)} /></label>
+                                        </div>
+                                    </fieldset>
+                                } />
+                            </Buscador>
+                            {visibles.length === 0 ? (
+                                lista.length === 0
+                                    ? <Vacio icono="bitacora" titulo="Todavía no hay movimientos" texto="Cada acción del personal aparecerá aquí." />
+                                    : <Vacio icono="buscarCuenta" titulo="No hay movimientos con estos filtros" texto="Prueba con otro módulo, tipo o fecha."
+                                        accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={quitarFiltros}>Quitar filtros</button>} />
+                            ) : (
+                                <div className="pz-grupos" tabIndex={0} role="region" aria-label="Lista de movimientos">
+                                    <ul className="pz-filas">{visibles.map((m) => <li key={m.folio}><FilaMovimiento m={m} /></li>)}</ul>
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                            )}
+                            {filtrados.length > 0 && (
+                                <div className="pz-tarjeta__pie">
+                                    <p aria-live="polite">{filtrados.length} {filtrados.length === 1 ? "movimiento" : "movimientos"}{hayFiltros ? " con estos filtros" : ""}</p>
+                                    <Paginas pagina={actual} paginas={paginas} alCambiar={setPagina} />
+                                </div>
+                            )}
+                        </Tarjeta>
 
-                    {filtrados.length > 0 && (
-                        <div className="contenidos-lista__pie">
-                            <p aria-live="polite">Mostrando {visibles.length} de {filtrados.length} movimientos</p>
-                            <span />
-                            <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                                <button type="button" disabled={actual === 0} onClick={() => setPagina(actual - 1)}>‹ Anterior</button>
-                                <button type="button" className="contenidos-paginas__actual" aria-current="page">{actual + 1} de {paginas}</button>
-                                <button type="button" disabled={actual + 1 >= paginas} onClick={() => setPagina(actual + 1)}>Siguiente ›</button>
-                            </div>
-                        </div>
-                    )}
-                </section>
-            )}
+                        <aside className="pz-lateral" aria-label="Movimientos por módulo y exportación">
+                            <Tarjeta icono="estadisticas" id={`${id}-modulos`} titulo="Por módulo" texto="Toca uno para ver solo sus movimientos" className="pz-tarjeta--actividades">
+                                <ul className="pz-ranking pz-ranking--botones">
+                                    {MODULOS.map((m) => {
+                                        const total = lista.filter((x) => x.modulo === m).length;
+                                        return (
+                                            <li key={m}>
+                                                <button type="button" className={`pz-ranking__boton${f.modulo === m ? " pz-ranking__boton--activo" : ""}`} aria-pressed={f.modulo === m}
+                                                    onClick={() => cambiar("modulo", f.modulo === m ? "todos" : m)}>
+                                                    <span className="pz-ranking__textos">
+                                                        <span className="pz-ranking__nombre">{m}</span>
+                                                        <span className="pz-ranking__barra" aria-hidden="true"><span style={{ width: `${lista.length ? (total / lista.length) * 100 : 0}%` }} /></span>
+                                                    </span>
+                                                    <span className="pz-ranking__valor"><strong>{total}</strong></span>
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </Tarjeta>
+                            <section className="pz-tarjeta pz-exportar" aria-label="Exportar">
+                                <div className="pz-acciones">
+                                    <button type="button" className="pz-boton" disabled={filtrados.length === 0} onClick={exportar}>Exportar {filtrados.length} en CSV</button>
+                                    <p className="pz-acciones__nota">Se exporta lo que ves con la búsqueda y los filtros elegidos.</p>
+                                </div>
+                            </section>
+                        </aside>
+                    </div>
+                )}
+            </div>
         </Pantalla>
     );
 }
@@ -138,23 +157,47 @@ export default function Bitacora() {
 // ---------- Detalle (Figma 580:54526) ----------
 
 export function DetalleMovimiento() {
+    const id = useId();
     const { folio } = useParams();
     const m = MOVIMIENTOS.find((x) => x.folio === folio);
     if (!m) return <Navigate to={RUTA} replace />;
+    const otros = MOVIMIENTOS.filter((x) => x.persona === m.persona && x.folio !== m.folio).slice(0, 4);
     return (
         <Pantalla migas={[["Bitácora de cambios", RUTA], [m.folio]]}>
-            <EncabezadoPagina volver={{ texto: "Volver a la bitácora", ruta: RUTA }} etiqueta={`Movimiento ${m.folio}`} titulo={m.accion} texto="Este registro no se puede editar ni borrar." />
-            <Tarjeta icono={iconoReloj} titulo="Datos del movimiento">
-                <Datos>
-                    <Dato etiqueta="Fecha y hora">{fechaHora(m.fecha)}</Dato>
-                    <Dato etiqueta="Persona">{m.persona}</Dato>
-                    <Dato etiqueta="Módulo">{m.modulo}</Dato>
-                    <Dato etiqueta="Tipo">{m.tipo}</Dato>
-                </Datos>
-                <div className="at-nota"><p className="at-nota__autor">Detalle</p><p>{m.detalle}</p></div>
-            </Tarjeta>
-            <div className="contenidos-previa__acciones">
-                <Link to={RUTA} className="contenidos-boton contenidos-boton--principal panel-regresar">Volver a la bitácora</Link>
+            <div className="pz-pagina">
+                <Encabezado titulo={m.accion} texto={`Movimiento ${m.folio}. Este registro no se puede editar ni borrar.`}>
+                    <Chip tono={m.tipo === "Sensible" ? "guinda" : "gris"}>{m.tipo}</Chip>
+                </Encabezado>
+                <div className="pz-columnas pz-columnas--libre">
+                    <div className="pz-principal">
+                        <Tarjeta icono="bitacora" id={`${id}-datos`} titulo="Datos del movimiento">
+                            <Datos>
+                                <Dato etiqueta="Fecha y hora">{fechaHora(m.fecha)}</Dato>
+                                <Dato etiqueta="Persona">{m.persona}</Dato>
+                                <Dato etiqueta="Módulo">{m.modulo}</Dato>
+                                <Dato etiqueta="Tipo">{m.tipo}</Dato>
+                            </Datos>
+                            <Nota titulo="Detalle">{m.detalle}</Nota>
+                        </Tarjeta>
+                    </div>
+                    <aside className="pz-lateral" aria-label="Más de esta persona">
+                        <Tarjeta icono="usuario" id={`${id}-otros`} titulo={`Más de ${m.persona}`} texto="Sus otros movimientos recientes">
+                            {otros.length ? (
+                                <ul className="pz-actividades">
+                                    {otros.map((x) => (
+                                        <li key={x.folio}>
+                                            <div className="pz-actividades__textos">
+                                                <Link to={`${RUTA}/${x.folio}`} className="pz-actividades__titulo pz-enlace-fila">{x.accion}</Link>
+                                                <p className="pz-actividades__detalle">{x.modulo}, {fechaHora(x.fecha)}</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : <p className="pz-acciones__nota">No tiene otros movimientos registrados.</p>}
+                        </Tarjeta>
+                        <Link to={RUTA} className="pz-boton pz-boton--contorno panel-regresar">Volver a la bitácora</Link>
+                    </aside>
+                </div>
             </div>
         </Pantalla>
     );

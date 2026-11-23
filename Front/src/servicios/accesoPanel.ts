@@ -5,6 +5,7 @@ export const ContextoPanel = createContext<IdentidadPanel | null>(null);
 export const PANEL_GENERAL = 'panel_general';
 export function capacidadPanel(ruta: string): string | null {
     if (['/admin/resumen', '/admin/notificaciones'].includes(ruta)) return PANEL_GENERAL;
+    if (ruta === '/admin/perfil' || ruta.startsWith('/admin/perfil/')) return PANEL_GENERAL; // Mi cuenta del personal
     if (ruta.startsWith('/admin/participantes/foro')) return 'moderar_foro';
     if (ruta.startsWith('/admin/atencion/avisos')) return 'enviar_avisos';
     if (ruta.startsWith('/admin/atencion/bibliocomunidad')) return 'atender_bibliocomunidad';
@@ -25,6 +26,7 @@ export function capacidadPanel(ruta: string): string | null {
     if (ruta.startsWith('/admin/participantes/cotejo')) return 'validar_credenciales';
     if (ruta.startsWith('/admin/atencion/recuperacion')) return 'orientar_recuperacion';
     if (ruta.startsWith('/admin/atencion/cuentas')) return 'consultar_cuentas_atencion';
+    if (ruta.startsWith('/admin/atencion/altas-asistidas') || ruta.startsWith('/personal/alta-asistida')) return 'alta_asistida'; // la de /personal es la dirección vieja: redirige
     if (ruta.startsWith('/admin/atencion/credenciales')) return 'validar_credenciales';
     if (ruta.startsWith('/admin/atencion/espacios')) return 'registrar_resoluciones_actividades';
     if (ruta.startsWith('/admin/atencion/propuestas'))

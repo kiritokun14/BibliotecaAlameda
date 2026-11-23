@@ -1,25 +1,23 @@
 // Administración › Cuentas y permisos (Figma 580:39283). Conectada a /administracion/cuentas (servicios/cuentasAtencion.ts).
 // Los permisos se guardan como roles + capacidades (así los guarda el backend), no como la matriz ver/crear/editar de Figma.
-import { useEffect, useState, type ReactNode } from "react";
+// 21 nov 2026: con las piezas del panel (como el Resumen): cifras que filtran, lista con scroll interno y lateral del mismo
+// alto con los roles; la ficha y los permisos en dos columnas con las acciones al lado.
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
-import { AvisoResultado, Chip, Dato, Datos, EncabezadoPagina, EstadoVacio, Tarjeta, type TonoChip } from "../componentes";
 import { Ventana, VentanaFormulario } from "../Ventana";
-import { IconoAviso, IconoBuscar, IconoLista, IconoReloj } from "../contenidos/piezas";
 import { enviarEnlaceRecuperacion } from "../../../servicios/auth";
 import { mensajeError } from "../../../servicios/api";
 import {
     cambiarEstatus, capacidadAdmiteRoles, capacidadesDe, estadoCuenta, guardarAcceso, listarCuentas, nombreCompleto, ocultarCorreo,
-    rolesDe, verCuenta, type CuentaResumen, type ListaCuentas, type RolPersonal,
+    historialCuenta, rolesDe, verCuenta, type CuentaResumen, type HistorialCuenta, type ListaCuentas, type RolPersonal,
 } from "../../../servicios/cuentasAtencion";
-import { ErrorCarga, Pantalla, Pestanas, Resumen } from "./comun";
+import { ErrorCarga, Pantalla } from "./comun";
 import { useCarga } from "./utiles";
-import iconoUsuario from "../../../assets/admin/tarjeta-user.svg";
-import iconoCheck from "../../../assets/admin/tarjeta-check.svg";
+import { Aviso, Buscador, Cifra, Chip, Dato, Datos, Encabezado, FiltrosAvanzados, Icono, LineaHistorial, Paginas, Plegable, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
+import { fechaHora } from "../atencion/comun/fechas";
 import modalAlerta from "../../../assets/admin/modal-alert.svg";
 import modalCheck from "../../../assets/admin/modal-check.svg";
 import modalInfo from "../../../assets/admin/modal-info.svg";
-import vacioBuscar from "../../../assets/admin/vacio-search.svg";
-import vacioCheck from "../../../assets/admin/vacio-check.svg";
 
 import { EsqueletoDetalle, EsqueletoLista } from "../../../components/portal/Esqueleto";
 const RUTA = "/admin/administracion/cuentas";
@@ -41,13 +39,32 @@ const CAPACIDADES: { modulo: string; lista: [string, string][] }[] = [
     { modulo: "Administración", lista: [["gestionar_fuentes_asistente", "Fuentes del asistente"], ["consultar_estadisticas", "Estadísticas"]] },
 ];
 
-const TONO: Record<string, TonoChip> = { Activa: "verde", "Pendiente de activar": "dorado", Suspendida: "guinda", Bloqueada: "guinda" };
-const EstadoChip = ({ c }: { c: CuentaResumen }) => <Chip tono={TONO[estadoCuenta(c)]}>{estadoCuenta(c)}</Chip>;
+const TONO: Record<string, TonoEstado> = { Activa: "verde", "Pendiente de activar": "dorado", Suspendida: "guinda", Bloqueada: "guinda" };
+const EstadoChip = ({ c }: { c: CuentaResumen }) => <Chip tono={TONO[estadoCuenta(c)] ?? "gris"}>{estadoCuenta(c)}</Chip>;
 const rolesTexto = (c: CuentaResumen) => {
     const personal = rolesDe(c).filter((r) => r !== "usuario");
     return personal.length ? personal.map((r) => NOMBRE_ROL[r] ?? r).join(", ") : "Usuario / Cliente";
 };
 const esPersonal = (c: CuentaResumen) => rolesDe(c).some((r) => r !== "usuario") || capacidadesDe(c).length > 0;
+const inicial = (c: CuentaResumen) => (nombreCompleto(c) || c.correo || "?").trim().charAt(0).toUpperCase();
+
+// Un color por rol (y uno más para quien tiene varios), para reconocerlos de un vistazo (PanelPiezas.css, «Colores de los roles»)
+type TonoRol = "usuario" | RolPersonal | "varios";
+const rolesPersonal = (c: CuentaResumen) => rolesDe(c).filter((r): r is RolPersonal => ROLES.some((x) => x.codigo === r));
+const tonoRol = (c: CuentaResumen): TonoRol => {
+    const p = rolesPersonal(c);
+    return p.length > 1 ? "varios" : p[0] ?? "usuario";
+};
+function Roles({ c }: { c: CuentaResumen }) {
+    const p = rolesPersonal(c);
+    return (
+        <span className="pz-roles">
+            {(p.length ? p : ["usuario" as const]).map((r) => <span key={r} className={`pz-rol pz-tono-rol--${r}`}>{NOMBRE_ROL[r] ?? r}</span>)}
+        </span>
+    );
+}
+const ICONO_MODULO: Record<string, NombreIcono> = { Contenidos: "contenido", Actividades: "calendario", Participantes: "inscripciones", "Atención": "mensajes", "Administración": "cuentas" };
+const ACCION_HISTORIAL: Record<string, string> = { asignar_rol: "Se asignó un rol", retirar_rol: "Se retiró un rol", cambiar_estado: "Cambio de estado" };
 
 function ConCuenta({ miga, children }: { miga: string; children: (c: CuentaResumen, recargar: () => void) => ReactNode }) {
     const { id = "" } = useParams();
@@ -56,19 +73,57 @@ function ConCuenta({ miga, children }: { miga: string; children: (c: CuentaResum
         <Pantalla migas={[["Cuentas y permisos", RUTA], [miga]]}>
             {cargando && <EsqueletoDetalle texto="Cargando cuenta…" />}
             {error && <ErrorCarga texto={error} alReintentar={recargar} />}
-            {datos && children(datos, recargar)}
+            {datos && <div className="pz-pagina">{children(datos, recargar)}</div>}
         </Pantalla>
     );
 }
 
-// ---------- Lista y roles (Figma 580:39284, vacía 580:39765, sin resultados 580:39977, roles 580:41946) ----------
+// Los roles del personal, en el lateral de la lista y del formulario de permisos
+function TarjetaRoles({ id }: { id: string }) {
+    return (
+        <Tarjeta icono="cuentas" id={id} titulo="Roles del personal" texto="Cada rol tiene su color" className="pz-tarjeta--actividades">
+            <ul className="pz-actividades">
+                {[{ codigo: "usuario", nombre: "Usuario / Cliente", texto: "Rol básico de toda cuenta: perfil, solicitudes, inscripciones y foro." }, ...ROLES,
+                    { codigo: "varios", nombre: "Varios roles", texto: "Tiene dos o más roles del personal; ve todo lo de cada uno." }].map((r) => (
+                    <li key={r.codigo} className={`pz-leyenda-rol pz-tono-rol--${r.codigo}`}>
+                        <span className="pz-leyenda-rol__muestra" aria-hidden="true" />
+                        <div className="pz-actividades__textos">
+                            <p className="pz-actividades__titulo">{r.nombre}</p>
+                            <p className="pz-actividades__detalle">{r.texto}</p>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        </Tarjeta>
+    );
+}
 
-type Vista = "cuentas" | "roles";
-type Filtro = "personal" | "todas" | "suspendidas";
+function Reglas({ items }: { items: string[] }) {
+    return <Plegable titulo="Cómo funcionan los cambios"><ul>{items.map((t) => <li key={t}>{t}</li>)}</ul></Plegable>;
+}
+const REGLAS_CUENTAS = [
+    "Cada cambio de rol, permiso o estado pide un motivo y queda en la bitácora de la cuenta.",
+    "No se puede suspender la última cuenta con Administración total.",
+    "Restablecer el acceso envía un enlace a la persona; nadie del personal ve su contraseña.",
+];
+
+// ---------- Lista (Figma 580:39284, vacía 580:39765, sin resultados 580:39977, roles 580:41946) ----------
+
+// Filtros avanzados (sobre la página cargada: el backend solo busca por texto)
+type Tipo = "todas" | "personal" | "usuarios";
+type FiltroRol = "todos" | RolPersonal;
+type FiltroEstado = "todos" | "activa" | "pendiente" | "suspendida";
+const ESTADOS_FILTRO: { valor: FiltroEstado; texto: string; cumple: (c: CuentaResumen) => boolean }[] = [
+    { valor: "activa", texto: "Activas", cumple: (c) => estadoCuenta(c) === "Activa" },
+    { valor: "pendiente", texto: "Pendientes de activar", cumple: (c) => estadoCuenta(c) === "Pendiente de activar" },
+    { valor: "suspendida", texto: "Suspendidas o bloqueadas", cumple: (c) => c.estatus !== "activo" },
+];
 
 export default function CuentasPermisos() {
-    const [vista, setVista] = useState<Vista>("cuentas");
-    const [filtro, setFiltro] = useState<Filtro>("personal");
+    const id = useId();
+    const [tipo, setTipo] = useState<Tipo>("personal");
+    const [rol, setRol] = useState<FiltroRol>("todos");
+    const [estado, setEstado] = useState<FiltroEstado>("todos");
     const [texto, setTexto] = useState("");
     const [busqueda, setBusqueda] = useState("");
     const [pagina, setPagina] = useState(0);
@@ -81,84 +136,90 @@ export default function CuentasPermisos() {
 
     const cuentas = lista.datos?.cuentas ?? [];
     // Los filtros se aplican a la página cargada (el backend solo filtra por texto)
-    const visibles = cuentas.filter((c) => filtro === "todas" || (filtro === "personal" ? esPersonal(c) : c.estatus !== "activo"));
+    const cumpleTipo = (c: CuentaResumen, t: Tipo) => t === "todas" || (t === "personal" ? esPersonal(c) : !esPersonal(c));
+    const cumpleRol = (c: CuentaResumen, r: FiltroRol) => r === "todos" || rolesDe(c).includes(r);
+    const cumpleEstado = (c: CuentaResumen, e: FiltroEstado) => e === "todos" || !!ESTADOS_FILTRO.find((x) => x.valor === e)?.cumple(c);
+    const visibles = cuentas.filter((c) => cumpleTipo(c, tipo) && cumpleRol(c, rol) && cumpleEstado(c, estado));
+    // Cuántas hay en cada opción con lo demás ya elegido
+    const conteo = (fn: (c: CuentaResumen) => boolean) => cuentas.filter(fn).length;
+    const activos = (tipo !== "todas" ? 1 : 0) + (rol !== "todos" ? 1 : 0) + (estado !== "todos" ? 1 : 0);
+    const quitarFiltros = () => { setTipo("todas"); setRol("todos"); setEstado("todos"); };
     const total = lista.datos?.total ?? 0;
     const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
-    const enPagina = (fn: (c: CuentaResumen) => boolean) => (lista.datos ? cuentas.filter(fn).length : "…");
+    const cuenta = (fn: (c: CuentaResumen) => boolean) => (lista.datos ? cuentas.filter(fn).length : "…");
+    const suspendidas = (c: CuentaResumen) => c.estatus !== "activo";
 
     return (
         <Pantalla migas={[["Cuentas y permisos"]]}>
-            <EncabezadoPagina etiqueta="Administración · Cuentas y permisos" titulo="Cuentas y permisos" texto="Quién tiene acceso al panel y qué puede hacer. Cada cambio queda en la bitácora de la cuenta." />
+            <div className="pz-pagina">
+                <Encabezado titulo="Cuentas y permisos" texto="Quién tiene acceso al panel y qué puede hacer. Cada cambio queda en la bitácora de la cuenta.">
+                    <Cifra icono="cuentas" valor={cuenta(esPersonal)} texto="del personal" activa={tipo === "personal" && estado === "todos"} alPresionar={() => { setTipo("personal"); setEstado("todos"); setRol("todos"); }} />
+                    <Cifra icono="usuario" valor={cuenta((c) => rolesDe(c).includes("administrador"))} texto="administradores" />
+                    <Cifra icono="alerta" tono="vino" valor={cuenta(suspendidas)} texto="suspendidas" activa={estado === "suspendida"} alPresionar={() => { setTipo("todas"); setRol("todos"); setEstado("suspendida"); }} />
+                </Encabezado>
 
-            <Resumen tarjetas={[
-                { tono: "azul", icono: <IconoLista />, cifra: enPagina(esPersonal), titulo: "Personal en esta página", texto: "Con algún rol o permiso.", activa: filtro === "personal" && vista === "cuentas", alPresionar: () => { setVista("cuentas"); setFiltro("personal"); } },
-                { tono: "gris", icono: <IconoReloj />, cifra: enPagina((c) => rolesDe(c).includes("administrador")), titulo: "Administradores", texto: "Acceso total." },
-                { tono: "guinda", icono: <IconoAviso />, cifra: enPagina((c) => c.estatus !== "activo"), titulo: "Suspendidas o bloqueadas", texto: "Sin acceso.", activa: filtro === "suspendidas" && vista === "cuentas", alPresionar: () => { setVista("cuentas"); setFiltro("suspendidas"); } },
-                { tono: "azul", icono: <IconoLista />, cifra: ROLES.length + 1, titulo: "Roles", texto: "Usuario, Editor, Coordinación y Administración.", activa: vista === "roles", alPresionar: () => setVista("roles") },
-            ]} />
+                <div className="pz-columnas">
+                    <Tarjeta icono="cuentas" id={`${id}-lista`} titulo="Cuentas" texto="Busca por nombre o correo y usa Filtros para personal o usuarios" className="pz-pendientes">
+                        <Buscador etiqueta="Buscar por nombre o correo" placeholder="Buscar por nombre o correo" valor={texto} alCambiar={setTexto}>
+                            <FiltrosAvanzados activos={activos} alQuitar={quitarFiltros} grupos={[
+                                { titulo: "Tipo de cuenta", valor: tipo, alCambiar: (v) => setTipo(v as Tipo), opciones: [
+                                    { valor: "todas", texto: "Todas", cantidad: conteo((c) => cumpleRol(c, rol) && cumpleEstado(c, estado)) },
+                                    { valor: "personal", texto: "Personal de la biblioteca", cantidad: conteo((c) => esPersonal(c) && cumpleRol(c, rol) && cumpleEstado(c, estado)) },
+                                    { valor: "usuarios", texto: "Usuarios", cantidad: conteo((c) => !esPersonal(c) && cumpleRol(c, rol) && cumpleEstado(c, estado)) },
+                                ] },
+                                { titulo: "Rol", valor: rol, alCambiar: (v) => setRol(v as FiltroRol), opciones: [
+                                    { valor: "todos", texto: "Todos" },
+                                    ...ROLES.map((r) => ({ valor: r.codigo, texto: r.nombre, cantidad: conteo((c) => rolesDe(c).includes(r.codigo) && cumpleTipo(c, tipo) && cumpleEstado(c, estado)) })),
+                                ] },
+                                { titulo: "Estado", valor: estado, alCambiar: (v) => setEstado(v as FiltroEstado), opciones: [
+                                    { valor: "todos", texto: "Todos" },
+                                    ...ESTADOS_FILTRO.map((e) => ({ valor: e.valor, texto: e.texto, cantidad: conteo((c) => e.cumple(c) && cumpleTipo(c, tipo) && cumpleRol(c, rol)) })),
+                                ] },
+                            ]} />
+                        </Buscador>
 
-            <section className="contenidos-lista" aria-labelledby="ad-cuentas-titulo">
-                <div className="contenidos-lista__cabecera">
-                    <span className="contenidos-lista__icono"><IconoLista /></span>
-                    <div><h2 id="ad-cuentas-titulo">{vista === "cuentas" ? "Cuentas" : "Roles y permisos"}</h2><p>{vista === "cuentas" ? "Busca por nombre o correo." : "Qué incluye cada rol. Las capacidades se dan cuenta por cuenta."}</p></div>
-                </div>
-                <div className="contenidos-lista__herramientas">
-                    <Pestanas etiqueta="Vista" valor={vista} alCambiar={setVista} opciones={[{ valor: "cuentas", texto: "Cuentas" }, { valor: "roles", texto: "Roles y permisos" }]} />
-                    {vista === "cuentas" && (
-                        <label className="contenidos-buscar">
-                            <IconoBuscar />
-                            <input type="search" placeholder="Buscar por nombre o correo" aria-label="Buscar por nombre o correo" maxLength={100} value={texto} onChange={(e) => setTexto(e.target.value)} />
-                        </label>
-                    )}
-                </div>
-
-                {vista === "roles" ? (
-                    <div className="contenidos-tabla ad-tabla-roles" role="table" aria-label="Roles">
-                        <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row"><span role="columnheader">Rol</span><span role="columnheader">Qué permite</span></div>
-                        <div className="contenidos-tabla__fila" role="row"><span role="cell" className="contenidos-tabla__titulo">Usuario / Cliente</span><span role="cell">Rol básico de toda cuenta: perfil propio, solicitudes, inscripciones y foro.</span></div>
-                        {ROLES.map((r) => (
-                            <div key={r.codigo} className="contenidos-tabla__fila" role="row"><span role="cell" className="contenidos-tabla__titulo">{r.nombre}</span><span role="cell">{r.texto}</span></div>
-                        ))}
-                    </div>
-                ) : (
-                    <>
-                        <Pestanas etiqueta="Filtrar cuentas" valor={filtro} alCambiar={setFiltro} opciones={[{ valor: "personal", texto: "Personal" }, { valor: "todas", texto: `Todas (${total})` }, { valor: "suspendidas", texto: "Suspendidas o bloqueadas" }]} />
                         {lista.cargando && <EsqueletoLista texto="Cargando cuentas…" />}
                         {lista.error && <ErrorCarga texto={lista.error} alReintentar={lista.recargar} />}
                         {lista.datos && (visibles.length === 0 ? (
                             busqueda
-                                ? <EstadoVacio icono={vacioBuscar} titulo="Sin resultados" texto="No hay cuentas con esa búsqueda en esta página." accion={{ texto: "Quitar búsqueda", alPresionar: () => setTexto("") }} />
-                                : <EstadoVacio icono={vacioCheck} titulo="No hay cuentas con este filtro" texto="Prueba con «Todas» o pasa a la siguiente página." />
+                                ? <Vacio icono="buscarCuenta" titulo="Sin resultados" texto="No hay cuentas con esa búsqueda en esta página."
+                                    accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => setTexto("")}>Quitar búsqueda</button>} />
+                                : <Vacio titulo="No hay cuentas con estos filtros" texto="Prueba con otros filtros o pasa a la siguiente página."
+                                    accion={activos ? <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={quitarFiltros}>Quitar filtros</button> : undefined} />
                         ) : (
-                            <div className="contenidos-tabla ad-tabla-cuentas" tabIndex={0} role="table" aria-label="Cuentas">
-                                <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
-                                    {["Persona", "Correo", "Rol", "Estado", "Acción"].map((t) => <span key={t} role="columnheader">{t}</span>)}
-                                </div>
-                                {visibles.map((c) => (
-                                    <div key={c.id} className="contenidos-tabla__fila" role="row">
-                                        <span role="cell" className="contenidos-tabla__titulo">{nombreCompleto(c) || "Sin nombre"}</span>
-                                        <span role="cell" className="at-celda">{ocultarCorreo(c.correo)}</span>
-                                        <span role="cell" className="at-celda">{rolesTexto(c)}</span>
-                                        <span role="cell"><EstadoChip c={c} /></span>
-                                        <span role="cell"><Link to={`${RUTA}/${c.id}`} className="contenidos-tabla__accion">Abrir<span className="solo-lectores"> {nombreCompleto(c)}</span></Link></span>
-                                    </div>
-                                ))}
+                            <div className="pz-grupos" tabIndex={0} role="region" aria-label="Lista de cuentas">
+                                <ul className="pz-filas">
+                                    {visibles.map((c) => (
+                                        <li key={c.id}>
+                                            <article className="pz-fila">
+                                                <span className={`pz-fila__icono pz-rol-avatar pz-tono-rol--${tonoRol(c)}`} aria-hidden="true">{inicial(c)}</span>
+                                                <div className="pz-fila__textos">
+                                                    <h4 className="pz-fila__titulo">{nombreCompleto(c) || "Sin nombre"}</h4>
+                                                    <p className="pz-fila__detalle"><span>{ocultarCorreo(c.correo)}</span><Roles c={c} /></p>
+                                                </div>
+                                                <EstadoChip c={c} />
+                                                <Link to={`${RUTA}/${c.id}`} className="pz-boton pz-boton--chico">Ver ficha<span className="solo-lectores"> de {nombreCompleto(c)}</span></Link>
+                                            </article>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         ))}
+
                         {lista.datos && total > 0 && (
-                            <div className="contenidos-lista__pie">
-                                <p aria-live="polite">Mostrando {visibles.length} de {total} cuentas</p>
-                                <span />
-                                <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                                    <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>‹ Anterior</button>
-                                    <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                                    <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(pagina + 1)}>Siguiente ›</button>
-                                </div>
+                            <div className="pz-tarjeta__pie">
+                                <p aria-live="polite">{visibles.length} de {total} cuentas en esta página</p>
+                                <Paginas pagina={pagina + 1} paginas={paginas} alCambiar={(p) => setPagina(p - 1)} />
                             </div>
                         )}
-                    </>
-                )}
-            </section>
+                    </Tarjeta>
+
+                    <aside className="pz-lateral" aria-label="Roles y reglas">
+                        <TarjetaRoles id={`${id}-roles`} />
+                        <Reglas items={REGLAS_CUENTAS} />
+                    </aside>
+                </div>
+            </div>
         </Pantalla>
     );
 }
@@ -170,6 +231,7 @@ export function FichaPersonal() {
 }
 
 function Ficha({ c }: { c: CuentaResumen }) {
+    const id = useId();
     const navigate = useNavigate();
     const [ventana, setVentana] = useState<"restablecer" | "suspender" | "reactivar" | null>(null);
     const [error, setError] = useState("");
@@ -189,36 +251,74 @@ function Ficha({ c }: { c: CuentaResumen }) {
 
     return (
         <>
-            <EncabezadoPagina volver={{ texto: "Volver a Cuentas y permisos", ruta: RUTA }} etiqueta="Cuenta" titulo={nombreCompleto(c) || "Sin nombre"} texto={rolesTexto(c)} />
-            {error && <AvisoResultado tono="error" titulo="No se guardó el cambio" texto={error} chip="Sin cambios" />}
-            {aviso && <AvisoResultado tono="exito" titulo="Enlace enviado" texto={aviso} chip="Enviado" />}
-            <AvisoResultado tono={estado === "Activa" ? "exito" : estado === "Pendiente de activar" ? "espera" : "error"} titulo={`Cuenta ${estado.toLowerCase()}`}
-                texto={estado === "Activa" ? "Puede entrar al portal y al panel." : estado === "Pendiente de activar" ? "Todavía no confirma su correo." : "No puede entrar."} chip={estado} />
+            <Encabezado titulo={nombreCompleto(c) || "Sin nombre"} texto="Ficha de la cuenta: sus datos, lo que puede hacer y su historial.">
+                <EstadoChip c={c} />
+            </Encabezado>
+            {error && <Aviso tono="error" titulo="No se guardó el cambio." texto={error} />}
+            {aviso && <Aviso titulo="Enlace enviado." texto={aviso} />}
 
-            <Tarjeta icono={iconoUsuario} titulo="Datos">
-                <Datos>
-                    <Dato etiqueta="Correo">{c.correo}</Dato>
-                    <Dato etiqueta="Rol">{rolesTexto(c)}</Dato>
-                    <Dato etiqueta="Correo confirmado">{c.correoConfirmado ? "Sí" : "No"}</Dato>
-                </Datos>
-            </Tarjeta>
+            <div className="pz-columnas pz-columnas--libre">
+                <div className="pz-principal">
+                    <Tarjeta icono="usuario" id={`${id}-datos`} titulo="Datos de la cuenta">
+                        <div className={`pz-identidad pz-tono-rol--${tonoRol(c)}`}>
+                            <span className="pz-rol-avatar pz-identidad__avatar" aria-hidden="true">{inicial(c)}</span>
+                            <div className="pz-identidad__textos">
+                                <p className="pz-identidad__nombre">{nombreCompleto(c) || "Sin nombre"}</p>
+                                <p className="pz-identidad__correo">{c.correo}</p>
+                                <Roles c={c} />
+                            </div>
+                        </div>
+                        <Datos>
+                            <Dato icono="mensajes" etiqueta="Correo">{c.correoConfirmado ? <Chip tono="verde">Confirmado</Chip> : <Chip tono="dorado">Sin confirmar</Chip>}</Dato>
+                            <Dato icono="check" etiqueta="Estado"><EstadoChip c={c} /></Dato>
+                            <Dato icono="cuentas" etiqueta="Roles del personal">{rolesPersonal(c).length || "Ninguno"}</Dato>
+                            <Dato icono="lista" etiqueta="Capacidades">{capacidades.length}</Dato>
+                        </Datos>
+                    </Tarjeta>
 
-            <Tarjeta icono={iconoCheck} titulo="Lo que puede hacer" subtitulo="Capacidades con ámbito global.">
-                <Datos>
-                    {CAPACIDADES.map((g) => {
-                        const tiene = g.lista.filter(([codigo]) => capacidades.includes(codigo)).map(([, nombre]) => nombre);
-                        const total = g.modulo === "Administración" && roles.includes("administrador") ? ["Cuentas y permisos", ...tiene] : tiene;
-                        return <Dato key={g.modulo} etiqueta={g.modulo}>{total.length ? total.join(" · ") : "Sin acceso"}</Dato>;
-                    })}
-                </Datos>
-            </Tarjeta>
+                    <Tarjeta icono="check" id={`${id}-puede`} titulo="Lo que puede hacer" texto="Capacidades con ámbito global, por módulo">
+                        <ul className="pz-permisos">
+                            {CAPACIDADES.map((g) => {
+                                const tiene = g.lista.filter(([codigo]) => capacidades.includes(codigo)).map(([, nombre]) => nombre);
+                                const todas = g.modulo === "Administración" && roles.includes("administrador") ? ["Cuentas y permisos", ...tiene] : tiene;
+                                const total = g.lista.length + (g.modulo === "Administración" ? 1 : 0);
+                                return (
+                                    <li key={g.modulo} className={todas.length ? undefined : "pz-permisos--sin"}>
+                                        <span className="pz-permisos__icono" aria-hidden="true"><Icono nombre={ICONO_MODULO[g.modulo] ?? "lista"} /></span>
+                                        <div className="pz-permisos__textos">
+                                            <p className="pz-permisos__modulo">{g.modulo}<span>{todas.length} de {total}</span></p>
+                                            <span className="pz-ranking__barra" aria-hidden="true"><span style={{ width: `${(todas.length / total) * 100}%` }} /></span>
+                                            <div className="pz-etiquetas">
+                                                {todas.length ? todas.map((t) => <span key={t} className="pz-etiqueta">{t}</span>) : <span className="pz-etiqueta pz-etiqueta--vacia">Sin acceso</span>}
+                                            </div>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </Tarjeta>
 
-            <div className="contenidos-previa__acciones">
-                <Link to={`${RUTA}/${c.id}/permisos`} className="contenidos-boton contenidos-boton--principal">Cambiar rol y permisos</Link>
-                <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={guardando} onClick={() => setVentana("restablecer")}>Restablecer acceso</button>
-                {c.estatus === "activo" && <button type="button" className="contenidos-boton at-boton--guinda" disabled={guardando} onClick={() => setVentana("suspender")}>Suspender cuenta</button>}
-                {c.estatus === "inactivo" && <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={guardando} onClick={() => setVentana("reactivar")}>Reactivar cuenta</button>}
-                <Link to={RUTA} className="contenidos-boton contenidos-boton--suave-azul panel-regresar">Volver</Link>
+                    <HistorialFicha id={c.id} />
+                </div>
+
+                <aside className="pz-lateral" aria-label="Acciones de la cuenta">
+                    <Tarjeta icono="configuracion" id={`${id}-acciones`} titulo="Acciones" texto="Cada una pide confirmación y queda en la bitácora" className="pz-tarjeta--acciones">
+                        <div className={`pz-estado-cuenta pz-estado-cuenta--${TONO[estado] ?? "gris"}`}>
+                            <p className="pz-estado-cuenta__titulo">Cuenta {estado.toLowerCase()}</p>
+                            <p>{estado === "Activa" ? "Puede entrar al portal y al panel." : estado === "Pendiente de activar" ? "Todavía no confirma su correo." : "No puede entrar al portal ni al panel."}</p>
+                        </div>
+                        <div className="pz-acciones">
+                            <Link to={`${RUTA}/${c.id}/permisos`} className="pz-boton">Cambiar rol y permisos</Link>
+                            <button type="button" className="pz-boton pz-boton--contorno" disabled={guardando} onClick={() => setVentana("restablecer")}>Restablecer acceso</button>
+                            <p className="pz-acciones__nota">Envía un enlace a {ocultarCorreo(c.correo)} para que elija una nueva contraseña.</p>
+                        </div>
+                        <div className="pz-acciones pz-acciones--pie">
+                            {c.estatus === "activo" && <button type="button" className="pz-boton pz-boton--guinda pz-boton--contorno" disabled={guardando} onClick={() => setVentana("suspender")}>Suspender cuenta</button>}
+                            {c.estatus === "inactivo" && <button type="button" className="pz-boton pz-boton--contorno" disabled={guardando} onClick={() => setVentana("reactivar")}>Reactivar cuenta</button>}
+                            <Link to={RUTA} className="pz-boton pz-boton--contorno">Volver a Cuentas y permisos</Link>
+                        </div>
+                    </Tarjeta>
+                </aside>
             </div>
 
             {ventana === "restablecer" && (
@@ -240,6 +340,27 @@ function Ficha({ c }: { c: CuentaResumen }) {
     );
 }
 
+// Historial real de la cuenta (/administracion/cuentas/{id}/historial)
+function HistorialFicha({ id }: { id: string }) {
+    const idTarjeta = useId();
+    const historial = useCarga<HistorialCuenta>(`historial:${id}`, () => historialCuenta(id, 6));
+    const cambios = historial.datos?.cambios ?? [];
+    return (
+        <Tarjeta icono="bitacora" id={idTarjeta} titulo="Historial" texto={cambios.length ? `${cambios.length} ${cambios.length === 1 ? "movimiento" : "movimientos"}, lo más reciente arriba` : "Cambios de roles y estado de la cuenta"} className="pz-historial-tarjeta">
+            {historial.cargando && <p className="pz-acciones__nota">Cargando el historial…</p>}
+            {historial.error && <ErrorCarga titulo="No se pudo cargar el historial." texto={historial.error} alReintentar={historial.recargar} />}
+            {historial.datos && (cambios.length === 0
+                ? <Vacio icono="bitacora" titulo="Sin cambios todavía" texto="Cuando se cambie un rol o el estado, aparecerá aquí con su motivo." />
+                : (
+                    <LineaHistorial etiqueta="Historial de la cuenta" movimientos={cambios.map((cambio) => {
+                        const tono = cambio.accion === "retirar_rol" ? "guinda" as const : cambio.accion === "cambiar_estado" ? "dorado" as const : "verde" as const;
+                        return { titulo: ACCION_HISTORIAL[cambio.accion] ?? cambio.accion, tono, icono: /rol/.test(cambio.accion) ? "usuario" as const : undefined, detalle: fechaHora(cambio.realizadoEn), nota: cambio.motivo ? `Motivo: ${cambio.motivo}` : undefined };
+                    })} />
+                ))}
+        </Tarjeta>
+    );
+}
+
 // ---------- Rol y permisos (Figma 580:42404, confirmar 580:42910, error 657:52685) ----------
 
 export function PermisosCuenta() {
@@ -247,6 +368,7 @@ export function PermisosCuenta() {
 }
 
 function Permisos({ c }: { c: CuentaResumen }) {
+    const id = useId();
     const navigate = useNavigate();
     const inicialesRoles = rolesDe(c).filter((r): r is RolPersonal => ROLES.some((x) => x.codigo === r));
     const [roles, setRoles] = useState<RolPersonal[]>(inicialesRoles);
@@ -256,6 +378,8 @@ function Permisos({ c }: { c: CuentaResumen }) {
     const [guardando, setGuardando] = useState(false);
     // Una capacidad que ya no corresponde a los roles elegidos no se manda
     const validas = capacidades.filter((cap) => capacidadAdmiteRoles(cap, roles));
+    const cambio = JSON.stringify([...roles].sort()) !== JSON.stringify([...inicialesRoles].sort())
+        || JSON.stringify([...validas].sort()) !== JSON.stringify(capacidadesDe(c).filter((cap) => capacidadAdmiteRoles(cap, inicialesRoles)).sort());
 
     function alternarRol(rol: RolPersonal) {
         setRoles((r) => (r.includes(rol) ? r.filter((x) => x !== rol) : [...r, rol]));
@@ -280,45 +404,57 @@ function Permisos({ c }: { c: CuentaResumen }) {
 
     return (
         <>
-            <EncabezadoPagina volver={{ texto: "Volver a la cuenta", ruta: `${RUTA}/${c.id}` }} etiqueta="Rol y permisos" titulo={nombreCompleto(c) || "Sin nombre"}
-                texto="Elige los roles y lo que puede hacer en cada módulo. Algunas capacidades requieren un rol." />
-            {error && <AvisoResultado tono="error" titulo="No se pudieron guardar los permisos" texto={error} chip="Sin cambios" />}
+            <Encabezado titulo={`Rol y permisos de ${nombreCompleto(c) || "la cuenta"}`} texto="Elige los roles y lo que puede hacer en cada módulo. Algunas capacidades requieren un rol." />
+            {error && <Aviso tono="error" titulo="No se pudieron guardar los permisos." texto={error} />}
 
-            <Tarjeta icono={iconoUsuario} titulo="Roles del personal" subtitulo="Usuario / Cliente es automático en toda cuenta.">
-                <div className="ad-opciones">
-                    {ROLES.map((r) => (
-                        <label key={r.codigo} className={`ad-opcion${roles.includes(r.codigo) ? " ad-opcion--elegida" : ""}`}>
-                            <input type="checkbox" checked={roles.includes(r.codigo)} onChange={() => alternarRol(r.codigo)} disabled={guardando} />
-                            <span><strong>{r.nombre}</strong><small>{r.texto}</small></span>
-                        </label>
-                    ))}
-                </div>
-            </Tarjeta>
-
-            <Tarjeta icono={iconoCheck} titulo="Lo que puede hacer" subtitulo="Capacidades con ámbito global.">
-                {CAPACIDADES.map((g) => (
-                    <div key={g.modulo} className="ad-grupo">
-                        <p className="ad-grupo__titulo">{g.modulo}</p>
-                        <div className="ad-opciones">
-                            {g.lista.map(([codigo, nombre]) => {
-                                const admite = capacidadAdmiteRoles(codigo, roles);
-                                const elegida = capacidades.includes(codigo) && admite;
-                                return (
-                                    <label key={codigo} className={`ad-opcion${elegida ? " ad-opcion--elegida" : ""}${admite ? "" : " ad-opcion--bloqueada"}`}>
-                                        <input type="checkbox" checked={elegida} disabled={!admite || guardando} onChange={() => alternarCapacidad(codigo)} />
-                                        <span>{nombre}{!admite && <small>{codigo === "preparar_contenidos" || codigo === "gestionar_fuentes_asistente" ? "Requiere Editor de contenidos" : "Requiere Coordinación de actividades"}</small>}</span>
-                                    </label>
-                                );
-                            })}
+            <div className="pz-columnas pz-columnas--libre">
+                <div className="pz-principal">
+                    <Tarjeta icono="cuentas" id={`${id}-roles`} titulo="Roles del personal" texto="Usuario / Cliente es automático en toda cuenta">
+                        <div className="pz-opciones">
+                            {ROLES.map((r) => (
+                                <label key={r.codigo} className={`pz-casilla pz-casilla--rol pz-tono-rol--${r.codigo}${roles.includes(r.codigo) ? " pz-casilla--elegida" : ""}`}>
+                                    <input type="checkbox" checked={roles.includes(r.codigo)} onChange={() => alternarRol(r.codigo)} disabled={guardando} />
+                                    <span><strong><span className="pz-rol-punto" aria-hidden="true" />{r.nombre}</strong><small>{r.texto}</small></span>
+                                </label>
+                            ))}
                         </div>
-                    </div>
-                ))}
-            </Tarjeta>
+                    </Tarjeta>
 
-            <div className="contenidos-previa__acciones">
-                <button type="button" className="contenidos-boton contenidos-boton--principal" disabled={guardando} onClick={() => setConfirmando(true)}>{guardando ? "Guardando…" : "Guardar permisos"}</button>
-                <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={guardando} onClick={() => { setRoles(inicialesRoles); setCapacidades(capacidadesDe(c)); }}>Restablecer valores</button>
-                <Link to={`${RUTA}/${c.id}`} className="contenidos-boton contenidos-boton--suave-azul">Cancelar</Link>
+                    <Tarjeta icono="check" id={`${id}-capacidades`} titulo="Lo que puede hacer" texto="Capacidades con ámbito global, por módulo">
+                        {CAPACIDADES.map((g) => (
+                            <div key={g.modulo} className="pz-grupo-opciones">
+                                <p className="pz-grupo-opciones__titulo">{g.modulo}</p>
+                                <div className="pz-opciones">
+                                    {g.lista.map(([codigo, nombre]) => {
+                                        const admite = capacidadAdmiteRoles(codigo, roles);
+                                        const elegida = capacidades.includes(codigo) && admite;
+                                        return (
+                                            <label key={codigo} className={`pz-casilla${elegida ? " pz-casilla--elegida" : ""}${admite ? "" : " pz-casilla--bloqueada"}`}>
+                                                <input type="checkbox" checked={elegida} disabled={!admite || guardando} onChange={() => alternarCapacidad(codigo)} />
+                                                <span><strong>{nombre}</strong>{!admite && <small>{codigo === "preparar_contenidos" || codigo === "gestionar_fuentes_asistente" ? "Requiere Editor de contenidos" : "Requiere Coordinación de actividades"}</small>}</span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </Tarjeta>
+                </div>
+
+                <aside className="pz-lateral" aria-label="Guardar los permisos">
+                    <Tarjeta icono="configuracion" id={`${id}-guardar`} titulo="Resumen del cambio" texto={cambio ? "Tienes cambios sin guardar" : "Sin cambios por ahora"}>
+                        <Datos>
+                            <Dato etiqueta="Roles" ancho>{roles.length ? roles.map((r) => NOMBRE_ROL[r]).join(", ") : "Solo Usuario / Cliente"}</Dato>
+                            <Dato etiqueta="Capacidades" ancho>{validas.length}</Dato>
+                        </Datos>
+                        <div className="pz-acciones">
+                            <button type="button" className="pz-boton" disabled={guardando || !cambio} onClick={() => setConfirmando(true)}>{guardando ? "Guardando…" : "Guardar permisos"}</button>
+                            <button type="button" className="pz-boton pz-boton--contorno" disabled={guardando || !cambio} onClick={() => { setRoles(inicialesRoles); setCapacidades(capacidadesDe(c)); }}>Deshacer cambios</button>
+                            <Link to={`${RUTA}/${c.id}`} className="pz-boton pz-boton--contorno">Cancelar</Link>
+                            <p className="pz-acciones__nota">Al guardar se pide un motivo; el cambio queda en la bitácora de la cuenta.</p>
+                        </div>
+                    </Tarjeta>
+                </aside>
             </div>
 
             {confirmando && (
@@ -341,14 +477,14 @@ export function ResultadoPersonal({ tipo }: { tipo: "suspendida" | "reactivada" 
                 if (tipo === "suspendida" && c.estatus !== "inactivo") return <Navigate to={`${RUTA}/${c.id}`} replace />;
                 if (tipo === "reactivada" && c.estatus !== "activo") return <Navigate to={`${RUTA}/${c.id}`} replace />;
                 return (
-                    <>
-                        <EncabezadoPagina etiqueta="Cuenta" titulo={titulos[tipo]} texto="El cambio quedó en la bitácora de la cuenta." />
-                        <AvisoResultado tono={tipo === "suspendida" ? "error" : "exito"} titulo={nombreCompleto(c) || "Sin nombre"} texto={rolesTexto(c)} chip={estadoCuenta(c)} />
-                        <div className="contenidos-previa__acciones">
-                            <Link to={`${RUTA}/${c.id}`} className="contenidos-boton contenidos-boton--principal">Ver la cuenta</Link>
-                            <Link to={RUTA} className="contenidos-boton contenidos-boton--suave-azul panel-regresar">Volver a Cuentas y permisos</Link>
-                        </div>
-                    </>
+                    <section className="pz-tarjeta pz-resultado" aria-label={titulos[tipo]}>
+                        <Vacio icono={tipo === "suspendida" ? "alerta" : "check"} titulo={titulos[tipo]}
+                            texto={`${nombreCompleto(c) || "La cuenta"} (${rolesTexto(c)}). El cambio quedó en la bitácora de la cuenta.`}
+                            accion={<div className="pz-resultado__acciones">
+                                <Link to={`${RUTA}/${c.id}`} className="pz-boton">Ver la cuenta</Link>
+                                <Link to={RUTA} className="pz-boton pz-boton--contorno panel-regresar">Volver a Cuentas y permisos</Link>
+                            </div>} />
+                    </section>
                 );
             }}
         </ConCuenta>

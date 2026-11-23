@@ -52,7 +52,7 @@ describe('Perfil · eventos, progreso y avisos', () => {
 describe('Perfil · Mis propuestas y Mis espacios', () => {
     it('cuenta por estado como los filtros de Figma', () => {
         const p = contarPorGrupo(historialEjemplo.propuestas_eventos, (x) => estadoPropuesta[x.estadoRevision].grupo);
-        expect([p.atencion, p.observaciones, p.borradores]).toEqual([1, 1, 1]);
+        expect([p.atencion, p.aceptadas, p.observaciones, p.borradores]).toEqual([1, 1, 1, 1]);
         const e = contarPorGrupo(historialEjemplo.solicitudes_espacio, (x) => estadoEspacio[x.estadoSolicitud].grupo);
         expect([e.atencion, e.observaciones, e.canceladas]).toEqual([1, 1, 1]);
     });

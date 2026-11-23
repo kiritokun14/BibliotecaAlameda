@@ -16,6 +16,7 @@ export default function ImagenContenido({ folio, version, revision = false, text
         return () => { vigente = false; if (url) URL.revokeObjectURL(url); };
     }, [folio, clave, revision]);
     if (resultado.clave !== clave) return <span role="status" className="imagen-contenido-cargando"><span className="solo-lectores">Cargando imagen…</span><Bloque clase="imagen-contenido-cargando__bloque" /></span>;
-    if (resultado.error) return <p role="alert">{resultado.error}</p>;
+    // Si la imagen no llega (p. ej. el servidor no puede leer el almacenamiento), un recuadro en su lugar en vez de texto suelto
+    if (resultado.error) return <span role="status" className="imagen-contenido-error"><strong>Imagen no disponible por ahora</strong><span>{resultado.error}</span></span>;
     return <img src={resultado.url} alt={texto} style={{ maxWidth: '100%', maxHeight: 420, objectFit: 'contain', display: 'block' }} />;
 }

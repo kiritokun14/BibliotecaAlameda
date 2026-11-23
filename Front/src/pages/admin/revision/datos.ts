@@ -126,12 +126,16 @@ export function filtrarHistorial<T extends Pick<ContenidoRevision, "tipo" | "est
 
 const ACCIONES: Record<string, string> = {
     envio: "Enviado a autorización", observaciones: "Observaciones enviadas", aprobacion: "Autorizado",
-    publicacion: "Publicado", rechazo: "Rechazado", retiro: "Retirado del portal",
+    publicacion: "Publicado", rechazo: "Rechazado", retiro: "Retirado del portal", cancelacion: "Envío cancelado por el Editor",
 };
 
 export function eventosDetalle(c: Pick<ContenidoRevision, "historial" | "creadoEn">) {
-    const eventos = c.historial.map((e) => ({ titulo: ACCIONES[e.accion] ?? e.accion, fecha: e.fecha, responsable: e.responsable }));
-    return [...eventos, { titulo: "Creado", fecha: c.creadoEn, responsable: "" }].sort((a, b) => b.fecha.localeCompare(a.fecha));
+    const eventos = c.historial.map((e) => ({
+        accion: e.accion, titulo: ACCIONES[e.accion] ?? e.accion, fecha: e.fecha, responsable: e.responsable,
+        nota: e.nota ?? "", observaciones: e.observaciones ?? [],
+    }));
+    return [...eventos, { accion: "creado", titulo: "Creado como borrador", fecha: c.creadoEn, responsable: "", nota: "", observaciones: [] as string[] }]
+        .sort((a, b) => b.fecha.localeCompare(a.fecha));
 }
 
 // ---------- Observaciones (pedir cambios) ----------

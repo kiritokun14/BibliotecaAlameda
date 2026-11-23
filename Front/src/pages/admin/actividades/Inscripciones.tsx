@@ -1,45 +1,56 @@
 // Actividades › Inscripciones y cupos (datos reales: servicios/inscripciones).
-// Diseño común del panel (docs/guia-diseno.md): accesos rápidos, lista con filtros y filas en tarjeta. La lógica no cambia.
+// Rehecho con las piezas del panel (22 nov 2026): cifras que filtran → sesiones con su cupo | lo que se llena primero.
+// En una sesión: personas inscritas con la decisión en el lugar | el cupo de la sesión. La lógica no cambia.
 import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import PanelLayout from '../PanelLayout';
-import { Chip, EncabezadoPagina, EstadoVacio, Migas, type TonoChip } from '../componentes';
-import { IconoBandera, IconoLista, IconoReloj } from '../contenidos/piezas';
+import { Migas } from '../componentes';
+import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Plegable, Segmentado, Tarjeta, Vacio, type TonoEstado } from '../piezasPanel';
 import { ContextoPanel } from '../../../servicios/accesoPanel';
 import { mensajeError } from '../../../servicios/api';
 import { inscripcionesEnMemoria, listarActividadesInscripciones, listarSolicitudesInscripcion, consultarCuposInscripciones, decidirSolicitudInscripcion, type DecisionInscripcion, type ActividadInscripciones, type SolicitudInscripcion, type CuposInscripciones } from '../../../servicios/inscripciones';
-import { AccesosRapidos, CargandoFilas, CeldaDoble, ControlesLista, CuerpoLista, FILAS_POR_PAGINA, PieLista, SeccionLista, TablaLista } from './PiezasLista';
-import vacioCheck from '../../../assets/admin/vacio-check.svg';
-import vacioBuscar from '../../../assets/admin/vacio-search.svg';
+import { CargandoFilas } from './PiezasLista';
 
 const BASE = '/admin/actividades/inscripciones';
 const ZONA = 'America/Mazatlan';
 const fecha = (valor: string) => new Date(valor).toLocaleString('es-MX', { timeZone: ZONA, dateStyle: 'medium', timeStyle: 'short' });
 const dia = (valor: string) => new Date(valor).toLocaleDateString('es-MX', { timeZone: ZONA, weekday: 'long', day: 'numeric', month: 'long' });
-const hora = (valor: string) => new Date(valor).toLocaleTimeString('es-MX', { timeZone: ZONA, hour: '2-digit', minute: '2-digit' });
-const TONO_SESION: Record<string, TonoChip> = { programada: 'verde', finalizada: 'gris', cancelada: 'guinda' };
+const hora = (valor: string) => new Date(valor).toLocaleTimeString('es-MX', { timeZone: ZONA, hour: '2-digit', minute: '2-digit', hour12: false });
+const diaMes = (valor: string) => {
+    const d = new Date(valor);
+    return [d.toLocaleDateString('es-MX', { timeZone: ZONA, day: 'numeric' }), d.toLocaleDateString('es-MX', { timeZone: ZONA, month: 'short' }).replace('.', '')];
+};
+const TONO_SESION: Record<string, TonoEstado> = { programada: 'verde', finalizada: 'gris', cancelada: 'guinda' };
 const NOMBRE_SESION: Record<string, string> = { programada: 'Programada', finalizada: 'Realizada', cancelada: 'Cancelada' };
-const TONO_INSCRIPCION: Record<string, TonoChip> = { pendiente: 'dorado', confirmada: 'verde', rechazada: 'gris', cancelada: 'guinda' };
+const TONO_INSCRIPCION: Record<string, TonoEstado> = { pendiente: 'dorado', confirmada: 'verde', rechazada: 'gris', cancelada: 'guinda' };
 const NOMBRE_INSCRIPCION: Record<string, string> = { pendiente: 'Por decidir', confirmada: 'Confirmada', rechazada: 'Rechazada', cancelada: 'Cancelada' };
 const DECISIONES: Record<DecisionInscripcion, string> = { confirmar: 'Confirmar', rechazar: 'Rechazar', cancelar: 'Cancelar inscripción' };
 
 type FilaSesion = { actividad: ActividadInscripciones; sesion: ActividadInscripciones['sesiones'][number] };
 type FiltroSesiones = 'todas' | 'programadas' | 'realizadas' | 'canceladas';
 const ESTADO_FILTRO: Record<Exclude<FiltroSesiones, 'todas'>, string> = { programadas: 'programada', realizadas: 'finalizada', canceladas: 'cancelada' };
+const ocupacion = (c?: CuposInscripciones) => (c && c.capacidad ? Math.min(100, Math.round((c.confirmados / c.capacidad) * 100)) : 0);
+const tonoCupo = (c: CuposInscripciones) => (c.disponibles <= 0 ? 'guinda' : ocupacion(c) >= 80 ? 'dorado' : 'verde');
 
 export default function Inscripciones() {
     const identidad = useContext(ContextoPanel);
-    return <PanelLayout titulo="Actividades" tema="contenidos">
+    return <PanelLayout titulo="Actividades" tema="contenidos paleta">
         <Migas raiz="Actividades" pasos={[['Inscripciones y cupos']]} />
-        <EncabezadoPagina etiqueta="Actividades · Inscripciones" titulo="Inscripciones y cupos"
-            texto="Elige una sesión para ver quién se inscribió, cuántos lugares quedan y decidir cada solicitud." />
         <BandejaActividades key={identidad?.acceso.usuarioId ?? ''} />
     </PanelLayout>;
 }
 
+function BarraCupo({ cupo }: { cupo?: CuposInscripciones | 'error' }) {
+    if (!cupo) return <span className="ac-cifra-cargando" aria-label="Cargando cupo" />;
+    if (cupo === 'error') return <small className="ac-sin-accion">Cupo sin datos</small>;
+    return <span className="ins-cupo">
+        <span className="ins-cupo__texto"><strong>{cupo.confirmados}</strong> de {cupo.capacidad}<small>{cupo.disponibles <= 0 ? 'Lleno' : `${cupo.disponibles} libres`}</small></span>
+        <span className="pz-ocupacion" aria-hidden="true"><span className={`pz-ocupacion__relleno pz-ocupacion__relleno--${tonoCupo(cupo)}`} style={{ width: `${ocupacion(cupo)}%` }} /></span>
+    </span>;
+}
+
 function BandejaActividades() {
     const [pagina, setPagina] = useState(0);
-    const [paginaTabla, setPaginaTabla] = useState(0);
     const [intento, recargar] = useState(0);
     const [filtro, setFiltro] = useState<FiltroSesiones>('todas');
     const [registro, setRegistro] = useState('');
@@ -57,84 +68,111 @@ function BandejaActividades() {
 
     const datos = actual?.datos ?? [];
     const conInscripcion = datos.filter(a => a.requiereInscripcion);
-    const libres = datos.length - conInscripcion.length;
     const sesiones: FilaSesion[] = conInscripcion.flatMap(a => (a.sesiones ?? []).map(s => ({ actividad: a, sesion: s })))
-        .sort((x, y) => x.sesion.inicio.localeCompare(y.sesion.inicio));
+        .sort((x, y) => Number(y.sesion.registroAbierto) - Number(x.sesion.registroAbierto) || x.sesion.inicio.localeCompare(y.sesion.inicio));
     const cuenta = (f: FiltroSesiones) => sesiones.filter(x => f === 'todas' || x.sesion.estado === ESTADO_FILTRO[f]).length;
-    const abiertas = sesiones.filter(f => f.sesion.registroAbierto).length;
+    const abiertas = sesiones.filter(f => f.sesion.registroAbierto);
     const texto = busqueda.trim().toLowerCase();
     const filtradas = sesiones.filter(f => (filtro === 'todas' || f.sesion.estado === ESTADO_FILTRO[filtro])
         && (!registro || (registro === 'abierto') === f.sesion.registroAbierto)
         && (!texto || f.actividad.titulo.toLowerCase().includes(texto)));
-    const paginas = Math.max(1, Math.ceil(filtradas.length / FILAS_POR_PAGINA));
-    const pag = Math.min(paginaTabla, paginas - 1);
-    const visibles = filtradas.slice(pag * FILAS_POR_PAGINA, (pag + 1) * FILAS_POR_PAGINA);
-    const cupos = useCupos(visibles.map(f => f.sesion.id), intento);
-    const elegir = (f: FiltroSesiones) => { setFiltro(f); setPaginaTabla(0); };
-    const limpiar = () => { setBusqueda(''); setRegistro(''); elegir('todas'); };
+    const cupos = useCupos(filtradas.map(f => f.sesion.id), intento);
+    const limpiar = () => { setBusqueda(''); setRegistro(''); setFiltro('todas'); };
+    const llenandose = abiertas.map(f => ({ ...f, cupo: cupos[f.sesion.id] })).filter(f => f.cupo && f.cupo !== 'error')
+        .sort((a, b) => ocupacion(b.cupo as CuposInscripciones) - ocupacion(a.cupo as CuposInscripciones)).slice(0, 4);
 
-    if (!actual) return <CargandoFilas texto="Cargando actividades…" />;
-    if (actual.error) return <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar las actividades" texto={actual.error} accion={{ texto: 'Reintentar', alPresionar: () => recargar(x => x + 1) }} />;
-
-    return <>
-        <AccesosRapidos accesos={[
-            { clave: 'abiertas', icono: <IconoReloj />, cifra: abiertas, titulo: abiertas === 1 ? 'Sesión con registro abierto' : 'Sesiones con registro abierto', texto: 'Reciben inscripciones ahora.', enlace: 'Ver abiertas', tono: 'guinda', activo: registro === 'abierto', alPresionar: () => { setRegistro(registro === 'abierto' ? '' : 'abierto'); setPaginaTabla(0); } },
-            { clave: 'programadas', icono: <IconoBandera />, cifra: cuenta('programadas'), titulo: cuenta('programadas') === 1 ? 'Sesión programada' : 'Sesiones programadas', texto: 'Aún no se realizan.', enlace: 'Ver programadas', tono: 'azul', activo: filtro === 'programadas', alPresionar: () => elegir(filtro === 'programadas' ? 'todas' : 'programadas') },
-            { clave: 'actividades', icono: <IconoLista />, cifra: conInscripcion.length, titulo: conInscripcion.length === 1 ? 'Actividad con inscripción' : 'Actividades con inscripción', texto: libres ? `Más ${libres} de entrada libre.` : 'Todas piden inscripción.', tono: 'gris' },
-        ]} />
-
-        <ControlesLista
-            etiqueta="Filtros de sesiones"
-            chips={{ etiqueta: 'Estado de la sesión', activa: filtro, alElegir: elegir, opciones: [
-                { valor: 'todas', texto: `Todas (${sesiones.length})` },
-                { valor: 'programadas', texto: `Programadas (${cuenta('programadas')})` },
-                { valor: 'realizadas', texto: `Realizadas (${cuenta('realizadas')})` },
-                { valor: 'canceladas', texto: `Canceladas (${cuenta('canceladas')})` },
-            ] }}
-            busqueda={{ etiqueta: 'Buscar actividad', marcador: 'Nombre de la actividad…', texto: busqueda, alBuscar: v => { setBusqueda(v); setPaginaTabla(0); } }}
-            grupos={[{ etiqueta: 'Registro', opciones: [{ valor: '', texto: 'Abierto o cerrado' }, { valor: 'abierto', texto: 'Registro abierto' }, { valor: 'cerrado', texto: 'Registro cerrado' }], activa: registro, alElegir: v => { setRegistro(v); setPaginaTabla(0); } }]}
-            alLimpiar={limpiar}
-        />
-
-        <SeccionLista
-            id="sesiones-inscripcion"
-            icono={<IconoLista />}
-            titulo="Sesiones con inscripción"
-            texto="Abre una sesión para ver a las personas inscritas y decidir cada solicitud."
-            extra={<button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={() => recargar(x => x + 1)}>Actualizar</button>}
-        >
-            <CuerpoLista>
-                {sesiones.length === 0 ? (
-                    <EstadoVacio icono={vacioCheck} titulo="No hay sesiones con inscripción" texto="Cuando gestiones actividades que pidan inscripción, sus sesiones aparecerán aquí." />
-                ) : visibles.length === 0 ? (
-                    <EstadoVacio icono={vacioBuscar} titulo="Sin resultados" texto="No hay sesiones con esos filtros." accion={{ texto: 'Quitar filtros', alPresionar: limpiar }} />
-                ) : (
-                    <TablaLista
-                        clase="ac-tabla--sesiones"
-                        etiqueta="Sesiones con inscripción"
-                        filas={visibles}
-                        clave={f => f.sesion.id}
-                        columnas={[
-                            { titulo: 'Actividad', celda: f => <CeldaDoble arriba={f.actividad.titulo} abajo={f.actividad.requerimientos ? `Requisitos: ${f.actividad.requerimientos}` : 'Sin requisitos'} /> },
-                            { titulo: 'Sesión', celda: f => <CeldaDoble arriba={dia(f.sesion.inicio)} abajo={`${hora(f.sesion.inicio)} · hora de Tepic`} /> },
-                            { titulo: 'Cupo', celda: f => <CeldaCupo cupo={cupos[f.sesion.id]} /> },
-                            { titulo: 'Estado', celda: f => <CeldaDoble arriba={<Chip tono={TONO_SESION[f.sesion.estado] ?? 'gris'}>{NOMBRE_SESION[f.sesion.estado] ?? f.sesion.estado}</Chip>} abajo={f.sesion.registroAbierto ? 'Registro abierto' : 'Registro cerrado'} /> },
-                            { titulo: 'Acción', celda: f => <Link to={`${BASE}/${f.sesion.id}`} className="contenidos-tabla__accion">Ver inscritos<span className="tr-oculto"> {f.actividad.titulo}</span></Link> },
-                        ]}
-                    />
-                )}
-            </CuerpoLista>
-            {filtradas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filtradas.length} sesiones`} pagina={pag} paginas={paginas} alCambiar={setPaginaTabla} />}
-            {(pagina > 0 || datos.length >= 20) && <div className="contenidos-lista__pie"><p>Actividades: grupo {pagina + 1}</p>
-                <div className="contenidos-paginas" role="group" aria-label="Más actividades">
-                    <button type="button" disabled={pagina === 0} onClick={() => { setPagina(x => x - 1); setPaginaTabla(0); }}>Anteriores</button>
-                    <button type="button" disabled={datos.length < 20} onClick={() => { setPagina(x => x + 1); setPaginaTabla(0); }}>Siguientes</button>
-                </div></div>}
-        </SeccionLista>
-    </>;
+    return <div className="pz-pagina">
+        <Encabezado titulo="Inscripciones y cupos" texto="Elige una sesión para ver quién se inscribió, cuántos lugares quedan y decidir cada solicitud.">
+            <Cifra icono="inscripciones" tono="vino" valor={abiertas.length} texto="con registro abierto" activa={registro === 'abierto'} alPresionar={() => setRegistro(registro === 'abierto' ? '' : 'abierto')} />
+            <Cifra icono="calendario" valor={cuenta('programadas')} texto="programadas" activa={filtro === 'programadas'} alPresionar={() => setFiltro(filtro === 'programadas' ? 'todas' : 'programadas')} />
+            <Cifra icono="lista" valor={conInscripcion.length} texto={conInscripcion.length === 1 ? 'actividad con inscripción' : 'actividades con inscripción'} />
+        </Encabezado>
+        {!actual ? <CargandoFilas texto="Cargando actividades…" /> : actual.error ? (
+            <Aviso tono="error" titulo="No pudimos cargar las actividades." texto={actual.error}>
+                <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => recargar(x => x + 1)}>Reintentar</button>
+            </Aviso>
+        ) : (
+            <div className="pz-columnas">
+                <Tarjeta icono="inscripciones" id="sesiones-inscripcion" titulo="Sesiones con inscripción" texto="Primero las que tienen el registro abierto" className="pz-pendientes"
+                    accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => recargar(x => x + 1)}>Actualizar</button>}>
+                    <Buscador etiqueta="Buscar actividad" placeholder="Nombre de la actividad" valor={busqueda} alCambiar={setBusqueda}>
+                        <FiltrosAvanzados activos={(filtro !== 'todas' ? 1 : 0) + (registro ? 1 : 0)} alQuitar={() => { setFiltro('todas'); setRegistro(''); }} grupos={[
+                            { titulo: 'Estado de la sesión', valor: filtro, alCambiar: v => setFiltro(v as FiltroSesiones), opciones: [
+                                { valor: 'todas', texto: 'Todas', cantidad: sesiones.length }, { valor: 'programadas', texto: 'Programadas', cantidad: cuenta('programadas') },
+                                { valor: 'realizadas', texto: 'Realizadas', cantidad: cuenta('realizadas') }, { valor: 'canceladas', texto: 'Canceladas', cantidad: cuenta('canceladas') }] },
+                            { titulo: 'Registro', valor: registro, alCambiar: setRegistro, opciones: [{ valor: '', texto: 'Abierto o cerrado' },
+                                { valor: 'abierto', texto: 'Abierto', cantidad: abiertas.length }, { valor: 'cerrado', texto: 'Cerrado', cantidad: sesiones.length - abiertas.length }] },
+                        ]} />
+                    </Buscador>
+                    {sesiones.length === 0 ? <Vacio icono="inscripciones" titulo="No hay sesiones con inscripción" texto="Cuando gestiones actividades que pidan inscripción, sus sesiones aparecerán aquí." />
+                        : filtradas.length === 0 ? <Vacio icono="buscarCuenta" titulo="Sin resultados" texto="No hay sesiones con esos filtros."
+                            accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={limpiar}>Quitar filtros</button>} />
+                        : (
+                            <div className="pz-grupos" tabIndex={0} role="region" aria-label="Sesiones con inscripción">
+                                <ul className="pz-filas">
+                                    {filtradas.map(f => {
+                                        const [d, m] = diaMes(f.sesion.inicio);
+                                        return <li key={f.sesion.id}>
+                                            <article className={`pz-fila ins-fila${f.sesion.registroAbierto ? ' pz-fila--espera' : ''}`}>
+                                                <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{m}</span></span>
+                                                <div className="pz-fila__textos">
+                                                    <h4 className="pz-fila__titulo">{f.actividad.titulo}</h4>
+                                                    <p className="pz-fila__detalle"><span>{dia(f.sesion.inicio)}</span><span>{hora(f.sesion.inicio)} h</span></p>
+                                                </div>
+                                                <BarraCupo cupo={cupos[f.sesion.id]} />
+                                                {f.sesion.estado === 'programada'
+                                                    ? <Chip tono={f.sesion.registroAbierto ? 'verde' : 'gris'}>{f.sesion.registroAbierto ? 'Abierta' : 'Cerrada'}<span className="solo-lectores"> al registro</span></Chip>
+                                                    : <Chip tono={TONO_SESION[f.sesion.estado] ?? 'gris'}>{NOMBRE_SESION[f.sesion.estado] ?? f.sesion.estado}</Chip>}
+                                                <Link to={`${BASE}/${f.sesion.id}`} className={`pz-boton pz-boton--chico${f.sesion.registroAbierto ? '' : ' pz-boton--contorno'}`}>Ver inscritos<span className="solo-lectores"> {f.actividad.titulo}</span></Link>
+                                            </article>
+                                        </li>;
+                                    })}
+                                </ul>
+                            </div>
+                        )}
+                    <div className="pz-tarjeta__pie">
+                        <p aria-live="polite">{filtradas.length} de {sesiones.length} sesiones</p>
+                        {(pagina > 0 || datos.length >= 20) && <div className="pz-paginas" role="group" aria-label="Más actividades">
+                            <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anteriores</button>
+                            <span className="pz-paginas__actual">Grupo {pagina + 1}</span>
+                            <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={datos.length < 20} onClick={() => setPagina(x => x + 1)}>Siguientes</button>
+                        </div>}
+                    </div>
+                </Tarjeta>
+                <aside className="pz-lateral" aria-label="Lo que se llena primero">
+                    <Tarjeta icono="alerta" id="ins-llenandose" titulo="Se están llenando" texto="Registro abierto, de la más ocupada a la menos" className="pz-tarjeta--actividades">
+                        {llenandose.length ? <ul className="ins-llenas">
+                            {llenandose.map(f => {
+                                const c = f.cupo as CuposInscripciones;
+                                const lleno = c.disponibles <= 0;
+                                return <li key={f.sesion.id}>
+                                    <Link to={`${BASE}/${f.sesion.id}`} className="ins-llena">
+                                        <span className="ins-llena__cabeza">
+                                            <span className="ins-llena__titulo" title={f.actividad.titulo}>{f.actividad.titulo}</span>
+                                            <span className={`ins-llena__pct ins-llena__pct--${tonoCupo(c)}`}>{ocupacion(c)}%</span>
+                                        </span>
+                                        <span className="ins-llena__fecha">{dia(f.sesion.inicio)}, {hora(f.sesion.inicio)} h</span>
+                                        <span className="pz-ocupacion" aria-hidden="true"><span className={`pz-ocupacion__relleno pz-ocupacion__relleno--${tonoCupo(c)}`} style={{ width: `${ocupacion(c)}%` }} /></span>
+                                        <span className="ins-llena__pie"><span><strong>{c.confirmados}</strong> de {c.capacidad} lugares</span><span>{lleno ? 'Cupo lleno' : c.disponibles === 1 ? 'Queda 1' : `Quedan ${c.disponibles}`}</span></span>
+                                    </Link>
+                                </li>;
+                            })}
+                        </ul> : <Vacio icono="inscripciones" titulo="Sin registros abiertos" texto="Cuando una sesión abra su registro, verás aquí cómo se llena." />}
+                    </Tarjeta>
+                    <Plegable titulo="Cómo se decide una inscripción">
+                        <ul>
+                            <li>La persona se inscribe desde el portal y queda Por decidir.</li>
+                            <li>Confirmar ocupa un lugar del cupo; con el cupo lleno solo se puede rechazar.</li>
+                            <li>Toda decisión lleva motivo y queda en el historial de la persona.</li>
+                        </ul>
+                    </Plegable>
+                </aside>
+            </div>
+        )}
+    </div>;
 }
 
-// Cupo de cada sesión visible (se pide solo para las 5 de la página)
+// Cupo de cada sesión de la lista
 function useCupos(ids: string[], intento: number) {
     const [cupos, setCupos] = useState<Record<string, CuposInscripciones | 'error'>>({});
     const clave = ids.join(',');
@@ -148,18 +186,6 @@ function useCupos(ids: string[], intento: number) {
         return () => { vigente = false; };
     }, [clave, intento]);
     return cupos;
-}
-
-function CeldaCupo({ cupo }: { cupo?: CuposInscripciones | 'error' }) {
-    if (!cupo) return <span className="ac-cifra-cargando" aria-label="Cargando cupo" />;
-    if (cupo === 'error') return <small className="ac-sin-accion">Sin datos</small>;
-    const p = cupo.capacidad ? Math.min(100, Math.round((cupo.confirmados / cupo.capacidad) * 100)) : 0;
-    const lleno = cupo.disponibles <= 0;
-    // Dos renglones, como el resto de la tabla: cifra arriba y barra corta abajo
-    return <span className="ac-cupo-celda">
-        <span className="ac-cupo-celda__cifra"><strong>{cupo.confirmados}</strong> de {cupo.capacidad}<small>{lleno ? 'Lleno' : `${cupo.disponibles} libres`}</small></span>
-        <span className="ac-cupo__barra" aria-hidden="true"><span className={`ac-cupo__relleno ac-cupo__relleno--${lleno ? 'guinda' : p >= 80 ? 'dorado' : 'verde'}`} style={{ width: `${p}%` }} /></span>
-    </span>;
 }
 
 // Datos de la sesión que ya se cargaron en la lista (si se abrió desde ahí): actividad y fecha
@@ -177,24 +203,18 @@ export function InscritosActividad() {
     const { folio, id } = useParams();
     const identidad = useContext(ContextoPanel);
     const conocida = folio ? sesionConocida(folio) : undefined;
-    return <PanelLayout titulo="Actividades" tema="contenidos">
+    return <PanelLayout titulo="Actividades" tema="contenidos paleta">
         <Migas raiz="Actividades" pasos={[['Inscripciones y cupos', BASE], [conocida?.actividad.titulo ?? 'Sesión']]} />
-        <EncabezadoPagina volver={{ texto: 'Volver a inscripciones y cupos', ruta: BASE }} etiqueta="Actividades · Inscripciones"
-            titulo={conocida?.actividad.titulo ?? 'Inscripciones de la sesión'}
-            texto={conocida ? `${dia(conocida.sesion.inicio)} · ${hora(conocida.sesion.inicio)} (hora de Tepic). Confirmar ocupa un lugar del cupo.`
-                : 'Confirma, rechaza o cancela cada inscripción. Confirmar ocupa un lugar del cupo.'}
-            accion={conocida && <Chip tono={conocida.sesion.registroAbierto ? 'verde' : 'gris'}>{conocida.sesion.registroAbierto ? 'Registro abierto' : 'Registro cerrado'}</Chip>} />
-        {folio && <ListaSesion key={`${identidad?.acceso.usuarioId}:${folio}`} sesion={folio} seleccionada={id} />}
+        {folio && <ListaSesion key={`${identidad?.acceso.usuarioId}:${folio}`} sesion={folio} seleccionada={id} conocida={conocida} />}
     </PanelLayout>;
 }
 
 type FiltroInscripcion = 'todas' | SolicitudInscripcion['status'];
 
-function ListaSesion({ sesion, seleccionada }: { sesion: string; seleccionada?: string }) {
+function ListaSesion({ sesion, seleccionada, conocida }: { sesion: string; seleccionada?: string; conocida?: FilaSesion }) {
     const [pagina, setPagina] = useState(0); const [intento, recargar] = useState(0);
     const [filtro, setFiltro] = useState<FiltroInscripcion>('todas');
     const [busqueda, setBusqueda] = useState('');
-    const [paginaLista, setPaginaLista] = useState(0);
     const clave = `${pagina}:${intento}`;
     const [carga, setCarga] = useState<{ clave: string; solicitudes?: SolicitudInscripcion[]; cupos?: CuposInscripciones; error?: string }>({ clave: '' });
     const actual = carga.clave === clave ? carga : undefined;
@@ -206,68 +226,79 @@ function ListaSesion({ sesion, seleccionada }: { sesion: string; seleccionada?: 
     }, [sesion, pagina, clave]);
 
     const cupos = actual?.cupos;
-    const ocupacion = cupos && cupos.capacidad ? Math.min(100, Math.round((cupos.confirmados / cupos.capacidad) * 100)) : 0;
     const lleno = (cupos?.disponibles ?? 1) <= 0;
     const solicitudes = actual?.solicitudes ?? [];
     const cuenta = (f: FiltroInscripcion) => solicitudes.filter(s => f === 'todas' || s.status === f).length;
     const texto = busqueda.trim().toLowerCase();
     const visibles = solicitudes.filter(s => (filtro === 'todas' || s.status === filtro) && (!texto || (s.nombre || '').toLowerCase().includes(texto)))
         .sort((a, b) => Number(b.status === 'pendiente') - Number(a.status === 'pendiente') || a.creadoA.localeCompare(b.creadoA));
-    const sinCifra = <span className="ac-cifra-cargando" aria-label="Cargando" />;
-    const paginasLista = Math.max(1, Math.ceil(visibles.length / FILAS_POR_PAGINA));
-    const pagLista = Math.min(paginaLista, paginasLista - 1);
-    const enPagina = visibles.slice(pagLista * FILAS_POR_PAGINA, (pagLista + 1) * FILAS_POR_PAGINA);
+    const p = ocupacion(cupos);
 
-    return <>
-        <section className="ac-cupo-sesion" aria-label="Cupo de la sesión">
-            <div className="ac-cupo-sesion__cifras">
-                <div><span>Confirmadas</span><strong>{cupos ? cupos.confirmados : sinCifra}</strong></div>
-                <div><span>Lugares libres</span><strong className={lleno ? 'ac-cupo-sesion__lleno' : undefined}>{cupos ? cupos.disponibles : sinCifra}</strong></div>
-                <div><span>Cupo total</span><strong>{cupos ? cupos.capacidad : sinCifra}</strong></div>
-                <div><span>Por decidir</span><strong>{actual ? cuenta('pendiente') : sinCifra}</strong></div>
-            </div>
-            <div className="ac-cupo">
-                <span className="ac-cupo__barra"><span className={`ac-cupo__relleno ac-cupo__relleno--${lleno ? 'guinda' : ocupacion >= 80 ? 'dorado' : 'verde'}`} style={{ width: `${ocupacion}%` }} /></span>
-                <span>{cupos ? (lleno ? 'Cupo lleno: ya no se pueden confirmar más personas.' : `${ocupacion}% del cupo ocupado`) : 'Calculando cupo…'}</span>
-            </div>
-        </section>
-
-        {solicitudes.length > 0 && <ControlesLista
-            etiqueta="Filtros de inscripciones"
-            chips={{ etiqueta: 'Estado de la inscripción', activa: filtro, alElegir: (v: FiltroInscripcion) => { setFiltro(v); setPaginaLista(0); }, opciones: [
-                { valor: 'todas', texto: `Todas (${cuenta('todas')})` },
-                { valor: 'pendiente', texto: `Por decidir (${cuenta('pendiente')})` },
-                { valor: 'confirmada', texto: `Confirmadas (${cuenta('confirmada')})` },
-                { valor: 'rechazada', texto: `Rechazadas (${cuenta('rechazada')})` },
-                { valor: 'cancelada', texto: `Canceladas (${cuenta('cancelada')})` },
-            ] }}
-            busqueda={{ etiqueta: 'Buscar por nombre', marcador: 'Nombre de la persona…', texto: busqueda, alBuscar: v => { setBusqueda(v); setPaginaLista(0); } }}
-            alLimpiar={() => { setFiltro('todas'); setBusqueda(''); setPaginaLista(0); }}
-        />}
-
-        <SeccionLista
-            id="inscritos-titulo"
-            icono={<IconoLista />}
-            titulo="Personas inscritas"
-            texto="Las que esperan decisión aparecen primero."
-            extra={<button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={() => recargar(x => x + 1)}>Actualizar</button>}
-        >
-            <CuerpoLista>
-            {!actual ? <CargandoFilas texto="Cargando inscripciones…" filas={3} />
-                : actual.error ? <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar las inscripciones" texto={actual.error} accion={{ texto: 'Reintentar', alPresionar: () => recargar(x => x + 1) }} />
-                : !solicitudes.length ? <EstadoVacio icono={vacioCheck} titulo="Todavía no hay inscripciones" texto="Cuando alguien se inscriba a la sesión desde el portal, aparecerá aquí." />
-                : !visibles.length ? <EstadoVacio icono={vacioBuscar} titulo="Sin resultados" texto="No hay inscripciones con esos filtros." accion={{ texto: 'Quitar filtros', alPresionar: () => { setFiltro('todas'); setBusqueda(''); } }} />
-                : <ul className="ac-inscritos">{enPagina.map(i => <Solicitud key={i.id} solicitud={i} seleccionada={seleccionada === i.id} sinCupo={lleno} alActualizar={() => recargar(x => x + 1)} />)}</ul>}
-            </CuerpoLista>
-            {visibles.length > 0 && <PieLista texto={`Mostrando ${enPagina.length} de ${visibles.length} inscripciones`} pagina={pagLista} paginas={paginasLista} alCambiar={setPaginaLista} />}
-            {actual?.solicitudes && (pagina > 0 || actual.solicitudes.length >= 20) && <div className="contenidos-lista__pie"><p>Página {pagina + 1}</p>
-                <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                    <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>‹ Anterior</button>
-                    <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1}</button>
-                    <button type="button" disabled={actual.solicitudes.length < 20} onClick={() => setPagina(x => x + 1)}>Siguiente ›</button>
-                </div></div>}
-        </SeccionLista>
-    </>;
+    return <div className="pz-pagina">
+        <Encabezado titulo={conocida?.actividad.titulo ?? 'Inscripciones de la sesión'}
+            texto={conocida ? `${dia(conocida.sesion.inicio)}, ${hora(conocida.sesion.inicio)} h (hora de Tepic). Confirmar ocupa un lugar del cupo.` : 'Confirma, rechaza o cancela cada inscripción. Confirmar ocupa un lugar del cupo.'}>
+            <Cifra icono="reloj" tono="vino" valor={actual ? cuenta('pendiente') : '…'} texto="por decidir" activa={filtro === 'pendiente'} alPresionar={() => setFiltro(filtro === 'pendiente' ? 'todas' : 'pendiente')} />
+            <Cifra icono="check" valor={cupos ? cupos.confirmados : '…'} texto="confirmadas" activa={filtro === 'confirmada'} alPresionar={() => setFiltro(filtro === 'confirmada' ? 'todas' : 'confirmada')} />
+            <Cifra icono="inscripciones" valor={cupos ? cupos.disponibles : '…'} texto={lleno ? 'cupo lleno' : 'lugares libres'} />
+        </Encabezado>
+        <div className="pz-columnas">
+            <Tarjeta icono="grupo" id="inscritos-titulo" titulo="Personas inscritas" texto="Las que esperan decisión van primero" className="pz-pendientes"
+                accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => recargar(x => x + 1)}>Actualizar</button>}>
+                {solicitudes.length > 0 && <Buscador etiqueta="Buscar por nombre" placeholder="Nombre de la persona" valor={busqueda} alCambiar={setBusqueda}>
+                    <FiltrosAvanzados activos={filtro !== 'todas' ? 1 : 0} alQuitar={() => setFiltro('todas')} grupos={[
+                        { titulo: 'Estado de la inscripción', valor: filtro, alCambiar: v => setFiltro(v as FiltroInscripcion), opciones: [
+                            { valor: 'todas', texto: 'Todas', cantidad: cuenta('todas') }, { valor: 'pendiente', texto: 'Por decidir', cantidad: cuenta('pendiente') },
+                            { valor: 'confirmada', texto: 'Confirmadas', cantidad: cuenta('confirmada') }, { valor: 'rechazada', texto: 'Rechazadas', cantidad: cuenta('rechazada') },
+                            { valor: 'cancelada', texto: 'Canceladas', cantidad: cuenta('cancelada') }] },
+                    ]} />
+                </Buscador>}
+                {!actual ? <CargandoFilas texto="Cargando inscripciones…" filas={3} />
+                    : actual.error ? <Vacio icono="alerta" titulo="No pudimos cargar las inscripciones" texto={actual.error}
+                        accion={<button type="button" className="pz-boton pz-boton--chico" onClick={() => recargar(x => x + 1)}>Reintentar</button>} />
+                    : !solicitudes.length ? <Vacio icono="grupo" titulo="Todavía no hay inscripciones" texto="Cuando alguien se inscriba a la sesión desde el portal, aparecerá aquí." />
+                    : !visibles.length ? <Vacio icono="buscarCuenta" titulo="Sin resultados" texto="No hay inscripciones con esos filtros."
+                        accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setFiltro('todas'); setBusqueda(''); }}>Quitar filtros</button>} />
+                    : <div className="pz-grupos" tabIndex={0} role="region" aria-label="Personas inscritas">
+                        <ul className="pz-filas">{visibles.map(i => <Solicitud key={i.id} solicitud={i} seleccionada={seleccionada === i.id} sinCupo={lleno} alActualizar={() => recargar(x => x + 1)} />)}</ul>
+                    </div>}
+                <div className="pz-tarjeta__pie">
+                    <p aria-live="polite">{visibles.length} de {solicitudes.length} inscripciones</p>
+                    {actual?.solicitudes && (pagina > 0 || actual.solicitudes.length >= 20) && <div className="pz-paginas" role="group" aria-label="Páginas">
+                        <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button>
+                        <span className="pz-paginas__actual">Página {pagina + 1}</span>
+                        <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={actual.solicitudes.length < 20} onClick={() => setPagina(x => x + 1)}>Siguiente</button>
+                    </div>}
+                </div>
+            </Tarjeta>
+            <aside className="pz-lateral" aria-label="Cupo de la sesión">
+                <Tarjeta icono="inscripciones" id="ins-cupo" titulo="Cupo de la sesión" texto={cupos ? (lleno ? 'Ya no se pueden confirmar más personas' : `${p}% ocupado`) : 'Calculando cupo…'} className="pz-tarjeta--actividades"
+                    accion={conocida && <Chip tono={conocida.sesion.registroAbierto ? 'verde' : 'gris'}>{conocida.sesion.registroAbierto ? 'Registro abierto' : 'Registro cerrado'}</Chip>}>
+                    <div className={`ins-medidor ins-medidor--${cupos ? tonoCupo(cupos) : 'verde'}`} style={{ ['--p' as string]: `${p}%` }} role="img" aria-label={cupos ? `${cupos.confirmados} de ${cupos.capacidad} lugares ocupados` : 'Calculando cupo'}>
+                        <span className="ins-medidor__centro"><strong>{cupos ? cupos.confirmados : '…'}</strong><small>de {cupos ? cupos.capacidad : '…'}</small></span>
+                    </div>
+                    {solicitudes.length > 0 && <ol className="pz-ranking ins-desglose" aria-label="Inscripciones por estado">
+                        {(['pendiente', 'confirmada', 'rechazada', 'cancelada'] as const).map(e => (
+                            <li key={e}>
+                                <span className={`pz-ranking__lugar ins-desglose__punto ins-desglose__punto--${TONO_INSCRIPCION[e]}`} aria-hidden="true" />
+                                <div className="pz-ranking__textos">
+                                    <button type="button" className="pz-ranking__nombre ev-tipo-boton" aria-pressed={filtro === e} onClick={() => setFiltro(filtro === e ? 'todas' : e)}>{NOMBRE_INSCRIPCION[e]}</button>
+                                    <span className={`pz-ranking__barra as-barra--${TONO_INSCRIPCION[e]}`} aria-hidden="true"><span style={{ width: `${(cuenta(e) / solicitudes.length) * 100}%` }} /></span>
+                                </div>
+                                <p className="pz-ranking__valor"><strong>{cuenta(e)}</strong></p>
+                            </li>
+                        ))}
+                    </ol>}
+                    <Datos>
+                        {conocida && <Dato ancho icono="calendario" etiqueta="Sesión">{dia(conocida.sesion.inicio)}, {hora(conocida.sesion.inicio)} h</Dato>}
+                        <Dato icono="check" etiqueta="Confirmadas">{cupos ? cupos.confirmados : '…'}</Dato>
+                        <Dato icono="inscripciones" etiqueta="Libres">{cupos ? cupos.disponibles : '…'}</Dato>
+                        {conocida?.actividad.requerimientos && <Dato ancho icono="lista" etiqueta="Requisitos">{conocida.actividad.requerimientos}</Dato>}
+                    </Datos>
+                    <Link to={BASE} className="pz-enlace">Volver a las sesiones</Link>
+                </Tarjeta>
+            </aside>
+        </div>
+    </div>;
 }
 
 function Solicitud({ solicitud: i, sinCupo, seleccionada, alActualizar }: { solicitud: SolicitudInscripcion; sinCupo: boolean; seleccionada: boolean; alActualizar: () => void }) {
@@ -291,40 +322,38 @@ function Solicitud({ solicitud: i, sinCupo, seleccionada, alActualizar }: { soli
     }
     const opciones: DecisionInscripcion[] = i.status === 'pendiente' ? ['confirmar', 'rechazar', 'cancelar'] : ['cancelar'];
     const nombre = i.nombre || 'Persona inscrita';
-    return <li className={`ac-inscrito${seleccionada ? ' ac-inscrito--seleccionada' : ''}${abierta ? ' ac-inscrito--abierta' : ''}`}>
-        <div className="ac-inscrito__fila">
-            <span className="at-persona__inicial" aria-hidden="true">{nombre.charAt(0).toUpperCase()}</span>
-            <span className="ac-inscrito__textos"><strong>{nombre}</strong><small>Se inscribió el {fecha(i.creadoA)}</small></span>
+    const negativa = accion !== 'confirmar';
+    return <li>
+        <article className={`pz-fila${i.status === 'pendiente' ? ' pz-fila--espera' : ''}${seleccionada || abierta ? ' pz-fila--elegida' : ''}`}>
+            <span className="pz-rol-avatar pz-tono-rol--usuario ins-avatar" aria-hidden="true">{nombre.charAt(0).toUpperCase()}</span>
+            <div className="pz-fila__textos">
+                <h4 className="pz-fila__titulo">{nombre}</h4>
+                <p className="pz-fila__detalle"><span>Se inscribió el {fecha(i.creadoA)}</span></p>
+            </div>
             <Chip tono={TONO_INSCRIPCION[i.status] ?? 'gris'}>{NOMBRE_INSCRIPCION[i.status] ?? i.status}</Chip>
             {decidible
-                ? <button type="button" className={`contenidos-boton contenidos-boton--chico ${i.status === 'pendiente' && !abierta ? 'contenidos-boton--oscuro' : 'contenidos-boton--contorno'}`}
-                    aria-expanded={abierta} onClick={() => { setAbierta(x => !x); setError(''); }}>{abierta ? 'Cerrar' : i.status === 'pendiente' ? 'Decidir' : 'Cancelar…'}</button>
-                : <span className="ac-inscrito__sin-accion">Sin acciones</span>}
-        </div>
-        {abierta && <form onSubmit={enviar} className="ac-inscrito__decision">
-            <fieldset className="tr-campos" disabled={ocupado}>
-                <legend className="tr-oculto">Decisión sobre {nombre}</legend>
-                {opciones.length > 1 && <div className="contenidos-filtros tr-decisiones" role="radiogroup" aria-label="Decisión">
-                    {opciones.map(op => (
-                        <label key={op} className={`contenidos-filtro${accion === op ? ' contenidos-filtro--activo' : ''}${op === 'confirmar' && sinCupo ? ' tr-deshabilitada' : ''}`}>
-                            <input type="radio" name={`decision-${i.id}`} value={op} checked={accion === op} disabled={op === 'confirmar' && sinCupo} onChange={() => setAccion(op)} className="tr-oculto" />
-                            {DECISIONES[op]}
-                        </label>
-                    ))}
-                </div>}
-                {sinCupo && i.status === 'pendiente' && <p className="contenidos-campo__ayuda">No hay lugares libres: solo puedes rechazar o cancelar.</p>}
-                <div className="contenidos-campo"><label htmlFor={`motivo-${i.id}`}>Motivo <span className="contenidos-campo__obligatorio">*</span></label>
-                    <textarea id={`motivo-${i.id}`} name="motivo" rows={2} maxLength={500} required
-                        placeholder={accion === 'confirmar' ? 'Ej.: cumple con los requisitos.' : 'Ej.: la persona pidió cancelar.'} /></div>
-                <label className="at-casilla"><input key={accion} type="checkbox" required /> {accion === 'confirmar'
-                    ? 'Revisé los requisitos de la actividad.'
-                    : 'Revisé la solicitud y confirmo la decisión.'}</label>
-                <div className="tr-acciones">
-                    <button className={`contenidos-boton contenidos-boton--chico ${accion === 'confirmar' ? 'contenidos-boton--oscuro' : 'at-boton--guinda-lleno'}`} disabled={accion === 'confirmar' && sinCupo}>{ocupado ? 'Guardando…' : `Guardar: ${DECISIONES[accion].toLowerCase()}`}</button>
+                ? <button type="button" className={`pz-boton pz-boton--chico${i.status === 'pendiente' && !abierta ? '' : ' pz-boton--contorno'}`}
+                    aria-expanded={abierta} onClick={() => { setAbierta(x => !x); setError(''); }}>{abierta ? 'Cerrar' : i.status === 'pendiente' ? 'Decidir' : 'Cancelar'}</button>
+                : <span className="pz-acciones__nota">Sin acciones</span>}
+        </article>
+        {abierta && <form onSubmit={enviar} className="pz-decision ins-decision">
+            <fieldset className="pz-formulario" disabled={ocupado}>
+                <legend className="solo-lectores">Decisión sobre {nombre}</legend>
+                {opciones.length > 1 && <Segmentado<DecisionInscripcion> etiqueta="Decisión" valor={accion} alCambiar={setAccion}
+                    opciones={opciones.filter(op => !(op === 'confirmar' && sinCupo)).map(op => ({ valor: op, texto: DECISIONES[op] }))} />}
+                {sinCupo && i.status === 'pendiente' && <p className="pz-acciones__nota">No hay lugares libres: solo puedes rechazar o cancelar.</p>}
+                <label className="pz-campo pz-campo--lleno"><span>Motivo <span className="contenidos-campo__obligatorio">*</span></span>
+                    <textarea name="motivo" rows={2} maxLength={500} required placeholder={accion === 'confirmar' ? 'Ej.: cumple con los requisitos.' : 'Ej.: la persona pidió cancelar.'} /></label>
+                <label className="pz-casilla"><input key={accion} type="checkbox" required />
+                    <span><strong>{accion === 'confirmar' ? 'Revisé los requisitos de la actividad' : 'Revisé la solicitud'}</strong><small>Confirmo esta decisión.</small></span></label>
+                <div className="pz-acciones pz-acciones--fila">
+                    <button className={`pz-boton pz-boton--chico${negativa ? ' pz-boton--guinda' : ''}`} disabled={accion === 'confirmar' && sinCupo}>{ocupado ? 'Guardando…' : `Sí, ${DECISIONES[accion].toLowerCase()}`}</button>
+                    <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => setAbierta(false)}>No, volver</button>
                 </div>
             </fieldset>
         </form>}
-        {error && <div className="at-bloque at-bloque--error" role="alert"><strong>No se guardó</strong><p>{error}</p>
-            <p className="tr-acciones"><button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={alActualizar}>Consultar estado actual</button></p></div>}
+        {error && <Aviso tono="error" titulo="No se guardó." texto={error}>
+            <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={alActualizar}>Consultar estado actual</button>
+        </Aviso>}
     </li>;
 }

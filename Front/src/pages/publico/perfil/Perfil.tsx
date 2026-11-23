@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate, useParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import { consultarPerfil, consultarPreferenciasAvisos, type PerfilPropio } from "../../../servicios/perfil";
 import { cerrarSesion } from "../../../servicios/auth";
+import { salirConAnimacion } from "../../../components/sesion/transicion";
 import { ErrorServicio, mensajeError, obtenerSupabase } from "../../../servicios/api";
 import { simulacion } from "../../../servicios/simulacion";
 import { EncabezadoPerfil, MenuPerfil, ModalCerrarSesion } from "./piezas";
@@ -67,7 +68,7 @@ export default function Perfil({ vista }: { vista?: Vista }) {
 
     async function salir() {
         setCerrando(true); setErrorCierre("");
-        try { await cerrarSesion(); navegar("/"); }
+        try { await salirConAnimacion({ tema: "portal", cerrar: cerrarSesion, ir: () => navegar("/") }); } // con la animación de salida
         catch (e) { setErrorCierre(mensajeError(e)); setCerrando(false); }
     }
 

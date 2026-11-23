@@ -19,6 +19,8 @@ import vacioBuscar from "../../../../assets/admin/vacio-search.svg";
 import vacioCheck from "../../../../assets/admin/vacio-check.svg";
 
 import { EsqueletoDetalle, EsqueletoLista } from "../../../../components/portal/Esqueleto";
+import { LineaHistorial } from "../../piezasPanel";
+import { fechaHora } from "../comun/fechas";
 const RUTA = "/admin/atencion/cuentas";
 const POR_PAGINA = 10;
 
@@ -54,7 +56,7 @@ function ErrorCarga({ texto, alReintentar }: { texto: string; alReintentar: () =
 
 function Pantalla({ migas, children }: { migas: [string, string?][]; children: ReactNode }) {
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[["Consulta de cuentas", RUTA], ...migas]} />
             {children}
         </PanelLayout>
@@ -97,7 +99,7 @@ export default function Cuentas() {
     const filtros: Filtro[] = ["todas", "Activa", "Pendiente de activar", "Suspendida", "Bloqueada"];
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[["Consulta de cuentas"]]} />
             <EncabezadoPagina etiqueta="Atención · Consulta de cuentas" titulo="Consulta de cuentas" texto="Consulta datos de cuentas para atender dudas. Ver datos sensibles requiere indicar un motivo." />
 
@@ -148,9 +150,9 @@ export default function Cuentas() {
                         <p aria-live="polite">Mostrando {visibles.length} de {total} cuentas</p>
                         <span />
                         <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                            <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>‹ Anterior</button>
+                            <button type="button" disabled={pagina === 0} onClick={() => setPagina(pagina - 1)}>Anterior</button>
                             <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                            <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(pagina + 1)}>Siguiente ›</button>
+                            <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(pagina + 1)}>Siguiente</button>
                         </div>
                     </div>
                 )}
@@ -283,14 +285,11 @@ export function BitacoraCuenta() {
                 {bitacora.datos && (bitacora.datos.cambios.length === 0
                     ? <EstadoVacio icono={vacioCheck} titulo="Sin cambios registrados" texto="Cuando se cambie un rol o el estado de la cuenta, aparecerá aquí." />
                     : (
-                        <ol className="at-eventos">
-                            {bitacora.datos.cambios.map((cambio) => (
-                                <li key={cambio.id} className="at-eventos--hecho">
-                                    <strong>{ACCION[cambio.accion] ?? cambio.accion} {detalleCambio(cambio.anterior, cambio.posterior)}</strong>
-                                    <small>{new Date(cambio.realizadoEn).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })} · Motivo: {cambio.motivo}</small>
-                                </li>
-                            ))}
-                        </ol>
+                        <LineaHistorial etiqueta="Historial de la cuenta" movimientos={bitacora.datos.cambios.map((cambio) => ({
+                            titulo: `${ACCION[cambio.accion] ?? cambio.accion} ${detalleCambio(cambio.anterior, cambio.posterior)}`.trim(),
+                            tono: cambio.accion === "retirar_rol" ? "guinda" as const : cambio.accion === "cambiar_estado" ? "dorado" as const : "verde" as const,
+                            detalle: fechaHora(cambio.realizadoEn), nota: cambio.motivo ? `Motivo: ${cambio.motivo}` : undefined,
+                        }))} />
                     ))}
             </section>
         </Pantalla>

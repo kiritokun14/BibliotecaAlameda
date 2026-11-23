@@ -1,16 +1,19 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useId, useState } from "react";
 import { Link } from "react-router";
-import { IconoAviso, IconoBuscar, IconoDocumento, IconoLapiz, IconoLista, IconoReloj, Migas } from "./piezas";
+import { Migas } from "./piezas";
 import PanelLayout from "../PanelLayout";
 import { mensajeError } from "../../../servicios/api";
 import {
     consultarResumen, listarContenidos, type EstadoFiltroEditor, type EstadoContenidoApi, type ListaContenidos, type ResumenContenidos, type TipoContenidoApi,
 } from "../../../servicios/contenidos";
 import "./Contenidos.css";
+import { Aviso, Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, Paginas, Plegable, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
 
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 // Pantalla de inicio del Editor de contenidos (HU-11 / T-054).
 // Las cifras y la lista vienen del backend (/contenidos/editor) y solo incluyen lo propio.
+// 21 nov 2026: con las piezas del panel (como Administración): cifras que filtran, lista con scroll interno | lateral con
+// lo que se puede redactar y cómo se publica.
 
 export type EstadoContenido = "borrador" | "por_autorizar" | "con_observaciones" | "publicado";
 
@@ -42,16 +45,26 @@ const POR_PAGINA = 10;
 
 const formatoFecha = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", year: "numeric" });
 
-const ESTADOS: Record<EstadoVisible, { texto: string; accion: string }> = {
-    rechazado: { texto: "Rechazado", accion: "Ver" },
-    aprobado: { texto: "Aprobado", accion: "Ver" },
-    retirado: { texto: "Retirado", accion: "Ver" },
-    archivado: { texto: "Archivado", accion: "Ver" },
-    borrador: { texto: "Borrador", accion: "Editar" },
-    por_autorizar: { texto: "Por autorizar", accion: "Ver" },
-    con_observaciones: { texto: "Con observaciones", accion: "Corregir" },
-    publicado: { texto: "Publicado", accion: "Ver" },
+const ESTADOS: Record<EstadoVisible, { texto: string; accion: string; tono: TonoEstado }> = {
+    rechazado: { texto: "Rechazado", accion: "Ver", tono: "guinda" },
+    aprobado: { texto: "Aprobado", accion: "Ver", tono: "verde" },
+    retirado: { texto: "Retirado", accion: "Ver", tono: "gris" },
+    archivado: { texto: "Archivado", accion: "Ver", tono: "gris" },
+    borrador: { texto: "Borrador", accion: "Editar", tono: "gris" },
+    por_autorizar: { texto: "Por autorizar", accion: "Ver", tono: "dorado" },
+    con_observaciones: { texto: "Con observaciones", accion: "Corregir", tono: "guinda" },
+    publicado: { texto: "Publicado", accion: "Ver", tono: "verde" },
 };
+// Ícono de cada tipo de contenido (el mismo en la bandeja, al elegir el tipo y en la revisión)
+const ICONO_TIPO: Record<TipoContenidoApi, NombreIcono> = {
+    noticia: "contenido", resena: "fuentes", acerca: "info", memoria: "evidencias", servicio: "lista", programa: "calendario", recurso: "revision",
+};
+const QUE_REDACTAR: { tipo: TipoContenidoApi; texto: string; ruta: string }[] = [
+    { tipo: "noticia", texto: "Avisos, convocatorias y novedades", ruta: "/admin/contenidos/editor/nuevo/noticia" },
+    { tipo: "resena", texto: "Un libro recomendado por el equipo", ruta: "/admin/contenidos/editor/nuevo/resena" },
+    { tipo: "acerca", texto: "Historia, misión y Solón Argüello", ruta: "/admin/contenidos/editor/acerca" },
+    { tipo: "memoria", texto: "Fotografías y piezas del archivo", ruta: "/admin/contenidos/editor/nuevo/memoria" },
+];
 
 type Filtro = "todos" | EstadoContenido;
 
@@ -63,33 +76,8 @@ const FILTROS: { valor: Filtro; texto: string }[] = [
     { valor: "publicado", texto: "Publicados" },
 ];
 
-type TarjetaResumenProps = {
-    tono: "azul" | "gris" | "guinda";
-    icono: ReactNode;
-    cifra: number;
-    titulo: string;
-    texto: string;
-    enlace: string;
-    alPresionar: () => void;
-};
-
-function TarjetaResumen({ tono, icono, cifra, titulo, texto, enlace, alPresionar }: TarjetaResumenProps) {
-    return (
-        <article className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${tono}`}>
-            <div className="contenidos-resumen__fila">
-                <span className="contenidos-resumen__icono">{icono}</span>
-                <button type="button" className="contenidos-resumen__enlace" onClick={alPresionar}>
-                    {enlace}
-                </button>
-            </div>
-            <p className="contenidos-resumen__cifra">{cifra}</p>
-            <p className="contenidos-resumen__titulo">{titulo}</p>
-            <p className="contenidos-resumen__texto">{texto}</p>
-        </article>
-    );
-}
-
 function EditorContenidos() {
+    const id = useId();
     const [filtro, setFiltro] = useState<Filtro>("todos");
     const [busqueda, setBusqueda] = useState("");
     const [busquedaAplicada, setBusquedaAplicada] = useState("");
@@ -134,7 +122,7 @@ function EditorContenidos() {
     }, [filtro, busquedaAplicada, pagina, claveLista]);
 
     const elegirFiltro = (f: Filtro) => {
-        setFiltro(f);
+        setFiltro((actual) => (actual === f && f !== "todos" ? "todos" : f));
         setPagina(0);
     };
     const cuenta = (estado: EstadoContenido) => resumen?.[ESTADO_API[estado] as keyof ResumenContenidos] ?? 0;
@@ -146,159 +134,97 @@ function EditorContenidos() {
     const totalFiltrado = lista?.total ?? 0;
     const paginas = Math.max(1, Math.ceil(totalFiltrado / POR_PAGINA));
 
+    const ruta = (c: { folio: string; estadoPantalla: EstadoVisible }) =>
+        c.estadoPantalla === "con_observaciones" ? `/admin/contenidos/editor/${c.folio}/corregir`
+            : c.estadoPantalla === "borrador" ? `/admin/contenidos/editor/${c.folio}/editar`
+                : `/admin/contenidos/editor/${c.folio}/ver`;
+
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <Migas actual="Bandeja" />
+            <div className="pz-pagina">
+                <Encabezado titulo="Editor de contenidos" texto="Redacta noticias, reseñas y textos del portal. Lo que envías lo autoriza el Administrador antes de publicarse.">
+                    <Cifra icono="contenido" valor={resumen ? cuenta("borrador") : "…"} texto="borradores" activa={filtro === "borrador"} alPresionar={() => elegirFiltro("borrador")} />
+                    <Cifra icono="reloj" valor={resumen ? cuenta("por_autorizar") : "…"} texto="por autorizar" activa={filtro === "por_autorizar"} alPresionar={() => elegirFiltro("por_autorizar")} />
+                    <Cifra icono="alerta" tono="vino" valor={resumen ? cuenta("con_observaciones") : "…"} texto="con observaciones" activa={filtro === "con_observaciones"} alPresionar={() => elegirFiltro("con_observaciones")} />
+                </Encabezado>
+                {errorResumen && <Aviso tono="error" titulo="No se pudieron cargar los contadores." texto={errorResumen} />}
 
-            <div className="contenidos-encabezado">
-                <div>
-                    <h1>Editor de contenidos</h1>
-                </div>
-                <Link to="/admin/contenidos/editor/nuevo" className="contenidos-boton contenidos-boton--principal">
-                    Nuevo contenido
-                </Link>
-            </div>
+                <div className="pz-columnas">
+                    <Tarjeta icono="lista" id={`${id}-lista`} titulo="Mis contenidos" texto="Lo que has redactado, del más reciente al más antiguo" className="pz-pendientes"
+                        accion={<Link to="/admin/contenidos/editor/nuevo" className="pz-boton pz-boton--chico">Nuevo contenido</Link>}>
+                        <Buscador etiqueta="Buscar por folio o título" placeholder="Buscar por folio o título" valor={busqueda} alCambiar={setBusqueda}>
+                            <FiltrosAvanzados activos={filtro === "todos" ? 0 : 1} alQuitar={() => { setFiltro("todos"); setPagina(0); }} grupos={[
+                                { titulo: "Estado", valor: filtro, alCambiar: (v) => { setFiltro(v as Filtro); setPagina(0); },
+                                    opciones: FILTROS.map((f) => ({ valor: f.valor, texto: f.texto, cantidad: resumen ? (f.valor === "todos" ? total : cuenta(f.valor)) : undefined })) },
+                            ]} />
+                        </Buscador>
 
-            <section className="contenidos-resumen" aria-labelledby="contenidos-resumen-titulo">
-                <h2 id="contenidos-resumen-titulo">Seguimiento de contenidos</h2>
-                {errorResumen && <p role="alert" className="contenidos-error">No se pudieron cargar los contadores: {errorResumen}</p>}
-                <div className="contenidos-resumen__tarjetas">
-                    <TarjetaResumen
-                        tono="azul"
-                        icono={<IconoLapiz />}
-                        cifra={cuenta("borrador")}
-                        titulo="Borradores"
-                        texto="Aún no los has enviado a autorización."
-                        enlace="Ver borradores"
-                        alPresionar={() => elegirFiltro("borrador")}
-                    />
-                    <TarjetaResumen
-                        tono="gris"
-                        icono={<IconoReloj />}
-                        cifra={cuenta("por_autorizar")}
-                        titulo="Por autorizar"
-                        texto="Esperan la decisión del Administrador."
-                        enlace="Ver en autorización"
-                        alPresionar={() => elegirFiltro("por_autorizar")}
-                    />
-                    <TarjetaResumen
-                        tono="guinda"
-                        icono={<IconoAviso />}
-                        cifra={cuenta("con_observaciones")}
-                        titulo="Con observaciones"
-                        texto="Corrige y vuelve a enviar."
-                        enlace="Ver observaciones"
-                        alPresionar={() => elegirFiltro("con_observaciones")}
-                    />
-                </div>
-            </section>
-
-            <section className="contenidos-lista" aria-labelledby="contenidos-lista-titulo">
-                <div className="contenidos-lista__cabecera">
-                    <span className="contenidos-lista__icono"><IconoLista /></span>
-                    <div>
-                        <h2 id="contenidos-lista-titulo">Mis contenidos</h2>
-                    </div>
-                </div>
-
-                <div className="contenidos-lista__herramientas">
-                    <div className="contenidos-filtros" role="tablist" aria-label="Filtrar por estado">
-                        {FILTROS.map((f) => (
-                            <button
-                                key={f.valor}
-                                type="button"
-                                role="tab"
-                                aria-selected={filtro === f.valor}
-                                className={`contenidos-filtro${filtro === f.valor ? " contenidos-filtro--activo" : ""}`}
-                                onClick={() => elegirFiltro(f.valor)}
-                            >
-                                {f.texto} ({f.valor === "todos" ? total : cuenta(f.valor)})
-                            </button>
+                        {cargando && <EsqueletoLista texto="Cargando contenidos…" />}
+                        {error && <Aviso tono="error" titulo="No se pudo cargar la lista." texto={error} />}
+                        {!error && lista && (visibles.length === 0 ? (
+                            <Vacio icono="contenido" titulo={total === 0 ? "Todavía no tienes contenidos" : "No hay contenidos con este filtro"}
+                                texto={total === 0 ? "Cuando crees un borrador aparecerá aquí. Empieza con Nuevo contenido." : "Prueba con otro estado o cambia la búsqueda."}
+                                accion={total === 0
+                                    ? <Link to="/admin/contenidos/editor/nuevo" className="pz-boton pz-boton--chico">Nuevo contenido</Link>
+                                    : <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setFiltro("todos"); setBusqueda(""); setPagina(0); }}>Ver todos</button>} />
+                        ) : (
+                            <div className="pz-grupos" tabIndex={0} role="region" aria-label="Mis contenidos">
+                                <ul className="pz-filas">
+                                    {visibles.map((c) => (
+                                        <li key={c.folio}>
+                                            <article className={`pz-fila${c.estadoPantalla === "con_observaciones" ? " pz-fila--sensible" : ""}`}>
+                                                <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={ICONO_TIPO[c.tipo] ?? "contenido"} /></span>
+                                                <div className="pz-fila__textos">
+                                                    <h4 className="pz-fila__titulo">{c.titulo || "Sin título"}</h4>
+                                                    <p className="pz-fila__detalle"><span className="pz-fila__folio">{c.folio}</span><span>{NOMBRE_TIPO[c.tipo] ?? c.tipo}</span><span>Actualizado el {formatoFecha.format(new Date(c.actualizadoEn))}</span></p>
+                                                </div>
+                                                <Chip tono={ESTADOS[c.estadoPantalla].tono}>{ESTADOS[c.estadoPantalla].texto}</Chip>
+                                                <Link to={ruta(c)} className={`pz-boton pz-boton--chico${c.estadoPantalla === "borrador" || c.estadoPantalla === "con_observaciones" ? "" : " pz-boton--contorno"}`}>
+                                                    {ESTADOS[c.estadoPantalla].accion}<span className="solo-lectores"> {c.titulo}</span>
+                                                </Link>
+                                            </article>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         ))}
-                    </div>
-                    <label className="contenidos-buscar">
-                        <IconoBuscar />
-                        <input
-                            type="search"
-                            placeholder="Buscar por folio o título"
-                            value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                            aria-label="Buscar por folio o título"
-                        />
-                    </label>
+
+                        {lista && totalFiltrado > 0 && (
+                            <div className="pz-tarjeta__pie">
+                                <p aria-live="polite">{visibles.length} de {totalFiltrado} contenidos</p>
+                                <Paginas pagina={pagina + 1} paginas={paginas} bloqueada={cargando} alCambiar={(n) => setPagina(n - 1)} />
+                            </div>
+                        )}
+                    </Tarjeta>
+
+                    <aside className="pz-lateral" aria-label="Redactar">
+                        <Tarjeta icono="contenido" id={`${id}-redactar`} titulo="¿Qué quieres redactar?" texto="Elige el tipo y empieza un borrador" className="pz-tarjeta--actividades">
+                            <ul className="pz-actividades pz-redactar">
+                                {QUE_REDACTAR.map((q) => (
+                                    <li key={q.tipo}>
+                                        <Link to={q.ruta} className="pz-redactar__enlace">
+                                            <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={ICONO_TIPO[q.tipo]} /></span>
+                                            <span className="pz-actividades__textos">
+                                                <span className="pz-actividades__titulo">{NOMBRE_TIPO[q.tipo]}</span>
+                                                <span className="pz-actividades__detalle">{q.texto}</span>
+                                            </span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </Tarjeta>
+                        <Plegable titulo="Cómo se publica">
+                            <ul>
+                                <li>Guardas un borrador; nadie más lo ve.</li>
+                                <li>Lo envías a autorización y queda Por autorizar.</li>
+                                <li>El Administrador lo publica o te deja observaciones para corregir.</li>
+                                <li>Ya publicado, aparece en el portal con su folio.</li>
+                            </ul>
+                        </Plegable>
+                    </aside>
                 </div>
-
-                <div className="contenidos-tabla" tabIndex={0} role="table" aria-label="Mis contenidos" aria-busy={cargando}>
-                    {cargando && <EsqueletoLista texto="Cargando contenidos…" />}
-                    <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
-                        <span role="columnheader">Folio</span>
-                        <span role="columnheader">Título</span>
-                        <span role="columnheader">Tipo</span>
-                        <span role="columnheader">Autoría</span>
-                        <span role="columnheader">Estado</span>
-                        <span role="columnheader">Actualizado</span>
-                        <span role="columnheader">Acción</span>
-                    </div>
-
-                    {visibles.map((c) => (
-                        <div key={c.folio} className="contenidos-tabla__fila" role="row">
-                            <span role="cell" className="contenidos-tabla__folio">{c.folio}</span>
-                            <span role="cell" className="contenidos-tabla__titulo">{c.titulo || "Sin título"}</span>
-                            <span role="cell">{NOMBRE_TIPO[c.tipo] ?? c.tipo}</span>
-                            <span role="cell">Tú</span>
-                            <span role="cell">
-                                <span className={`contenidos-estado contenidos-estado--${c.estadoPantalla}`}>{ESTADOS[c.estadoPantalla].texto}</span>
-                            </span>
-                            <span role="cell">{formatoFecha.format(new Date(c.actualizadoEn))}</span>
-                            <span role="cell">
-                                {c.estadoPantalla === "con_observaciones" ? (
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/corregir`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion}</Link>
-                                ) : c.estadoPantalla === "borrador" ? (
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/editar`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion}</Link>
-                                ) : (
-                                    // TODO: pantalla para ver un contenido enviado o publicado
-                                    <Link to={`/admin/contenidos/editor/${c.folio}/ver`} className="contenidos-tabla__accion">{ESTADOS[c.estadoPantalla].accion}</Link>
-                                )}
-                            </span>
-                        </div>
-                    ))}
-
-                    {error && (
-                        <p className="contenidos-error" role="alert">{error}</p>
-                    )}
-
-                    {!error && lista && visibles.length === 0 && (
-                        <div className="contenidos-vacio" role="row">
-                            <span role="cell">
-                                <span className="contenidos-vacio__icono"><IconoDocumento /></span>
-                                <strong>{total === 0 ? "Todavía no tienes contenidos" : "No hay contenidos con este filtro"}</strong>
-                                <span>
-                                    {total === 0
-                                        ? "Cuando crees un borrador aparecerá aquí. Empieza con «Nuevo contenido»."
-                                        : "Prueba con otro estado o cambia la búsqueda."}
-                                </span>
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                <div className="contenidos-lista__pie">
-                    <p>Mostrando {visibles.length} de {totalFiltrado} contenidos</p>
-                    <button
-                        type="button"
-                        className="contenidos-boton contenidos-boton--oscuro"
-                        disabled={total === 0 || (filtro === "todos" && !busqueda)}
-                        onClick={() => { elegirFiltro("todos"); setBusqueda(""); }}
-                    >
-                        Ver todos mis contenidos
-                    </button>
-                    <div className="contenidos-paginas" aria-label="Páginas">
-                        <button type="button" disabled={cargando || pagina === 0} onClick={() => setPagina(pagina - 1)}>‹ Anterior</button>
-                        <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                        <button type="button" disabled={cargando || pagina + 1 >= paginas} onClick={() => setPagina(pagina + 1)}>Siguiente ›</button>
-                    </div>
-                </div>
-            </section>
+            </div>
         </PanelLayout>
     );
 }

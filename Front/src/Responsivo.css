@@ -1,0 +1,345 @@
+/* ==========================================================================================================
+   RESPONSIVO · teléfono y tableta (22 nov 2026, Aldahir). Una sola hoja, cargada en main.tsx, con los ajustes que
+   faltaban para que todo se vea y funcione bien en teléfono (≤ 600 px), tableta (601–1024 px) y en horizontal.
+   El escritorio (≥ 1025 px) NO cambia: todo va dentro de @media (max-width: …).
+   Los selectores empiezan con «html body» para ganar a las hojas de cada pantalla sin usar !important.
+   Revisado a 390 × 844, 844 × 390, 820 × 1180 y 1180 × 820 (AGENTS.md, «Diseño responsivo»).
+   ========================================================================================================== */
+
+/* ---------- Portal: botón del asistente ----------
+   En teléfono y tableta la pastilla «¿Tienes dudas? Pregunta al asistente» tapaba el contenido: queda solo el círculo
+   con el avatar (sigue abriendo el asistente y se puede arrastrar) y el globo de bienvenida no aparece. */
+@media (max-width: 1024px) {
+  html body .asistente { right: 12px; bottom: 12px; }
+  html body .asistente__globo { display: none; }
+  html body .asistente__boton { gap: 0; padding: 4px; }
+  html body .asistente__boton :is(.asistente__texto, .asistente__flecha) { display: none; }
+}
+
+/* ---------- Portal: cuenta en la barra (teléfono) ----------
+   El botón de «Mi perfil» quedaba como una pastilla blanca con contorno y un hueco a la derecha (el texto se oculta en
+   teléfono). Ahora es solo el avatar redondo de 44 px con su aro dorado, y la campana un círculo del mismo tamaño. */
+@media (max-width: 600px) {
+  html body .pagina-publica .menu-cuenta { gap: 8px; }
+  html body .pagina-publica .menu-cuenta__boton { gap: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+  html body .pagina-publica .menu-cuenta__boton > img { width: 40px; height: 40px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #e6d194, 0 4px 10px rgba(22, 79, 68, 0.18); }
+  html body .pagina-publica .menu-cuenta__boton:is(:hover, [aria-expanded="true"]) { box-shadow: none; }
+  html body .pagina-publica .menu-cuenta__boton[aria-expanded="true"] > img { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #164f44; }
+  html body .pagina-publica .menu-cuenta__campana { width: 44px; height: 44px; }
+}
+
+/* ---------- Inicio ---------- */
+@media (max-width: 1024px) {
+  /* Portada en una columna: el texto arriba y la composición de la foto abajo, centrada (en dos columnas el texto
+     se salía por la izquierda) */
+  html body .pagina-publica .portada { flex-direction: column; align-items: stretch; gap: 32px; }
+  html body .pagina-publica .portada__texto { width: 100%; }
+  html body .pagina-publica .portada__composicion { align-self: center; }
+  /* Pie de los bloques (Lecturas, Actividades, Noticias): la nota arriba y el botón abajo, centrados */
+  html body .pagina-publica .actividades-pie { flex-direction: column; align-items: center; gap: 14px; padding-inline: 0; }
+  html body .pagina-publica .actividades-pie .nota-ejemplo { text-align: center; }
+  /* Cómo encontrarnos: los datos arriba y el mapa abajo, los dos a todo lo ancho (lado a lado se partían el teléfono
+     y el horario) */
+  html body .pagina-publica .bloque.contacto { flex-direction: column; align-items: stretch; gap: 28px; }
+  html body .pagina-publica .contacto__datos { flex: none; width: 100%; max-width: none; }
+  html body .pagina-publica .bloque.contacto .mapa { flex: none; width: 100%; height: 320px; }
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+  /* Carruseles: dos tarjetas completas a la vista (antes la segunda quedaba cortada) */
+  html body .pagina-publica .carrusel :is(.libro, .tarjeta-actividad) { flex-basis: calc((100% - 24px) / 2); }
+}
+
+@media (max-width: 600px) {
+  /* Plantas a los costados de cada sección: en teléfono quedaban encima de los botones */
+  html body .pagina-publica .seccion-inicio::before,
+  html body .pagina-publica .seccion-inicio::after { display: none; }
+  html body .pagina-publica .bloque > .guia-flores:is(.guia-flores--izquierda, .guia-flores--derecha) { display: none; }
+
+  /* Portada: los dos botones uno debajo del otro, a todo lo ancho y sin cortar el texto */
+  html body .pagina-publica .portada__acciones { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  html body .pagina-publica .portada__acciones :is(.boton-blanco, .boton-contorno) { height: auto; min-height: 52px; padding: 12px 18px; white-space: normal; text-align: center; }
+  /* La composición (foto en arco, «+2 mil volúmenes», «Tramita tu credencial» y la actividad) se diseñó a
+     520 × 600: se dibuja igual, más chica, para que quepa completa y centrada */
+  html body .pagina-publica .portada__composicion { zoom: 0.62; align-self: center; margin-top: 8px; }
+
+  /* Portada: «Comunitaria · Académica · Cultural» como renglones compactos (ícono a la izquierda, texto a la derecha) */
+  html body .pagina-publica .portada__perfiles { gap: 8px; }
+  html body .pagina-publica .portada__perfiles li {
+    display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; row-gap: 0; align-items: center; padding: 10px 14px;
+  }
+  html body .pagina-publica .portada__perfil-icono { grid-row: span 2; }
+  html body .pagina-publica .portada__perfiles p { font-size: 13px; line-height: 18px; }
+
+  /* «¿Qué quieres hacer hoy?»: dos tarjetas por renglón, más bajas (antes eran cuatro tarjetas de 220 px una tras otra) */
+  html body .pagina-publica .tarjetas-acceso { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html body .pagina-publica .seccion-inicio .tarjeta-acceso { height: auto; min-height: 0; gap: 6px; padding: 16px 10px 20px; border-radius: 22px; }
+  html body .pagina-publica .tarjeta-acceso__icono { width: 44px; height: 44px; margin-bottom: 2px; }
+  html body .pagina-publica .tarjeta-acceso__icono img { width: 20px; height: 20px; }
+  html body .pagina-publica .tarjeta-acceso h3 { font-size: 15px; line-height: 19px; }
+  html body .pagina-publica .tarjeta-acceso p { font-size: 12.5px; line-height: 17px; }
+  html body .pagina-publica .tarjeta-acceso::after { bottom: 10px; }
+
+  /* Portada más corta: sin la composición de la foto (en teléfono la hacía el doble de larga) y con menos aire */
+  html body .pagina-publica .portada { gap: 0; padding-top: 24px; padding-bottom: 28px; min-height: 0; }
+  html body .pagina-publica .portada__composicion { display: none; }
+  html body .pagina-publica .portada__texto { gap: 14px; }
+  html body .pagina-publica .portada__titulo { font-size: 32px; line-height: 38px; }
+  html body .pagina-publica .portada__descripcion { font-size: 16px; line-height: 24px; }
+  /* Los dos botones lado a lado, más bajos */
+  html body .pagina-publica .portada__acciones { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  html body .pagina-publica .portada__acciones :is(.boton-blanco, .boton-contorno) { min-height: 46px; padding: 8px 10px; font-size: 14px; line-height: 18px; }
+
+  /* Para leer esta semana: portada del libro más chica y centrada; el título y la autoría juntos, sin el hueco de 3
+     renglones; el aviso del catálogo como tarjeta (la píldora se deformaba) */
+  html body .pagina-publica .carrusel .portada-libro { zoom: 0.82; }
+  html body .pagina-publica .libro { gap: 4px; padding: 0; }
+  html body .pagina-publica .libro h3 { min-height: 0; -webkit-line-clamp: 2; margin-top: 8px; font-size: 16px; line-height: 21px; }
+  html body .pagina-publica .libro > p { font-size: 13px; }
+  html body .pagina-publica .aviso-catalogo { flex-wrap: wrap; justify-content: center; gap: 8px 10px; padding: 12px 14px; border-radius: 18px; text-align: center; }
+  html body .pagina-publica .aviso-catalogo p { flex: 1 1 calc(100% - 30px); font-size: 13px; line-height: 18px; text-align: left; }
+  html body .pagina-publica .aviso-catalogo .boton-contorno-verde { height: 36px; }
+
+  /* Actividades: las categorías en una sola fila que se desliza, como pestañas de una app */
+  html body .pagina-publica .filtros-actividad { display: block; width: calc(100% + 32px); margin-inline: -16px; overflow-x: auto; scrollbar-width: none; }
+  html body .pagina-publica .filtros-actividad::-webkit-scrollbar { display: none; }
+  html body .pagina-publica .filtros-actividad .chips-filtro { flex-wrap: nowrap; justify-content: flex-start; width: max-content; padding: 2px 16px; }
+  html body .pagina-publica .filtros-actividad .chip-filtro { flex: none; }
+
+  /* Últimas noticias: solo el carrusel de la destacada (la lista de abajo repetía las mismas noticias) */
+  html body .pagina-publica .otras-noticias { display: none; }
+
+  /* Crea tu cuenta y tramita tu credencial: pasos más compactos, los dos botones lado a lado y la credencial de
+     muestra más chica, sin la foto de fondo */
+  html body .pagina-publica .llamado__pasos { gap: 8px; }
+  html body .pagina-publica .llamado__paso { padding: 10px 12px; }
+  html body .pagina-publica .llamado__botones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  html body .pagina-publica .llamado__botones > * { width: auto; min-width: 0; height: 46px; padding: 0 10px; font-size: 14px; }
+  html body .pagina-publica .llamado__visual { flex: none; width: 100%; height: auto; display: flex; justify-content: center; padding: 8px 0 4px; }
+  html body .pagina-publica .llamado__foto { display: none; }
+  html body .pagina-publica .credencial-muestra { position: relative; width: min(300px, 100%); transform: rotate(-3deg); }
+
+  /* Carruseles (Lecturas y Actividades): una tarjeta a todo lo ancho; se pasa deslizando y con los puntos.
+     Las flechas ocupaban 64 px de cada lado y la tarjeta quedaba cortada */
+  html body .pagina-publica .seccion-inicio .carrusel { padding-inline: 0; }
+  html body .pagina-publica .seccion-inicio .carrusel .flecha-carrusel { display: none; }
+  html body .pagina-publica .carrusel__pista { scroll-padding-inline: 2px; }
+  html body .pagina-publica .carrusel .libro { flex-basis: 100%; }
+  html body .pagina-publica .carrusel .tarjeta-actividad { flex-basis: 100%; }
+
+  /* Pie de los bloques: el botón y el aviso del catálogo a todo lo ancho */
+  html body .pagina-publica .actividades-pie .boton-dorado { width: 100%; min-width: 0; min-height: 46px; }
+  html body .pagina-publica .actividades-pie .aviso-catalogo { width: 100%; box-sizing: border-box; }
+
+  /* Noticias: miniatura más chica y la fecha baja debajo de la categoría cuando no cabe */
+  html body .pagina-publica .noticia-mini__miniatura { width: 72px; min-height: 72px; }
+  html body .pagina-publica .noticia-mini__meta { flex-wrap: wrap; row-gap: 4px; }
+
+  /* Cifras: una debajo de otra, alineadas a la izquierda (centradas una por una quedaban chuecas) */
+  html body .pagina-publica .bloque.cifras { flex-direction: column; align-items: flex-start; gap: 18px; padding: 28px 32px; }
+  html body .pagina-publica .cifra strong { font-size: 28px; line-height: 32px; }
+  /* Noticias: sin la pastilla «Viendo» (empujaba el texto) ni el corrimiento de la noticia elegida */
+  html body .pagina-publica .noticia-mini__viendo { display: none; }
+  html body .pagina-publica .noticia-mini--activa { transform: none; }
+
+  /* Cómo encontrarnos: un dato por renglón; el horario puede ocupar dos líneas */
+  html body .pagina-publica .datos-contacto { grid-template-columns: minmax(0, 1fr); }
+  html body .pagina-publica .datos-contacto .datos-contacto__horario { white-space: normal; }
+}
+
+/* ---------- Inicio en teléfono, como app (23 nov 2026) ----------
+   Bloques casi de orilla a orilla, menos aire entre secciones, títulos a tamaño de teléfono, cifras en mosaico de 2 × 2,
+   mapa más bajo y pie del portal en dos columnas. */
+@media (max-width: 600px) {
+  html body .pagina-publica .seccion-inicio { padding: 10px 10px; }
+  html body .pagina-publica .seccion-inicio > .bloque { padding: 26px 16px 22px; border-radius: 24px; gap: 16px; }
+  html body .pagina-publica .titulo-seccion { font-size: 28px; line-height: 34px; letter-spacing: -0.4px; }
+  html body .pagina-publica .titulo-seccion--grande { font-size: 30px; line-height: 36px; }
+  html body .pagina-publica .texto-seccion { font-size: 15px; line-height: 22px; }
+
+  html body .pagina-publica .portada { padding-inline: 18px; }
+
+  html body .pagina-publica .bloque.cifras { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 16px; }
+  html body .pagina-publica .cifra { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; border-radius: 16px; background: rgba(255, 253, 248, 0.55); }
+  html body .pagina-publica .cifra__icono { width: 40px; height: 40px; }
+  html body .pagina-publica .cifra__icono img { width: 19px; height: 19px; }
+  html body .pagina-publica .cifra strong { font-size: 21px; line-height: 26px; letter-spacing: -0.3px; }
+  html body .pagina-publica .cifra p { font-size: 12.5px; line-height: 16px; }
+  html body .pagina-publica .cifras__rama { display: none; }
+
+  html body .pagina-publica .bloque.contacto .mapa { height: 220px; }
+
+  html body .pagina-publica .pie-portal__columnas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+}
+
+/* ---------- Páginas internas en teléfono: franja de título (23 nov 2026) ----------
+   El ícono de la sección iba a un lado del título y lo empujaba (en «Servicios y programas» quedaba encima del texto):
+   en teléfono va arriba, centrado y más chico. */
+@media (max-width: 600px) {
+  html body .pagina-publica .encabezado-publico__titular { flex-direction: column; gap: 10px; }
+  /* position: relative para que el ícono (::after) quede dentro del círculo; en Acerca de iba «static» y el ícono se
+     dibujaba enorme sobre toda la franja */
+  html body .pagina-publica .encabezado-publico .encabezado-publico__insignia { position: relative; width: 40px; height: 40px; }
+  html body .pagina-publica .encabezado-publico .encabezado-publico__insignia::after { inset: 10px; }
+}
+
+/* ---------- Servicios y programas en teléfono (23 nov 2026) ----------
+   Cada servicio como renglón de app: foto a la izquierda y textos a la derecha (antes cada tarjeta medía ~380 px); la
+   descripción en dos líneas. «¿No encuentras lo que buscas?» apilado y centrado, con botones de 46 px. */
+@media (max-width: 600px) {
+  html body .pagina-publica .servicios-rejilla { gap: 10px; }
+  html body .pagina-publica .servicio-tarjeta__cuerpo { flex-direction: row; border-radius: 20px; }
+  html body .pagina-publica .servicio-tarjeta__foto { flex: none; width: 104px; height: auto; min-height: 128px; }
+  html body .pagina-publica .servicio-tarjeta__foto::after { background: linear-gradient(90deg, transparent 60%, rgba(11, 59, 51, 0.18)); }
+  html body .pagina-publica .servicio-tarjeta__insignia { display: none; }
+  html body .pagina-publica .servicio-tarjeta__textos { gap: 4px; padding: 14px 14px 14px 14px; min-width: 0; }
+  html body .pagina-publica .servicio-tarjeta__titulo { margin-top: 2px; font-size: 16px; line-height: 21px; }
+  html body .pagina-publica .servicio-tarjeta__descripcion {
+    display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 13px; line-height: 18px;
+  }
+  html body .pagina-publica :is(.servicio-tarjeta__accion, .servicio-tarjeta__nota) { margin-top: 4px; font-size: 13px; }
+
+  html body .pagina-publica .servicios-ayuda { flex-direction: column; align-items: center; gap: 12px; padding: 24px 18px; text-align: center; }
+  html body .pagina-publica .servicios-ayuda__textos { align-items: center; }
+  html body .pagina-publica .servicios-ayuda h2 { font-size: 20px; line-height: 26px; }
+  html body .pagina-publica .servicios-ayuda__botones { width: 100%; flex-direction: column; gap: 10px; }
+  html body .pagina-publica .servicios-ayuda .perfil-boton { width: 100%; min-width: 0; height: auto; min-height: 46px; padding: 0 16px; }
+}
+
+/* ---------- Acerca de en teléfono (23 nov 2026) ----------
+   Carruseles de fotos con el mismo margen que la tarjeta (antes la primera foto quedaba pegada a la orilla) y etapas
+   de la historia más compactas: número más chico, textos a tamaño de teléfono y el resumen en 3 líneas (se lee
+   completo al abrirla). Las pestañas de secciones en una fila que se desliza, con un desvanecido al final. */
+@media (max-width: 600px) {
+  html body .pagina-publica .acerca-cuerpo :is(.historia-galeria, .historia-solon, .acerca-obras) {
+    margin: 0 -12px; padding: 0 12px 6px; scroll-padding-inline: 12px; grid-auto-columns: 82%;
+  }
+  html body .pagina-publica .acerca-cuerpo .historia-etapas { gap: 8px; }
+  html body .pagina-publica .acerca-cuerpo .historia-etapa__boton { grid-template-columns: 30px minmax(0, 1fr) auto; gap: 4px 10px; padding: 12px; }
+  html body .pagina-publica .acerca-cuerpo .historia-etapa__numero { width: 30px; height: 30px; font-size: 13px; }
+  html body .pagina-publica .acerca-cuerpo .historia-etapa .perfil-solicitud__textos strong { font-size: 15px; line-height: 20px; }
+  html body .pagina-publica .acerca-cuerpo .historia-etapa:not(.historia-etapa--abierta) .perfil-solicitud__textos > span {
+    display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; font-size: 13px; line-height: 18px;
+  }
+  html body .pagina-publica .acerca-cuerpo .historia-etapa__fecha { font-size: 12px; }
+}
+
+/* ---------- Noticias en tableta y teléfono (23 nov 2026) ----------
+   El detalle seguía en dos columnas (texto | «Sobre esta noticia») y en teléfono el texto salía de una palabra por
+   renglón: ahora va en una columna, el lateral debajo del texto. En las listas, cada noticia es un renglón de app. */
+@media (max-width: 1024px) {
+  html body .pagina-publica .detalle-noticia__columnas { grid-template-columns: minmax(0, 1fr); gap: 20px; margin-top: 16px; padding: 0 16px; }
+  html body .pagina-publica .detalle-noticia__lateral { position: static; }
+}
+@media (max-width: 600px) {
+  /* Detalle: foto más baja y sin la cortina de la franja encima */
+  html body .pagina-publica .detalle-noticia__encabezado--compacto + .detalle-noticia__cuerpo .detalle-noticia__columnas .detalle-noticia__imagen { height: 210px; }
+  html body .pagina-publica .detalle-lateral__botones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  html body .pagina-publica .detalle-lateral__botones > * { width: auto; min-width: 0; padding: 0 10px; font-size: 14px; }
+
+  /* Noticias: categorías en una fila que se desliza y «Ver todas» a todo lo ancho */
+  html body .pagina-publica .noticias-barra { flex-direction: column; align-items: stretch; gap: 12px; }
+  html body .pagina-publica .noticias-barra { min-width: 0; max-width: 100%; }
+  html body .pagina-publica .noticias-barra .chips-filtro { flex-wrap: nowrap; justify-content: flex-start; align-self: stretch; width: calc(100% + 32px); max-width: none; min-width: 0; box-sizing: border-box; margin-inline: -16px; padding: 2px 16px; overflow-x: auto; scrollbar-width: none; }
+  html body .pagina-publica .noticias-barra .chips-filtro::-webkit-scrollbar { display: none; }
+  html body .pagina-publica .noticias-barra .chip-filtro { flex: none; }
+  html body .pagina-publica .noticias-barra .boton-noticias { width: 100%; justify-content: center; }
+
+  /* Destacada más compacta */
+  html body .pagina-publica .noticia-principal__titulo { font-size: 22px; line-height: 28px; }
+  html body .pagina-publica .noticia-principal__resumen { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; font-size: 14px; line-height: 20px; }
+
+  /* Más noticias y Todas las noticias: renglón con miniatura a la izquierda */
+  html body .pagina-publica .noticias-fila, html body .pagina-publica .noticias-archivo { display: flex; flex-direction: column; gap: 10px; }
+  html body .pagina-publica .noticias-pagina .tarjeta-noticia { flex-direction: row; align-items: stretch; border-radius: 18px; }
+  html body .pagina-publica .noticias-pagina .tarjeta-noticia__imagen { flex: none; width: 104px; height: auto; min-height: 104px; }
+  html body .pagina-publica .noticias-pagina .tarjeta-noticia__imagen img { height: 100%; }
+  html body .pagina-publica .noticias-pagina .tarjeta-noticia__textos { gap: 4px; padding: 12px 14px; min-width: 0; }
+  html body .pagina-publica .noticias-pagina .tarjeta-noticia__titulo { font-size: 15px; line-height: 20px; -webkit-line-clamp: 2; }
+  html body .pagina-publica .noticias-pagina .tarjeta-noticia__resumen { display: none; }
+  html body .pagina-publica .noticias-pagina .tarjeta-noticia__meta { flex-wrap: wrap; gap: 4px 8px; font-size: 12px; }
+}
+@media (max-width: 600px) {
+  /* «¿Qué te pareció?»: la pregunta arriba y las reacciones en renglones que se acomodan (antes se salían) */
+  html body .pagina-publica .detalle-noticia__texto .reacciones-noticia { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px 14px; }
+  html body .pagina-publica .detalle-noticia__texto .reacciones-noticia__pregunta { flex-wrap: wrap; gap: 2px 8px; }
+  html body .pagina-publica .detalle-noticia__texto .reacciones-noticia__pregunta p { white-space: normal; }
+  /* Tres botones iguales en un renglón, como la barra de reacciones de una app: ícono arriba, nombre y cantidad abajo */
+  html body .pagina-publica .detalle-noticia__texto .reacciones-noticia__chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  html body .pagina-publica .detalle-noticia__texto .reacciones-noticia__chips .reaccion-noticia {
+    display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px;
+    min-width: 0; height: auto; min-height: 86px; padding: 10px 4px; border-radius: 16px; font-size: 12.5px; line-height: 16px; text-align: center;
+  }
+  html body .pagina-publica .detalle-noticia__texto .reacciones-noticia__chips .reaccion-noticia img { width: 20px; height: 20px; }
+  html body .pagina-publica .detalle-noticia__texto .reacciones-noticia__chips .reaccion-noticia__cantidad { min-width: 20px; height: 18px; padding: 0 5px; font-size: 11px; }
+  html body .pagina-publica .detalle-noticia__texto .reacciones-noticia__titulo { font-size: 17px; }
+  html body .pagina-publica .detalle-noticia__texto .reacciones-noticia__pregunta p:not(.reacciones-noticia__titulo) { width: 100%; font-size: 13px; }
+}
+
+/* ---------- Leer una noticia en teléfono (23 nov 2026), como lector de noticias de app ----------
+   Encabezado corto y a la izquierda (categoría y fecha en un renglón, título de 24 px), la foto de orilla a orilla y
+   montada sobre la franja, la entrada como subtítulo (sin recuadro), el texto a 17 px con buen interlineado y
+   «Sobre esta noticia» oculto (sus datos ya están arriba). */
+@media (max-width: 600px) {
+  html body .pagina-publica .detalle-noticia__encabezado--compacto { align-items: flex-start; gap: 10px; padding: 20px 18px 84px; text-align: left; }
+  html body .pagina-publica .detalle-noticia__encabezado--compacto .encabezado-publico__circulo { display: none; }
+  html body .pagina-publica .detalle-noticia__encabezado--compacto .detalle-noticia__meta {
+    flex-wrap: wrap; justify-content: flex-start; gap: 4px 10px; padding: 0; border: 0; background: none; box-shadow: none; font-size: 12.5px;
+  }
+  html body .pagina-publica .detalle-noticia__encabezado--compacto h1 { font-size: 24px; line-height: 31px; letter-spacing: -0.2px; text-align: left; }
+  html body .pagina-publica .detalle-noticia__encabezado--compacto .detalle-noticia__resumen { font-size: 14.5px; line-height: 21px; text-align: left; }
+
+  html body .pagina-publica .detalle-noticia__columnas { margin-top: -68px; padding: 0; gap: 14px; }
+  html body .pagina-publica .detalle-noticia__texto { padding: 0 18px; box-sizing: border-box; width: 100%; }
+  html body .pagina-publica .detalle-noticia__encabezado--compacto + .detalle-noticia__cuerpo .detalle-noticia__columnas .detalle-noticia__imagen {
+    height: 220px; margin: 0 -8px 18px; border-radius: 18px;
+  }
+  html body .pagina-publica .detalle-noticia__introduccion {
+    margin: 0 0 14px; padding: 0 0 14px; border: 0; border-bottom: 1px solid #e2ded5; border-radius: 0; background: none; box-shadow: none;
+    color: #164f44; font-size: 18px; line-height: 27px; font-weight: 600;
+  }
+  html body .pagina-publica .detalle-noticia__texto > p:not(.detalle-noticia__introduccion) { font-size: 17px; line-height: 28px; }
+  html body .pagina-publica .detalle-noticia__texto > h2 { font-size: 20px; line-height: 26px; }
+
+  html body .pagina-publica .detalle-noticia__lateral { padding: 0 18px 32px; }
+  html body .pagina-publica .detalle-noticia__lateral > .detalle-lateral__tarjeta:first-child { display: none; }
+}
+
+/* ---------- Filtros en tableta y teléfono (23 nov 2026, Aldahir): solo el ícono, a la derecha del buscador ----------
+   Vale para el portal (BarraFiltros: Noticias, Actividades, Lecturas…) y para las listas con las piezas del panel
+   (FiltrosAvanzados: perfil, Notificaciones y el panel). El texto «Filtros» queda para lectores de pantalla y la
+   cantidad de filtros elegidos va como globo sobre el ícono. */
+@media (max-width: 1024px) {
+  html body .barra-filtros__fila { flex-wrap: nowrap; }
+  html body .pagina-publica .barra-filtros__buscar { flex: 1 1 auto; }
+  html body .barra-filtros .barra-filtros__abrir { position: relative; justify-content: center; width: 46px; height: 46px; padding: 0; border-radius: 50%; }
+  html body .barra-filtros__abrir .barra-filtros__flecha { display: none; }
+  html body .pagina-publica .barra-filtros .barra-filtros__abrir svg:not(.barra-filtros__flecha) { width: 22px; height: 22px; flex: none; }
+  html body :is(.barra-filtros__texto, .pz-filtros-av__texto) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  html body .barra-filtros__abrir .barra-filtros__cuenta { position: absolute; top: -4px; right: -4px; }
+
+  html body .pz-buscador { flex-wrap: nowrap; }
+  html body .pz-filtros-av__boton { position: relative; justify-content: center; width: 44px; padding: 0; gap: 0; border-radius: 50%; }
+  html body .pz-filtros-av__boton .pz-opcion__cantidad { position: absolute; top: -5px; right: -5px; }
+  /* El panel de filtros sale bajo el botón y cabe en la pantalla */
+  html body .pz-filtros-av__panel { width: min(340px, calc(100vw - 32px)); }
+
+  /* Todas las noticias: solo lista (en teléfono la cuadrícula se veía igual) */
+  html body .pagina-publica .selector-vista { display: none; }
+}
+
+/* ---------- Eventos en teléfono: barra «Tipo» y «Ver como» (23 nov 2026) ----------
+   Los dos grupos iban en una fila y se encimaban (la página medía 653 px): ahora uno debajo del otro, cada uno en una
+   fila que se desliza, con su etiqueta a la izquierda. */
+@media (max-width: 600px) {
+  html body .pagina-publica .evento-herramientas { display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
+  html body .pagina-publica .evento-herramientas::before, html body .pagina-publica .evento-herramientas::after { display: none; }
+  html body .pagina-publica .evento-herramientas__grupo { min-width: 0; max-width: 100%; gap: 10px; padding: 0; }
+  html body .pagina-publica .evento-herramientas__grupo + .evento-herramientas__grupo { margin: 0; padding: 10px 0 0; border-left: 0; border-top: 1px solid #efebe2; }
+  html body .pagina-publica .evento-herramientas__etiqueta { width: 62px; }
+  html body .pagina-publica .evento-herramientas__grupo > :not(.evento-herramientas__etiqueta) {
+    flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+  }
+  html body .pagina-publica .evento-herramientas__grupo > :not(.evento-herramientas__etiqueta)::-webkit-scrollbar { display: none; }
+  html body .pagina-publica .evento-herramientas__grupo :is(.perfil-filtro, .evento-vista__opcion) { flex: none; }
+}

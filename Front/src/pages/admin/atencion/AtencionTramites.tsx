@@ -1,23 +1,22 @@
 // Atención › Solicitudes de credencial y Propuestas de eventos (datos reales del backend).
 // Diseño: el mismo de Atención › Espacios (piezas de ../componentes y clases «contenidos-*»).
-import { useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import PanelLayout from '../PanelLayout';
-import { Chip, EncabezadoPagina, EstadoVacio, Migas, Tarjeta, type TonoChip } from '../componentes';
-import { IconoAviso, IconoBuscar, IconoLista, IconoReloj } from '../contenidos/piezas';
+import { EstadoVacio, Migas, Tarjeta, type TonoChip } from '../componentes';
+import { Buscador, Chip as ChipPz, Cifra, Encabezado, FiltrosAvanzados, Historial, Icono, Plegable, Tarjeta as TarjetaPz, Vacio, type NombreIcono, type TonoEstado } from '../piezasPanel';
 import Flujo, { type Etapa, type IconoSiguiente } from './Flujo';
 import { partirDescripcion } from './descripcion';
-import { CeldaDoble } from './Bandeja';
 import { Bloque } from '../../../components/portal/Esqueleto';
 import { ContextoPanel, permisoGlobal } from '../../../servicios/accesoPanel';
 import { conteosEnMemoria, conteosTramites, consultarTramite, listarTramites, resolverTramite, tramiteEnMemoria, tramitesEnMemoria, estadoTramite, ESTADOS_CREDENCIAL, ESTADOS_PROPUESTA,
     type ListaTramites, type SolicitudAtencion, type TipoTramite } from '../../../servicios/tramites';
 import { mensajeError } from '../../../servicios/api';
 import PublicarPropuesta from './propuestas/PublicarPropuesta';
-import vacioCheck from '../../../assets/admin/vacio-check.svg';
+import MapaDonde from './MapaDonde';
+import { ListaEspera } from './Espera';
 import vacioBuscar from '../../../assets/admin/vacio-search.svg';
 import tarjetaUser from '../../../assets/admin/tarjeta-user.svg';
-import tarjetaClock from '../../../assets/admin/tarjeta-clock.svg';
 import tarjetaInfo from '../../../assets/admin/tarjeta-info.svg';
 import tarjetaCheck from '../../../assets/admin/tarjeta-check.svg';
 import './AtencionTramites.css';
@@ -56,12 +55,16 @@ export default function AtencionTramites() {
     const { pathname } = useLocation(); const { folio } = useParams();
     const tipo: TipoTramite = pathname.includes('/credenciales') ? 'credencial' : 'propuesta';
     const base = `/admin/atencion/${tipo === 'credencial' ? 'credenciales' : 'propuestas'}`;
-    return <PanelLayout titulo="Atención" tema="contenidos">
+    return <PanelLayout titulo="Atención" tema="contenidos paleta">
         {folio ? <Detalle key={folio} tipo={tipo} folio={folio} base={base} /> : <Lista key={tipo} tipo={tipo} base={base} />}
     </PanelLayout>;
 }
 
-// ---------- Bandeja ----------
+// ---------- Bandeja (rehecha con las piezas del panel, 22 nov 2026) ----------
+const ICONO_TRAMITE: Record<TipoTramite, NombreIcono> = { credencial: 'credencial', propuesta: 'propuesta' };
+const diasDesde = (iso?: string | null) => (iso ? Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)) : 0);
+const esperando = (iso?: string | null) => { const d = diasDesde(iso); return d === 0 ? 'Llegó hoy' : d === 1 ? 'Espera desde ayer' : `Espera desde hace ${d} días`; };
+
 function Lista({ tipo, base }: { tipo: TipoTramite; base: string }) {
     const textos = TEXTOS[tipo];
     const estados = tipo === 'credencial' ? ESTADOS_CREDENCIAL : ESTADOS_PROPUESTA;
@@ -80,96 +83,122 @@ function Lista({ tipo, base }: { tipo: TipoTramite; base: string }) {
             .catch(error => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
         return () => { vigente = false; };
     }, [clave, tipo, pagina, filtro, busqueda]);
+    // La búsqueda se aplica al dejar de escribir (la hace el servidor)
+    useEffect(() => {
+        const espera = window.setTimeout(() => { if (escrito.trim() !== busqueda) { setBusqueda(escrito.trim()); setPagina(0); } }, 400);
+        return () => window.clearTimeout(espera);
+    }, [escrito, busqueda]);
+    const conteo = useConteo(tipo);
 
     function elegir(estado: string) { setFiltro(estado); setPagina(0); }
-    function buscar(e: FormEvent<HTMLFormElement>) { e.preventDefault(); setBusqueda(escrito.trim()); setPagina(0); }
     function quitarFiltros() { setEscrito(''); setBusqueda(''); elegir(''); }
 
     const lista = actual?.lista;
     const paginas = lista ? Math.max(1, Math.ceil(lista.total / POR_PAGINA)) : 1;
-    const opciones = [['', 'Todas'], ...Object.entries(estados).filter(([valor]) => valor !== 'borrador')];
+    const opciones = Object.entries(estados).filter(([valor]) => valor !== 'borrador');
+    const cuantas = (e: string[]) => (conteo ? e.reduce((suma, x) => suma + (conteo.porEstado[x] ?? 0), 0) : '…');
+    const pendientes = (lista?.solicitudes ?? []).filter(s => ['recibida', 'en_revision'].includes(estadoTramite(s)))
+        .sort((a, b) => (a.creadaEn ?? '').localeCompare(b.creadaEn ?? '')).slice(0, 4);
 
     return <>
         <Migas pasos={[[textos.titulo]]} />
-        <EncabezadoPagina etiqueta={`Atención · ${textos.titulo}`} titulo={textos.titulo} texto={textos.descripcion} />
-        <ResumenBandeja tipo={tipo} filtro={filtro} alElegir={elegir} />
+        <div className="pz-pagina">
+            <Encabezado titulo={textos.titulo} texto={textos.descripcion}>
+                {RESUMEN[tipo].map((t, n) => (
+                    <Cifra key={t.filtro} icono={t.icono} tono={n === 0 ? 'vino' : undefined} valor={cuantas(t.estados)} texto={t.titulo.toLowerCase()}
+                        activa={filtro === t.filtro} alPresionar={() => elegir(filtro === t.filtro ? '' : t.filtro)} />
+                ))}
+            </Encabezado>
 
-        <section className="contenidos-lista" aria-labelledby="tramites-lista-titulo">
-            <div className="contenidos-lista__cabecera">
-                <span className="contenidos-lista__icono"><IconoLista /></span>
-                <div>
-                    <h2 id="tramites-lista-titulo">Bandeja de {textos.sustantivo}</h2>
-                    <p>{lista ? `${lista.total} ${lista.total === 1 ? textos.sustantivo.slice(0, -1) : textos.sustantivo}${filtro ? ` con estado «${estados[filtro]}»` : ''}${busqueda ? ` que coinciden con «${busqueda}»` : ''}.` : 'Consultando la bandeja…'}</p>
-                </div>
-            </div>
-
-            <div className="contenidos-lista__herramientas">
-                <div className="contenidos-filtros" role="group" aria-label="Filtrar por estado">
-                    {opciones.map(([valor, texto]) => (
-                        <button key={valor} type="button" aria-pressed={filtro === valor} onClick={() => elegir(valor)}
-                            className={`contenidos-filtro${filtro === valor ? ' contenidos-filtro--activo' : ''}`}>{texto}</button>
-                    ))}
-                </div>
-                <form className="contenidos-buscar" role="search" onSubmit={buscar}>
-                    <IconoBuscar />
-                    <input type="search" maxLength={100} placeholder={`Buscar por ${textos.buscarPor}`} aria-label={`Buscar por ${textos.buscarPor}`}
-                        value={escrito} onChange={e => { setEscrito(e.target.value); if (!e.target.value) { setBusqueda(''); setPagina(0); } }} />
-                </form>
-            </div>
-
-            {!actual ? (
-                <div className="contenidos-tabla" aria-busy="true" aria-label="Cargando solicitudes">
-                    {[0, 1, 2, 3].map(i => <Bloque key={i} clase="tr-esqueleto" />)}
-                </div>
-            ) : actual.error ? (
-                <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar la bandeja" texto={actual.error}
-                    accion={{ texto: 'Reintentar', alPresionar: () => setIntento(x => x + 1) }} />
-            ) : !lista?.solicitudes.length ? (
-                filtro || busqueda
-                    ? <EstadoVacio icono={vacioBuscar} titulo="Sin resultados" texto={`No encontramos ${textos.sustantivo} con esos filtros.`}
-                        accion={{ texto: 'Quitar filtros', alPresionar: quitarFiltros }} />
-                    : <EstadoVacio icono={vacioCheck} titulo={`No hay ${textos.sustantivo} por ahora`} texto={textos.vacio} />
-            ) : (
-                <div className="contenidos-tabla tr-tabla" tabIndex={0} role="table" aria-label={`Bandeja de ${textos.sustantivo}`}>
-                    <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
-                        <span role="columnheader">Folio</span>
-                        <span role="columnheader">{tipo === 'credencial' ? 'Trámite' : 'Propuesta'}</span>
-                        <span role="columnheader">Persona solicitante</span>
-                        <span role="columnheader">Recibida</span>
-                        <span role="columnheader">Estado</span>
-                        <span role="columnheader">Acción</span>
+            <div className="pz-columnas">
+                <TarjetaPz icono={ICONO_TRAMITE[tipo]} id="tramites-lista" titulo={`Bandeja de ${textos.sustantivo}`} className="pz-pendientes"
+                    texto={lista ? `${lista.total} ${lista.total === 1 ? textos.sustantivo.slice(0, -1) : textos.sustantivo}${filtro ? ` con estado ${estados[filtro]}` : ''}` : 'Consultando la bandeja…'}>
+                    <Buscador etiqueta={`Buscar por ${textos.buscarPor}`} placeholder={`Buscar por ${textos.buscarPor}`} valor={escrito} alCambiar={setEscrito}>
+                            <FiltrosAvanzados activos={filtro ? 1 : 0} alQuitar={() => elegir('')} grupos={[{ titulo: 'Estado', valor: filtro, alCambiar: elegir,
+                                opciones: [{ valor: '', texto: 'Todas', cantidad: conteo?.total }, ...opciones.map(([valor, texto]) => ({ valor, texto, cantidad: conteo ? conteo.porEstado[valor] ?? 0 : undefined }))] }]} />
+                        </Buscador>
+                    {!actual ? (
+                        <div className="contenidos-tabla" aria-busy="true" aria-label="Cargando solicitudes">{[0, 1, 2, 3].map(i => <Bloque key={i} clase="tr-esqueleto" />)}</div>
+                    ) : actual.error ? (
+                        <Vacio icono="alerta" titulo="No pudimos cargar la bandeja" texto={actual.error}
+                            accion={<button type="button" className="pz-boton pz-boton--chico" onClick={() => setIntento(x => x + 1)}>Reintentar</button>} />
+                    ) : !lista?.solicitudes.length ? (
+                        filtro || busqueda
+                            ? <Vacio icono="buscarCuenta" titulo="Sin resultados" texto={`No encontramos ${textos.sustantivo} con esos filtros.`}
+                                accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={quitarFiltros}>Quitar filtros</button>} />
+                            : <Vacio icono="check" titulo={`No hay ${textos.sustantivo} por ahora`} texto={textos.vacio} />
+                    ) : (
+                        <div className="pz-grupos" tabIndex={0} role="region" aria-label={`Bandeja de ${textos.sustantivo}`}>
+                            <ul className="pz-filas">
+                                {lista.solicitudes.map(s => {
+                                    const estado = estadoTramite(s);
+                                    const pendiente = ['recibida', 'en_revision'].includes(estado);
+                                    return <li key={s.id}>
+                                        <article className={`pz-fila ba-compacta${pendiente ? ' pz-fila--espera' : ''}`}>
+                                            <span className="pz-fecha" aria-hidden="true"><strong>{fechaCorta(s.creadaEn).split(' ')[0]}</strong><span>{fechaCorta(s.creadaEn).split(' ')[1]}</span></span>
+                                            <div className="pz-fila__textos">
+                                                <p className="ba-compacta__cabeza">
+                                                    <span className="pz-fila__titulo" title={tituloSolicitud(s)}>{tituloSolicitud(s)}</span>
+                                                    {s.tipoPropuesta && <span className="ba-compacta__tipo">{s.tipoPropuesta}</span>}
+                                                </p>
+                                                <ul className="ba-compacta__datos">
+                                                    <li className="pz-fila__folio" title={s.id}>{folioCorto(s.id)}</li>
+                                                    <li title={nombre(s)}><Icono nombre="usuario" />{nombre(s)}</li>
+                                                    {s.fechaCita && <li><Icono nombre="calendario" />Cita {fechaHora(s.fechaCita)}</li>}
+                                                </ul>
+                                                {pendiente && <p className={`ba-compacta__espera${diasDesde(s.creadaEn) >= 7 ? ' ba-compacta__espera--larga' : ''}`}>{esperando(s.creadaEn)}</p>}
+                                            </div>
+                                            <ChipPz tono={(TONO[estado] === 'verde-solido' ? 'verde' : TONO[estado] ?? 'gris') as TonoEstado}>{estados[estado] ?? estado}</ChipPz>
+                                            <Link to={`${base}/${s.id}`} className={`pz-boton pz-boton--chico${pendiente ? '' : ' pz-boton--contorno'}`}>
+                                                {pendiente ? 'Atender' : 'Ver'}<span className="solo-lectores"> {folioCorto(s.id)}</span>
+                                            </Link>
+                                        </article>
+                                    </li>;
+                                })}
+                            </ul>
+                        </div>
+                    )}
+                    <div className="pz-tarjeta__pie">
+                        <p aria-live="polite">{lista ? `${lista.solicitudes.length} de ${lista.total}` : ''}</p>
+                        {lista && lista.total > POR_PAGINA && <div className="pz-paginas" role="group" aria-label="Páginas">
+                            <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button>
+                            <span className="pz-paginas__actual">{pagina + 1} de {paginas}</span>
+                            <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={pagina + 1 >= paginas} onClick={() => setPagina(x => x + 1)}>Siguiente</button>
+                        </div>}
                     </div>
-                    {lista.solicitudes.map(s => {
-                        const estado = estadoTramite(s);
-                        const pendiente = ['recibida', 'en_revision'].includes(estado);
-                        return <div key={s.id} className="contenidos-tabla__fila" role="row">
-                            <span role="cell" className="contenidos-tabla__folio" title={s.id}>{folioCorto(s.id)}</span>
-                            <span role="cell" className="at-celda"><CeldaDoble arriba={tituloSolicitud(s)} abajo={s.tipoPropuesta || (s.fechaCita ? `Cita: ${fechaHora(s.fechaCita)}` : 'Sin cita')} /></span>
-                            <span role="cell" className="at-celda"><CeldaDoble arriba={nombre(s)} abajo={s.perfil?.telefono || 'Sin teléfono'} /></span>
-                            <span role="cell">{fechaCorta(s.creadaEn)}</span>
-                            <span role="cell"><Chip tono={TONO[estado] ?? 'gris'}>{estados[estado] ?? estado}</Chip></span>
-                            <span role="cell">
-                                <Link to={`${base}/${s.id}`} className="contenidos-tabla__accion">
-                                    {pendiente ? 'Atender' : 'Ver'}<span className="solo-lectores"> {folioCorto(s.id)}</span>
-                                </Link>
-                            </span>
-                        </div>;
-                    })}
-                </div>
-            )}
-
-            {lista && lista.total > POR_PAGINA && (
-                <div className="contenidos-lista__pie">
-                    <p>Mostrando {pagina * POR_PAGINA + 1} a {pagina * POR_PAGINA + lista.solicitudes.length} de {lista.total}</p>
-                    <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                        <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>‹ Anterior</button>
-                        <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                        <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(x => x + 1)}>Siguiente ›</button>
-                    </div>
-                </div>
-            )}
-        </section>
+                </TarjetaPz>
+                <aside className="pz-lateral" aria-label="Lo que espera más">
+                    <TarjetaPz icono="reloj" id="tramites-antiguas" titulo="Llevan más tiempo esperando" texto={tipo === 'credencial' ? 'Recibidas sin revisar' : 'En revisión'} className="pz-tarjeta--actividades">
+                        {pendientes.length ? <ListaEspera items={pendientes.map(s => ({
+                            clave: s.id, ruta: `${base}/${s.id}`, titulo: tipo === 'credencial' ? nombre(s) : tituloSolicitud(s), dias: diasDesde(s.creadaEn),
+                            detalle: tipo === 'credencial' ? `Folio ${folioCorto(s.id)}` : `Folio ${folioCorto(s.id)}, de ${nombre(s)}`,
+                        }))} /> : <Vacio icono="check" titulo="Nada esperando" texto="Estás al día con esta bandeja." />}
+                    </TarjetaPz>
+                    <Plegable titulo={tipo === 'credencial' ? 'Cómo se atiende una credencial' : 'Cómo se revisa una propuesta'}>
+                        <ul>{tipo === 'credencial' ? <>
+                            <li>Revisa los datos de la solicitud y agenda la cita de cotejo.</li>
+                            <li>En la cita se cotejan los documentos; el trámite queda atendido.</li>
+                            <li>Este trámite no emite ni valida una credencial.</li>
+                        </> : <>
+                            <li>Revisa la propuesta: qué se propone, cuándo y quién la organiza.</li>
+                            <li>Apruébala, pide una corrección o recházala con motivo; la persona recibe un aviso.</li>
+                            <li>Aprobar no publica: después se programa y publica desde Actividades.</li>
+                        </>}</ul>
+                    </Plegable>
+                </aside>
+            </div>
+        </div>
     </>;
+}
+
+function useConteo(tipo: TipoTramite) {
+    const [conteo, setConteo] = useState(() => conteosEnMemoria(tipo));
+    useEffect(() => {
+        let vigente = true;
+        conteosTramites(tipo).then(c => { if (vigente) setConteo(c); }).catch(() => undefined);
+        return () => { vigente = false; };
+    }, [tipo]);
+    return conteo;
 }
 
 // ---------- Detalle ----------
@@ -195,10 +224,12 @@ function Detalle({ tipo, folio, base }: { tipo: TipoTramite; folio: string; base
 
     return <>
         <Migas pasos={[[textos.titulo, base], [folioCorto(folio)]]} />
-        <EncabezadoPagina volver={{ texto: `Volver a ${textos.titulo.toLowerCase()}`, ruta: base }}
-            etiqueta={`Folio ${folioCorto(folio)}`} titulo={s ? tituloSolicitud(s) : 'Solicitud'}
-            texto={s ? `Recibida el ${fechaHora(s.creadaEn)} · última actualización ${fechaHora(s.actualizadaEn ?? s.actualizadoEn)}` : 'Consultando la solicitud…'}
-            accion={s && <Chip tono={TONO[estado] ?? 'gris'}>{estados[estado] ?? estado}</Chip>} />
+        <div className="pz-pagina at-detalle">
+        <Encabezado titulo={s ? tituloSolicitud(s) : 'Solicitud'}
+            texto={s ? `Folio ${folioCorto(folio)}. Recibida el ${fechaHora(s.creadaEn)}; última actualización el ${fechaHora(s.actualizadaEn ?? s.actualizadoEn)}.` : 'Consultando la solicitud…'}>
+            {s && <ChipPz tono={(TONO[estado] === 'verde-solido' ? 'verde' : TONO[estado] ?? 'gris') as TonoEstado}>{estados[estado] ?? estado}</ChipPz>}
+            <Link to={base} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a la bandeja</Link>
+        </Encabezado>
 
         {s && <Flujo {...flujoDe(tipo, s)} />}
 
@@ -213,6 +244,7 @@ function Detalle({ tipo, folio, base }: { tipo: TipoTramite; folio: string; base
         ) : (
             <div className="contenidos-formulario">
                 <div className="at-columna">
+                    {tipo === 'propuesta' && <MapaDonde espacio={s.necesidadEspacio} texto={`Espacio que pide: ${s.necesidadEspacio}`} />}
                     <Tarjeta icono={tarjetaInfo} titulo="Datos de la solicitud" subtitulo={tipo === 'credencial' ? 'Lo que la persona registró en el portal.' : 'La propuesta tal como la envió la persona.'}>
                         <DatosSolicitud tipo={tipo} solicitud={s} />
                     </Tarjeta>
@@ -239,26 +271,26 @@ function Detalle({ tipo, folio, base }: { tipo: TipoTramite; folio: string; base
                             <div><small>Nombre</small><strong>{nombre(s)}</strong></div>
                         </div>
                         {s.perfil?.telefono
-                            ? <a className="tr-telefono" href={`tel:${s.perfil.telefono}`}><span aria-hidden="true">☎</span><span><small>Teléfono</small><strong>{s.perfil.telefono}</strong></span></a>
+                            ? <a className="tr-telefono" href={`tel:${s.perfil.telefono}`}><span><small>Teléfono</small><strong>{s.perfil.telefono}</strong></span></a>
                             : <p className="contenidos-campo__ayuda">Sin teléfono registrado.</p>}
                     </Tarjeta>
-                    <Tarjeta icono={tarjetaClock} titulo="Seguimiento" subtitulo={`${s.historial.length + 1} ${s.historial.length ? 'movimientos' : 'movimiento'} registrados.`} className="tr-seguimiento">
-                        <ol className="tr-eventos" tabIndex={0} aria-label="Historial de la solicitud">
-                            <li className="tr-eventos--hecho"><strong>Solicitud registrada</strong><small>{fechaHora(s.creadaEn)}</small></li>
-                            {s.historial.map((h, i) => (
-                                <li key={i} className={i === s.historial.length - 1 ? 'tr-eventos--ultimo' : 'tr-eventos--hecho'}>
-                                    <strong>{estados[h.estadoNuevo] ?? h.estadoNuevo}</strong>
-                                    <small>{fechaHora(h.fecha)}</small>
-                                    {h.nota && <p className="tr-evento-nota">{h.nota}</p>}
-                                    {h.acuerdoDireccion && <p className="tr-evento-nota">Acuerdo de dirección: {h.acuerdoDireccion.responsable} · {h.acuerdoDireccion.fecha} · Ref. {h.acuerdoDireccion.referencia}</p>}
-                                </li>
-                            ))}
-                        </ol>
-                        {s.estadoSolicitud === 'atendida' && <p className="contenidos-campo__ayuda">Registrar la atención no emite ni valida una credencial.</p>}
-                    </Tarjeta>
+                    <Historial id="tramite-seguimiento" movimientos={[
+                        ...[...s.historial].reverse().map((h) => {
+                            const tono = ['rechazada', 'cancelada'].includes(h.estadoNuevo) ? 'guinda' as const : ['aprobada', 'atendida'].includes(h.estadoNuevo) ? 'verde' as const : 'dorado' as const;
+                            return {
+                                titulo: estados[h.estadoNuevo] ?? h.estadoNuevo, tono, icono: tono === 'dorado' ? 'revision' as const : undefined,
+                                detalle: fechaHora(h.fecha),
+                                nota: [h.nota, h.acuerdoDireccion && `Acuerdo de dirección: ${h.acuerdoDireccion.responsable}, ${h.acuerdoDireccion.fecha}, referencia ${h.acuerdoDireccion.referencia}`].filter(Boolean).join('. ') || undefined,
+                            };
+                        }),
+                        { titulo: 'Solicitud registrada', detalle: fechaHora(s.creadaEn), tono: 'verde' },
+                    ]}>
+                        {s.estadoSolicitud === 'atendida' && <p className="pz-acciones__nota">Registrar la atención no emite ni valida una credencial.</p>}
+                    </Historial>
                 </aside>
             </div>
         )}
+        </div>
     </>;
 }
 
@@ -333,52 +365,19 @@ function Resolver({ tipo, solicitud: s, alGuardar }: { tipo: TipoTramite; solici
 }
 
 // ---------- Resumen de la bandeja (mismo bloque «Accesos rápidos» que Espacios) ----------
-const IconoPalomita = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
-);
-type TarjetaResumen = { estados: string[]; filtro: string; titulo: string; texto: string; enlace: string; tono: 'gris' | 'guinda' | 'azul'; icono: ReactNode };
+type TarjetaResumen = { estados: string[]; filtro: string; titulo: string; icono: NombreIcono };
 const RESUMEN: Record<TipoTramite, TarjetaResumen[]> = {
     credencial: [
-        { estados: ['recibida'], filtro: 'recibida', titulo: 'Por atender', texto: 'Recibidas que nadie ha revisado.', enlace: 'Ver recibidas', tono: 'gris', icono: <IconoReloj /> },
-        { estados: ['en_atencion', 'cita_programada'], filtro: 'cita_programada', titulo: 'En proceso', texto: 'En atención o con cita de cotejo.', enlace: 'Ver con cita', tono: 'guinda', icono: <IconoAviso /> },
-        { estados: ['atendida'], filtro: 'atendida', titulo: 'Atendidas', texto: 'Trámites concluidos.', enlace: 'Ver atendidas', tono: 'azul', icono: <IconoPalomita /> },
+        { estados: ['recibida'], filtro: 'recibida', titulo: 'Por atender', icono: 'reloj' },
+        { estados: ['en_atencion', 'cita_programada'], filtro: 'cita_programada', titulo: 'En proceso', icono: 'calendario' },
+        { estados: ['atendida'], filtro: 'atendida', titulo: 'Atendidas', icono: 'check' },
     ],
     propuesta: [
-        { estados: ['en_revision'], filtro: 'en_revision', titulo: 'En revisión', texto: 'Esperan tu decisión.', enlace: 'Ver en revisión', tono: 'gris', icono: <IconoReloj /> },
-        { estados: ['requiere_correccion'], filtro: 'requiere_correccion', titulo: 'Con correcciones', texto: 'Esperan que la persona corrija.', enlace: 'Ver correcciones', tono: 'guinda', icono: <IconoAviso /> },
-        { estados: ['aprobada'], filtro: 'aprobada', titulo: 'Aprobadas', texto: 'Listas para programar y publicar.', enlace: 'Ver aprobadas', tono: 'azul', icono: <IconoPalomita /> },
+        { estados: ['en_revision'], filtro: 'en_revision', titulo: 'En revisión', icono: 'reloj' },
+        { estados: ['requiere_correccion'], filtro: 'requiere_correccion', titulo: 'Con correcciones', icono: 'alerta' },
+        { estados: ['aprobada'], filtro: 'aprobada', titulo: 'Aprobadas', icono: 'check' },
     ],
 };
-
-function ResumenBandeja({ tipo, filtro, alElegir }: { tipo: TipoTramite; filtro: string; alElegir: (estado: string) => void }) {
-    const [conteo, setConteo] = useState(() => conteosEnMemoria(tipo));
-    const [fallo, setFallo] = useState(false);
-    useEffect(() => {
-        let vigente = true;
-        conteosTramites(tipo).then(c => { if (vigente) setConteo(c); }).catch(() => { if (vigente) setFallo(true); });
-        return () => { vigente = false; };
-    }, [tipo]);
-    return (
-        <section className="contenidos-resumen tr-resumen" aria-labelledby="tramites-resumen-titulo">
-            <h2 id="tramites-resumen-titulo">Accesos rápidos</h2>
-            <div className="contenidos-resumen__tarjetas">
-                {RESUMEN[tipo].map(t => (
-                    <article key={t.filtro} className={`contenidos-resumen__tarjeta contenidos-resumen__tarjeta--${t.tono}${filtro === t.filtro ? ' at-tarjeta--activa' : ''}`}>
-                        <div className="contenidos-resumen__fila">
-                            <span className="contenidos-resumen__icono">{t.icono}</span>
-                            <button type="button" className="contenidos-resumen__enlace" aria-pressed={filtro === t.filtro}
-                                onClick={() => alElegir(filtro === t.filtro ? '' : t.filtro)}>{t.enlace}</button>
-                        </div>
-                        {conteo ? <p className="contenidos-resumen__cifra">{t.estados.reduce((suma, e) => suma + (conteo.porEstado[e] ?? 0), 0)}</p>
-                            : fallo ? <p className="contenidos-resumen__cifra" title="No se pudo contar">—</p> : <Bloque clase="tr-resumen__cifra--cargando" />}
-                        <p className="contenidos-resumen__titulo">{t.titulo}</p>
-                        <p className="contenidos-resumen__texto">{t.texto}{conteo && conteo.total > conteo.revisadas ? ` (de las ${conteo.revisadas} más recientes)` : ''}</p>
-                    </article>
-                ))}
-            </div>
-        </section>
-    );
-}
 
 // ---------- Etapas y siguiente paso de cada trámite ----------
 const ETAPAS: Record<TipoTramite, Etapa[]> = {

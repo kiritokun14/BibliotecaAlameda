@@ -9,13 +9,15 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties, type For
 import { Link, useSearchParams } from "react-router";
 import { consultarContacto, type Seguimiento } from "../../../servicios/atencionComunidad";
 import { ErrorServicio, mensajeError } from "../../../servicios/api";
-import { Chip, EtapasTramite, type ColorChip } from "../credencial/piezas";
+import { EtapasTramite, type ColorChip } from "../credencial/piezas";
 import { NOMBRE_ESTADO, esFolio, etapasContacto, type EstadoContacto } from "../contacto/seguimiento";
 import { EncabezadoSeccion } from "./piezas";
 import { iconosSeccion } from "./iconos";
 import { foliosDe, guardarFolio, olvidarFolio } from "./mensajesGuardados";
 import { sesionSimulada, useSesion } from "./usarSesion";
 import "../credencial/CredencialSesion.css";
+import { FilaPerfil, ListaPerfil } from "./ListaPerfil";
+import { coincide, diaMes } from "./utilesLista";
 
 type Mensaje = { folio: string; seguimiento?: Seguimiento; error?: boolean };
 type Filtro = "todos" | "abiertos" | "atendidos";
@@ -23,17 +25,10 @@ type Filtro = "todos" | "abiertos" | "atendidos";
 const COLOR_ESTADO: Record<EstadoContacto, ColorChip> = { recibido: "gris", en_atencion: "dorado", cerrado: "verde" };
 const estadoDe = (s: Seguimiento) => (s.estadoAtencion in NOMBRE_ESTADO ? s.estadoAtencion : "recibido") as EstadoContacto;
 
+const FECHA_LARGA = new Intl.DateTimeFormat("es-MX", { timeZone: "America/Mazatlan", day: "numeric", month: "long", year: "numeric" });
 function fechaLarga(iso: string) {
     const fecha = new Date(iso);
-    return Number.isNaN(fecha.getTime()) ? "" : fecha.toLocaleDateString("es-MX", { timeZone: "America/Mazatlan", day: "numeric", month: "long", year: "numeric" });
-}
-function partes(iso: string) {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return { dia: "", mes: "" };
-    return {
-        dia: d.toLocaleString("es-MX", { timeZone: "America/Mazatlan", day: "numeric" }),
-        mes: d.toLocaleString("es-MX", { timeZone: "America/Mazatlan", month: "short" }).replace(".", ""),
-    };
+    return Number.isNaN(fecha.getTime()) ? "" : FECHA_LARGA.format(fecha);
 }
 // Folio corto para mostrar (el completo va en el seguimiento)
 const folioCorto = (f: string) => f.slice(0, 8).toUpperCase();
@@ -50,6 +45,7 @@ export function MisMensajes() {
     const cuenta = sesion && sesion !== "simulado" ? sesion : null;
     const [mensajes, setMensajes] = useState<Mensaje[] | null>(sesionSimulada ? ejemplos : null);
     const [filtro, setFiltro] = useState<Filtro>("todos");
+    const [texto, setTexto] = useState("");
     const [parametros, setParametros] = useSearchParams();
     const folioUrl = (parametros.get("folio") ?? "").trim();
     const [abierto, setAbierto] = useState<string | null>(esFolio(folioUrl) ? folioUrl : null);
@@ -99,11 +95,12 @@ export function MisMensajes() {
         const atendidos = lista.filter((m) => m.seguimiento && estadoDe(m.seguimiento) === "cerrado").length;
         return { todos: lista.length, atendidos, abiertos: lista.length - atendidos };
     }, [mensajes]);
-    const visibles = (mensajes ?? []).filter((m) => {
-        if (filtro === "todos") return true;
+    const filtrados = (mensajes ?? []).filter((m) => {
         const cerrado = !!m.seguimiento && estadoDe(m.seguimiento) === "cerrado";
-        return filtro === "atendidos" ? cerrado : !cerrado;
+        const enFiltro = filtro === "todos" || (filtro === "atendidos" ? cerrado : !cerrado);
+        return enFiltro && coincide(texto, m.seguimiento?.asunto, m.folio);
     }).sort((a, b) => (b.seguimiento?.creadoEn ?? "").localeCompare(a.seguimiento?.creadoEn ?? "")); // el más reciente primero
+    const visibles = filtrados;
 
     function reintentar(folio: string) {
         consultarContacto(folio).then((seguimiento) => poner({ folio, seguimiento })).catch(() => undefined);
@@ -114,84 +111,53 @@ export function MisMensajes() {
     }
 
     const opciones: [Filtro, string][] = [["todos", "Todos"], ["abiertos", "En proceso"], ["atendidos", "Atendidos"]];
+    const elegir = (f: Filtro) => { setFiltro(f); };
 
     return (
         <>
             <EncabezadoSeccion titulo="Mis mensajes" texto="Los mensajes y sugerencias que enviaste a la biblioteca y en qué va cada uno."
                 accion={<Link to="/contacto" className="perfil-boton">Escribir a la biblioteca</Link>} />
 
-            <section className="perfil-panel perfil-mensajes" aria-label="Lista de mensajes">
-                {mensajes === null && cuenta ? (
-                    <p className="perfil-mensajes__cargando" role="status">Cargando tus mensajes…</p>
-                ) : !mensajes?.length ? (
-                    <div className="perfil-vacio perfil-vacio--eventos perfil-vacio--panel">
-                        <span className="perfil-vacio__insignia" aria-hidden="true" />
-                        <p><strong>Aún no nos has escrito</strong>
-                            Cuando envíes un mensaje o una sugerencia con tu sesión iniciada, aparecerá aquí y verás en qué va. Así avanza cada mensaje:</p>
-                        <ul className="perfil-vacio__sugerencias" aria-label="Estados de un mensaje">
-                            <li>Registrado</li><li>En revisión</li><li>Atendido</li>
-                        </ul>
-                        <Link to="/contacto" className="perfil-boton">Escribir a la biblioteca</Link>
-                    </div>
-                ) : (
-                    <>
-                        <div className="perfil-filtros" role="group" aria-label="Filtrar mensajes">
-                            {opciones.map(([v, t]) => (
-                                <button key={v} type="button" aria-pressed={filtro === v} className={`perfil-filtro${filtro === v ? " perfil-filtro--activo" : ""}`}
-                                    onClick={() => setFiltro(v)}>{t}<span className="perfil-filtro__cuenta">{cuentas[v]}</span></button>
-                            ))}
-                        </div>
-                        {visibles.length === 0 ? (
-                            <div className="perfil-vacio perfil-vacio--eventos perfil-vacio--panel">
-                                <span className="perfil-vacio__insignia" aria-hidden="true" />
-                                <p><strong>No hay mensajes en este grupo</strong>Prueba con otro filtro.</p>
-                            </div>
-                        ) : (
-                            <ul className="perfil-solicitudes">
-                                {visibles.map((m) => <TarjetaMensaje key={m.folio} mensaje={m} abierto={abierto === m.folio}
-                                    alAlternar={() => alternar(m.folio)} alReintentar={() => reintentar(m.folio)} />)}
-                            </ul>
-                        )}
-                    </>
-                )}
-                <AgregarPorFolio alAgregar={(m) => { poner(m); setAbierto(m.folio); setFiltro("todos"); if (cuenta) guardarFolio(m.folio, cuenta); }} />
-            </section>
+            <ListaPerfil icono="mensajes" conFecha titulo="Tus mensajes" texto="Del más reciente al más antiguo; abre uno para ver su seguimiento"
+                buscar={{ etiqueta: "Buscar un mensaje", placeholder: "Asunto o folio", valor: texto, alCambiar: (v) => { setTexto(v); } }}
+                filtros={[{ titulo: "Estado", valor: filtro, alCambiar: (v) => elegir(v as Filtro), opciones: opciones.map(([valor, t]) => ({ valor, texto: t, cantidad: cuentas[valor] })) }]}
+                activos={filtro === "todos" ? 0 : 1} alQuitar={() => elegir("todos")}
+                estado={mensajes === null && cuenta ? "cargando" : "listo"}
+                hayElementos={!!mensajes?.length} sinResultados={filtrados.length === 0}
+                vacio={{ titulo: "Aún no nos has escrito", texto: "Cuando envíes un mensaje o una sugerencia con tu sesión iniciada, aparecerá aquí y verás en qué va.",
+                    accion: <Link to="/contacto" className="pz-boton pz-boton--chico">Escribir a la biblioteca</Link> }}
+                despues={<AgregarPorFolio alAgregar={(m) => { poner(m); setAbierto(m.folio); elegir("todos"); setTexto(""); if (cuenta) guardarFolio(m.folio, cuenta); }} />}>
+                {visibles.map((m) => <FilaMensaje key={m.folio} mensaje={m} abierto={abierto === m.folio}
+                    alAlternar={() => alternar(m.folio)} alReintentar={() => reintentar(m.folio)} />)}
+            </ListaPerfil>
         </>
     );
 }
 
-function TarjetaMensaje({ mensaje, abierto, alAlternar, alReintentar }: { mensaje: Mensaje; abierto: boolean; alAlternar: () => void; alReintentar: () => void }) {
+function FilaMensaje({ mensaje, abierto, alAlternar, alReintentar }: { mensaje: Mensaje; abierto: boolean; alAlternar: () => void; alReintentar: () => void }) {
     const { folio, seguimiento } = mensaje;
     const estado = seguimiento ? estadoDe(seguimiento) : null;
     const color: ColorChip = estado ? COLOR_ESTADO[estado] : "gris";
-    const { dia, mes } = seguimiento ? partes(seguimiento.creadoEn) : { dia: "", mes: "" };
     const idPanel = `seguimiento-${folio}`;
     return (
-        <li className={`perfil-solicitud perfil-solicitud--con-panel perfil-solicitud--${color} perfil-mensaje${abierto ? " perfil-mensaje--abierto" : ""}`}>
-            {dia
-                ? <span className={`perfil-evento__fecha perfil-mensaje__fecha--${color}`} aria-hidden="true"><strong>{dia}</strong>{mes}</span>
-                : <span className="perfil-lista__icono"><img src={iconosSeccion.mensajes} alt="" /></span>}
-            <div className="perfil-solicitud__textos">
-                <strong>{seguimiento?.asunto ?? "Mensaje a la biblioteca"}</strong>
-                <span>{seguimiento ? <>Enviado el {fechaLarga(seguimiento.creadoEn)} · folio <span className="perfil-mensaje__folio">{folioCorto(folio)}</span></> : "No pudimos consultar su estado en este momento."}</span>
-            </div>
-            {estado ? <Chip color={color}>{NOMBRE_ESTADO[estado]}</Chip> : <Chip color="gris">Sin conexión</Chip>}
-            <span className="perfil-solicitud__acciones">
-                {seguimiento
-                    ? <button type="button" className={`perfil-boton perfil-boton--chico${abierto ? " perfil-boton--contorno" : ""}`}
-                        aria-expanded={abierto} aria-controls={idPanel} onClick={alAlternar}>{abierto ? "Ocultar" : "Ver seguimiento"}</button>
-                    : <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" onClick={alReintentar}>Reintentar</button>}
-            </span>
-            {abierto && seguimiento && estado && (
-                <div className="perfil-solicitud__panel perfil-mensaje__detalle" id={idPanel}>
+        <FilaPerfil fecha={seguimiento ? diaMes(seguimiento.creadoEn) : null} icono="mensajes" tono={color}
+            titulo={seguimiento?.asunto ?? "Mensaje a la biblioteca"} estado={estado ? NOMBRE_ESTADO[estado] : "Sin conexión"}
+            detalle={seguimiento
+                ? <><span>Enviado el {fechaLarga(seguimiento.creadoEn)}</span><span>Folio <span className="pz-fila__folio">{folioCorto(folio)}</span></span></>
+                : <span>No pudimos consultar su estado en este momento.</span>}
+            acciones={seguimiento
+                ? <button type="button" className={`pz-boton pz-boton--chico${abierto ? " pz-boton--contorno" : ""}`}
+                    aria-expanded={abierto} aria-controls={idPanel} onClick={alAlternar}>{abierto ? "Ocultar" : "Ver seguimiento"}</button>
+                : <button type="button" className="pz-boton pz-boton--chico pz-boton--contorno" onClick={alReintentar}>Reintentar</button>}
+            panel={abierto && seguimiento && estado && (
+                <div className="perfil-mensaje__detalle" id={idPanel}>
                     <EtapasTramite etapas={etapasContacto(estado)} />
                     {seguimiento.respuestaFinal
                         ? <div className="perfil-mensajes__respuesta"><strong>Respuesta de la biblioteca</strong><p>{seguimiento.respuestaFinal}</p></div>
                         : <p className="perfil-mensaje__nota">Te avisaremos en la campana de notificaciones cuando el personal responda.</p>}
                     <p className="perfil-mensaje__folio-completo">Folio completo: <code>{folio}</code></p>
                 </div>
-            )}
-        </li>
+            )} />
     );
 }
 
@@ -222,7 +188,7 @@ function AgregarPorFolio({ alAgregar }: { alAgregar: (m: Mensaje) => void }) {
                 <span>Si lo enviaste sin iniciar sesión o desde otro equipo, agrégalo con el folio que recibiste.</span>
             </div>
             {!abierto
-                ? <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" onClick={() => setAbierto(true)}>Agregar con folio</button>
+                ? <button type="button" className="pz-boton pz-boton--chico pz-boton--contorno" onClick={() => setAbierto(true)}>Agregar con folio</button>
                 : (
                     <form className="perfil-mensajes__buscar" onSubmit={enviar}>
                         <div className="perfil-campo">
@@ -231,10 +197,10 @@ function AgregarPorFolio({ alAgregar }: { alAgregar: (m: Mensaje) => void }) {
                                 placeholder="Ej. 3f2a9c1e-…" autoComplete="off" spellCheck={false}
                                 disabled={estado.tipo === "cargando"} aria-invalid={estado.tipo === "error" ? true : undefined} />
                         </div>
-                        <button type="submit" className="perfil-boton perfil-boton--chico" disabled={estado.tipo === "cargando"}>
+                        <button type="submit" className="pz-boton pz-boton--chico" disabled={estado.tipo === "cargando"}>
                             {estado.tipo === "cargando" ? "Buscando…" : "Agregar"}
                         </button>
-                        <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" onClick={() => { setAbierto(false); setEstado({ tipo: "inicio" }); }}>Cancelar</button>
+                        <button type="button" className="pz-boton pz-boton--chico pz-boton--contorno" onClick={() => { setAbierto(false); setEstado({ tipo: "inicio" }); }}>Cancelar</button>
                         {estado.tipo === "error" && <p className="perfil-campo__error" role="alert">{estado.texto}</p>}
                     </form>
                 )}

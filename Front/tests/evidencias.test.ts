@@ -28,9 +28,11 @@ describe('Evidencias privadas (HU-21)', () => {
     it('traduce la respuesta de la API a la pantalla', () => {
         const e = aEvidenciaCompleta(detalle);
         expect(e.tipo).toBe('Lista firmada');
-        expect(e.actividadTexto).toBe('Club de lectura · 27 oct');
+        expect(e.actividadTexto).toBe('Club de lectura, 27 oct');
+        expect(e.actividadTitulo).toBe('Club de lectura');
+        expect(e.sesion).toBe('27 oct 2026');
         expect(e.tamano).toBe(1.2);
-        expect(e.consultas.map((c) => c.accion)).toEqual(['Subió el archivo', 'Cambió el acceso a «Solo Coordinación y Administración»']);
+        expect(e.consultas.map((c) => c.accion)).toEqual(['Subió el archivo', 'Cambió quién puede verla: Solo Coordinación y Administración']);
         expect(aEvidencia({ ...detalle, puedeVer: false }).puedeVer).toBe(false);
     });
 

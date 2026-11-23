@@ -10,7 +10,7 @@ import iconoAlerta from "../../../assets/admin/actividades/resultado-alerta.svg"
 // Bibliocomunidad (moderación) · error al decidir (Figma 574:35176). No cambia nada: la publicación sigue como estaba.
 export function ErrorDecision({ ocupado, alReintentar, alVolver }: { ocupado: boolean; alReintentar: () => void; alVolver: () => void }) {
     return (
-        <PanelLayout titulo="Participantes" tema="contenidos">
+        <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], ["Error al decidir"]]} />
                 <Encabezado etiqueta="Moderación" titulo="Moderación de Bibliocomunidad" texto="No se pudo aplicar la decisión." />

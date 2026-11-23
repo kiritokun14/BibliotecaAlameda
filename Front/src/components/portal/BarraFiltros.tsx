@@ -130,7 +130,8 @@ export default function BarraFiltros({
                     <button type="button" className={`barra-filtros__abrir${abierto ? " barra-filtros__abrir--abierto" : ""}`}
                         aria-expanded={abierto} aria-controls={`${id}-panel`} onClick={() => setAbierto((a) => !a)}>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
-                        Filtros
+                        {/* En tableta y teléfono solo se ve el ícono (Responsivo.css); el texto queda para lectores de pantalla */}
+                        <span className="barra-filtros__texto">Filtros</span>
                         {elegidos.length > 0 && (
                             <span className="barra-filtros__cuenta">{elegidos.length}<span className="solo-lectores"> elegidos</span></span>
                         )}

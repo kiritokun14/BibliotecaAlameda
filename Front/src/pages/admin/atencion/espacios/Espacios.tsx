@@ -70,7 +70,7 @@ function Espacios({ vista }: { vista: "bandeja" | "todas" }) {
 
     if (!carga || "error" in carga) {
         return (
-            <PanelLayout titulo="Atención" tema="contenidos">
+            <PanelLayout titulo="Atención" tema="contenidos paleta">
                 {!carga ? <div className="contenidos-tabla" aria-busy="true" role="status"><span className="tr-oculto">Cargando solicitudes de espacios…</span>{[0, 1, 2, 3].map((i) => <Bloque key={i} clase="tr-esqueleto" />)}</div> : (
                     <p role="alert">
                         {carga.error}{" "}
@@ -83,12 +83,20 @@ function Espacios({ vista }: { vista: "bandeja" | "todas" }) {
     }
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Bandeja
                 vista={vista}
                 config={configEspacios}
                 solicitudes={carga.solicitudes}
                 columnas={columnas}
+                fila={(s) => ({
+                    fecha: s.fecha, tipo: s.api.tipo === "visita" ? "Visita guiada" : "Uso de un área",
+                    datos: [
+                        { icono: "espacios", texto: s.area },
+                        { icono: "reloj", texto: s.horario || "Horario por confirmar" },
+                        { icono: "grupo", texto: `${s.personas} ${Number(s.personas) === 1 ? "persona" : "personas"}` },
+                    ],
+                })}
                 coincide={(s, texto) => s.folio.toLowerCase().includes(texto) || s.persona.toLowerCase().includes(texto)}
             />
         </PanelLayout>

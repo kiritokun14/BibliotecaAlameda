@@ -178,7 +178,7 @@ function VistaPrevia() {
     }
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[["Propuestas de eventos", RUTA], [propuesta.folio, `${RUTA}/${propuesta.folio}`], ["Vista previa"]]} />
             <EncabezadoPagina
                 volver={{ texto: "Volver a la revisión", ruta: `${RUTA}/${propuesta.folio}` }}

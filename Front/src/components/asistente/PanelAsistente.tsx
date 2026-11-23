@@ -106,10 +106,11 @@ export default function PanelAsistente({ modo, conversacion, alExpandir, alContr
                             {mensajes.length === 0 ? (
                                 <Bienvenida expandido={expandido} alElegir={conversacion.preguntar} />
                             ) : (
-                                mensajes.map((mensaje) => (
+                                mensajes.map((mensaje, i) => (
                                     <MensajeConversacion
                                         key={mensaje.id}
                                         mensaje={mensaje}
+                                        ultimo={i === mensajes.length - 1}
                                         expandido={expandido}
                                         conversacion={conversacion}
                                         alReformular={reformular}
@@ -132,10 +133,15 @@ export default function PanelAsistente({ modo, conversacion, alExpandir, alContr
                                 placeholder="Escribe tu pregunta…"
                                 maxLength={LIMITE_PREGUNTA}
                                 autoComplete="off"
+                                aria-describedby="nota-asistente"
                             />
                             <button type="submit" className="entrada-asistente__enviar" disabled={!texto.trim() || ocupado}>Enviar</button>
                         </div>
-                        <p className="entrada-asistente__nota">Las respuestas se basan en la información publicada por la biblioteca.</p>
+                        <p id="nota-asistente" className="entrada-asistente__nota">
+                            Las respuestas se basan en la información publicada por la biblioteca.
+                            {/* Cerca del límite, cuántos caracteres quedan */}
+                            {texto.length > LIMITE_PREGUNTA * 0.8 && <span className="entrada-asistente__cuenta"> Te quedan {LIMITE_PREGUNTA - texto.length} caracteres.</span>}
+                        </p>
                     </form>
                 </div>
             </div>
@@ -283,12 +289,14 @@ function Bienvenida({ expandido, alElegir }: { expandido: boolean; alElegir: (pr
 
 function MensajeConversacion({
     mensaje,
+    ultimo,
     expandido,
     conversacion,
     alReformular,
     alAbrirFuente,
 }: {
     mensaje: Mensaje;
+    ultimo: boolean;
     expandido: boolean;
     conversacion: Conversacion;
     alReformular: () => void;
@@ -328,17 +336,19 @@ function MensajeConversacion({
         );
     }
 
-    return <Respuesta respuesta={mensaje.respuesta} expandido={expandido} conversacion={conversacion} alReformular={alReformular} alAbrirFuente={alAbrirFuente} />;
+    return <Respuesta respuesta={mensaje.respuesta} ultimo={ultimo} expandido={expandido} conversacion={conversacion} alReformular={alReformular} alAbrirFuente={alAbrirFuente} />;
 }
 
 function Respuesta({
     respuesta,
+    ultimo,
     expandido,
     conversacion,
     alReformular,
     alAbrirFuente,
 }: {
     respuesta: RespuestaAsistente;
+    ultimo: boolean;
     expandido: boolean;
     conversacion: Conversacion;
     alReformular: () => void;
@@ -425,6 +435,19 @@ function Respuesta({
                             ))}
                         </ul>
                     </div>
+                    {/* Solo en la última respuesta: preguntas para seguir la conversación */}
+                    {ultimo && !!respuesta.siguientes?.length && (
+                        <div className="siguientes-asistente">
+                            <p>También puedes preguntar</p>
+                            <ul>
+                                {respuesta.siguientes.map((s) => (
+                                    <li key={s}>
+                                        <button type="button" className="siguiente-asistente" onClick={() => conversacion.preguntar(s)} disabled={conversacion.ocupado}>{s}</button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </BurbujaAsistente>
             );
     }

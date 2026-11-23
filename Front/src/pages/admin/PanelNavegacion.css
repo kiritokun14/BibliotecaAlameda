@@ -1,0 +1,410 @@
+/* ============================================================
+   PANEL · NAVEGACIÓN Y PIE (21 nov 2026, propuesta del Resumen; pendiente de aprobar)
+   Menú lateral plegable (escritorio), menú como panel que se abre desde la cabecera (tableta y teléfono),
+   pie solo de administración y enlace «Saltar al contenido». Los colores salen de variables: por defecto son los
+   del panel actual (verde) y la paleta institucional (`.panel--paleta`, PanelPaleta.css) los cambia.
+   ============================================================ */
+.panel {
+  --nav-fondo: #0b3b33;
+  --nav-hover: rgba(255, 255, 255, 0.08);
+  --nav-activo: rgba(255, 255, 255, 0.14);
+  --nav-acento: #e6d194;
+  --nav-sello: #164f44;
+  --nav-texto: #fff;
+  --nav-texto-normal: #e4efeb;
+  --nav-texto-suave: #c8dcd5;
+  --nav-linea: rgba(255, 255, 255, 0.14);
+  --pie-texto: #f3e6ea;
+  /* Marco del panel (franja superior y pie): como la franja y el pie del portal (AGENTS §2): guinda con luz dorada
+     a la izquierda y verde a la derecha, y la línea guinda → dorado */
+  --marco-fondo: linear-gradient(160deg, #4f0e28, #611232 50%, #6f1739);
+  --marco-luz-1: rgba(201, 162, 74, 0.30);
+  --marco-luz-2: rgba(22, 79, 68, 0.55);
+  --marco-linea: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
+  --marco-acento: #e6d194;
+  /* Piezas del panel (PanelPiezas.css): verde y dorado, como el portal */
+  --pz-primario: #164f44;
+  --pz-decor: #9cc3b7;
+  --pz-acento-suave: #bfd9d0;
+  --pz-claro: #eef5f2;
+  --pz-claro-2: #e4efeb;
+  --pz-texto: #161a1d;
+  --pz-gris: #5c5a5b;
+  --pz-fondo: #f7f5f0;
+  --pz-borde: #e2ded5;
+  --pz-urgente: #9b2247;
+  --pz-urgente-claro: #f6eaee;
+  --pz-tono: #f6eeda;
+  --pz-tono-borde: #e6d194;
+  --pz-tono-texto: #6b4f12;
+  --pz-sombra: 0 6px 18px rgba(22, 79, 68, 0.08);
+  --pz-luz-1: rgba(201, 162, 74, 0.16);
+  --pz-luz-2: rgba(22, 79, 68, 0.08);
+  --pz-franja: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194);
+  --foco: #c9a24a;
+  --acc: #164f44;
+  --acc-claro: #e4efeb;
+  --alerta: #9b2247;
+  --alerta-claro: #f6eaee;
+  --borde: #e2ded5;
+}
+
+/* El área con scroll es el contenedor de lo que va en posición absoluta (textos para lectores de pantalla, globos):
+   sin esto se acomodaban respecto a la página y la alargaban, y aparecía un bloque blanco debajo del panel. */
+.panel .panel-desplazamiento { position: relative; }
+/* Lo mismo con las tablas que se desplazan de lado: sus textos para lectores no deben ensanchar la página */
+.panel :is(.cn-tabla-contenedor, .tabla, .contenidos-tabla-desplazable) { position: relative; }
+
+/* Saltar al contenido: oculto hasta que se llega con el teclado */
+.panel-saltar {
+  position: absolute; left: 12px; top: -60px; z-index: 100; padding: 10px 16px; border-radius: 10px;
+  background: #fff; color: #161a1d; font-size: 14px; font-weight: 700; text-decoration: none; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+.panel-saltar:focus { top: 12px; outline: 3px solid var(--foco); outline-offset: 2px; }
+.panel-contenido:focus { outline: none; }
+
+/* ---------- Botón «Plegar menú» / «Desplegar menú» ---------- */
+.panel .panel-lateral .panel-plegar {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; margin: 0; padding: 10px 12px; box-sizing: border-box;
+  border: 0; border-radius: 10px; background: transparent; color: var(--nav-texto-suave);
+  font-family: inherit; font-size: 13.5px; font-weight: 600; text-align: left; cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.panel .panel-lateral .panel-plegar:hover { background: var(--nav-hover); color: #fff; }
+/* Flecha doble que apunta hacia donde se mueve el menú */
+.panel-plegar__icono { position: relative; flex: none; width: 18px; height: 18px; }
+.panel-plegar__icono::before, .panel-plegar__icono::after {
+  content: ""; position: absolute; top: 5px; width: 7px; height: 7px; border-left: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg); transition: transform 0.2s ease;
+}
+.panel-plegar__icono::before { left: 3px; }
+.panel-plegar__icono::after { left: 9px; }
+.panel-lateral--plegado .panel-plegar__icono::before, .panel-lateral--plegado .panel-plegar__icono::after { transform: rotate(-135deg); }
+
+/* Cerrar (solo tableta y teléfono) */
+.panel .panel-lateral .panel-lateral__cerrar { display: none; }
+
+/* Botón «Menú» de la cabecera (solo tableta y teléfono) */
+.panel .panel-cabecera__menu { display: none; }
+
+/* ---------- Menú plegado (escritorio, 21 nov 2026: despliegue y resguardo sin saltos) ----------
+   Nada cambia de lugar: los íconos se quedan donde están y la barra solo se angosta (0.3 s). Los textos no se parten
+   (un renglón) y se desvanecen; la marca se recoge hasta dejar el sello y las secciones abiertas se cierran animando su
+   alto. Al desplegar, los textos vuelven a aparecer cuando la barra ya tiene espacio. */
+@media (min-width: 1101px) {
+  .panel .panel-lateral { overflow-x: hidden; transition: width 0.3s ease; }
+  .panel .panel-lateral.panel-lateral--plegado { width: 76px; }
+  /* Textos de un renglón que se desvanecen (al desplegar, esperan a que haya espacio) */
+  .panel .panel-lateral :is(.panel-menu__texto, .panel-plegar__texto, .panel-menu__flecha, .panel-marca__nombre, .panel-marca__subtitulo) { white-space: nowrap; }
+  .panel .panel-lateral :is(.panel-menu__texto, .panel-plegar__texto, .panel-menu__flecha) { transition: opacity 0.2s ease 0.12s; }
+  .panel .panel-lateral--plegado :is(.panel-menu__texto, .panel-plegar__texto, .panel-menu__flecha) { opacity: 0; transition-delay: 0s; pointer-events: none; }
+  /* Marca: logo y textos se recogen; el sello crece en su lugar */
+  .panel .panel-lateral .panel-marca { gap: 0; transition: padding 0.3s ease; }
+  .panel .panel-lateral .panel-marca__logo { max-height: 52px; margin-bottom: 12px; transition: opacity 0.2s ease 0.1s, max-height 0.3s ease, margin 0.3s ease; }
+  .panel .panel-lateral .panel-marca__textos { max-height: 80px; overflow: hidden; transition: opacity 0.2s ease 0.1s, max-height 0.3s ease; }
+  .panel .panel-lateral .panel-marca__sello { display: grid; max-height: 0; opacity: 0; transform: scale(0.6); transition: opacity 0.2s ease, transform 0.3s ease, max-height 0.3s ease; }
+  .panel .panel-lateral--plegado .panel-marca { padding-inline: 0; padding-bottom: 18px; }
+  .panel .panel-lateral--plegado :is(.panel-marca__logo, .panel-marca__textos) { max-height: 0; margin-bottom: 0; opacity: 0; transition-delay: 0s; }
+  .panel .panel-lateral--plegado .panel-marca__sello { max-height: 40px; opacity: 1; transform: none; transition-delay: 0.1s; }
+  /* Título «Menú»: se recoge */
+  .panel .panel-lateral .panel-lateral__titulo { max-height: 24px; overflow: hidden; transition: opacity 0.2s ease 0.1s, max-height 0.3s ease, margin 0.3s ease; }
+  .panel .panel-lateral--plegado .panel-lateral__titulo { max-height: 0; margin-block: 0 !important; opacity: 0; transition-delay: 0s; }
+  /* La sección actual se sigue marcando: fondo claro e ícono con aro */
+  .panel .panel-lateral--plegado :is(.panel-menu__item--actual, a.panel-menu__item.active) { background: var(--nav-activo); }
+  .panel .panel-lateral--plegado .panel-grupo--abierto { padding: 0; border-color: transparent; background: transparent; }
+  /* Globo con el nombre al pasar el mouse o llegar con el teclado */
+  .panel .panel-lateral--plegado :is(.panel-menu__item, .panel-plegar)[title]:is(:hover, :focus-visible)::after {
+    content: attr(title); position: fixed; left: 84px; z-index: 70; padding: 6px 10px; border-radius: 8px;
+    background: #161a1d; color: #fff; font-size: 12.5px; font-weight: 600; white-space: nowrap; pointer-events: none;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); animation: cab-entra 0.15s ease-out;
+  }
+}
+@media (min-width: 1101px) and (prefers-reduced-motion: reduce) {
+  .panel .panel-lateral, .panel .panel-lateral * { transition: none !important; }
+}
+
+/* ---------- Tableta y teléfono: el menú es un panel que entra desde la izquierda ---------- */
+@media (max-width: 1100px) {
+  .panel .panel-cuerpo { flex-direction: row; }
+  .panel .panel-lateral {
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 60; width: min(300px, 86vw); max-width: none; overflow-y: auto;
+    transform: translateX(-105%); visibility: hidden; transition: transform 0.25s ease, visibility 0.25s;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+  }
+  .panel .panel-lateral.panel-lateral--abierto { transform: none; visibility: visible; }
+  .panel .panel-lateral .panel-plegar { display: none; }
+  .panel .panel-lateral .panel-lateral__cerrar {
+    display: inline-flex; align-items: center; min-height: 40px; margin-left: auto; padding: 0 14px; border: 1px solid var(--nav-linea);
+    border-radius: 999px; background: transparent; color: var(--nav-texto); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .panel-velo-menu { position: fixed; inset: 0; z-index: 55; background: rgba(15, 20, 25, 0.45); }
+  .panel .panel-cabecera__menu {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 1.5px solid currentColor; border-radius: 999px;
+    background: #fff; color: #164f44; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+}
+
+/* ---------- Marco del panel: franja superior y pie (21 nov 2026) ----------
+   Los dos con el mismo fondo y las mismas luces que la franja y el pie del portal; la línea de color va abajo de la
+   franja y arriba del pie. Los logos institucionales no se animan. */
+.panel .panel-gobierno {
+  position: relative; flex-shrink: 0; height: 60px; padding: 0 28px; overflow: hidden;
+  background: radial-gradient(circle at 6% 0%, var(--marco-luz-1), transparent 34%), radial-gradient(circle at 96% 100%, var(--marco-luz-2), transparent 40%), var(--marco-fondo);
+}
+.panel .panel-gobierno::after { content: ""; position: absolute; inset: auto 0 0; height: 3px; background: var(--marco-linea); }
+.panel .panel-gobierno > * { position: relative; }
+.panel .panel-gobierno__logos { gap: 18px; }
+.panel .panel-gobierno__textos { display: flex; align-items: center; gap: 14px; margin: 0; color: rgba(255, 255, 255, 0.88); font-size: 13px; font-weight: 600; }
+.panel .panel-gobierno__pastilla {
+  display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px; border: 1px solid var(--marco-acento); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 12.5px; font-weight: 700;
+}
+.panel .panel-gobierno__pastilla::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--marco-acento); }
+
+.panel-pie-admin {
+  position: relative; display: grid; flex-shrink: 0; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 20px;
+  min-height: 46px; padding: 6px 24px 5px; box-sizing: border-box; overflow: hidden; color: var(--pie-texto); font-size: 12.5px;
+  background: radial-gradient(circle at 6% 100%, var(--marco-luz-1), transparent 34%), radial-gradient(circle at 96% 0%, var(--marco-luz-2), transparent 40%), var(--marco-fondo);
+}
+.panel-pie-admin::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--marco-linea); }
+.panel-pie-admin > * { position: relative; }
+.panel-pie-admin p { margin: 0; }
+/* Izquierda: conexión (punto verde que late; guinda sin conexión) y rol de la sesión */
+.panel-pie-admin__estado { display: flex; align-items: center; gap: 12px; min-width: 0; white-space: nowrap; }
+.panel-pie-admin__separador { flex: none; width: 1px; height: 16px; background: rgba(255, 255, 255, 0.28); }
+.marco-estado { display: inline-flex; align-items: center; gap: 8px; padding: 3px 10px 3px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.1); color: #fff; font-weight: 600; }
+.marco-estado__punto { position: relative; width: 8px; height: 8px; border-radius: 50%; background: #5fd3a5; }
+.marco-estado__punto::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: inherit; animation: marco-late 1.8s ease-out infinite; }
+.marco-estado--sin { background: #f6eaee; color: #611232; }
+.marco-estado--sin .marco-estado__punto { background: #9b2247; }
+@keyframes marco-late { from { transform: scale(1); opacity: 0.7; } to { transform: scale(2.6); opacity: 0; } }
+.marco-sesion { overflow: hidden; color: var(--pie-texto); text-overflow: ellipsis; }
+.marco-sesion strong { color: #fff; font-weight: 700; }
+/* Centro: enlaces del panel */
+.panel-pie-admin__enlaces { display: flex; align-items: center; gap: 2px; }
+.panel-pie-admin__enlaces a {
+  display: inline-flex; align-items: center; min-height: 30px; padding: 0 10px; border-radius: 999px;
+  color: #fff; font-weight: 600; white-space: nowrap; text-decoration: underline 1.5px transparent; text-underline-offset: 5px;
+  transition: text-decoration-color 0.2s ease;
+}
+.panel-pie-admin__enlaces a:hover { text-decoration-color: var(--marco-acento); }
+/* Derecha: soporte y aviso de uso */
+.panel-pie-admin__ayuda { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; text-align: right; white-space: nowrap; line-height: 17px; }
+.panel-pie-admin__ayuda a { color: #fff; font-weight: 700; text-decoration: underline 1.5px var(--marco-acento); text-underline-offset: 3px; }
+.panel-pie-admin__legal { color: var(--pie-texto); font-size: 11.5px; opacity: 0.85; }
+.panel-pie-admin a:focus-visible { outline: 3px solid var(--marco-acento); outline-offset: 2px; }
+@media (max-width: 1280px) {
+  .panel-pie-admin__legal { display: none; }
+}
+@media (max-width: 1100px) {
+  .panel-pie-admin { grid-template-columns: 1fr; justify-items: center; gap: 8px; padding: 16px; text-align: center; }
+  .panel-pie-admin__enlaces { flex-wrap: wrap; justify-content: center; }
+  .panel-pie-admin__enlaces a { min-height: 44px; }
+  .panel-pie-admin__ayuda { align-items: center; text-align: center; white-space: normal; }
+  .panel-pie-admin__legal { display: block; }
+}
+
+/* ---------- Franja: fecha y hora en una pastilla translúcida, junto a «Panel de administración» ---------- */
+.panel .panel-gobierno__textos { gap: 10px; }
+.marco-fecha {
+  display: inline-flex; align-items: center; gap: 10px; height: 30px; margin: 0; padding: 0 14px; box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 999px; background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.88); font-size: 12.5px; font-weight: 600; line-height: 1; white-space: nowrap;
+}
+.marco-fecha strong { display: inline-flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; }
+.marco-fecha strong::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--marco-acento); }
+.panel .panel-gobierno__pastilla { height: 30px; padding: 0 14px; box-sizing: border-box; font-size: 12.5px; }
+
+/* ---------- Barra: el título no se corta ---------- */
+.panel .panel-cabecera--nueva .panel-cabecera__titulo { flex: none; }
+.panel .panel-cabecera--nueva .cab-acciones { margin-left: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .marco-estado__punto::after { animation: none; }
+}
+
+/* ---------- Barra de navegación: título | Ver el portal · Notificaciones · Perfil (21 nov 2026) ----------
+   Del alto de la barra del portal (56 px), blanca con la luz tenue del portal (dorada a la izquierda, del color de acento a
+   la derecha) y una sombra suave. A la izquierda, el ícono de la sección en una insignia y el título; a la derecha, tres
+   pastillas iguales de 36 px (blancas con borde claro; al pasar el mouse o abiertas, borde y fondo del color de acento). */
+.panel .panel-cabecera--nueva {
+  position: relative; z-index: 40; height: 56px; gap: 16px; padding: 0 24px; border-bottom: 1px solid var(--borde);
+  background: radial-gradient(circle at 0% 0%, rgba(201, 162, 74, 0.1), transparent 28%), radial-gradient(circle at 100% 100%, var(--cab-luz, rgba(22, 79, 68, 0.06)), transparent 32%), #fff;
+  box-shadow: 0 4px 14px rgba(20, 30, 40, 0.05);
+}
+.cab-titulo { display: flex; flex: none; align-items: center; gap: 12px; min-width: 0; }
+.cab-titulo__icono {
+  display: grid; flex: none; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--acc-claro); box-shadow: 0 0 0 2px var(--cab-aro, #f2e3b8);
+}
+.cab-titulo__icono::before {
+  content: ""; width: 18px; height: 18px; background: var(--acc);
+  -webkit-mask: var(--icono-cab) no-repeat center / contain; mask: var(--icono-cab) no-repeat center / contain;
+}
+.panel .panel-cabecera--nueva .panel-cabecera__titulo { min-width: 0; margin: 0; overflow: hidden; color: #161a1d; font-size: 19px; line-height: 26px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.cab-acciones { position: relative; display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.cab-separador { display: none; }
+.cab-menu { position: relative; }
+
+/* Botones de la barra: 44 px de alto, ícono y texto; abierto, con fondo claro y borde */
+.cab-portal, .cab-boton {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; box-sizing: border-box;
+  border: 1px solid var(--borde); border-radius: 999px; background: #fff; color: var(--acc);
+  font-family: inherit; font-size: 13.5px; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(20, 30, 40, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+/* Como la campana y «Mi perfil» del portal: al pasar el mouse o abiertos, borde del color de acento y sombra (sin moverse) */
+.cab-portal:hover, .cab-boton:hover, .cab-boton[aria-expanded="true"] { border-color: var(--acc); box-shadow: 0 8px 18px var(--cab-sombra, rgba(22, 79, 68, 0.18)); }
+.cab-portal:focus-visible, .cab-boton:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+.cab-portal__icono, .cab-avisos__icono { position: relative; display: grid; place-items: center; }
+.cab-portal__icono svg, .cab-avisos__icono svg { width: 19px; height: 19px; }
+
+/* Contador de pendientes: círculo del color de alerta con borde blanco, sobre la campana */
+.cab-avisos__insignia {
+  position: absolute; top: -8px; right: -10px; display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px;
+  box-sizing: border-box; border: 2px solid #fff; border-radius: 999px; background: var(--alerta); color: #fff; font-size: 11px; font-weight: 800;
+}
+
+/* En escritorio el número va en una pastilla después del texto; la insignia sobre la campana solo sin texto */
+.cab-avisos__cuenta { display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--alerta); color: #fff; font-size: 12.5px; font-weight: 800; }
+@media (min-width: 1101px) { .cab-avisos__insignia { display: none; } }
+@media (max-width: 1100px) { .cab-avisos__cuenta { display: none; } }
+
+/* Perfil: avatar con la inicial, correo y rol, flecha */
+.cab-perfil { gap: 9px; padding: 3px 12px 3px 3px; }
+.cab-perfil__avatar {
+  display: grid; flex: none; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--acc); color: #fff; font-size: 13px; font-weight: 800; box-shadow: 0 0 0 2px var(--cab-aro, #f2e3b8);
+}
+.cab-perfil__textos { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: 220px; line-height: 1.25; }
+.cab-perfil__nombre { max-width: 100%; overflow: hidden; color: #161a1d; font-size: 13px; text-overflow: ellipsis; }
+.cab-perfil__rol { max-width: 100%; overflow: hidden; color: #5c5a5b; font-size: 11.5px; font-weight: 600; text-overflow: ellipsis; }
+.cab-perfil__flecha { width: 8px; height: 8px; margin: 0 2px 4px 2px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform 0.2s ease; }
+.cab-perfil[aria-expanded="true"] .cab-perfil__flecha { transform: rotate(-135deg); margin-bottom: -4px; }
+
+/* ---------- Desplegables de la barra: los mismos del portal (Detalles.css, «Desplegables de la barra») ----------
+   Misma forma, medidas, orden y animaciones que la campana y «Mi perfil» del usuario; solo cambian los colores
+   (variables --cab-*: verde y dorado en el panel, pizarra y arena en la paleta del Resumen).
+   Fondo crema con franja de color arriba (5 px), radio 24 y entrada bajando 6 px (0.22 s). Cada aviso u opción es una
+   tarjeta blanca de borde parejo (radio 16) con su ícono en un recuadro claro de 38 px; sube 2 px al pasar el mouse.
+   «Sin leer» = punto sobre el ícono. Contador en pastilla tonal; botón principal a todo lo ancho; «Cerrar sesión» en rosa. */
+.cab-desplegable {
+  position: absolute; top: calc(100% + 12px); right: 0; z-index: 50; width: 380px; max-height: min(600px, calc(100dvh - 140px)); overflow-y: auto;
+  border: 1px solid var(--borde); border-radius: 24px; background: var(--cab-fondo-desplegable, #fbf9f4); box-shadow: 0 18px 44px rgba(22, 26, 29, 0.22);
+  animation: cab-entra 0.22s ease-out both; scrollbar-width: thin;
+}
+.cab-desplegable::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: var(--marco-linea); }
+.cab-desplegable p { margin: 0; }
+.cab-desplegable ul { margin: 0; padding: 0; list-style: none; }
+@keyframes cab-entra { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.cab-desplegable :is(a, button):focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+
+/* Campana */
+.cab-desplegable__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 20px 18px 12px 20px; }
+.cab-desplegable__titulo { color: #161a1d; font-size: 17px; font-weight: 700; }
+.cab-cuenta {
+  display: inline-flex; flex: none; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+  background: var(--cab-tono, #f6eeda); box-shadow: inset 0 0 0 1px var(--cab-tono-borde, #e6d194); color: var(--cab-tono-texto, #6b4f12); font-size: 12px; font-weight: 700;
+}
+.cab-cuenta::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--cab-punto, #c9a24a); }
+.cab-lista { display: flex; flex-direction: column; gap: 8px; padding: 0 14px !important; }
+.cab-aviso {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; box-sizing: border-box;
+  border: 1px solid var(--borde); border-radius: 16px; background: #fff; color: #161a1d; font-family: inherit; text-align: left; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(22, 79, 68, 0.05); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.cab-aviso:hover { transform: translateY(-2px); border-color: var(--cab-tono-borde, #e6d194); box-shadow: 0 10px 20px rgba(22, 79, 68, 0.1); }
+.cab-aviso__icono { position: relative; display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--acc-claro); color: var(--acc); }
+.cab-aviso__icono svg { width: 18px; height: 18px; }
+.cab-aviso--nuevo .cab-aviso__icono::after {
+  content: ""; position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--cab-punto, #c9a24a); box-shadow: 0 0 0 2px #fff;
+}
+.cab-aviso__textos { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cab-aviso__titulo { display: -webkit-box; overflow: hidden; font-size: 14px; line-height: 19px; font-weight: 600; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.cab-aviso--nuevo .cab-aviso__titulo { font-weight: 700; }
+.cab-aviso__cuando { color: #6b675e; font-size: 12px; font-weight: 700; }
+.cab-vacio { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 20px 4px; color: #6b675e; font-size: 13px; text-align: center; }
+.cab-vacio__titulo { color: #161a1d; font-size: 16px; font-weight: 700; }
+.cab-insignia { display: grid; place-items: center; width: 56px; height: 56px; margin-bottom: 6px; border-radius: 50%; background: var(--acc); color: #fff; box-shadow: 0 0 0 4px var(--cab-aro, #f2e3b8); }
+.cab-insignia svg { width: 24px; height: 24px; }
+.cab-desplegable__acciones { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px; }
+.cab-principal {
+  display: flex; align-items: center; justify-content: center; width: 100%; height: 44px; box-sizing: border-box; border-radius: 999px;
+  background: var(--cab-principal, linear-gradient(180deg, #1d6354, #123f37)); color: #fff; font-size: 14px; font-weight: 700; text-decoration: none;
+  box-shadow: 0 8px 18px var(--cab-sombra, rgba(18, 63, 55, 0.25)); transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cab-principal:hover { transform: translateY(-2px); }
+.cab-principal:active { transform: none; }
+.cab-enlace {
+  min-height: 32px; padding: 0 8px; border: 0; background: none; color: var(--acc); font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+  text-decoration: underline 1.5px var(--cab-tono-borde, #e6d194); text-underline-offset: 4px; transition: text-decoration-color 0.2s ease;
+}
+.cab-enlace:hover { text-decoration-color: var(--acc); }
+
+/* Menú de la cuenta */
+.cab-desplegable--perfil { width: 330px; padding: 22px 14px 14px; box-sizing: border-box; }
+.cab-identidad { display: flex; align-items: center; gap: 14px; padding: 0 6px; }
+.cab-perfil__avatar--grande { width: 48px; height: 48px; font-size: 20px; box-shadow: 0 0 0 3px var(--cab-aro, #f2e3b8); }
+.cab-identidad__textos { display: flex; flex-direction: column; min-width: 0; }
+.cab-identidad__textos strong { color: #161a1d; font-size: 16px; overflow-wrap: anywhere; }
+.cab-identidad__textos span { color: #4d4d4d; font-size: 14px; overflow-wrap: anywhere; }
+.cab-identidad__roles { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0 6px !important; }
+.cab-identidad__roles li {
+  padding: 3px 10px; border-radius: 999px; background: var(--cab-tono, #f6eeda); box-shadow: inset 0 0 0 1px var(--cab-tono-borde, #e6d194);
+  color: var(--cab-tono-texto, #6b4f12); font-size: 12px; font-weight: 700;
+}
+.cab-opciones { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 10px !important; }
+.cab-opcion {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; box-sizing: border-box;
+  border: 1px solid var(--borde); border-radius: 16px; background: #fff; color: #161a1d; font-family: inherit; text-align: left; text-decoration: none; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(22, 79, 68, 0.05); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.cab-opcion:hover { transform: translateY(-2px); border-color: var(--cab-opcion-borde, #bfd9d0); box-shadow: 0 10px 20px rgba(22, 79, 68, 0.1); }
+.cab-opcion__icono { display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--acc-claro); color: var(--acc); }
+.cab-opcion__icono svg { width: 20px; height: 20px; }
+.cab-opcion__textos { display: flex; flex-direction: column; min-width: 0; }
+.cab-opcion__texto { color: #161a1d; font-size: 15px; font-weight: 700; }
+.cab-opcion__detalle { color: #4d4d4d; font-size: 13px; }
+/* «Cerrar sesión»: la misma tarjeta en rosa con texto guinda */
+.cab-salir .cab-salir__boton { border-color: #e8c3cf; background: #fbf1f4; }
+.cab-salir .cab-salir__boton:hover:not(:disabled) { border-color: #d9a3b4; background: var(--alerta-claro); }
+.cab-salir .cab-salir__boton .cab-opcion__icono { background: var(--alerta-claro); color: var(--alerta); }
+.cab-salir .cab-salir__boton .cab-opcion__texto { color: var(--alerta); }
+.cab-salir__boton:disabled { opacity: 0.7; cursor: default; }
+.cab-salir__error { margin-top: 8px !important; color: var(--alerta); font-size: 13px; font-weight: 700; }
+
+/* Pantallas medianas: el perfil solo con su avatar, para que quepa el título */
+@media (max-width: 1280px) {
+  .cab-perfil__textos { display: none; }
+  .cab-perfil { padding-right: 10px; }
+}
+@media (max-width: 1100px) {
+  .panel .panel-cabecera--nueva { height: auto; min-height: 60px; padding: 8px 16px; gap: 10px; }
+  .panel .panel-cabecera--nueva .panel-cabecera__titulo { font-size: 18px; }
+  .cab-boton__texto, .cab-portal__texto { display: none; }
+  .cab-portal, .cab-boton { min-width: 44px; justify-content: center; padding: 0 10px; }
+  .cab-separador { display: none; }
+  .cab-acciones { gap: 4px; }
+}
+@media (max-width: 600px) {
+  .panel .panel-cabecera--nueva .panel-cabecera__titulo { font-size: 18px; }
+  /* Los desplegables ocupan el ancho de la pantalla, debajo de la cabecera */
+  .cab-menu { position: static; }
+  .cab-desplegable { position: fixed; top: 128px; right: 8px; left: 8px; width: auto; max-height: calc(100dvh - 140px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel .panel-lateral, .panel-plegar__icono::before, .panel-plegar__icono::after { transition: none !important; }
+  .cab-desplegable { animation: none; }
+  .cab-aviso:hover, .cab-opcion:hover, .cab-principal:hover { transform: none; }
+}
+
+/* Teléfono: los tres logos de la franja superior caben a 390 px */
+@media (max-width: 600px) {
+  .panel .panel-gobierno { padding-inline: 12px; }
+  .panel .panel-gobierno__textos { display: none; }
+  .panel .panel-gobierno__logos { gap: 10px; }
+  .panel .panel-gobierno__logo--mexico { width: 70px; }
+  .panel .panel-gobierno__logo--nayarit { width: 74px; }
+  .panel .panel-gobierno__logo-biblioteca { width: 70px; height: 28px; }
+}

@@ -45,7 +45,7 @@ export const SECCIONES_MENU: SeccionMenu[] = [
         icono: iconoCalendario,
         prefijo: "/admin/actividades",
         subitems: [
-            { texto: "Propuestas de actividades", ruta: "/admin/actividades/propuestas" },
+            { texto: "Propuesta de act.", ruta: "/admin/actividades/propuestas" },
             { texto: "Calendario y salas", ruta: "/admin/actividades/calendario" },
             { texto: "Visitas y uso de espacios", ruta: "/admin/actividades/visitas" },
             { texto: "Cambios y cancelaciones", ruta: "/admin/actividades/cambios" },
@@ -62,7 +62,6 @@ export const SECCIONES_MENU: SeccionMenu[] = [
         subitems: [
             { texto: "Progreso y recompensas", ruta: "/admin/participantes/progreso" },
             { texto: "Cotejo de credenciales", ruta: "/admin/participantes/cotejo" },
-            { texto: "Bibliocomunidad", ruta: "/admin/participantes/foro" },
         ],
     },
     {
@@ -75,7 +74,7 @@ export const SECCIONES_MENU: SeccionMenu[] = [
             { texto: "Solicitudes de espacios", ruta: "/admin/atencion/espacios" },
             { texto: "Propuestas de eventos", ruta: "/admin/atencion/propuestas" },
             { texto: "Contactos y sugerencias", ruta: "/admin/atencion/contactos" },
-            { texto: "Altas asistidas", ruta: "/personal/alta-asistida", capacidad: "alta_asistida" },
+            { texto: "Altas asistidas", ruta: "/admin/atencion/altas-asistidas" },
             { texto: "Recuperación asistida", ruta: "/admin/atencion/recuperacion" },
             { texto: "Consulta de cuentas", ruta: "/admin/atencion/cuentas" },
             { texto: "Avisos", ruta: "/admin/atencion/avisos" },
