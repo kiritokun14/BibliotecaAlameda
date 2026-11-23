@@ -208,7 +208,7 @@ export function FiltrosAvanzados({ grupos, extra, activos, alQuitar }: { grupos:
         <div className="pz-filtros-av" ref={caja}>
             <button ref={boton} type="button" className={`pz-filtros-av__boton${activos ? " pz-filtros-av__boton--activo" : ""}`} aria-expanded={abierto} onClick={() => setAbierto((x) => !x)}>
                 <span className="pz-filtros-av__icono" aria-hidden="true" />
-                Filtros
+                <span className="pz-filtros-av__texto">Filtros</span>
                 {activos > 0 && <span className="pz-opcion__cantidad">{activos}</span>}
             </button>
             {abierto && (
