@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { Migas } from "../componentes";
-import { Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, Plegable, Segmentado, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
+import { Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, Plegable, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
 import { fechaCorta } from "./datos";
 import { NOMBRE_ESTADO_CAMBIO, useCambios, type Cambio, type FiltroCambio, type Programacion, type TipoCambio } from "./cambios";
 import { BASE_CAMBIOS, BASE_PROPUESTAS } from "./utiles";
@@ -13,25 +13,33 @@ const HISTORIAL = `${BASE_CAMBIOS}?vista=historial`;
 const TIPOS: TipoCambio[] = ["Cambio de fecha", "Cambio de horario", "Cambio de sala", "Reprogramación", "Cancelación"];
 const TONO: Record<Cambio["estado"], TonoEstado> = { pendiente: "dorado", aplicado: "verde", rechazado: "guinda" };
 const ICONO_TIPO: Record<TipoCambio, NombreIcono> = { "Cambio de fecha": "calendario", "Cambio de horario": "reloj", "Cambio de sala": "espacios", Reprogramación: "calendario", Cancelación: "alerta" };
-const programacion = (p: Programacion) => `${fechaCorta(p.fecha)}, ${p.hora}, ${p.sala}`;
 const horaDe = (iso: string) => iso.slice(11, 16);
 const decision = (c: Cambio) => c.aplico?.fecha ?? c.rechazo?.fecha ?? c.solicitado;
 
+// Antes y después en dos minicajas: fecha y hora arriba, sala abajo; la cancelación en guinda
+function AntesDespues({ c }: { c: Cambio }) {
+    const caja = (p: Programacion) => <><strong>{fechaCorta(p.fecha)}, {p.hora} h</strong><span title={p.sala}>{p.sala}</span></>;
+    return (
+        <div className="cb-mini">
+            <div className="cb-mini__caja cb-mini__caja--antes"><small>Antes</small>{caja(c.antes)}</div>
+            <span className="cb-mini__paso" aria-hidden="true">pasa a</span>
+            {c.despues ? <div className="cb-mini__caja cb-mini__caja--despues"><small>Después</small>{caja(c.despues)}</div>
+                : <div className="cb-mini__caja cb-mini__caja--cancela"><small>Después</small><strong>Se cancela</strong><span>La sala queda libre</span></div>}
+        </div>
+    );
+}
+
 function FilaCambio({ c }: { c: Cambio }) {
     return (
-        <article className={`pz-fila${c.estado === "pendiente" ? " pz-fila--espera" : ""}`}>
+        <article className={`pz-fila cb-fila${c.estado === "pendiente" ? " pz-fila--espera" : ""}`}>
             <span className={`pz-fila__icono${c.tipo === "Cancelación" ? " pz-fila__icono--vino" : ""}`} aria-hidden="true"><Icono nombre={ICONO_TIPO[c.tipo] ?? "calendario"} /></span>
             <div className="pz-fila__textos">
-                <h4 className="pz-fila__titulo">{c.nombre}</h4>
-                <p className="pz-fila__detalle"><span className="pz-fila__folio">{c.folio}</span><span>{c.tipo}</span><span>Pidió {c.solicito}</span><span>{c.inscritos} inscritos</span></p>
-                <p className="ac-cambio">
-                    <span className="ac-cambio__antes">{programacion(c.antes)}</span>
-                    <span className="ac-cambio__a">pasa a</span>
-                    <span className="ac-cambio__despues">{c.despues ? programacion(c.despues) : "Se cancela"}</span>
-                </p>
+                <h4 className="pz-fila__titulo cb-fila__titulo" title={c.nombre}>{c.nombre}</h4>
+                <p className="pz-fila__detalle"><span className={`cb-fila__tipo${c.tipo === "Cancelación" ? " cb-fila__tipo--vino" : ""}`}>{c.tipo}</span><span className="pz-fila__folio">{c.folio}</span><span>Pidió {c.solicito}</span><span>{c.inscritos} {c.inscritos === 1 ? "inscrita" : "inscritas"}</span></p>
             </div>
             <Chip tono={TONO[c.estado]}>{NOMBRE_ESTADO_CAMBIO[c.estado]}</Chip>
             <Link to={`${BASE_CAMBIOS}/${c.folio}`} className={`pz-boton pz-boton--chico${c.estado === "pendiente" ? "" : " pz-boton--contorno"}`}>{c.estado === "pendiente" ? "Revisar" : "Abrir"}<span className="solo-lectores"> {c.folio}</span></Link>
+            <div className="cb-fila__cambio"><AntesDespues c={c} /></div>
         </article>
     );
 }
@@ -134,9 +142,12 @@ function Cambios() {
 
 // Historial: todo lo decidido (aplicado o rechazado), lo más reciente primero | resumen
 function Historial({ cambios }: { cambios: Cambio[] }) {
-    const [estado, setEstado] = useState<"todos" | "aplicado" | "rechazado">("todos");
+    const [estado, setEstado] = useState("");
+    const [tipo, setTipo] = useState("");
+    const [busqueda, setBusqueda] = useState("");
+    const q = busqueda.trim().toLowerCase();
     const decididos = cambios.filter((c) => c.estado !== "pendiente").sort((a, b) => decision(b).localeCompare(decision(a)));
-    const visibles = decididos.filter((c) => estado === "todos" || c.estado === estado);
+    const visibles = decididos.filter((c) => (!estado || c.estado === estado) && (!tipo || c.tipo === tipo) && (!q || c.nombre.toLowerCase().includes(q) || c.folio.toLowerCase().includes(q)));
     const aplicados = decididos.filter((c) => c.estado === "aplicado");
     const avisados = aplicados.reduce((s, c) => s + c.avisados, 0);
     const porTipo = TIPOS.map((t) => ({ t, n: decididos.filter((c) => c.tipo === t).length })).filter((x) => x.n);
@@ -152,33 +163,43 @@ function Historial({ cambios }: { cambios: Cambio[] }) {
                     <Cifra icono="alerta" tono="vino" valor={decididos.length - aplicados.length} texto="rechazados" />
                 </Encabezado>
                 <div className="pz-columnas">
-                    <Tarjeta icono="bitacora" id="historial-cambios" titulo="Línea de tiempo" texto="Lo más reciente primero" className="pz-pendientes"
+                    <Tarjeta icono="bitacora" id="historial-cambios" titulo="Cambios decididos" texto="Lo más reciente primero" className="pz-pendientes"
                         accion={<Link to={BASE_CAMBIOS} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a la bandeja</Link>}>
-                        <Segmentado etiqueta="Filtrar historial" valor={estado} alCambiar={setEstado} opciones={[
-                            { valor: "todos", texto: "Todos", cantidad: decididos.length },
-                            { valor: "aplicado", texto: "Aplicados", cantidad: aplicados.length },
-                            { valor: "rechazado", texto: "Rechazados", cantidad: decididos.length - aplicados.length },
-                        ]} />
-                        {visibles.length === 0 ? <Vacio icono="bitacora" titulo="Todavía no hay cambios decididos" texto="Lo que apliques o rechaces aparecerá aquí con su responsable." /> : (
-                            <div className="pz-grupos" tabIndex={0} role="region" aria-label="Historial de cambios">
-                                <ol className="pz-linea pz-linea--tarjetas">
-                                    {visibles.map((c) => (
-                                        <li key={c.folio} className={`pz-linea__paso pz-linea__paso--${c.estado === "aplicado" ? "verde" : "guinda"}`}>
-                                            <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={ICONO_TIPO[c.tipo] ?? "calendario"} /></span>
-                                            <div className="pz-linea__textos ac-historial-tarjeta">
-                                                <p className="pz-linea__titulo">{c.tipo}: {c.nombre} <Chip tono={TONO[c.estado]}>{NOMBRE_ESTADO_CAMBIO[c.estado]}</Chip></p>
-                                                <p className="pz-linea__detalle">{fechaCorta(decision(c))} {horaDe(decision(c))}, {c.estado === "aplicado" ? `aplicó ${c.aplico?.quien}` : "rechazado por Coordinación"}, <Link to={`${BASE_CAMBIOS}/${c.folio}`}>{c.folio}</Link></p>
-                                                <p className="ac-cambio">
-                                                    <span className="ac-cambio__antes">{programacion(c.antes)}</span>
-                                                    <span className="ac-cambio__a">pasa a</span>
-                                                    <span className="ac-cambio__despues">{c.despues ? programacion(c.despues) : "Se cancela"}</span>
-                                                </p>
-                                                <p className="pz-linea__nota">{c.estado === "rechazado" ? `Motivo del rechazo: ${c.rechazo?.motivo ?? "sin motivo"}` : `Motivo: ${c.motivo}`}</p>
-                                                {c.estado === "aplicado" && <p className="pz-linea__detalle">{c.avisados ? `Se avisó a ${c.avisados} ${c.avisados === 1 ? "persona inscrita" : "personas inscritas"}.` : "No había personas inscritas que avisar."}</p>}
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ol>
+                        <Buscador etiqueta="Buscar por folio o actividad" placeholder="Folio o actividad" valor={busqueda} alCambiar={setBusqueda}>
+                            <FiltrosAvanzados activos={(estado ? 1 : 0) + (tipo ? 1 : 0)} alQuitar={() => { setEstado(""); setTipo(""); }} grupos={[
+                                { titulo: "Decisión", valor: estado, alCambiar: setEstado, opciones: [{ valor: "", texto: "Todas", cantidad: decididos.length },
+                                    { valor: "aplicado", texto: "Aplicados", cantidad: aplicados.length }, { valor: "rechazado", texto: "Rechazados", cantidad: decididos.length - aplicados.length }] },
+                                { titulo: "Tipo de cambio", valor: tipo, alCambiar: setTipo, opciones: [{ valor: "", texto: "Todos" }, ...porTipo.map(({ t, n }) => ({ valor: t, texto: t, cantidad: n }))] },
+                            ]} />
+                        </Buscador>
+                        {decididos.length === 0 ? <Vacio icono="bitacora" titulo="Todavía no hay cambios decididos" texto="Lo que apliques o rechaces aparecerá aquí con su responsable." />
+                            : visibles.length === 0 ? <Vacio icono="buscarCuenta" titulo="Sin resultados" texto="Prueba con otra palabra u otro filtro."
+                                accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setBusqueda(""); setEstado(""); setTipo(""); }}>Quitar filtros</button>} /> : (
+                            <div className="pz-grupos" tabIndex={0} role="region" aria-label="Cambios decididos">
+                                <ul className="pz-filas">
+                                    {visibles.map((c) => {
+                                        const [d, m] = fechaCorta(decision(c).slice(0, 10)).split(" ");
+                                        return (
+                                            <li key={c.folio}>
+                                                <article className="pz-fila cb-fila cb-fila--decidida">
+                                                    <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{m}</span></span>
+                                                    <div className="pz-fila__textos">
+                                                        <h4 className="pz-fila__titulo cb-fila__titulo" title={c.nombre}>{c.nombre}</h4>
+                                                        <p className="pz-fila__detalle"><span className={`cb-fila__tipo${c.tipo === "Cancelación" ? " cb-fila__tipo--vino" : ""}`}>{c.tipo}</span><span className="pz-fila__folio">{c.folio}</span>
+                                                            <span>{c.estado === "aplicado" ? `Aplicó ${c.aplico?.quien ?? "Coordinación"}, ${horaDe(decision(c))} h` : `Rechazado, ${horaDe(decision(c))} h`}</span>
+                                                            {c.estado === "aplicado" && <span>{c.avisados ? `${c.avisados} ${c.avisados === 1 ? "persona avisada" : "personas avisadas"}` : "Sin personas que avisar"}</span>}</p>
+                                                    </div>
+                                                    <Chip tono={TONO[c.estado]}>{NOMBRE_ESTADO_CAMBIO[c.estado]}</Chip>
+                                                    <Link to={`${BASE_CAMBIOS}/${c.folio}`} className="pz-boton pz-boton--chico pz-boton--contorno">Abrir<span className="solo-lectores"> {c.folio}</span></Link>
+                                                    <div className="cb-fila__cambio">
+                                                        <AntesDespues c={c} />
+                                                        <p className={`cb-fila__motivo${c.estado === "rechazado" ? " cb-fila__motivo--vino" : ""}`}>{c.estado === "rechazado" ? `Motivo del rechazo: ${c.rechazo?.motivo ?? "sin motivo"}` : `Motivo: ${c.motivo}`}</p>
+                                                    </div>
+                                                </article>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
                             </div>
                         )}
                     </Tarjeta>

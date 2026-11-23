@@ -883,10 +883,7 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
 .vis-proxima__grupo { margin: 0; color: var(--pz-texto); font-size: 16px; font-weight: 800; }
 .ac-solo-desarrollo { margin: 0; color: var(--pz-gris); font-size: 12px; }
 /* Cambio de programación: antes (tachado) y después */
-.ac-cambio { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 0; font-size: 12.5px; }
-.ac-cambio__antes { padding: 2px 8px; border-radius: 8px; background: #efeeee; color: var(--pz-gris); text-decoration: line-through; }
-.ac-cambio__a { color: var(--pz-gris); font-weight: 600; }
-.ac-cambio__despues { padding: 2px 8px; border-radius: 8px; background: var(--pz-claro-2); color: var(--pz-primario); font-weight: 700; }
+
 .pz-linea--tarjetas .pz-linea__textos { flex: 1; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: #fff; }
 .pz-linea--tarjetas .pz-linea__titulo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 /* Inscripciones: cupo en la fila, medidor circular y lista de lo que se llena */
@@ -1513,3 +1510,35 @@ a.pz-etiqueta--enlace:hover { background: var(--pz-primario); color: #fff; }
 .at-espera__dias small { margin-top: 2px; font-size: 10.5px; font-weight: 700; }
 .at-espera__dias--larga { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
 @media (prefers-reduced-motion: reduce) { .at-espera > li, .at-espera__item, .at-espera__item:hover { animation: none; transition: none; transform: none; } }
+/* Cambios y cancelaciones (22 nov, segunda vuelta): fila con el nombre y su tipo en pastilla, folio y datos, y el cambio
+   en dos minicajas (antes en gris, después en verde o «Se cancela» en guinda); columnas fijas: ícono o fecha, texto, estado, acción */
+.cb-fila { grid-template-columns: 40px minmax(0, 1fr) 124px 108px; align-items: center; }
+.cb-fila--decidida { grid-template-columns: 52px minmax(0, 1fr) 124px 108px; }
+.cb-fila > .pz-chip { width: 124px; }
+.cb-fila__cabeza { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; }
+.cb-fila__cabeza .pz-fila__titulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cb-fila__tipo { flex: none; padding: 1px 8px; border-radius: 999px; background: var(--pz-claro); color: var(--pz-primario); font-size: 11.5px; font-weight: 700; }
+.cb-fila__tipo--vino { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.cb-fila__motivo { margin: 6px 0 0; padding: 6px 10px; border-radius: 10px; background: var(--pz-fondo); color: var(--pz-texto); font-size: 12.5px; line-height: 17px; }
+.cb-fila__motivo--vino { background: var(--pz-urgente-claro); }
+.cb-mini { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 8px; margin-top: 8px; }
+.cb-mini__caja { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 7px 10px; border: 1px solid var(--pz-borde); border-radius: 12px; background: var(--pz-fondo); }
+.cb-mini__caja small { color: var(--pz-gris); font-size: 11px; font-weight: 800; }
+.cb-mini__caja strong { color: var(--pz-gris); font-size: 13px; font-weight: 800; }
+.cb-mini__caja span { overflow: hidden; color: var(--pz-gris); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.cb-mini__caja--despues { border-color: var(--pz-primario); background: #fff; box-shadow: 0 0 0 2px var(--pz-claro-2); }
+.cb-mini__caja--despues strong { color: var(--pz-primario); }
+.cb-mini__caja--despues span { color: var(--pz-texto); }
+.cb-mini__caja--cancela { border-color: var(--pz-urgente); background: var(--pz-urgente-claro); }
+.cb-mini__caja--cancela strong { color: var(--pz-urgente); }
+.cb-mini__paso { align-self: center; padding: 2px 8px; border-radius: 999px; background: var(--pz-tono); color: var(--pz-tono-texto); font-size: 11px; font-weight: 800; white-space: nowrap; }
+/* El cambio (antes y después, y el motivo) va en su propio renglón debajo, alineado con el texto: así tiene todo el ancho */
+.cb-fila__cambio { grid-column: 2 / -1; min-width: 0; }
+.cb-fila__cambio .cb-mini { margin-top: 0; }
+.cb-mini__caja { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.cb-mini__caja small { flex-basis: 100%; }
+.cb-fila__titulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cb-fila .pz-fila__detalle .cb-fila__tipo { padding: 0 8px; }
+.cb-mini__caja { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 2px 8px; }
+.cb-mini__caja small { grid-column: 1 / -1; }
+.cb-mini__caja strong { white-space: nowrap; }
