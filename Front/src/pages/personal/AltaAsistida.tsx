@@ -3,114 +3,29 @@
 // encabezado con cifras que llevan a las solicitudes; «Registrar a una persona» es un formulario en columnas libres
 // (datos | «Antes de registrar» con avance y «Cómo funciona»); «Solicitudes abiertas» es lista | detalle con la decisión.
 // Si el servidor responde 503 (ALTA_ASISTIDA_HABILITADA=false en Back/.env) se avisa sin romper la pantalla.
-import { useCallback, useContext, useEffect, useId, useState, type ChangeEvent, type ReactNode, type SubmitEvent } from "react";
+import { useCallback, useContext, useEffect, useId, useState, type ChangeEvent, type SubmitEvent } from "react";
 import { Navigate } from "react-router";
 import PanelLayout from "../admin/PanelLayout";
 import { Migas } from "../admin/componentes";
-import {
-    Aviso, Buscador, Cabecera, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Icono, Paginas, Segmentado, Tarjeta, Vacio, type NombreIcono,
-} from "../admin/piezasPanel";
+import { Aviso, Cabecera, Chip, Cifra, Dato, Datos, Encabezado, Icono, Segmentado, Tarjeta } from "../admin/piezasPanel";
+import { Paso } from "../admin/atencion/comun/Paso";
 import { mensajeError, ErrorServicio } from "../../servicios/api";
 import { ContextoPanel } from "../../servicios/accesoPanel";
+import { esCorreoValido, tieneDigitos } from "../../servicios/validaciones";
+import { listarSolicitudes, prepararAlta, reintentarInvitacion, type ResultadoAlta, type SolicitudAbierta } from "../../servicios/altaAsistida";
 import {
-    cancelarSolicitud, listarSolicitudes, prepararAlta, reintentarInvitacion,
-    resolverDuplicado, type DatosAltaAsistida, type ResultadoAlta, type SolicitudAbierta,
-} from "../../servicios/altaAsistida";
-import { calcularEdad, esCorreoValido, tieneDigitos, MENSAJE_CORREO, MENSAJE_OBLIGATORIO } from "../../servicios/validaciones";
+    RUTA, armarSolicitud, datosIniciales, edadDe, lleno, servicioConError, validar,
+    domicilioTutor, obligatoriosTutor, type DatosFormulario, type Errores, type FiltroSolicitud, type Servicio, type Vista,
+} from "./datosAlta";
+import SolicitudesAlta from "./SolicitudesAlta";
 import "./AltaAsistida.css";
-
-// Mismos campos que Crear cuenta, sin contraseña: el titular la elige desde la invitación (HU-09).
-const datosIniciales = {
-    nombre: "", primerApellido: "", segundoApellido: "", fechaNacimiento: "", telefono: "",
-    calle: "", numeroExterior: "", numeroInterior: "", colonia: "", codigoPostal: "", municipio: "", estado: "Nayarit",
-    tutorNombre: "", tutorApellidos: "", tutorTelefono: "", tutorCorreo: "", tutorRelacion: "",
-    tutorCalle: "", tutorNumeroExterior: "", tutorNumeroInterior: "", tutorColonia: "",
-    tutorCodigoPostal: "", tutorMunicipio: "", tutorEstado: "Nayarit",
-    correo: "", motivo: "",
-};
-
-type Datos = typeof datosIniciales;
-type Errores = Partial<Record<keyof Datos | "privacidad", string>>;
-
-const obligatorios: (keyof Datos)[] = [
-    "nombre", "primerApellido", "fechaNacimiento", "telefono", "calle", "numeroExterior",
-    "colonia", "codigoPostal", "municipio", "estado", "correo", "motivo",
-];
-const obligatoriosTutor: (keyof Datos)[] = ["tutorNombre", "tutorApellidos", "tutorTelefono", "tutorCorreo", "tutorRelacion"];
-const domicilioTutor: (keyof Datos)[] = ["tutorCalle", "tutorNumeroExterior", "tutorColonia", "tutorCodigoPostal", "tutorMunicipio", "tutorEstado"];
-
-function validar(datos: Datos, aceptaPrivacidad: boolean, conTutor: boolean, mismoDomicilio: boolean): Errores {
-    const errores: Errores = {};
-    const requeridos = [...obligatorios, ...(conTutor ? obligatoriosTutor : []), ...(conTutor && !mismoDomicilio ? domicilioTutor : [])];
-    for (const campo of requeridos) {
-        if (datos[campo].trim() === "") errores[campo] = MENSAJE_OBLIGATORIO;
-    }
-    if (datos.fechaNacimiento && (!Number.isFinite(calcularEdad(datos.fechaNacimiento)) || calcularEdad(datos.fechaNacimiento) < 0))
-        errores.fechaNacimiento = "Revisa la fecha de nacimiento.";
-    if (datos.telefono && !tieneDigitos(datos.telefono, 10)) errores.telefono = "El teléfono debe tener 10 dígitos.";
-    if (datos.codigoPostal && !tieneDigitos(datos.codigoPostal, 5)) errores.codigoPostal = "El código postal debe tener 5 dígitos.";
-    if (datos.correo && !esCorreoValido(datos.correo)) errores.correo = MENSAJE_CORREO;
-    if (datos.motivo.length > 500) errores.motivo = "Máximo 500 caracteres.";
-    if (conTutor) {
-        if (datos.tutorTelefono && !tieneDigitos(datos.tutorTelefono, 10)) errores.tutorTelefono = "El teléfono debe tener 10 dígitos.";
-        if (datos.tutorCorreo && !esCorreoValido(datos.tutorCorreo)) errores.tutorCorreo = MENSAJE_CORREO;
-        if (!mismoDomicilio && datos.tutorCodigoPostal && !tieneDigitos(datos.tutorCodigoPostal, 5))
-            errores.tutorCodigoPostal = "El código postal debe tener 5 dígitos.";
-    }
-    if (!aceptaPrivacidad) errores.privacidad = "Confirma que la persona leyó y aceptó el aviso de privacidad.";
-    return errores;
-}
-
-function armarSolicitud(datos: Datos, conTutor: boolean, mismoDomicilio: boolean): DatosAltaAsistida {
-    const domicilio = {
-        calle: datos.calle.trim(), numeroExterior: datos.numeroExterior.trim(),
-        ...(datos.numeroInterior.trim() ? { numeroInterior: datos.numeroInterior.trim() } : {}),
-        coloniaLocalidad: datos.colonia.trim(), codigoPostal: datos.codigoPostal.trim(),
-        municipio: datos.municipio.trim(), estadoProvincia: datos.estado.trim(),
-    };
-    return {
-        nombres: datos.nombre.trim(), primerApellido: datos.primerApellido.trim(),
-        ...(datos.segundoApellido.trim() ? { segundoApellido: datos.segundoApellido.trim() } : {}),
-        fechaNacimiento: datos.fechaNacimiento, telefono: datos.telefono.trim(), domicilio,
-        correo: datos.correo.trim(), aceptaAviso: true, motivo: datos.motivo.trim(),
-        ...(conTutor ? { tutor: {
-            nombres: datos.tutorNombre.trim(), apellidos: datos.tutorApellidos.trim(),
-            telefono: datos.tutorTelefono.trim(), correo: datos.tutorCorreo.trim(),
-            relacion: datos.tutorRelacion === "Madre" ? "madre" : datos.tutorRelacion === "Padre" ? "padre" : "tutor",
-            domicilio: mismoDomicilio ? { ...domicilio } : {
-                calle: datos.tutorCalle.trim(), numeroExterior: datos.tutorNumeroExterior.trim(),
-                ...(datos.tutorNumeroInterior.trim() ? { numeroInterior: datos.tutorNumeroInterior.trim() } : {}),
-                coloniaLocalidad: datos.tutorColonia.trim(), codigoPostal: datos.tutorCodigoPostal.trim(),
-                municipio: datos.tutorMunicipio.trim(), estadoProvincia: datos.tutorEstado.trim(),
-            },
-        } } : {}),
-    } as DatosAltaAsistida;
-}
-
-// Dirección de la pantalla, dentro de Atención (la vieja /personal/alta-asistida redirige aquí)
-const RUTA = "/admin/atencion/altas-asistidas";
-type Vista = "nueva" | "solicitudes";
-type FiltroSolicitud = "todas" | "en_revision" | "lista";
-// Estado del servicio en el servidor: «apagado» cuando responde 503 (todavía no habilitado)
-type Servicio = { estado: "cargando" | "listo" | "apagado" | "error"; mensaje?: string };
-
-const POR_PAGINA = 5;
-const lleno = (v: string) => v.trim() !== "";
-const nombreDe = (s: { nombres: string; primerApellido: string; segundoApellido: string | null }) =>
-    [s.nombres, s.primerApellido, s.segundoApellido].filter(Boolean).join(" ");
-const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-function fechaCorta(fecha: string) {
-    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);
-    return m ? `${Number(m[3])} ${MESES[Number(m[2]) - 1]} ${m[1]}` : fecha;
-}
-const fechaHora = (iso: string) => new Date(iso).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Mazatlan" });
 
 // ---------- Campos con las piezas del panel ----------
 
 type CampoProps = {
-    id: keyof Datos;
+    id: keyof DatosFormulario;
     etiqueta: string;
-    datos: Datos;
+    datos: DatosFormulario;
     errores: Errores;
     alCambiar: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
     obligatorio?: boolean;
@@ -153,18 +68,6 @@ function Casilla({ marcada, alCambiar, titulo, texto, descrita }: { marcada: boo
     );
 }
 
-// Paso de una línea del tiempo (Cómo funciona, ¿Qué sigue?)
-function Paso({ tono, icono, titulo, texto, actual }: { tono: "verde" | "dorado" | "guinda" | "gris"; icono: NombreIcono; titulo: string; texto: string; actual?: boolean }) {
-    return (
-        <li className={`pz-linea__paso pz-linea__paso--${tono}${actual ? " pz-linea__paso--actual" : ""}`}>
-            <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={icono} /></span>
-            <div className="pz-linea__textos">
-                <p className="pz-linea__titulo">{titulo}</p>
-                <p className="pz-linea__detalle">{texto}</p>
-            </div>
-        </li>
-    );
-}
 
 // ---------- Pantalla ----------
 
@@ -184,14 +87,15 @@ function AltaAsistida() {
     const [solicitudes, setSolicitudes] = useState<SolicitudAbierta[]>([]);
     const [servicio, setServicio] = useState<Servicio>({ estado: "cargando" });
 
-    const conTutor = datos.fechaNacimiento !== "" && calcularEdad(datos.fechaNacimiento) < 18;
+    const edad = edadDe(datos.fechaNacimiento);
+    const conTutor = edad !== null && edad < 18;
 
     const cargarSolicitudes = useCallback(async () => {
         try {
             setSolicitudes(await listarSolicitudes());
             setServicio({ estado: "listo" });
         } catch (error) {
-            setServicio({ estado: error instanceof ErrorServicio && error.estado === 503 ? "apagado" : "error", mensaje: mensajeError(error) });
+            setServicio(servicioConError(error));
         }
     }, []);
 
@@ -201,7 +105,7 @@ function AltaAsistida() {
         listarSolicitudes()
             .then((lista) => { if (vigente) { setSolicitudes(lista); setServicio({ estado: "listo" }); } })
             .catch((error) => {
-                if (vigente) setServicio({ estado: error instanceof ErrorServicio && error.estado === 503 ? "apagado" : "error", mensaje: mensajeError(error) });
+                if (vigente) setServicio(servicioConError(error));
             });
         return () => { vigente = false; };
     }, [identidad]);
@@ -209,7 +113,7 @@ function AltaAsistida() {
     function cambiar(e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
         const { name, value } = e.target;
         setDatos((d) => ({ ...d, [name]: value }));
-        if (errores[name as keyof Datos]) setErrores((x) => ({ ...x, [name]: undefined }));
+        if (errores[name as keyof DatosFormulario]) setErrores((x) => ({ ...x, [name]: undefined }));
     }
 
     function nuevaAlta() {
@@ -298,7 +202,7 @@ function AltaAsistida() {
                     </div>
 
                     {vista === "solicitudes" ? (
-                        <Solicitudes solicitudes={solicitudes} servicio={servicio} filtro={filtro} alFiltrar={setFiltro} alCambiar={cargarSolicitudes} alRegistrar={nuevaAlta} />
+                        <SolicitudesAlta solicitudes={solicitudes} servicio={servicio} filtro={filtro} alFiltrar={setFiltro} alCambiar={cargarSolicitudes} alRegistrar={nuevaAlta} />
                     ) : resultado ? (
                         <Resultado resultado={resultado} errorServidor={errorServidor} alNueva={nuevaAlta} alVerSolicitudes={() => verSolicitudes(resultado.estado === "en_revision" ? "en_revision" : "todas")}
                             alReintentar={async () => {
@@ -390,7 +294,7 @@ function AltaAsistida() {
                                         <div className="pz-identidad__textos">
                                             <p className="pz-identidad__nombre">{[datos.nombre, datos.primerApellido, datos.segundoApellido].map((x) => x.trim()).filter(Boolean).join(" ") || "Nombre de la persona"}</p>
                                             <p className="pz-identidad__correo">{datos.correo.trim() || "Correo de la cuenta"}</p>
-                                            {datos.fechaNacimiento && <span><Chip tono={conTutor ? "dorado" : "verde"}>{conTutor ? `Menor de edad, ${calcularEdad(datos.fechaNacimiento)} años` : `Persona adulta, ${calcularEdad(datos.fechaNacimiento)} años`}</Chip></span>}
+                                            {edad !== null && <span><Chip tono={conTutor ? "dorado" : "verde"}>{conTutor ? `Menor de edad, ${edad} años` : `Persona adulta, ${edad} años`}</Chip></span>}
                                         </div>
                                     </div>
                                     <div className="pz-envio__avance">
@@ -478,164 +382,6 @@ function Resultado({ resultado, errorServidor, alNueva, alReintentar, alVerSolic
                 </Tarjeta>
             </aside>
         </div>
-    );
-}
-
-// ---------- Solicitudes abiertas: lista | detalle con la decisión ----------
-
-function Solicitudes({ solicitudes, servicio, filtro, alFiltrar, alCambiar, alRegistrar }: {
-    solicitudes: SolicitudAbierta[]; servicio: Servicio; filtro: FiltroSolicitud; alFiltrar: (f: FiltroSolicitud) => void;
-    alCambiar: () => Promise<void>; alRegistrar: () => void;
-}) {
-    const id = useId();
-    const [texto, setTexto] = useState("");
-    const [pagina, setPagina] = useState(1);
-    const [elegidaId, setElegidaId] = useState<string | null>(null);
-    const buscado = texto.trim().toLowerCase();
-    const filtradas = solicitudes
-        .filter((s) => filtro === "todas" || s.estado === filtro)
-        .filter((s) => !buscado || [nombreDe(s), s.correo, s.telefono].some((v) => v.toLowerCase().includes(buscado)))
-        .sort((a, b) => (a.estado === b.estado ? b.solicitadoEn.localeCompare(a.solicitadoEn) : a.estado === "en_revision" ? -1 : 1));
-    const paginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA));
-    const actual = Math.min(pagina, paginas);
-    const visibles = filtradas.slice((actual - 1) * POR_PAGINA, actual * POR_PAGINA);
-    const elegida = solicitudes.find((s) => s.id === elegidaId) ?? null;
-    const enRevision = solicitudes.filter((s) => s.estado === "en_revision").length;
-
-    return (
-        <div className="pz-columnas pz-columnas--libre">
-            <Tarjeta icono="cuentas" id={`${id}-lista`} titulo="Solicitudes abiertas" texto="Primero las que esperan una decisión; después las que esperan a la persona"
-                accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => void alCambiar()}>Actualizar</button>}>
-                <Buscador etiqueta="Buscar una solicitud" placeholder="Nombre, correo o teléfono" valor={texto} alCambiar={(v) => { setTexto(v); setPagina(1); }}>
-                    <FiltrosAvanzados activos={filtro === "todas" ? 0 : 1} alQuitar={() => { alFiltrar("todas"); setPagina(1); }} grupos={[{
-                        titulo: "Estado", valor: filtro, alCambiar: (v) => { alFiltrar(v as FiltroSolicitud); setPagina(1); },
-                        opciones: [
-                            { valor: "todas", texto: "Todas", cantidad: solicitudes.length },
-                            { valor: "en_revision", texto: "Posible duplicado", cantidad: enRevision },
-                            { valor: "lista", texto: "Esperan a la persona", cantidad: solicitudes.length - enRevision },
-                        ],
-                    }]} />
-                </Buscador>
-
-                {servicio.estado === "cargando" ? <p className="pz-ayuda" role="status">Cargando solicitudes…</p>
-                    : servicio.estado === "apagado" ? <Vacio icono="alerta" titulo="Servicio sin habilitar" texto="Cuando el servidor active el alta asistida, aquí verás las solicitudes abiertas." />
-                    : servicio.estado === "error" ? <Vacio icono="alerta" titulo="No se pudieron cargar" texto={servicio.mensaje ?? "Inténtalo de nuevo."} accion={<button type="button" className="pz-boton pz-boton--chico" onClick={() => void alCambiar()}>Reintentar</button>} />
-                    : visibles.length === 0 ? (
-                        <Vacio icono="check" titulo={solicitudes.length ? "Sin resultados" : "No hay solicitudes abiertas"}
-                            texto={solicitudes.length ? "Prueba con otro filtro u otra búsqueda." : "Cuando registres un alta, aparecerá aquí hasta que la persona active su cuenta."}
-                            accion={!solicitudes.length && <button type="button" className="pz-boton pz-boton--chico" onClick={alRegistrar}>Registrar a una persona</button>} />
-                    ) : (
-                        <ul className="pz-filas">
-                            {visibles.map((s) => {
-                                const abierta = s.id === elegidaId;
-                                const revision = s.estado === "en_revision";
-                                return (
-                                    <li key={s.id}>
-                                        <article className={`pz-fila${revision ? " pz-fila--guinda" : ""}${abierta ? " pz-fila--elegida" : ""}`}>
-                                            <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={revision ? "alerta" : "usuario"} /></span>
-                                            <div className="pz-fila__textos">
-                                                <h4 className="pz-fila__titulo">{nombreDe(s)}</h4>
-                                                <p className="pz-fila__detalle"><span>{s.correo}</span><span>Tel. {s.telefono}</span><span className="pz-fila__folio">{fechaHora(s.solicitadoEn)}</span></p>
-                                            </div>
-                                            <Chip tono={revision ? "guinda" : "dorado"}>{revision ? "Posible duplicado" : "Invitación pendiente"}</Chip>
-                                            <button type="button" className={`pz-boton pz-boton--chico${abierta ? "" : " pz-boton--contorno"}`} aria-pressed={abierta} onClick={() => setElegidaId(abierta ? null : s.id)}>
-                                                {abierta ? "Abierta" : revision ? "Decidir" : "Atender"}<span className="solo-lectores"> la solicitud de {nombreDe(s)}</span>
-                                            </button>
-                                        </article>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    )}
-
-                <div className="pz-tarjeta__pie">
-                    <p aria-live="polite">{visibles.length} de {filtradas.length} solicitudes</p>
-                    <Paginas pagina={actual} paginas={paginas} alCambiar={setPagina} />
-                </div>
-            </Tarjeta>
-
-            <aside className="pz-lateral" aria-label={elegida ? "Detalle de la solicitud" : "Cómo se decide"}>
-                {elegida ? <Detalle key={elegida.id} solicitud={elegida} alCambiar={alCambiar} alCerrar={() => setElegidaId(null)} /> : (
-                    <Tarjeta icono="info" id={`${id}-como`} titulo="Cómo se decide un duplicado" texto="Elige una solicitud para atenderla">
-                        <ol className="pz-linea">
-                            <Paso tono="dorado" icono="buscarCuenta" titulo="Compara las cuentas" texto="Revisa nombre, fecha de nacimiento, teléfono y correo con la identificación." />
-                            <Paso tono="verde" icono="check" titulo="Es otra persona" texto="Se envía la invitación a su correo." />
-                            <Paso tono="guinda" icono="alerta" titulo="Es la misma persona" texto="No se crea otra cuenta: oriéntala con Recuperación asistida." />
-                        </ol>
-                    </Tarjeta>
-                )}
-            </aside>
-        </div>
-    );
-}
-
-function Detalle({ solicitud, alCambiar, alCerrar }: { solicitud: SolicitudAbierta; alCambiar: () => Promise<void>; alCerrar: () => void }) {
-    const id = useId();
-    const [motivo, setMotivo] = useState("");
-    const [error, setError] = useState("");
-    const [aviso, setAviso] = useState("");
-    const [ocupado, setOcupado] = useState(false);
-    const revision = solicitud.estado === "en_revision";
-
-    async function ejecutar(accion: () => Promise<ResultadoAlta>, pideMotivo = true) {
-        if (pideMotivo && !motivo.trim()) { setError("Escribe el motivo de la decisión."); return; }
-        setOcupado(true); setError(""); setAviso("");
-        try {
-            const resultado = await accion();
-            if (resultado.estado === "lista" && !resultado.invitacionEnviada) setAviso("Se aprobó, pero el correo no salió. Reenvíala en unos minutos.");
-            else if (resultado.estado === "lista" || resultado.estado === "invitada") setAviso("Invitación enviada.");
-            await alCambiar();
-        } catch (e) { setError(mensajeError(e)); }
-        finally { setOcupado(false); }
-    }
-
-    const acciones: ReactNode = revision ? (
-        <>
-            <button type="button" className="pz-boton" disabled={ocupado} onClick={() => ejecutar(() => resolverDuplicado(solicitud.id, "persona_distinta", motivo.trim()))}>Es otra persona: invitar</button>
-            <button type="button" className="pz-boton pz-boton--contorno" disabled={ocupado} onClick={() => ejecutar(() => resolverDuplicado(solicitud.id, "misma_persona", motivo.trim()))}>Es la misma persona: no crear</button>
-        </>
-    ) : (
-        <button type="button" className="pz-boton" disabled={ocupado} onClick={() => ejecutar(() => reintentarInvitacion(solicitud.id), false)}>Reenviar invitación</button>
-    );
-
-    return (
-        <Tarjeta icono={revision ? "alerta" : "usuario"} id={`${id}-detalle`} titulo={nombreDe(solicitud)} texto={`Solicitada el ${fechaHora(solicitud.solicitadoEn)}`}
-            accion={<Chip tono={revision ? "guinda" : "dorado"}>{revision ? "En revisión" : "Invitación pendiente"}</Chip>}>
-            <Datos>
-                <Dato icono="mensajes" etiqueta="Correo" ancho>{solicitud.correo}</Dato>
-                <Dato icono="reloj" etiqueta="Nacimiento">{fechaCorta(solicitud.fechaNacimiento)}</Dato>
-                <Dato icono="usuario" etiqueta="Teléfono">{solicitud.telefono}</Dato>
-            </Datos>
-
-            {solicitud.candidatos.length > 0 && (
-                <>
-                    <p className="pz-subtitulo">Cuentas parecidas</p>
-                    <ul className="pz-filas alta-parecidas">
-                        {solicitud.candidatos.map((c) => (
-                            <li key={c.id} className="alta-parecida">
-                                <p className="alta-parecida__nombre">{nombreDe(c)}</p>
-                                <p className="pz-fila__detalle"><span>{c.correo}</span><span>Tel. {c.telefono}</span><span>Nac. {fechaCorta(c.fechaNacimiento)}</span></p>
-                            </li>
-                        ))}
-                    </ul>
-                </>
-            )}
-
-            {aviso && <Aviso titulo={aviso} />}
-            {error && <Aviso tono="error" titulo="No se pudo completar." texto={error} />}
-
-            <div className="pz-decision">
-                <label className="pz-campo pz-campo--lleno">
-                    <span>Motivo de la decisión{revision ? " *" : " (para cancelar)"}</span>
-                    <input type="text" value={motivo} maxLength={500} onChange={(e) => { setMotivo(e.target.value); setError(""); }} placeholder="Ej. Se verificó con identificación" />
-                </label>
-                <div className="pz-acciones">{acciones}</div>
-            </div>
-            <div className="pz-acciones pz-acciones--pie">
-                <button type="button" className="pz-boton pz-boton--guinda pz-boton--contorno pz-boton--chico" disabled={ocupado} onClick={() => ejecutar(() => cancelarSolicitud(solicitud.id, motivo.trim()))}>Cancelar solicitud</button>
-                <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={alCerrar}>Cerrar</button>
-            </div>
-        </Tarjeta>
     );
 }
 

@@ -6,10 +6,11 @@ import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { Link, Navigate } from "react-router";
 import PanelLayout from "../../PanelLayout";
 import { Migas } from "../../componentes";
-import { Aviso, Cabecera, Chip, Cifra, Dato, Datos, Encabezado, Icono, Plegable, Segmentado, Tarjeta, Vacio, type NombreIcono } from "../../piezasPanel";
+import { Aviso, Cabecera, Chip, Cifra, Dato, Datos, Encabezado, Icono, Plegable, Segmentado, Tarjeta, Vacio } from "../../piezasPanel";
 import { mensajeError } from "../../../../servicios/api";
 import { enviarEnlaceRecuperacion } from "../../../../servicios/auth";
 import { esCorreoValido } from "../../../../servicios/validaciones";
+import { Paso } from "../comun/Paso";
 import "./Recuperacion.css";
 import { PUNTOS_VERIFICACION, enmascararCorreo, esDeHoy, horaCorta, puedeEnviar, registrarIntento, useHistorialRecuperacion, type IntentoRecuperacion } from "./datos";
 
@@ -24,17 +25,6 @@ function Pantalla({ migas, children }: { migas: [string, string?][]; children: R
     );
 }
 
-function Paso({ tono, icono, titulo, texto, actual }: { tono: "verde" | "dorado" | "guinda" | "gris"; icono: NombreIcono; titulo: string; texto: string; actual?: boolean }) {
-    return (
-        <li className={`pz-linea__paso pz-linea__paso--${tono}${actual ? " pz-linea__paso--actual" : ""}`}>
-            <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={icono} /></span>
-            <div className="pz-linea__textos">
-                <p className="pz-linea__titulo">{titulo}</p>
-                <p className="pz-linea__detalle">{texto}</p>
-            </div>
-        </li>
-    );
-}
 
 // Fila compacta de un intento (lateral y historial)
 function FilaIntento({ intento }: { intento: IntentoRecuperacion }) {
@@ -176,15 +166,23 @@ export default function Recuperacion() {
                 <div className="pz-principal">
                     <Tarjeta icono="buscarCuenta" id={`${id}-verificar`} titulo="1. Verifica a la persona" texto="Marca lo que mostró o respondió correctamente"
                         accion={<Chip tono={verificada ? "verde" : "dorado"}>{verificada ? "Verificada" : `${marcadosObligatorios} de 3 obligatorios`}</Chip>}>
-                        <div className="pz-opciones">
+                        <ul className="rec-verifica" aria-label="Puntos para verificar a la persona">
                             {PUNTOS_VERIFICACION.map((p, i) => (
-                                <label key={p.titulo} className={`pz-casilla${marcados[i] ? " pz-casilla--elegida" : ""}`}>
-                                    <input type="checkbox" checked={marcados[i]} disabled={confirmando}
-                                        onChange={() => { setError(""); setMarcados((m) => m.map((x, j) => (j === i ? !x : x))); }} />
-                                    <span><strong>{p.titulo}{p.obligatorio && <span className="solo-lectores"> (obligatorio)</span>}</strong><small>{p.detalle}</small></span>
-                                </label>
+                                <li key={p.titulo}>
+                                    <label className={`rec-punto${marcados[i] ? " rec-punto--hecho" : ""}${p.obligatorio ? "" : " rec-punto--opcional"}`}>
+                                        <input type="checkbox" className="rec-punto__casilla" checked={marcados[i]} disabled={confirmando}
+                                            onChange={() => { setError(""); setMarcados((m) => m.map((x, j) => (j === i ? !x : x))); }} />
+                                        <span className="rec-punto__icono" aria-hidden="true"><Icono nombre={p.icono} /></span>
+                                        <span className="rec-punto__textos">
+                                            <strong>{p.titulo}</strong>
+                                            <small>{p.detalle}</small>
+                                        </span>
+                                        <span className="rec-punto__tipo">{p.obligatorio ? "Obligatorio" : "Opcional"}</span>
+                                        <span className="rec-punto__marca" aria-hidden="true">{marcados[i] && <Icono nombre="check" />}</span>
+                                    </label>
+                                </li>
                             ))}
-                        </div>
+                        </ul>
                     </Tarjeta>
 
                     <Tarjeta icono="mensajes" id={`${id}-correo`} titulo="2. Correo de su cuenta" texto="El enlace llega solo a ese correo">

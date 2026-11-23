@@ -9,6 +9,8 @@ import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados
 import { mensajeError } from "../../../servicios/api";
 import { listarCasos, atenderContacto, type Caso, type ListaCasos } from "../../../servicios/atencionComunidad";
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
+import { Paso } from "../atencion/comun/Paso";
+import { fechaHora } from "../atencion/comun/fechas";
 import "./Comunidad.css";
 
 type EstadoCaso = "recibido" | "en_atencion" | "cerrado";
@@ -19,7 +21,6 @@ const ESTADOS: Record<EstadoCaso, { texto: string; tono: TonoEstado }> = {
     cerrado: { texto: "Cerrados", tono: "verde" },
 };
 const POR_PAGINA = 10;
-const fechaHora = (iso: string) => new Date(iso).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Mazatlan" });
 const esSugerencia = (c: Caso) => /sugerencia/i.test(c.asunto);
 // Cuándo llegó: hoy, en los últimos 7 días o en los últimos 30
 type Periodo = "" | "hoy" | "semana" | "mes";
@@ -209,17 +210,6 @@ export default function AtencionComunidad() {
     );
 }
 
-function Paso({ tono, icono, titulo, texto, actual }: { tono: "verde" | "dorado" | "guinda" | "gris"; icono: "mensajes" | "reloj" | "check"; titulo: string; texto: string; actual?: boolean }) {
-    return (
-        <li className={`pz-linea__paso pz-linea__paso--${tono}${actual ? " pz-linea__paso--actual" : ""}`}>
-            <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={icono} /></span>
-            <div className="pz-linea__textos">
-                <p className="pz-linea__titulo">{titulo}</p>
-                <p className="pz-linea__detalle">{texto}</p>
-            </div>
-        </li>
-    );
-}
 
 function Detalle({ caso, alGuardar, alCerrar }: { caso: Caso; alGuardar: (caso: Caso, mensaje: string) => void; alCerrar: () => void }) {
     const id = useId();

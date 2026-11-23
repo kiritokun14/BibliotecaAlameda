@@ -11,11 +11,11 @@ export type IntentoRecuperacion = { folio: string; correo: string; fecha: string
 
 // Lo que se revisa con la persona; los tres primeros son obligatorios para enviar el enlace
 export const PUNTOS_VERIFICACION = [
-    { titulo: "Identificación oficial vigente", detalle: "INE, pasaporte o credencial escolar con foto", obligatorio: true },
-    { titulo: "El nombre coincide con la identificación", detalle: "Pregúntale el nombre con el que se registró", obligatorio: true },
-    { titulo: "Tiene acceso a su correo", detalle: "El enlace solo llega al correo de la cuenta", obligatorio: true },
-    { titulo: "Credencial de la biblioteca a la mano", detalle: "Opcional", obligatorio: false },
-];
+    { titulo: "Identificación oficial vigente", detalle: "INE, pasaporte o credencial escolar con foto", obligatorio: true, icono: "credencial" },
+    { titulo: "El nombre coincide con la identificación", detalle: "Pregúntale el nombre con el que se registró", obligatorio: true, icono: "usuario" },
+    { titulo: "Tiene acceso a su correo", detalle: "El enlace solo llega al correo de la cuenta", obligatorio: true, icono: "mensajes" },
+    { titulo: "Credencial de la biblioteca a la mano", detalle: "Ayuda, pero no es necesaria", obligatorio: false, icono: "cuentas" },
+] as const;
 
 // ---------- Reglas puras (pruebas en tests/atencionNuevos.test.ts) ----------
 
@@ -35,9 +35,7 @@ export function siguienteFolio(lista: Pick<IntentoRecuperacion, "folio">[]) {
 
 export const esDeHoy = (iso: string, hoy = new Date()) => new Date(iso).toDateString() === hoy.toDateString();
 
-export function horaCorta(iso: string) {
-    return new Date(iso).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Mazatlan" });
-}
+export { fechaHora as horaCorta } from "../comun/fechas";
 
 // ---------- Historial de la pestaña ----------
 

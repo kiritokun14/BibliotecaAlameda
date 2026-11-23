@@ -4,3 +4,38 @@
 .rec-etiqueta { color: var(--pz-texto); font-size: 12.5px; font-weight: 700; }
 
 .rec-pregunta { margin: 0; color: var(--pz-texto); font-size: 13.5px; line-height: 20px; overflow-wrap: anywhere; }
+
+/* Verifica a la persona: lista de verificación, un punto por renglón. La casilla nativa queda encima (invisible)
+   para el teclado y los lectores de pantalla; lo que se ve es el ícono del punto, su tipo y la marca de la derecha. */
+.rec-verifica { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.rec-punto {
+  position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr) auto 26px; align-items: center; gap: 12px;
+  padding: 10px 14px 10px 10px; border: 1px solid var(--pz-borde); border-radius: 14px; background: #fff; color: var(--pz-texto); cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+.rec-punto:hover { border-color: var(--pz-primario); transform: translateY(-1px); }
+.rec-punto__casilla { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.rec-punto:has(.rec-punto__casilla:focus-visible) { outline: 2px solid var(--pz-primario); outline-offset: 2px; }
+.rec-punto:has(.rec-punto__casilla:disabled) { opacity: 0.6; cursor: not-allowed; transform: none; }
+.rec-punto__icono {
+  display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--pz-fondo); color: var(--pz-gris);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.rec-punto__icono svg { width: 18px; height: 18px; }
+.rec-punto__textos { min-width: 0; }
+.rec-punto__textos strong { display: block; font-size: 14px; line-height: 19px; }
+.rec-punto__textos small { display: block; margin-top: 1px; color: var(--pz-gris); font-size: 12.5px; line-height: 17px; }
+.rec-punto__tipo {
+  padding: 3px 9px; border-radius: 999px; background: var(--pz-urgente-claro); color: var(--pz-urgente); font-size: 11.5px; font-weight: 700; white-space: nowrap;
+}
+.rec-punto--opcional .rec-punto__tipo { background: var(--pz-fondo); color: var(--pz-gris); }
+.rec-punto__marca {
+  display: grid; place-items: center; width: 26px; height: 26px; border: 2px solid var(--pz-borde); border-radius: 50%; color: #fff;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.rec-punto__marca svg { width: 14px; height: 14px; }
+/* Confirmado */
+.rec-punto--hecho { border-color: var(--pz-primario); background: var(--pz-claro); }
+.rec-punto--hecho .rec-punto__icono { background: var(--pz-primario); color: #fff; }
+.rec-punto--hecho .rec-punto__tipo { background: var(--pz-claro-2); color: var(--pz-primario); }
+.rec-punto--hecho .rec-punto__marca { border-color: var(--pz-primario); background: var(--pz-primario); }
