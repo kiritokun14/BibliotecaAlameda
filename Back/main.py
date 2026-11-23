@@ -31,6 +31,7 @@ from Back.avisos import router as avisos_router
 from Back.foro_moderacion import router as foro_router
 from Back.foro import router as participacion_foro_router
 from Back.inscripciones import router as inscripciones_router
+from Back.instagram import router as instagram_router
 
 app = FastAPI(title='Biblioteca Alameda', version='0.1.0')
 app.include_router(agenda_router)
@@ -55,6 +56,7 @@ app.include_router(avisos_router)
 app.include_router(foro_router)
 app.include_router(participacion_foro_router)
 app.include_router(inscripciones_router)
+app.include_router(instagram_router)
 
 
 @app.exception_handler(RequestValidationError)

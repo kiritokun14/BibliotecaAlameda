@@ -2,5 +2,7 @@ Front/
 .venv/
 .env
 __pycache__/
+!*.env.example
 *.pyc
 .vscode/
+Back/.cache/

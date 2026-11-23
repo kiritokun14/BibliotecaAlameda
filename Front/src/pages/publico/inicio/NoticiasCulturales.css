@@ -1,0 +1,52 @@
+﻿/* Reutiliza los bloques, encabezados y tarjetas del inicio. */
+.noticias-culturales { min-width: 0; }
+.noticias-culturales .titulo-seccion > .noticias-culturales__titulo { color: #fff; }
+.noticias-culturales__tarjetas { display: flex; gap: 24px; width: 100%; overflow-x: auto; scroll-snap-type: x mandatory; padding: 24px 0; scrollbar-width: none; }
+.noticias-culturales__tarjetas::-webkit-scrollbar { display: none; }
+.noticias-culturales__tarjetas > .noticia-cultural { flex: 0 0 calc((100% - 48px) / 3); scroll-snap-align: start; }
+.noticias-culturales__carrusel { width: 100%; min-width: 0; }
+.noticias-culturales__tarjetas:focus-visible { outline: 2px solid #e6d194; outline-offset: 4px; border-radius: 8px; }
+.noticias-culturales__controles { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 8px; }
+.noticias-culturales__controles .flecha-carrusel { position: static; transform: none; flex-shrink: 0; }
+.noticias-culturales__controles button:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.noticia-cultural { display: flex; flex-direction: column; min-width: 0; overflow: hidden; border-radius: 24px; background: #fff; color: #161a1d; box-shadow: 0 8px 24px #164f4414; }
+.noticia-cultural__imagen { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; }
+.noticia-cultural__imagen > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.noticia-cultural__sin-imagen { position: absolute; inset: 0; display: grid; place-items: center; background: #e4efeb; color: #164f44; font-size: 14px; }
+.noticia-cultural__contenido { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 24px; flex: 1; }
+.noticia-cultural__contenido > p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 6; min-height: 9em; font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.noticia-cultural__fecha { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4d4d4d; }
+.noticia-cultural__fecha img { width: 16px; height: 16px; }
+.noticia-cultural__enlace { align-self: stretch; justify-content: center; margin-top: auto; text-align: center; }
+.noticia-cultural__esqueleto-imagen { height: 100%; width: 100%; border-radius: 0; }
+.noticia-cultural__esqueleto-texto { height: 135px; width: 100%; }
+.noticia-cultural__esqueleto-boton { height: 44px; width: 100%; border-radius: 24px; }
+
+/* Solo las publicaciones reales se animan; los esqueletos conservan su brillo. */
+@media (prefers-reduced-motion: no-preference) {
+  .noticias-culturales__tarjetas > article.noticia-cultural {
+    animation: cultura-aparecer 550ms ease-out backwards;
+    transition: transform 220ms ease;
+  }
+  .noticias-culturales__tarjetas > article.noticia-cultural:nth-child(2) { animation-delay: 60ms; }
+  .noticias-culturales__tarjetas > article.noticia-cultural:nth-child(3) { animation-delay: 120ms; }
+  .noticias-culturales__tarjetas > article.noticia-cultural:nth-child(4) { animation-delay: 180ms; }
+  .noticias-culturales__tarjetas > article.noticia-cultural:nth-child(5) { animation-delay: 240ms; }
+  .noticias-culturales__tarjetas > article.noticia-cultural:nth-child(6) { animation-delay: 300ms; }
+  .noticia-cultural__imagen > img { transition: transform 350ms ease; }
+  .noticia-cultural:focus-within { transform: translateY(-4px); }
+  @media (hover: hover) and (pointer: fine) {
+    article.noticia-cultural:hover { transform: translateY(-4px); }
+    article.noticia-cultural:hover .noticia-cultural__imagen > img { transform: scale(1.035); }
+  }
+}
+@keyframes cultura-aparecer {
+  from { opacity: 0; translate: 0 18px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@media (max-width: 1000px) { .noticias-culturales__tarjetas > .noticia-cultural { flex-basis: calc((100% - 24px) / 2); } }
+@media (max-width: 600px) {
+  .noticias-culturales.bloque { padding: 32px 20px; border-radius: 28px; }
+  .noticias-culturales .titulo-seccion { font-size: 30px; line-height: 1.2; }
+  .noticias-culturales__tarjetas > .noticia-cultural { flex-basis: 100%; }
+}
