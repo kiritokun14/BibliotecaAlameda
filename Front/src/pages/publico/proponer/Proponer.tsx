@@ -4,7 +4,8 @@ import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/Pag
 import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 import { ErrorServicio, mensajeError } from "../../../servicios/api";
 import { editarPropuestaUsuario, fechaHoyTepic, registrarPropuestaUsuario } from "../../../servicios/propuestasUsuario";
-import { cancelarPropuestaPropia, consultarTramite, type SolicitudAtencion } from "../../../servicios/tramites";
+import { cancelarPropuesta, puedeCorregirPropuesta, puedeCancelarPropuesta, consultarTramite, type SolicitudAtencion } from "../../../servicios/tramites";
+import { HistorialTramite } from "../tramites/piezas";
 import { useCuentaTramites } from "../../../servicios/useCuentaTramites";
 import { sesionSimulada, useSesion, usePerfil } from "../perfil/usarSesion";
 import { nombreCompleto } from "../perfil/datos";
@@ -77,7 +78,7 @@ export function EditarPropuesta() {
     if (sesion === null) {
         return <PaginaPublica><PedirSesion titulo="Inicia sesión para editar tu propuesta" texto="Tus propuestas están en tu cuenta." /></PaginaPublica>;
     }
-    if (s && !puedeEditar(estadoDePropuesta(s), sesionSimulada)) return <Navigate to={`/proponer/${encodeURIComponent(s.id)}`} replace />;
+    if (s && !(sesionSimulada ? puedeEditar(estadoDePropuesta(s), true) : s.propuestoPor === sesion && puedeCorregirPropuesta(s))) return <Navigate to={`/proponer/${encodeURIComponent(s.id)}`} replace />;
     return (
         <PaginaPublica>
             <EncabezadoPublico icono={iconosSeccion.propuestas} etiqueta="Propuestas" titulo={<>Edita tu <span>propuesta</span></>}
@@ -101,6 +102,7 @@ function Formulario({ inicial, anterior }: { inicial: DatosPropuesta; anterior?:
     const bloqueo = useRef(false);
     const [guardando, setGuardando] = useState(false);
     const [errorEnvio, setErrorEnvio] = useState("");
+    const [motivoCambio, setMotivoCambio] = useState("");
     const hoy = fechaHoyTepic();
     const { solicitables } = separarAreas();
     const cambiar = <K extends keyof DatosPropuesta>(campo: K, valor: DatosPropuesta[K]) => setDatos((d) => ({ ...d, [campo]: valor }));
@@ -113,9 +115,10 @@ function Formulario({ inicial, anterior }: { inicial: DatosPropuesta; anterior?:
         setErrores(encontrados);
         const primero = Object.keys(encontrados)[0];
         if (primero) { document.getElementById(`pro-${primero}`)?.focus(); return; }
+        if (anterior && !motivoCambio.trim()) { setErrorEnvio("Explica el motivo de la corrección."); document.getElementById("pro-motivo-cambio")?.focus(); return; }
         bloqueo.current = true; setGuardando(true); setErrorEnvio("");
         const pedir = sesionSimulada ? Promise.resolve(guardarPropuestaSimulada(datos, anterior))
-            : anterior ? editarPropuestaUsuario(datos, anterior) : registrarPropuestaUsuario(datos);
+            : anterior ? editarPropuestaUsuario(datos, anterior, motivoCambio) : registrarPropuestaUsuario(datos);
         const aviso: Aviso = editando ? { editada: true } : { enviada: true };
         pedir.then((p) => navegar(`/proponer/${encodeURIComponent(p.id)}`, { state: aviso }))
             .catch((error) => {
@@ -144,6 +147,8 @@ function Formulario({ inicial, anterior }: { inicial: DatosPropuesta; anterior?:
         <div className="contacto-columnas contacto-columnas--nuevo">
             <form className="formulario-contacto cred-formulario esp-formulario" onSubmit={enviar} noValidate aria-labelledby="titulo-propuesta" aria-busy={guardando}>
                 <h2 id="titulo-propuesta" className="formulario-contacto__titulo">{editando ? "Edita tu propuesta" : "Tu propuesta"}</h2>
+                {editando && <div className="perfil-campo"><label htmlFor="pro-motivo-cambio">Motivo de la corrección</label><textarea id="pro-motivo-cambio" required maxLength={1000} value={motivoCambio} onChange={e => setMotivoCambio(e.target.value)} disabled={guardando} /><p>Se conserva la versión anterior y la propuesta vuelve a revisión.</p></div>}
+
 
                 <fieldset className="cred-grupo" disabled={guardando}>
                     <legend className="cred-grupo__titulo">¿Qué propones?</legend>
@@ -323,7 +328,8 @@ export function DetallePropuesta() {
                         : <NoAbre error={error} reintentar={() => setVersion((v) => v + 1)} />) : (
                         <div className="contacto-columnas contacto-columnas--nuevo">
                             <div className="cred-principal">
-                                <EstadoPropuesta solicitud={s} aviso={aviso} alCambiar={() => setVersion((v) => v + 1)} />
+                                <EstadoPropuesta key={s.actualizadoEn} solicitud={s} aviso={aviso} alCambiar={() => setVersion((v) => v + 1)} />
+                                {!!s.historial.length && <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Historial de la propuesta"><HistorialTramite solicitud={s} /></TarjetaPerfil>}
                                 <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo avanza tu propuesta"
                                     texto={estado === "aprobada" ? "Solo falta que la biblioteca la publique." : "Te avisaremos en tus notificaciones de cada cambio."}>
                                     <RutaCredencial pasos={pasosRutaPropuesta} etapas={etapasPropuesta(estado)} />
@@ -353,7 +359,9 @@ export function DetallePropuesta() {
 function EstadoPropuesta({ solicitud: s, aviso, alCambiar }: { solicitud: SolicitudAtencion; aviso: Aviso; alCambiar: () => void }) {
     const estado = estadoDePropuesta(s);
     const t = textosPropuesta[estado];
-    const editar = puedeEditar(estado, sesionSimulada);
+    const sesion = useSesion();
+    const titular = sesionSimulada || s.propuestoPor === sesion;
+    const editar = titular && (sesionSimulada ? puedeEditar(estado, true) : puedeCorregirPropuesta(s));
     const enviadaEl = s.creadaEn ? new Date(s.creadaEn).toLocaleDateString("es-MX", { timeZone: "America/Mazatlan", day: "2-digit", month: "short", year: "numeric" }).replace(".", "") : "Por confirmar";
     const botonEditar = editar && <Link to={`/proponer/${encodeURIComponent(s.id)}/editar`} className="perfil-boton perfil-boton--chico">Editar propuesta</Link>;
     return (
@@ -382,8 +390,9 @@ function EstadoPropuesta({ solicitud: s, aviso, alCambiar }: { solicitud: Solici
                 {s.observacionesInstitucionales && estado !== "cancelada" && (
                     <div className="perfil-nota perfil-nota--guinda"><p><strong>Observaciones del personal</strong>{s.observacionesInstitucionales}</p></div>
                 )}
-                {puedeCancelar(estado) ? <CancelarPropuesta solicitud={s} alCancelar={alCambiar}>{botonEditar}</CancelarPropuesta>
+                {titular && (sesionSimulada ? puedeCancelar(estado) : puedeCancelarPropuesta(s)) ? <CancelarPropuesta solicitud={s} alCancelar={alCambiar}>{botonEditar}</CancelarPropuesta>
                     : botonEditar ? <div className="perfil-acciones">{botonEditar}</div> : null}
+                {titular && s.actividadId && <div className="perfil-acciones"><Link to="/mis-actividades/cambios" className="perfil-boton perfil-boton--chico">Solicitar cambios o cancelación de sesiones</Link></div>}
                 {(estado === "rechazada" || estado === "cancelada" || estado === "aprobada") && (
                     <div className="perfil-acciones">
                         {estado !== "aprobada" && <Link to="/proponer" className="perfil-boton perfil-boton--chico">Proponer otra actividad</Link>}
@@ -402,9 +411,11 @@ function CancelarPropuesta({ solicitud: s, alCancelar, children }: { solicitud: 
     const [cerrando, setCerrando] = useState(false);
     const [cancelando, setCancelando] = useState(false);
     const [error, setError] = useState("");
+    const [motivo, setMotivo] = useState("");
     function cancelar() {
+        if (!motivo.trim()) { setError("Escribe el motivo de la cancelación."); return; }
         setCancelando(true); setError("");
-        const pedir = sesionSimulada ? Promise.resolve(cancelarPropuestaSimulada()) : cancelarPropuestaPropia(s);
+        const pedir = sesionSimulada ? Promise.resolve(cancelarPropuestaSimulada()) : cancelarPropuesta(s, motivo);
         pedir.then(() => { setCancelando(false); setConfirmando(false); alCancelar(); })
             .catch((e) => {
                 setCancelando(false);
@@ -427,6 +438,7 @@ function CancelarPropuesta({ solicitud: s, alCancelar, children }: { solicitud: 
         <div key="confirmacion" className={`perfil-nota perfil-nota--guinda cred-cancelar${cerrando ? " cred-cancelar--cerrando" : ""}`} role="group" aria-labelledby="titulo-cancelar-propuesta">
             <p><strong id="titulo-cancelar-propuesta">¿Cancelar tu propuesta?</strong>
                 El personal ya no la revisará. Si después cambias de opinión, puedes proponerla de nuevo.</p>
+            <div className="perfil-campo"><label htmlFor="pro-cancelar-motivo">Motivo de cancelación</label><textarea id="pro-cancelar-motivo" required maxLength={1000} value={motivo} onChange={e => setMotivo(e.target.value)} disabled={cancelando} /></div>
             {error && <p className="cred-error-campo" role="alert">{error}</p>}
             <div className="perfil-acciones">
                 <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={cancelar} disabled={cancelando}>

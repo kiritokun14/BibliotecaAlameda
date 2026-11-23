@@ -4,8 +4,8 @@ Estos scripts reconstruyen desde una base vacía la misma estructura que tiene h
 (34 tablas, 26 funciones, 37 políticas RLS y sus triggers). Se comprobó el 27 de octubre de 2026
 en un PostgreSQL 16 vacío: la estructura resultante es idéntica a la de CECANbd.
 
-> **No vuelvas a ejecutarlos sobre CECANbd.** Ahí ya están aplicados. Sirven para crear una base
-> nueva (por ejemplo, la que se entregue a la biblioteca) o una copia local de pruebas.
+> Usa esta receta completa solo para una base nueva o una copia local de pruebas. Para CECANbd,
+> revisa con el equipo qué migraciones faltan antes de aplicar un cambio.
 
 ## Orden
 
@@ -36,6 +36,7 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 21 | `evidencias_actividades.sql` | Evidencias privadas de actividades: bucket privado, folio, nivel de acceso, retiro y registro de consultas | HU-21 / BDLAG-95 |
 | 22 | `cancelacion_credencial_propia.sql` | La persona titular cancela su propia solicitud de credencial (operación `cancelar`) | T-072 |
 | 23 | `datos_prueba.sql` | **Opcional.** Datos ficticios de prueba | T-026 |
+| 24 | `asistencia_actividades.sql` | Presencia real por sesión y correcciones con historial. Requiere `agenda_actividades.sql` e `inscripciones_responsables.sql` | HU-20 / T-099 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
@@ -66,9 +67,17 @@ administración de cuentas sin dejar registros. Se pueden ejecutar después del 
 `pruebas_evidencias_actividades.sql` (también con `ROLLBACK`) comprueba permisos por actividad, acceso de Coordinación, registro de consultas, retiro y que las listas firmadas nunca se publiquen, después del paso 21.
 `pruebas_cancelacion_credencial_propia.sql` (también con `ROLLBACK`) comprueba que solo la persona titular cancela su solicitud de credencial, después del paso 22.
 
+Para HU-20, ejecuta `pruebas_asistencia_actividades.sql` en una copia de pruebas después de instalar `asistencia_actividades.sql`. La prueba termina con `ROLLBACK` y cubre inscripciones sin marca, sesiones distintas, permisos, cierre, correcciones y reintentos.
+
+En el panel de pruebas, abre **Actividades → Asistencia** con una cuenta que tenga el permiso global `registrar_asistencia`. Elige una sesión iniciada con inscripciones confirmadas y sin marcas de asistencia. Comprueba que hay cero presentes, guarda una presencia, recarga la lista y corrígela con un motivo. El historial muestra quién hizo el cambio y el total se recalcula a partir de la marca vigente.
+
 En CECANbd ya se aplicaron los pasos 18 a 20; no hace falta repetirlos para ejecutar el proyecto contra esa base compartida.
 
 ## Cambios nuevos a la base
+
+T-094, complemento de solicitudes: `t094_correcciones_solicitudes.sql` agrega versiones completas, motivo obligatorio, corrección propia y control de concurrencia para propuestas y espacios. Aplicar después de las migraciones vigentes de propuestas y espacios y revisar con el equipo. `pruebas_t094_solicitudes.sql` comprueba los cuatro criterios con ROLLBACK. Ver `../T-094-INFORME.md`; la aplicación en CECANbd y la revisión de Aldahir siguen pendientes.
+
+HU-17 / T-094: `cambios_actividad.sql` agrega solicitudes por sesiones, registro del acuerdo institucional, aplicación transaccional, historial y avisos del portal con reintento. Se prepara para revisión; no se ha aplicado a CECANbd desde esta implementación. Requiere las migraciones vigentes de agenda, espacios y propuestas indicadas en `../HU-17.md`. La suite `pruebas_cambios_actividad.sql` se ejecuta después de esta migración y termina con `ROLLBACK`.
 
 Agrega un script nuevo con nombre descriptivo, anótalo al final de la tabla de arriba y aplícalo en
 CECANbd solo después de revisarlo con el equipo.

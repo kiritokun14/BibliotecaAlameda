@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import { AvisosActividad } from "./AvisosActividad";
 import { useSesion } from "../perfil/usarSesion";
+import AvisosCambiosActividad from "./AvisosCambiosActividad";
 import { filtrar, nombreArea, notificaciones, sinLeer, useNotificaciones, type Area, type Filtro } from "./datos";
 import { Chip } from "../credencial/piezas";
 import "../credencial/CredencialSesion.css";
@@ -54,7 +55,7 @@ export default function Notificaciones() {
 
             <div className="notif-cuerpo" style={{ "--icono-seccion": `url("${iconosSeccion.avisos}")` } as CSSProperties}>
                 <div className="notif-principal">
-                    {sesion && sesion !== "simulado" ? <AvisosActividad key={sesion} /> : sesion === "simulado" ? (
+                    {sesion && sesion !== "simulado" ? <><AvisosActividad key={sesion} /><AvisosCambiosActividad key={`cambios:${sesion}`} usuario={sesion} /></> : sesion === "simulado" ? (
                         <section className="perfil-panel" aria-label="Tus notificaciones">
                             <div className="notif-barra">
                                 <div className="perfil-filtros" role="group" aria-label="Filtrar notificaciones">

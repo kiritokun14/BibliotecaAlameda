@@ -120,6 +120,7 @@ export function MisPropuestas() {
                         acciones={e.accion && <Link to={"/proponer/" + p.id} className={`pz-boton pz-boton--chico${e.color === "guinda" && e.accion !== "Ver" ? "" : " pz-boton--contorno"}`}>{e.accion}</Link>} />;
                 })}
             </ListaPerfil>
+            <div className="perfil-acciones"><Link to="/mis-actividades/cambios" className="perfil-boton perfil-boton--contorno">Cambios y cancelaciones de mis actividades</Link></div>
             <NotaInfo>Proponer no aprueba ni reserva: el personal revisa cada propuesta y te avisa en tus notificaciones.</NotaInfo>
         </>
     );

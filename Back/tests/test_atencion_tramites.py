@@ -106,12 +106,23 @@ class AtencionTramitesTests(unittest.TestCase):
         self.cliente.rpc.assert_not_called()
 
     def test_correccion_propia_es_operacion_separada_con_version(self):
-        r = self.http.put('/propuestas/'+self.id+'/corregir', headers=self.headers, json=PROPUESTA | {'actualizadoEn': VERSION})
+        r = self.http.put('/propuestas/'+self.id+'/corregir', headers=self.headers, json=PROPUESTA | {'actualizadoEn': VERSION, 'motivoCambio': 'Ajustar el horario solicitado'})
         self.assertEqual(r.status_code, 200)
         args = self.cliente.rpc.call_args.args[1]
         self.assertEqual(args['operacion'], 'corregir')
         self.assertEqual(args['datos']['id'], self.id)
         self.assertNotIn('revisadoPor', args['datos'])
+
+    def test_correccion_y_cancelacion_exigen_version_motivo_y_no_aceptan_titular_inyectado(self):
+        for cuerpo in ({}, {'actualizadoEn': VERSION}, {'actualizadoEn': VERSION, 'motivoCambio': ' '},
+                       {'actualizadoEn': VERSION, 'motivoCambio': 'Cancelar', 'propuestoPor': self.id}):
+            self.assertEqual(self.http.post('/propuestas/'+self.id+'/cancelacion', headers=self.headers, json=cuerpo).status_code, 422)
+        self.assertEqual(self.http.put('/propuestas/'+self.id+'/corregir', headers=self.headers, json=PROPUESTA | {'actualizadoEn': VERSION}).status_code, 422)
+        self.cliente.rpc.assert_not_called()
+        r = self.http.post('/propuestas/'+self.id+'/cancelacion', headers=self.headers, json={'actualizadoEn': VERSION, 'motivoCambio': ' Cambio de planes '})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.cliente.rpc.call_args.args[1]['operacion'], 'cancelar')
+        self.assertEqual(self.cliente.rpc.call_args.args[1]['datos']['motivoCambio'], 'Cambio de planes')
 
     def test_resolucion_exige_acuerdo_externo_completo_y_motivo(self):
         acuerdo = {'responsable': 'Dirección de la biblioteca', 'fecha': '2026-01-01', 'referencia': 'Minuta 001'}

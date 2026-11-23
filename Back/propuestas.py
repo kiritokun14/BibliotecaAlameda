@@ -32,6 +32,12 @@ class PropuestaEventoCreate(DatosBase):
 
 class PropuestaEventoCorreccion(PropuestaEventoCreate):
     actualizadoEn: AwareDatetime
+    motivoCambio: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
+
+
+class CancelacionPropuesta(DatosBase):
+    actualizadoEn: AwareDatetime
+    motivoCambio: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
 
 
 class AcuerdoDireccion(DatosBase):
@@ -92,6 +98,11 @@ def resolver(propuesta_id: UUID, datos: PropuestaEventoUpdate, cliente: Cliente,
 @router.put('/{propuesta_id}/corregir')
 def corregir(propuesta_id: UUID, datos: PropuestaEventoCorreccion, cliente: Cliente, response: Response):
     return llamar(cliente, 'corregir', {'id': str(propuesta_id), **datos.model_dump(mode='json')}, response)
+
+
+@router.post('/{propuesta_id}/cancelacion')
+def cancelar_propuesta(propuesta_id: UUID, datos: CancelacionPropuesta, cliente: Cliente, response: Response):
+    return llamar(cliente, 'cancelar', {'id': str(propuesta_id), **datos.model_dump(mode='json')}, response)
 
 
 class PublicacionPropuesta(DatosActividad):

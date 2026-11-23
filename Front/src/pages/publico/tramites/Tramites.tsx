@@ -6,7 +6,7 @@ import { NavLink } from 'react-router';
 import { consultarTramite, listarTramites, solicitarCredencial, estadoTramite,
     type ListaTramites, type SolicitudAtencion, type TipoTramite } from '../../../servicios/tramites';
 import { mensajeError } from '../../../servicios/api';
-import { AccesoTramites, ChipTramite, FichaTramite, FormularioPropuesta } from './piezas';
+import { AccesoTramites, AccionesPropuesta, ChipTramite, FichaTramite, FormularioPropuesta } from './piezas';
 import './Tramites.css';
 
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
@@ -54,7 +54,7 @@ export default function Tramites() {
                     <button type="button" disabled={(pagina + 1) * 20 >= actual.lista.total} onClick={() => setPagina(x => x + 1)}>Siguiente</button></div>}
                 </>}
                 {actual?.solicitud && <section className="tramites-tarjeta tramites-ficha"><Link className="tramites-enlace" to={base}>Volver a mis solicitudes</Link><FichaTramite solicitud={actual.solicitud} />
-                    {tipo === 'propuesta' && ['borrador', 'requiere_correccion'].includes(estadoTramite(actual.solicitud)) && <FormularioPropuesta key={actual.solicitud.actualizadoEn} anterior={actual.solicitud} alGuardar={() => recargar(x => x + 1)} />}
+                    {tipo === 'propuesta' && <AccionesPropuesta key={actual.solicitud.actualizadoEn} solicitud={actual.solicitud} alGuardar={() => recargar(x => x + 1)} />}
                 </section>}
             </>}
         </>}

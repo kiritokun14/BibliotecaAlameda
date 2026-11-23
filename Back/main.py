@@ -25,6 +25,7 @@ from Back.lectura import router as lectura_router
 
 from Back.perfil import router as perfil_router
 from Back.actividades import router as actividades_router
+from Back.cambios_actividad import router as cambios_actividad_router
 from Back.credenciales import router as credenciales_router
 from Back.propuestas import router as propuestas_router
 from Back.avisos import router as avisos_router
@@ -34,6 +35,7 @@ from Back.evidencias import router as evidencias_router
 from Back.estadisticas import router as estadisticas_router
 
 from Back.inscripciones import router as inscripciones_router
+from Back.asistencia import router as asistencia_router
 
 app = FastAPI(title='Biblioteca Alameda', version='0.1.0')
 app.include_router(agenda_router)
@@ -52,12 +54,14 @@ app.include_router(bibliocomunidad_router)
 app.include_router(contacto_router)
 app.include_router(perfil_router)
 app.include_router(actividades_router)
+app.include_router(cambios_actividad_router)
 app.include_router(credenciales_router)
 app.include_router(propuestas_router)
 app.include_router(avisos_router)
 app.include_router(foro_router)
 app.include_router(participacion_foro_router)
 app.include_router(inscripciones_router)
+app.include_router(asistencia_router)
 app.include_router(evidencias_router)
 app.include_router(estadisticas_router)
 

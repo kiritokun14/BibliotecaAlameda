@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useParams, useSearchParams } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
+import CorregirSolicitudEspacio from './CorregirSolicitudEspacio';
 import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 import { mensajeError } from "../../../servicios/api";
 import {
@@ -94,7 +95,9 @@ export function GestionarSolicitud() {
                     ) : (
                         <div className="contacto-columnas contacto-columnas--nuevo">
                             <div className="cred-principal">
-                                <Estado solicitud={s} enviada={enviada} alCambiar={(solicitud) => { recordarSolicitud(solicitud); setCarga({ solicitud }); }} />
+                                <Estado key={s.actualizadoEn} solicitud={s} enviada={enviada} alCambiar={(solicitud) => { recordarSolicitud(solicitud); setCarga({ solicitud }); }} />
+                                {!sesionSimulada && <CorregirSolicitudEspacio key={s.actualizadoEn} solicitud={s} alGuardar={solicitud => { recordarSolicitud(solicitud); setCarga({ solicitud }); }} />}
+                                {!!s.versiones?.length && <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Versiones guardadas"><ol>{s.versiones.map(v => <li key={v.numero}>Versión {v.numero}: {v.motivo}. {new Date(v.fecha).toLocaleString('es-MX')}</li>)}</ol></TarjetaPerfil>}
                                 <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo avanza tu solicitud"
                                     texto={s.estado === "aprobada" ? "Solo falta tu actividad." : "Te avisaremos en tus notificaciones de cada cambio."}>
                                     <RutaCredencial pasos={pasosSolicitudEspacio} etapas={etapasEspacio(s.estado)} />
@@ -155,7 +158,7 @@ function Estado({ solicitud: s, enviada, alCambiar }: { solicitud: SolicitudEspa
                     </div>
                 )}
                 {s.estado === "requiere_correccion" && s.propuesta && <Propuesta solicitud={s} alCambiar={alCambiar} />}
-                {estaEnProceso(s) && <Cancelar folio={s.folio} alCambiar={alCambiar} />}
+                {estaEnProceso(s) && <Cancelar folio={s.folio} actualizadoEn={s.actualizadoEn} alCambiar={alCambiar} />}
                 {(s.estado === "cancelada" || s.estado === "rechazada") && (
                     <div className="perfil-acciones">
                         <Link to="/espacios?nueva=1" className="perfil-boton">Pedir otro espacio</Link>
@@ -176,7 +179,7 @@ function Propuesta({ solicitud: s, alCambiar }: { solicitud: SolicitudEspacioApi
     const [error, setError] = useState("");
     function responder(acepta: boolean) {
         setGuardando(true); setError("");
-        responderPropuesta(s.folio, acepta, acepta ? "" : comentarios)
+        responderPropuesta(s.folio, acepta, acepta ? "" : comentarios, s.actualizadoEn)
             .then(alCambiar)
             .catch((e) => { setError(mensajeError(e)); setGuardando(false); });
     }
@@ -204,7 +207,7 @@ function Propuesta({ solicitud: s, alCambiar }: { solicitud: SolicitudEspacioApi
 }
 
 // ---------- Cancelar en el lugar (como en Credencial): el botón guinda se vuelve una nota rosa que anima su alto ----------
-function Cancelar({ folio, alCambiar }: { folio: string; alCambiar: (s: SolicitudEspacioApi) => void }) {
+function Cancelar({ folio, actualizadoEn, alCambiar }: { folio: string; actualizadoEn: string; alCambiar: (s: SolicitudEspacioApi) => void }) {
     const [confirmando, setConfirmando] = useState(false);
     const [cerrando, setCerrando] = useState(false);
     const [motivo, setMotivo] = useState("");
@@ -214,7 +217,7 @@ function Cancelar({ folio, alCambiar }: { folio: string; alCambiar: (s: Solicitu
     function cancelar() {
         if (bloqueo.current) return;
         bloqueo.current = true; setCancelando(true); setError("");
-        const pedir = sesionSimulada ? Promise.resolve(cancelarSimulada(motivo)!) : cancelarMiSolicitud(folio, motivo, "");
+        const pedir = sesionSimulada ? Promise.resolve(cancelarSimulada(motivo)!) : cancelarMiSolicitud(folio, motivo, "", actualizadoEn);
         pedir.then(alCambiar).catch((e) => { setError(mensajeError(e)); setCancelando(false); bloqueo.current = false; });
     }
     if (!confirmando) {
@@ -226,9 +229,9 @@ function Cancelar({ folio, alCambiar }: { folio: string; alCambiar: (s: Solicitu
     }
     return (
         <div key="confirmacion" className={`perfil-nota perfil-nota--guinda cred-cancelar${cerrando ? " cred-cancelar--cerrando" : ""}`} role="group" aria-labelledby="titulo-cancelar-espacio">
-            <p><strong id="titulo-cancelar-espacio">¿Cancelar tu solicitud {folio}?</strong>El espacio quedará libre para otras solicitudes.</p>
+            <p><strong id="titulo-cancelar-espacio">¿Cancelar tu solicitud {folio}?</strong>Se conservarán el expediente y el motivo de la cancelación.</p>
             <div className="perfil-campo">
-                <label htmlFor="esp-motivo-cancelar">Motivo<span>(opcional)</span></label>
+                <label htmlFor="esp-motivo-cancelar">Motivo<span>(obligatorio)</span></label>
                 <select id="esp-motivo-cancelar" value={motivo} onChange={(e) => setMotivo(e.target.value)} disabled={cancelando}>
                     <option value="">Selecciona un motivo</option>
                     {motivosCancelacion.map((m) => <option key={m}>{m}</option>)}
@@ -236,7 +239,7 @@ function Cancelar({ folio, alCambiar }: { folio: string; alCambiar: (s: Solicitu
             </div>
             {error && <p className="cred-error-campo" role="alert">{error}</p>}
             <div className="perfil-acciones">
-                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={cancelar} disabled={cancelando}>{cancelando ? "Cancelando…" : "Sí, cancelar"}</button>
+                <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--guinda" onClick={cancelar} disabled={cancelando || !motivo}>{cancelando ? "Cancelando…" : "Sí, cancelar"}</button>
                 <button type="button" className="perfil-boton perfil-boton--chico perfil-boton--contorno" disabled={cancelando}
                     onClick={() => { setCerrando(true); window.setTimeout(() => { setConfirmando(false); setCerrando(false); setError(""); }, 300); }}>No, conservarla</button>
             </div>

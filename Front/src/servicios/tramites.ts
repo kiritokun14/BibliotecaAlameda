@@ -12,6 +12,7 @@ export interface DatosPropuesta {
     abiertaAlPublico: boolean; sinFinesDeLucro: boolean;
 }
 export interface SolicitudAtencion {
+    versiones?: { numero: number; accion: string; motivo: string; fecha: string }[];
     id: string; creadaEn: string; actualizadaEn?: string; actualizadoEn?: string;
     tipoSolicitud?: string; estadoSolicitud?: string; fechaCita?: string | null; observaciones?: string | null;
     tituloPropuesta?: string; descripcion?: string; tipoPropuesta?: string; publicoDirigido?: string;
@@ -51,9 +52,16 @@ export function solicitarCredencial(tipoSolicitud: string, observaciones: string
 export function cancelarSolicitudCredencial(id: string) {
     return pedir<SolicitudAtencion>('credencial', `/${encodeURIComponent(id)}/cancelar`, { method: 'POST' });
 }
-export function enviarPropuesta(datos: DatosPropuesta, anterior?: SolicitudAtencion) {
+export const puedeCorregirPropuesta = (s: SolicitudAtencion) => !s.actividadId && ['borrador', 'en_revision', 'requiere_correccion', 'aprobada'].includes(s.estadoRevision ?? '');
+export const puedeCancelarPropuesta = (s: SolicitudAtencion) => !s.actividadId && ['borrador', 'en_revision', 'requiere_correccion'].includes(s.estadoRevision ?? '');
+export function enviarPropuesta(datos: DatosPropuesta, anterior?: SolicitudAtencion, motivoCambio?: string) {
     return pedir<SolicitudAtencion>('propuesta', anterior ? `/${encodeURIComponent(anterior.id)}/corregir` : '', {
-        method: anterior ? 'PUT' : 'POST', body: JSON.stringify({ ...datos, ...(anterior ? { actualizadoEn: anterior.actualizadoEn } : {}) }),
+        method: anterior ? 'PUT' : 'POST', body: JSON.stringify({ ...datos, ...(anterior ? { actualizadoEn: anterior.actualizadoEn, motivoCambio: motivoCambio?.trim() } : {}) }),
+    });
+}
+export function cancelarPropuesta(anterior: SolicitudAtencion, motivoCambio: string) {
+    return pedir<SolicitudAtencion>('propuesta', `/${encodeURIComponent(anterior.id)}/cancelacion`, {
+        method: 'POST', body: JSON.stringify({ actualizadoEn: anterior.actualizadoEn, motivoCambio: motivoCambio.trim() }),
     });
 }
 // La persona cancela su propia propuesta (borrador, en revisión o con cambios pedidos).

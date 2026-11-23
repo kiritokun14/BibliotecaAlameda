@@ -21,4 +21,3 @@ export function partirDescripcion(texto: string): BloqueDescripcion[] {
     cerrarParrafo();
     return bloques;
 }
-

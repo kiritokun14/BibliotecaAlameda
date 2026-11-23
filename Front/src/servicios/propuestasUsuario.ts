@@ -26,7 +26,7 @@ export function registrarPropuestaUsuario(datos: DatosPropuesta) {
     return enviarPropuesta(adaptarPropuesta(datos));
 }
 
-// Editar: PUT /propuestas/{id}/corregir; hoy la base solo lo admite en borrador o con cambios pedidos.
-export function editarPropuestaUsuario(datos: DatosPropuesta, anterior: SolicitudAtencion) {
-    return enviarPropuesta(adaptarPropuesta(datos), anterior);
+// T-094: la corrección guarda motivo y versión y vuelve a revisión.
+export function editarPropuestaUsuario(datos: DatosPropuesta, anterior: SolicitudAtencion, motivoCambio: string) {
+    return enviarPropuesta(adaptarPropuesta(datos), anterior, motivoCambio);
 }
