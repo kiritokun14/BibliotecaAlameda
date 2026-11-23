@@ -69,6 +69,7 @@ export async function cerrarSesion() {
     const { error } = await (await obtenerSupabase()).auth.signOut({ scope: 'local' });
     falloAuth(error);
     sessionStorage.removeItem('biblioteca-recuperacion');
+    sessionStorage.removeItem('panel-ultima-ruta'); // ya no se ofrece «Volver al panel»
 }
 export async function reenviarConfirmacion(correo: string) {
     const { error } = await (await obtenerSupabase()).auth.resend({ type: 'signup', email: correo.trim(),

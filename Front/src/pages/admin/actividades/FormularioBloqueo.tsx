@@ -55,7 +55,7 @@ function FormularioBloqueo({ inicial, id }: { inicial: DatosBloqueo; id?: string
     async function guardar() {
         const e = validarBloqueo(conDatos);
         if (!todoElDia && !conDatos.desde && !conDatos.hasta) {
-            e.desde = "Elige la hora de inicio o marca «Todo el día».";
+            e.desde = "Elige la hora de inicio o marca Todo el día.";
             e.hasta = "Elige la hora de fin.";
         }
         setErrores(e);
@@ -82,7 +82,7 @@ function FormularioBloqueo({ inicial, id }: { inicial: DatosBloqueo; id?: string
     });
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", BASE_CALENDARIO], [conflicto ? "Conflicto detectado" : id ? "Editar bloqueo" : "Bloquear"]]} />
                 <EncabezadoTarjeta
@@ -97,7 +97,7 @@ function FormularioBloqueo({ inicial, id }: { inicial: DatosBloqueo; id?: string
                         tono="guinda"
                         icono={iconoAlerta}
                         titulo="Hay una actividad en ese horario"
-                        linea={`«${conflicto.nombre}» · ${fechaCorta(conflicto.fecha)}, ${conflicto.inicio}. Cámbiala o elige otro horario.`}
+                        linea={`${conflicto.nombre} · ${fechaCorta(conflicto.fecha)}, ${conflicto.inicio}. Cámbiala o elige otro horario.`}
                         chip={<Chip tono="guinda">Conflicto</Chip>}
                     />
                 )}
@@ -168,7 +168,7 @@ export function BloqueoGuardado() {
     const b: Bloqueo | undefined = obtenerBloqueo(id);
     if (!b) return <Navigate to={BASE_CALENDARIO} replace />;
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", BASE_CALENDARIO], ["Bloqueo guardado"]]} />
                 <div className="cn-encabezado"><div className="cn-encabezado__textos">

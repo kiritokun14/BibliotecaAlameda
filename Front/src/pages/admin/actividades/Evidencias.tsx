@@ -1,14 +1,13 @@
 // Actividades › Evidencias privadas (datos reales: servicios/evidencias.ts → Back/evidencias.py).
 // Lista (Figma 570:28876), subir (570:29352), detalle (570:30676), acceso restringido (570:31428) y resultados.
-// Diseño común del panel (docs/guia-diseno.md). Para que abra rápido: usa las piezas que el panel ya tiene cargadas
+// Rehecho con las piezas del panel (22 nov 2026). Para que abra rápido: usa las piezas que el panel ya tiene cargadas
 // y recuerda la última respuesta de cada consulta (se muestra al instante y se actualiza en segundo plano).
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { AvisoResultado, Chip, EncabezadoPagina, EstadoVacio, Migas, Tarjeta } from "../componentes";
+import { Migas } from "../componentes";
 import { Ventana } from "../Ventana";
-import { IconoAviso, IconoBandera, IconoDocumento, IconoLista, IconoMas } from "../contenidos/piezas";
-import { paginar } from "../contenidoDemo/utiles";
+import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Historial, Icono, Nota, Segmentado, Tarjeta, Vacio, type NombreIcono } from "../piezasPanel";
 import {
     aEvidencia, aEvidenciaCompleta, CLAVE_LISTA, CLAVE_SESIONES, claveEvidencia, fechaLocal, horaDe, NOMBRE_ACCESO, revisarArchivo, TIPO_API, TIPOS_EVIDENCIA,
     type Acceso, type Evidencia, type EvidenciaCompleta, type TipoEvidencia,
@@ -20,16 +19,10 @@ import {
     cambiarAccesoEvidencia, descargarEvidencia, listarEvidencias, listarSesionesEvidencia, obtenerEvidenciaApi, retirarEvidenciaApi,
     solicitarAccesoEvidencia, subirEvidenciaApi, type EvidenciaDetalle, type EvidenciaResumen, type SesionEvidencia,
 } from "../../../servicios/evidencias";
-import { AccesosRapidos, CargandoFilas, CeldaDoble, ControlesLista, CuerpoLista, FILAS_POR_PAGINA, PieLista, SeccionLista, TablaLista } from "./PiezasLista";
-import iconoAviso from "../../../assets/admin/actividades/aviso-ojo.svg";
-import tarjetaInfo from "../../../assets/admin/tarjeta-info.svg";
-import tarjetaClock from "../../../assets/admin/tarjeta-clock.svg";
-import tarjetaCheck from "../../../assets/admin/tarjeta-check.svg";
+import { CargandoFilas } from "./PiezasLista";
 import modalCheck from "../../../assets/admin/modal-check.svg";
 import modalInfo from "../../../assets/admin/modal-info.svg";
 import modalAlerta from "../../../assets/admin/modal-alert.svg";
-import vacioCheck from "../../../assets/admin/vacio-check.svg";
-import vacioBuscar from "../../../assets/admin/vacio-search.svg";
 
 const BASE = "/admin/actividades/evidencias";
 type Filtro = "todas" | TipoEvidencia;
@@ -56,19 +49,20 @@ function useCarga<T>(clave: string, cargar: () => Promise<T>) {
     };
 }
 
+
+const ICONO_TIPO: Record<TipoEvidencia, NombreIcono> = { Fotografía: "evidencias", "Lista firmada": "asistencia", Informe: "contenido" };
+
 function AvisoPrivado() {
     return (
-        <p className="ac-privado" role="note">
-            <img src={iconoAviso} alt="" />
-            Estas evidencias son privadas: solo las ve el personal autorizado. No se publican en el portal y cada consulta queda registrada.
-        </p>
+        <Nota titulo="Son privadas">Solo las ve el personal autorizado. No se publican en el portal y cada consulta queda registrada.</Nota>
     );
 }
 
-const chipAcceso = (e: Evidencia) => (e.retirada ? <Chip tono="gris">Retirada</Chip> : e.puedeVer ? <Chip tono="dorado">{e.acceso === "coordinacion" ? "Coordinación" : "Personal"}</Chip> : <Chip tono="guinda">Restringida</Chip>);
+const chipAcceso = (e: Evidencia) => (e.retirada ? <Chip tono="gris">Retirada</Chip> : e.puedeVer ? <Chip tono={e.acceso === "coordinacion" ? "dorado" : "verde"}>{e.acceso === "coordinacion" ? "Coordinación" : "Personal"}</Chip> : <Chip tono="guinda">Restringida</Chip>);
 
 function ErrorCarga({ error, reintentar }: { error?: string; reintentar: () => void }) {
-    return <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar las evidencias" texto={error ?? "Inténtalo de nuevo."} accion={{ texto: "Reintentar", alPresionar: reintentar }} />;
+    return <Vacio icono="alerta" titulo="No pudimos cargar las evidencias" texto={error ?? "Inténtalo de nuevo."}
+        accion={<button type="button" className="pz-boton pz-boton--chico" onClick={reintentar}>Reintentar</button>} />;
 }
 
 // ---------- Lista ----------
@@ -79,76 +73,94 @@ function Evidencias() {
     const [filtro, setFiltro] = useState<Filtro>("todas");
     const [busqueda, setBusqueda] = useState("");
     const [accesoFiltro, setAccesoFiltro] = useState("");
-    const [pagina, setPagina] = useState(0);
     const texto = busqueda.trim().toLowerCase();
     const mes = hoyLocal().slice(0, 7);
     const filtradas = evidencias.filter((e) => (filtro === "todas" || e.tipo === filtro) && (!accesoFiltro || (accesoFiltro === "restringida" ? !e.puedeVer : e.puedeVer && e.acceso === accesoFiltro)) && (!texto || e.folio.toLowerCase().includes(texto) || e.actividadTexto.toLowerCase().includes(texto))).sort((a, b) => b.folio.localeCompare(a.folio));
-    const { paginas, actual, visibles } = paginar(filtradas, pagina, FILAS_POR_PAGINA);
     const cuenta = (t: TipoEvidencia) => evidencias.filter((e) => e.tipo === t).length;
-    const elegir = (f: Filtro) => { setFiltro(f); setPagina(0); };
-    const limpiar = () => { setBusqueda(""); setAccesoFiltro(""); elegir("todas"); };
+    const limpiar = () => { setBusqueda(""); setAccesoFiltro(""); setFiltro("todas"); };
     const restringidas = evidencias.filter((e) => !e.puedeVer).length;
     const delMes = evidencias.filter((e) => diaLocal(e.fecha).slice(0, 7) === mes).length;
+    const nada = carga.cargando ? "…" : undefined;
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Evidencias privadas"]]} />
-            <EncabezadoPagina etiqueta="Actividades · Evidencias" titulo="Evidencias privadas"
-                texto="Fotos, listas firmadas e informes que respaldan las actividades. Solo las ve el personal autorizado."
-                accion={<Link className="contenidos-boton contenidos-boton--oscuro" to={`${BASE}/subir`}>Subir evidencia</Link>} />
-            <AccesosRapidos accesos={[
-                { clave: "guardadas", icono: <IconoDocumento />, cifra: carga.cargando ? "…" : evidencias.length, titulo: "Guardadas", texto: "Archivos disponibles.", enlace: "Ver todas", tono: "azul", activo: filtro === "todas" && !texto, alPresionar: () => { setBusqueda(""); elegir("todas"); } },
-                { clave: "mes", icono: <IconoBandera />, cifra: carga.cargando ? "…" : delMes, titulo: "Subidas este mes", texto: "Listas, fotos e informes.", enlace: "Subir otra", tono: "gris", alPresionar: () => navigate(`${BASE}/subir`) },
-                { clave: "restringidas", icono: <IconoAviso />, cifra: carga.cargando ? "…" : restringidas, titulo: "Con acceso restringido", texto: "Solo Coordinación puede abrirlas.", tono: "guinda" },
-            ]} />
-            <AvisoPrivado />
+            <div className="pz-pagina">
+                <Encabezado titulo="Evidencias privadas" texto="Fotos, listas firmadas e informes que respaldan las actividades. Solo las ve el personal autorizado.">
+                    <Cifra icono="evidencias" valor={nada ?? evidencias.length} texto="guardadas" activa={filtro === "todas" && !accesoFiltro && !texto} alPresionar={limpiar} />
+                    <Cifra icono="calendario" valor={nada ?? delMes} texto="subidas este mes" />
+                    <Cifra icono="alerta" tono="vino" valor={nada ?? restringidas} texto="restringidas" activa={accesoFiltro === "restringida"} alPresionar={() => setAccesoFiltro(accesoFiltro === "restringida" ? "" : "restringida")} />
+                </Encabezado>
 
-            <ControlesLista
-                etiqueta="Filtros de evidencias"
-                chips={{ etiqueta: "Tipo de evidencia", activa: filtro, alElegir: elegir, opciones: [
-                    { valor: "todas" as Filtro, texto: `Todas (${evidencias.length})` },
-                    { valor: "Fotografía" as Filtro, texto: `Fotografías (${cuenta("Fotografía")})` },
-                    { valor: "Lista firmada" as Filtro, texto: `Listas firmadas (${cuenta("Lista firmada")})` },
-                    { valor: "Informe" as Filtro, texto: `Informes (${cuenta("Informe")})` },
-                ] }}
-                busqueda={{ etiqueta: "Buscar por actividad o folio", marcador: "Actividad o folio…", texto: busqueda, alBuscar: (v) => { setBusqueda(v); setPagina(0); } }}
-                grupos={[{ etiqueta: "Quién puede verla", opciones: [{ valor: "", texto: "Cualquier acceso" }, { valor: "personal", texto: "Personal autorizado" }, { valor: "coordinacion", texto: "Solo Coordinación" }, { valor: "restringida", texto: "Restringidas para mí" }], activa: accesoFiltro, alElegir: (v) => { setAccesoFiltro(v); setPagina(0); } }]}
-                alLimpiar={limpiar}
-            />
-
-            <SeccionLista
-                id="evidencias-lista"
-                icono={<IconoLista />}
-                titulo="Evidencias guardadas"
-                texto="Más recientes primero."
-            >
-                <CuerpoLista>
-                {carga.cargando ? (
-                    <CargandoFilas texto="Cargando evidencias…" />
-                ) : carga.error && !carga.datos ? (
-                    <ErrorCarga error={carga.error} reintentar={carga.reintentar} />
-                ) : evidencias.length === 0 ? (
-                    <EstadoVacio icono={vacioCheck} titulo="Aún no hay evidencias" texto="Sube la primera lista firmada, foto o informe de una actividad." accion={{ texto: "Subir evidencia", alPresionar: () => navigate(`${BASE}/subir`) }} />
-                ) : visibles.length === 0 ? (
-                    <EstadoVacio icono={vacioBuscar} titulo={texto ? `Sin resultados para «${busqueda.trim()}»` : "No hay evidencias con estos filtros"} texto="Prueba con otra palabra o quita los filtros." accion={{ texto: "Quitar filtros", alPresionar: limpiar }} />
-                ) : (
-                    <TablaLista
-                        clase="ac-tabla--evidencias"
-                        etiqueta="Evidencias guardadas"
-                        filas={visibles}
-                        clave={(e) => e.folio}
-                        columnas={[
-                            { titulo: "Folio", folio: true, celda: (e) => e.folio },
-                            { titulo: "Actividad", celda: (e) => <CeldaDoble arriba={e.actividadTexto} abajo={e.tipo} /> },
-                            { titulo: "Subió", celda: (e) => <CeldaDoble arriba={e.subio} abajo={fechaLocal(e.fecha)} /> },
-                            { titulo: "Acceso", celda: chipAcceso },
-                            { titulo: "Acción", celda: (e) => <Link to={`${BASE}/${e.folio}`} className="contenidos-tabla__accion">{e.puedeVer ? "Abrir" : "Pedir acceso"}<span className="tr-oculto"> {e.folio}</span></Link> },
-                        ]}
-                    />
-                )}
-                </CuerpoLista>
-                {filtradas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filtradas.length} evidencias`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
-            </SeccionLista>
+                <div className="pz-columnas">
+                    <Tarjeta icono="evidencias" id="evidencias-lista" titulo="Evidencias guardadas" texto="Las más recientes primero" className="pz-pendientes"
+                        accion={<Link className="pz-boton pz-boton--chico" to={`${BASE}/subir`}>Subir evidencia</Link>}>
+                        <Buscador etiqueta="Buscar por actividad o folio" placeholder="Buscar por actividad o folio" valor={busqueda} alCambiar={setBusqueda}>
+                            <FiltrosAvanzados activos={(filtro !== "todas" ? 1 : 0) + (accesoFiltro ? 1 : 0)} alQuitar={() => { setFiltro("todas"); setAccesoFiltro(""); }} grupos={[
+                                { titulo: "Tipo de evidencia", valor: filtro, alCambiar: (v) => setFiltro(v as Filtro), opciones: [
+                                    { valor: "todas", texto: "Todas", cantidad: evidencias.length },
+                                    ...TIPOS_EVIDENCIA.map((t) => ({ valor: t, texto: t, cantidad: cuenta(t) }))] },
+                                { titulo: "Quién puede verla", valor: accesoFiltro, alCambiar: setAccesoFiltro, opciones: [
+                                    { valor: "", texto: "Cualquier acceso" }, { valor: "personal", texto: "Personal autorizado" }, { valor: "coordinacion", texto: "Solo Coordinación" },
+                                    { valor: "restringida", texto: "Restringidas para mí", cantidad: restringidas }] },
+                            ]} />
+                        </Buscador>
+                        {carga.cargando ? <CargandoFilas texto="Cargando evidencias…" />
+                            : carga.error && !carga.datos ? <ErrorCarga error={carga.error} reintentar={carga.reintentar} />
+                            : evidencias.length === 0 ? <Vacio icono="evidencias" titulo="Aún no hay evidencias" texto="Sube la primera lista firmada, foto o informe de una actividad."
+                                accion={<button type="button" className="pz-boton pz-boton--chico" onClick={() => navigate(`${BASE}/subir`)}>Subir evidencia</button>} />
+                            : filtradas.length === 0 ? <Vacio icono="buscarCuenta" titulo={texto ? `Sin resultados para ${busqueda.trim()}` : "No hay evidencias con estos filtros"} texto="Prueba con otra palabra o quita los filtros."
+                                accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={limpiar}>Quitar filtros</button>} />
+                            : (
+                                <div className="pz-grupos" tabIndex={0} role="region" aria-label="Evidencias guardadas">
+                                    <ul className="pz-filas">
+                                        {filtradas.map((e) => (
+                                            <li key={e.folio}>
+                                                <article className={`pz-fila${e.puedeVer ? "" : " ev-fila--restringida"}`}>
+                                                    <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={e.puedeVer ? ICONO_TIPO[e.tipo] : "alerta"} /></span>
+                                                    <div className="pz-fila__textos">
+                                                        <h4 className="pz-fila__titulo" title={e.actividadTitulo}>{e.actividadTitulo}</h4>
+                                                        <p className="pz-fila__detalle"><span className="pz-fila__folio">{e.folio}</span><span>{e.tipo}</span>{e.sesion && <span>Sesión del {e.sesion}</span>}<span>Subió {e.subio}</span></p>
+                                                    </div>
+                                                    {chipAcceso(e)}
+                                                    <Link to={`${BASE}/${e.folio}`} className={`pz-boton pz-boton--chico${e.puedeVer ? " pz-boton--contorno" : ""}`}>{e.puedeVer ? "Abrir" : "Pedir acceso"}<span className="solo-lectores"> {e.folio}</span></Link>
+                                                </article>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        <div className="pz-tarjeta__pie"><p aria-live="polite">{filtradas.length} de {evidencias.length} evidencias</p></div>
+                    </Tarjeta>
+                    <aside className="pz-lateral" aria-label="Por tipo">
+                        <Tarjeta icono="estadisticas" id="ev-tipos" titulo="Lo que hay guardado" texto="Toca un tipo para ver solo ese">
+                            <div className="ev-tipos" role="group" aria-label="Filtrar por tipo">
+                                {TIPOS_EVIDENCIA.map((t) => (
+                                    <button key={t} type="button" className={`ev-tipo${filtro === t ? " ev-tipo--activo" : ""}`} onClick={() => setFiltro(filtro === t ? "todas" : t)} aria-pressed={filtro === t}>
+                                        <span className="ev-tipo__icono" aria-hidden="true"><Icono nombre={ICONO_TIPO[t]} /></span>
+                                        <strong>{cuenta(t)}</strong>
+                                        <span>{t === "Lista firmada" ? "Listas firmadas" : t === "Fotografía" ? "Fotografías" : "Informes"}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </Tarjeta>
+                        <Tarjeta icono="usuario" id="ev-acceso" titulo="Quién puede verlas" texto="Cada consulta queda registrada">
+                            <ul className="ev-accesos">
+                                {(["personal", "coordinacion"] as const).map((x) => {
+                                    const n = evidencias.filter((e) => e.acceso === x).length;
+                                    return (
+                                        <li key={x}>
+                                            <button type="button" className={`ev-acceso${accesoFiltro === x ? " ev-acceso--activo" : ""}`} aria-pressed={accesoFiltro === x} onClick={() => setAccesoFiltro(accesoFiltro === x ? "" : x)}>
+                                                <span>{NOMBRE_ACCESO[x]}</span><strong>{n}</strong>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </Tarjeta>
+                    </aside>
+                </div>
+            </div>
         </PanelLayout>
     );
 }
@@ -167,6 +179,7 @@ export function SubirEvidencia() {
     const [errores, setErrores] = useState<Record<string, string>>({});
     const [guardando, setGuardando] = useState(false);
     const sesionId = elegida || sesiones[0]?.sesionId || "";
+    const sesion = sesiones.find((x) => x.sesionId === sesionId);
     const tamano = (f: File) => Math.round((f.size / (1024 * 1024)) * 10) / 10 || 0.1;
 
     function elegirArchivo(f: File | undefined) {
@@ -195,70 +208,72 @@ export function SubirEvidencia() {
     }
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], ["Subir evidencia"]]} />
-            <EncabezadoPagina volver={{ texto: "Volver a Evidencias privadas", ruta: BASE }} etiqueta="Actividades · Evidencias" titulo="Subir evidencia" texto="Respalda una actividad con un archivo privado." />
-            {problema && <AvisoResultado tono="error" titulo="No se pudo subir el archivo" texto={problema} chip="Error" />}
-
-            <div className="contenidos-formulario">
-                <div className="at-columna">
-                    <Tarjeta icono={tarjetaInfo} titulo="Archivo" subtitulo="PDF, JPG o PNG de hasta 10 MB.">
-                        <label className={`ac-archivo${problema || errores.archivo ? " ac-archivo--error" : ""}${archivo && !problema ? " ac-archivo--listo" : ""}`}>
-                            <input type="file" className="tr-oculto" accept="application/pdf,image/jpeg,image/png" aria-describedby="ev-archivo-ayuda"
-                                onChange={(e) => { elegirArchivo(e.target.files?.[0]); e.target.value = ""; }} />
-                            <span className="ac-archivo__icono" aria-hidden="true"><IconoMas /></span>
-                            <strong>{archivo ? archivo.name : "Elige el archivo"}</strong>
-                            <small id="ev-archivo-ayuda">{archivo ? `${tamano(archivo)} MB · haz clic para cambiarlo` : "Haz clic aquí para buscarlo en tu equipo"}</small>
-                        </label>
-                        {errores.archivo && <p className="contenidos-campo__error" role="alert">{errores.archivo}</p>}
-                        <div className="contenidos-campo">
-                            <label htmlFor="ev-nota">Nota (opcional)</label>
-                            <textarea id="ev-nota" rows={3} maxLength={500} placeholder="Ej.: lista firmada por las personas asistentes." value={nota} onChange={(e) => setNota(e.target.value)} />
-                            {errores.nota && <p className="contenidos-campo__error" role="alert">{errores.nota}</p>}
-                        </div>
-                    </Tarjeta>
-                </div>
-                <aside className="contenidos-formulario__lateral">
-                    <Tarjeta icono={tarjetaCheck} titulo="Datos de la evidencia" subtitulo="A qué actividad pertenece y quién la ve.">
-                        <fieldset className="tr-campos" disabled={guardando}>
-                            <div className="contenidos-campo">
-                                <label htmlFor="ev-actividad">Actividad <span className="contenidos-campo__obligatorio">*</span></label>
-                                <select id="ev-actividad" value={sesionId} onChange={(e) => setElegida(e.target.value)} disabled={carga.cargando} aria-invalid={!!errores.actividad}>
+            <div className="pz-pagina">
+                <Encabezado titulo="Subir evidencia" texto="Respalda una actividad con un archivo privado: PDF, JPG o PNG de hasta 10 MB." />
+                {problema && <Aviso tono="error" titulo="No se pudo subir el archivo." texto={problema} />}
+                <div className="pz-columnas pz-columnas--libre">
+                    <fieldset className="pz-formulario" disabled={guardando}>
+                        <Tarjeta icono="evidencias" id="ev-archivo" titulo="El archivo" texto="Arrástralo o búscalo en tu equipo">
+                            <label className={`ev-archivo${problema || errores.archivo ? " ev-archivo--error" : ""}${archivo && !problema ? " ev-archivo--listo" : ""}`}>
+                                <input type="file" className="solo-lectores" accept="application/pdf,image/jpeg,image/png" aria-describedby="ev-archivo-ayuda"
+                                    onChange={(e) => { elegirArchivo(e.target.files?.[0]); e.target.value = ""; }} />
+                                <span className="ev-archivo__icono" aria-hidden="true"><Icono nombre={archivo && !problema ? "check" : "evidencias"} /></span>
+                                <strong>{archivo ? archivo.name : "Elige el archivo"}</strong>
+                                <small id="ev-archivo-ayuda">{archivo ? `${tamano(archivo)} MB. Haz clic para cambiarlo` : "Haz clic aquí para buscarlo en tu equipo"}</small>
+                            </label>
+                            {errores.archivo && <p className="pz-campo__error" role="alert">{errores.archivo}</p>}
+                            <label className="pz-campo pz-campo--lleno"><span>Tipo de evidencia</span>
+                                <Segmentado<TipoEvidencia> etiqueta="Tipo de evidencia" valor={tipo} alCambiar={setTipo} opciones={TIPOS_EVIDENCIA.map((t) => ({ valor: t, texto: t }))} />
+                            </label>
+                            <label className="pz-campo pz-campo--lleno"><span>Nota (opcional)</span>
+                                <textarea rows={3} maxLength={500} placeholder="Ej.: lista firmada por las personas asistentes." value={nota} onChange={(e) => setNota(e.target.value)} />
+                                <small className="pz-campo__ayuda">{nota.length} de 500 caracteres</small>
+                            </label>
+                            {errores.nota && <p className="pz-campo__error" role="alert">{errores.nota}</p>}
+                        </Tarjeta>
+                        <Tarjeta icono="calendario" id="ev-actividad-t" titulo="A qué actividad pertenece" texto="Solo actividades realizadas a tu cargo">
+                            <label className="pz-campo pz-campo--lleno"><span>Actividad <span className="contenidos-campo__obligatorio">*</span></span>
+                                <select value={sesionId} onChange={(e) => setElegida(e.target.value)} disabled={carga.cargando} aria-invalid={!!errores.actividad}>
                                     {carga.cargando && <option value="">Cargando actividades…</option>}
                                     {!carga.cargando && sesiones.length === 0 && <option value="">No hay actividades realizadas a tu cargo</option>}
-                                    {sesiones.map((x) => (
-                                        <option key={x.sesionId} value={x.sesionId}>{x.titulo} · {fechaLocal(x.inicio)} {horaDe(x.inicio)}{x.estado === "cancelada" ? " (cancelada)" : ""}</option>
-                                    ))}
+                                    {sesiones.map((x) => <option key={x.sesionId} value={x.sesionId}>{x.titulo}, {fechaLocal(x.inicio)} {horaDe(x.inicio)}{x.estado === "cancelada" ? " (cancelada)" : ""}</option>)}
                                 </select>
-                                {(errores.actividad || carga.error) && <p className="contenidos-campo__error" role="alert">{errores.actividad || carga.error}</p>}
+                            </label>
+                            {(errores.actividad || carga.error) && <p className="pz-campo__error" role="alert">{errores.actividad || carga.error}</p>}
+                            <div className="pz-opciones-acceso" role="radiogroup" aria-label="Quién puede verla">
+                                {(["personal", "coordinacion"] as const).map((op) => (
+                                    <label key={op} className={`pz-casilla${acceso === op ? " pz-casilla--elegida" : ""}`}>
+                                        <input type="radio" name="ev-acceso" checked={acceso === op} onChange={() => setAcceso(op)} />
+                                        <span><strong>{NOMBRE_ACCESO[op]}</strong><small>{op === "personal" ? "El personal autorizado de la actividad." : "Solo Coordinación y Administración."}</small></span>
+                                    </label>
+                                ))}
                             </div>
-                            <div className="contenidos-campo">
-                                <label htmlFor="ev-tipo">Tipo de evidencia</label>
-                                <div className="contenidos-filtros tr-decisiones" role="radiogroup" aria-label="Tipo de evidencia">
-                                    {TIPOS_EVIDENCIA.map((t) => (
-                                        <label key={t} className={`contenidos-filtro${tipo === t ? " contenidos-filtro--activo" : ""}`}>
-                                            <input id={t === tipo ? "ev-tipo" : undefined} type="radio" name="ev-tipo" className="tr-oculto" checked={tipo === t} onChange={() => setTipo(t)} />{t}
-                                        </label>
-                                    ))}
-                                </div>
+                        </Tarjeta>
+                    </fieldset>
+                    <aside className="pz-lateral" aria-label="Guardar">
+                        <section className={`pz-tarjeta pz-guardar pz-envio${archivo && !problema && sesionId ? " pz-envio--listo" : ""}`} aria-labelledby="ev-guardar">
+                            <div className="pz-tarjeta__cabecera">
+                                <span className="pz-tarjeta__icono" aria-hidden="true"><Icono nombre={archivo && !problema && sesionId ? "check" : "lista"} /></span>
+                                <div className="pz-tarjeta__titulos"><h3 id="ev-guardar">Antes de guardar</h3><p className="pz-tarjeta__texto">No se publica en el portal</p></div>
                             </div>
-                            <div className="contenidos-campo">
-                                <label htmlFor="ev-acceso">Quién puede verla</label>
-                                <select id="ev-acceso" value={acceso} onChange={(e) => setAcceso(e.target.value as Acceso)}>
-                                    <option value="personal">{NOMBRE_ACCESO.personal}</option>
-                                    <option value="coordinacion">{NOMBRE_ACCESO.coordinacion}</option>
-                                </select>
-                                <p className="contenidos-campo__ayuda">No se publica en el portal.</p>
+                            <ul className="pz-envio__lista pz-envio__lista--una">
+                                {[["Archivo válido", !!archivo && !problema], ["Actividad elegida", !!sesionId], ["Quién la ve", true]].map(([t, listo]) => (
+                                    <li key={String(t)} className={listo ? "pz-envio__dato--listo" : undefined}><span className="pz-envio__marca" aria-hidden="true">{listo && <Icono nombre="check" />}</span>{t}</li>
+                                ))}
+                            </ul>
+                            {sesion && <p className="pz-acciones__nota">{sesion.titulo}, {fechaLocal(sesion.inicio)}. {NOMBRE_ACCESO[acceso]}.</p>}
+                            <div className="pz-acciones">
+                                <button type="button" className="pz-boton" onClick={() => { setProblema(""); void guardar(); }} disabled={guardando || (!!problema && !!archivo && !!revisarArchivo(archivo))}>
+                                    {guardando ? "Guardando…" : problema ? "Intentar de nuevo" : "Guardar evidencia"}
+                                </button>
+                                <Link to={BASE} className="pz-boton pz-boton--contorno">Cancelar</Link>
                             </div>
-                        </fieldset>
-                    </Tarjeta>
-                    <div className="tr-acciones">
-                        <button type="button" className="contenidos-boton contenidos-boton--oscuro" onClick={() => { setProblema(""); void guardar(); }} disabled={guardando || (!!problema && !!archivo && !!revisarArchivo(archivo))}>
-                            {guardando ? "Guardando…" : problema ? "Intentar de nuevo" : "Guardar evidencia"}
-                        </button>
-                        <Link to={BASE} className="contenidos-boton contenidos-boton--contorno">Cancelar</Link>
-                    </div>
-                </aside>
+                        </section>
+                        <AvisoPrivado />
+                    </aside>
+                </div>
             </div>
         </PanelLayout>
     );
@@ -277,14 +292,15 @@ export function DetalleEvidencia() {
     const [ocupado, setOcupado] = useState(false);
     const e = cambio?.folio === folio ? cambio : carga.datos ? aEvidenciaCompleta(carga.datos) : undefined;
     const ruta = `${BASE}/${folio}`;
-    const volver = { texto: "Volver a Evidencias privadas", ruta: BASE };
 
     if (!e) {
         return (
-            <PanelLayout titulo="Actividades" tema="contenidos">
+            <PanelLayout titulo="Actividades" tema="contenidos paleta">
                 <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [folio]]} />
-                <EncabezadoPagina volver={volver} etiqueta={`Evidencia ${folio}`} titulo="Evidencia" texto="Detalle de la evidencia privada." />
-                {carga.cargando ? <CargandoFilas texto="Cargando evidencia…" filas={3} /> : <ErrorCarga error={carga.error} reintentar={carga.reintentar} />}
+                <div className="pz-pagina">
+                    <Encabezado titulo="Evidencia" texto="Detalle de la evidencia privada." />
+                    {carga.cargando ? <CargandoFilas texto="Cargando evidencia…" filas={3} /> : <Tarjeta icono="evidencias" id="ev-error" titulo="Evidencia"><ErrorCarga error={carga.error} reintentar={carga.reintentar} /></Tarjeta>}
+                </div>
             </PanelLayout>
         );
     }
@@ -307,75 +323,75 @@ export function DetalleEvidencia() {
 
     if (!e.puedeVer) {
         return (
-            <PanelLayout titulo="Actividades" tema="contenidos">
+            <PanelLayout titulo="Actividades" tema="contenidos paleta">
                 <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], ["Acceso restringido"]]} />
-                <EncabezadoPagina volver={volver} etiqueta={`Evidencia ${e.folio}`} titulo="Acceso restringido" texto="Esta evidencia no está disponible con tu cuenta." />
-                <AvisoResultado tono={e.solicitada ? "espera" : "error"} titulo={e.solicitada ? "Ya pediste acceso" : "No tienes permiso para abrirla"}
-                    texto={e.solicitada ? "Coordinación verá tu solicitud en el registro de la evidencia." : "Solo Coordinación y Administración pueden verla. Puedes pedir acceso."}
-                    chip={e.solicitada ? "En revisión" : "Restringida"} />
-                {error && <div className="at-bloque at-bloque--error" role="alert"><strong>No se pudo pedir acceso</strong><p>{error}</p></div>}
-                <div className="tr-acciones">
-                    {!e.solicitada && <button type="button" className="contenidos-boton contenidos-boton--oscuro" disabled={ocupado} onClick={() => ejecutar(() => solicitarAccesoEvidencia(e.folio), (r) => navigate(`${ruta}/solicitado`, { state: r }))}>Pedir acceso</button>}
-                    <Link to={BASE} className="contenidos-boton contenidos-boton--contorno">Volver a Evidencias privadas</Link>
+                <div className="pz-pagina">
+                    <Encabezado titulo="Acceso restringido" texto="Esta evidencia no está disponible con tu cuenta.">
+                        <Chip tono={e.solicitada ? "dorado" : "guinda"}>{e.solicitada ? "En revisión" : "Restringida"}</Chip>
+                    </Encabezado>
+                    <Tarjeta icono="alerta" id="ev-restringida" titulo={e.solicitada ? "Ya pediste acceso" : "No tienes permiso para abrirla"}
+                        texto={e.solicitada ? "Coordinación verá tu solicitud en el registro de la evidencia" : "Solo Coordinación y Administración pueden verla"}>
+                        <Vacio icono={e.solicitada ? "reloj" : "alerta"} titulo={e.solicitada ? "Solicitud enviada" : "Puedes pedir acceso"} texto={`${e.tipo} de ${e.actividadTexto}.`}
+                            accion={<div className="pz-acciones pz-acciones--fila">
+                                {!e.solicitada && <button type="button" className="pz-boton pz-boton--chico" disabled={ocupado} onClick={() => ejecutar(() => solicitarAccesoEvidencia(e.folio), (r) => navigate(`${ruta}/solicitado`, { state: r }))}>Pedir acceso</button>}
+                                <Link to={BASE} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a Evidencias</Link>
+                            </div>} />
+                        {error && <Aviso tono="error" titulo="No se pudo pedir acceso." texto={error} />}
+                    </Tarjeta>
                 </div>
             </PanelLayout>
         );
     }
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [e.folio]]} />
-            <EncabezadoPagina volver={volver} etiqueta={`Evidencia ${e.folio}`} titulo={`${e.tipo} · ${e.actividadTexto.split(" · ")[0]}`}
-                texto={`Subida por ${e.subio} el ${fechaLocal(e.fecha)}.`} accion={chipAcceso(e)} />
-            <AvisoPrivado />
-
-            <div className="contenidos-formulario">
-                <div className="at-columna">
-                    <Tarjeta icono={tarjetaInfo} titulo="Datos del archivo">
-                        <div className="tr-datos">
-                            <div className="tr-datos__clave">
-                                <div><span>Tipo</span><strong>{e.tipo}</strong></div>
-                                <div><span>Tamaño</span><strong>{e.tamano} MB</strong></div>
-                                <div><span>Acceso</span><strong>{e.acceso === "coordinacion" ? "Coordinación" : "Personal"}</strong></div>
-                            </div>
-                            <dl className="tr-datos__filas">
-                                <div><dt>Archivo</dt><dd>{e.archivo || "—"}</dd></div>
-                                <div><dt>Actividad</dt><dd>{e.actividadTexto}{e.actividad ? ` · ${e.actividad}` : ""}</dd></div>
-                                <div><dt>Quién puede verla</dt><dd>{NOMBRE_ACCESO[e.acceso]}</dd></div>
-                                {e.retiro && <div><dt>Retirada</dt><dd>{fechaLocal(e.retiro.fecha)} · {e.retiro.motivo}</dd></div>}
-                            </dl>
-                            <div className="tr-datos__bloque"><p className="at-subtitulo">Nota</p><p className="tr-datos__texto">{e.nota || "Sin nota."}</p></div>
-                            <p className="tr-datos__folio">Folio: <span>{e.folio}</span></p>
-                        </div>
-                    </Tarjeta>
-                </div>
-
-                <aside className="contenidos-formulario__lateral tr-lateral">
-                    {!e.retirada && (
-                        <Tarjeta variante="decision" icono={tarjetaCheck} titulo="Acciones" subtitulo="Todo queda registrado con tu nombre.">
-                            <button type="button" className="contenidos-boton contenidos-boton--ancho contenidos-boton--oscuro" onClick={() => { setError(""); setVentana("descargar"); }}>Descargar archivo</button>
-                            <button type="button" className="contenidos-boton contenidos-boton--ancho contenidos-boton--contorno" onClick={() => { setError(""); setAcceso(e.acceso === "personal" ? "coordinacion" : "personal"); setVentana("acceso"); }}>Cambiar quién la ve</button>
-                            <button type="button" className="contenidos-boton contenidos-boton--ancho at-boton--guinda" onClick={() => { setMotivo(""); setError(""); setVentana("retirar"); }}>Retirar evidencia</button>
-                            {error && !ventana && <div className="at-bloque at-bloque--error" role="alert"><strong>No se guardó</strong><p>{error}</p></div>}
+            <div className="pz-pagina">
+                <Encabezado titulo={`${e.tipo}: ${e.actividadTitulo}`} texto={`Subida por ${e.subio} el ${fechaLocal(e.fecha)}. Folio ${e.folio}.`}>
+                    {chipAcceso(e)}
+                </Encabezado>
+                <div className="pz-columnas pz-columnas--libre">
+                    <div className="pz-pila">
+                        <Tarjeta icono={ICONO_TIPO[e.tipo]} id="ev-datos" titulo="Datos del archivo" texto={e.archivo || "Sin nombre"}>
+                            <Datos>
+                                <Dato icono={ICONO_TIPO[e.tipo]} etiqueta="Tipo">{e.tipo}</Dato>
+                                <Dato icono="lista" etiqueta="Tamaño">{e.tamano} MB</Dato>
+                                <Dato icono="usuario" etiqueta="Quién la ve">{e.acceso === "coordinacion" ? "Coordinación" : "Personal"}</Dato>
+                                <Dato icono="calendario" etiqueta="Subida">{fechaLocal(e.fecha)}</Dato>
+                                <Dato ancho icono="calendario" etiqueta="Actividad">{e.actividadTexto}{e.actividad ? `, ${e.actividad}` : ""}</Dato>
+                                <Dato ancho icono="contenido" etiqueta="Nota">{e.nota || "Sin nota."}</Dato>
+                                {e.retiro && <Dato ancho icono="alerta" etiqueta="Retirada">{fechaLocal(e.retiro.fecha)}: {e.retiro.motivo}</Dato>}
+                            </Datos>
+                            <AvisoPrivado />
                         </Tarjeta>
-                    )}
-                    <Tarjeta icono={tarjetaClock} titulo="Quién la ha consultado" subtitulo={`${e.consultas.length} ${e.consultas.length === 1 ? "registro" : "registros"}.`} className="tr-seguimiento">
-                        {e.consultas.length ? (
-                            <ol className="tr-eventos" tabIndex={0} aria-label="Registro de consultas">
-                                {e.consultas.map((c, i) => (
-                                    <li key={c.fecha + c.accion + c.persona} className={i === e.consultas.length - 1 ? "tr-eventos--ultimo" : "tr-eventos--hecho"}>
-                                        <strong>{c.accion}</strong><small>{c.persona} · {fechaLocal(c.fecha)}, {horaDe(c.fecha)}</small>
-                                    </li>
-                                ))}
-                            </ol>
-                        ) : <p className="contenidos-campo__ayuda">Nadie la ha consultado todavía.</p>}
-                    </Tarjeta>
-                </aside>
+                        <Historial id="ev-consultas" titulo="Quién la ha consultado" vacio="Nadie la ha consultado todavía."
+                            movimientos={[...e.consultas].reverse().map((c) => ({ titulo: c.accion, tono: "verde" as const, icono: "usuario" as const, detalle: `${fechaLocal(c.fecha)}, ${horaDe(c.fecha)}, ${c.persona}` }))} />
+                    </div>
+                    <aside className="pz-lateral" aria-label="Acciones">
+                        {!e.retirada ? (
+                            <Tarjeta icono="revision" id="ev-acciones" titulo="Acciones" texto="Todo queda registrado con tu nombre">
+                                <div className="pz-acciones">
+                                    <button type="button" className="pz-boton" onClick={() => { setError(""); setVentana("descargar"); }}>Descargar archivo</button>
+                                    <button type="button" className="pz-boton pz-boton--contorno" onClick={() => { setError(""); setAcceso(e.acceso === "personal" ? "coordinacion" : "personal"); setVentana("acceso"); }}>Cambiar quién la ve</button>
+                                </div>
+                                <div className="pz-acciones pz-acciones--pie">
+                                    <button type="button" className="pz-boton pz-boton--guinda pz-boton--contorno" onClick={() => { setMotivo(""); setError(""); setVentana("retirar"); }}>Retirar evidencia</button>
+                                    <Link to={BASE} className="pz-enlace">Volver a Evidencias</Link>
+                                </div>
+                                {error && !ventana && <Aviso tono="error" titulo="No se guardó." texto={error} />}
+                            </Tarjeta>
+                        ) : (
+                            <Tarjeta icono="alerta" id="ev-retirada" titulo="Evidencia retirada" texto="Ya no está disponible para el personal">
+                                <Link to={BASE} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a Evidencias</Link>
+                            </Tarjeta>
+                        )}
+                    </aside>
+                </div>
             </div>
 
             {ventana === "descargar" && (
                 <Ventana tono="verde" icono={modalCheck} angosta titulo="¿Descargar la evidencia?"
-                    texto={`${e.archivo} · ${e.tamano} MB. La descarga queda registrada con tu nombre y la fecha. No la compartas fuera del equipo autorizado.`}
+                    texto={`${e.archivo}, ${e.tamano} MB. La descarga queda registrada con tu nombre y la fecha. No la compartas fuera del equipo autorizado.`}
                     textoConfirmar={ocupado ? "Descargando…" : "Descargar"} ocupada={ocupado} error={error}
                     alConfirmar={() => ejecutar(async () => { await descargarEvidencia(e.folio, e.archivo || e.folio); return obtenerEvidenciaApi(e.folio); })}
                     alCerrar={() => setVentana(null)} />
@@ -386,13 +402,7 @@ export function DetalleEvidencia() {
                     textoConfirmar="Guardar acceso" ocupada={ocupado} error={error}
                     alConfirmar={() => ejecutar(() => cambiarAccesoEvidencia(e.folio, acceso))}
                     alCerrar={() => setVentana(null)}>
-                    <div className="contenidos-filtros tr-decisiones" role="radiogroup" aria-label="Nuevo acceso">
-                        {(["personal", "coordinacion"] as const).map((op) => (
-                            <label key={op} className={`contenidos-filtro${acceso === op ? " contenidos-filtro--activo" : ""}`}>
-                                <input type="radio" name="ev-nuevo-acceso" className="tr-oculto" checked={acceso === op} onChange={() => setAcceso(op)} />{NOMBRE_ACCESO[op]}
-                            </label>
-                        ))}
-                    </div>
+                    <Segmentado<Acceso> etiqueta="Nuevo acceso" valor={acceso} alCambiar={setAcceso} opciones={(["personal", "coordinacion"] as const).map((op) => ({ valor: op, texto: NOMBRE_ACCESO[op] }))} />
                 </Ventana>
             )}
             {ventana === "retirar" && (
@@ -401,10 +411,8 @@ export function DetalleEvidencia() {
                     textoConfirmar="Retirar evidencia" ocupada={ocupado} error={error}
                     alConfirmar={() => { if (!motivo.trim()) return setError("Escribe el motivo."); ejecutar(() => retirarEvidenciaApi(e.folio, motivo), (r) => navigate(`${ruta}/retirada`, { state: r })); }}
                     alCerrar={() => setVentana(null)}>
-                    <div className="contenidos-campo">
-                        <label htmlFor="ev-motivo">Motivo <span className="contenidos-campo__obligatorio">*</span></label>
-                        <textarea id="ev-motivo" rows={3} maxLength={300} placeholder="Ej.: se subió por error." value={motivo} aria-invalid={!!error} onChange={(x) => { setMotivo(x.target.value); setError(""); }} />
-                    </div>
+                    <label className="pz-campo pz-campo--lleno"><span>Motivo <span className="contenidos-campo__obligatorio">*</span></span>
+                        <textarea rows={3} maxLength={300} placeholder="Ej.: se subió por error." value={motivo} aria-invalid={!!error} onChange={(x) => { setMotivo(x.target.value); setError(""); }} /></label>
                 </Ventana>
             )}
         </PanelLayout>
@@ -420,27 +428,35 @@ export function ResultadoEvidencia({ tipo }: { tipo: "guardada" | "solicitado" |
     const datosRecibidos = recibido?.folio === folio ? recibido : carga.datos;
     if (!datosRecibidos) {
         return (
-            <PanelLayout titulo="Actividades" tema="contenidos">
+            <PanelLayout titulo="Actividades" tema="contenidos paleta">
                 <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [folio]]} />
-                {carga.cargando ? <CargandoFilas texto="Cargando evidencia…" filas={2} /> : <ErrorCarga error={carga.error} reintentar={carga.reintentar} />}
+                <div className="pz-pagina">{carga.cargando ? <CargandoFilas texto="Cargando evidencia…" filas={2} /> : <Tarjeta icono="evidencias" id="ev-res-error" titulo="Evidencia"><ErrorCarga error={carga.error} reintentar={carga.reintentar} /></Tarjeta>}</div>
             </PanelLayout>
         );
     }
     const e = aEvidenciaCompleta(datosRecibidos);
     const datos = {
-        guardada: { titulo: "Evidencia guardada", texto: "Quedó guardada en privado. No se publica en el portal.", tono: "exito" as const, linea: `${e.archivo} · ${e.tamano} MB · ${NOMBRE_ACCESO[e.acceso]}`, chip: "Privada" },
-        solicitado: { titulo: "Acceso solicitado", texto: "Coordinación revisará tu solicitud.", tono: "espera" as const, linea: "Tu solicitud quedó en el registro de la evidencia.", chip: "En revisión" },
-        retirada: { titulo: "Evidencia retirada", texto: "Ya no está disponible para el personal. El registro se conserva.", tono: "error" as const, linea: `Motivo: ${e.retiro?.motivo ?? ""}`, chip: "Retirada" },
+        guardada: { titulo: "Evidencia guardada", texto: "Quedó guardada en privado. No se publica en el portal.", icono: "check" as NombreIcono, linea: `${e.archivo}, ${e.tamano} MB. ${NOMBRE_ACCESO[e.acceso]}.`, chip: <Chip tono="verde">Privada</Chip> },
+        solicitado: { titulo: "Acceso solicitado", texto: "Coordinación revisará tu solicitud.", icono: "reloj" as NombreIcono, linea: "Tu solicitud quedó en el registro de la evidencia.", chip: <Chip tono="dorado">En revisión</Chip> },
+        retirada: { titulo: "Evidencia retirada", texto: "Ya no está disponible para el personal. El registro se conserva.", icono: "alerta" as NombreIcono, linea: `Motivo: ${e.retiro?.motivo ?? ""}`, chip: <Chip tono="guinda">Retirada</Chip> },
     }[tipo];
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [datos.titulo]]} />
-            <EncabezadoPagina etiqueta={`Evidencia ${e.folio}`} titulo={datos.titulo} texto={datos.texto} />
-            <AvisoResultado tono={datos.tono} titulo={`${e.tipo} · ${e.actividadTexto}`} texto={datos.linea} chip={datos.chip} />
-            <div className="tr-acciones">
-                <Link to={BASE} className="contenidos-boton contenidos-boton--oscuro">Volver a Evidencias privadas</Link>
-                {tipo === "guardada" && <Link to={`${BASE}/subir`} className="contenidos-boton contenidos-boton--contorno">Subir otra evidencia</Link>}
-                {tipo === "guardada" && <Link to={`${BASE}/${e.folio}`} className="contenidos-boton contenidos-boton--contorno">Ver la evidencia</Link>}
+            <div className="pz-pagina">
+                <Encabezado titulo={datos.titulo} texto={datos.texto}>
+                    <Link to={BASE} className="pz-boton">Volver a Evidencias</Link>
+                </Encabezado>
+                <Tarjeta icono={datos.icono} id="ev-resultado" titulo={`${e.tipo}: ${e.actividadTexto}`} texto={`Folio ${e.folio}`} accion={datos.chip}>
+                    <div className="pz-envio-ok" role="status">
+                        <span className="pz-envio-ok__insignia" aria-hidden="true"><Icono nombre={datos.icono} /></span>
+                        <p>{datos.linea}</p>
+                    </div>
+                    {tipo === "guardada" && <div className="pz-acciones pz-acciones--fila">
+                        <Link to={`${BASE}/${e.folio}`} className="pz-boton pz-boton--contorno pz-boton--chico">Ver la evidencia</Link>
+                        <Link to={`${BASE}/subir`} className="pz-boton pz-boton--contorno pz-boton--chico">Subir otra evidencia</Link>
+                    </div>}
+                </Tarjeta>
             </div>
         </PanelLayout>
     );

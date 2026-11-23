@@ -1,0 +1,1515 @@
+/* ============================================================
+   PIEZAS DEL PANEL (21 nov 2026) · salieron del Resumen, que es la referencia (AGENTS, «Normalización del panel»)
+   Página de inicio de un módulo y sus listas: saludo con cifras, accesos, área de trabajo ajustada (lista | lateral del
+   mismo alto con scroll interno), tarjetas con franja, filas de lista, chips, filtro segmentado, campos, vacíos, botones.
+   Clases `pz-*` y piezas de React en `piezasPanel.tsx`. Los colores salen de las variables `--pz-*` (verde y dorado en el
+   panel, PanelNavegacion.css; pizarra y arena en la paleta institucional, PanelPaleta.css).
+   ============================================================ */
+
+/* ---------- 1. Página de inicio y listas ---------- */
+.pz-pagina { display: flex; flex-direction: column; gap: 24px; }
+.pz-pagina p, .pz-pagina h2, .pz-pagina h3, .pz-pagina h4, .pz-pagina ul { margin: 0; }
+.pz-pagina ul { padding: 0; list-style: none; }
+
+/* Saludo: fecha, saludo y qué hacer primero | tres cifras que son botones */
+.pz-saludo {
+  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 22px 26px; overflow: hidden;
+  border: 1px solid var(--pz-borde); border-radius: 20px; box-shadow: var(--pz-sombra);
+  background: radial-gradient(circle at 0% 0%, var(--pz-luz-1), transparent 32%), radial-gradient(circle at 100% 100%, var(--pz-luz-2), transparent 38%), #fff;
+}
+.pz-saludo::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-franja); }
+.pz-saludo__textos { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pz-saludo__fecha { color: var(--pz-primario); font-size: 13.5px; font-weight: 700; }
+.pz-saludo h2 { color: var(--pz-texto); font-size: 27px; line-height: 33px; font-weight: 700; }
+.pz-saludo__textos > p:last-child { color: var(--pz-gris); font-size: 14.5px; line-height: 21px; }
+.pz-saludo__cifras { display: flex; flex: none; gap: 10px; }
+.pz-cifra {
+  display: flex; align-items: center; gap: 12px; min-width: 150px; min-height: 72px; padding: 10px 16px 10px 12px; box-sizing: border-box; text-align: left;
+  border: 1px solid transparent; border-radius: 16px; background: var(--pz-claro); color: var(--pz-primario); font-family: inherit; cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.pz-cifra:hover { transform: translateY(-2px); border-color: var(--pz-acento-suave); box-shadow: 0 8px 18px rgba(34, 50, 63, 0.12); }
+.pz-cifra:active { transform: none; box-shadow: none; }
+.pz-cifra__icono { display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #fff; color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-cifra__icono svg { width: 20px; height: 20px; }
+.pz-cifra--vino .pz-cifra__icono { color: var(--pz-urgente); box-shadow: 0 0 0 3px #efd5dc; }
+.pz-cifra__textos { display: flex; flex-direction: column; }
+.pz-cifra strong { font-size: 26px; line-height: 30px; }
+.pz-cifra__textos span { color: var(--pz-gris); font-size: 13px; font-weight: 600; }
+.pz-cifra--vino { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.pz-cifra--vino:hover { border-color: #e2b9c3; }
+.pz-cifra--activa, .pz-cifra--activa:hover { border-color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); transform: none; }
+.pz-cifra--fija { cursor: default; }
+.pz-cifra--fija:hover { transform: none; border-color: transparent; box-shadow: none; }
+/* Encabezado de un módulo: título de 25 px y texto | cifras */
+.pz-saludo--modulo { padding: 20px 24px; }
+.pz-saludo--modulo h2 { font-size: 25px; line-height: 31px; }
+
+/* Títulos de sección: ícono en círculo y texto de 19 px; ayuda a la derecha */
+.pz-seccion { display: flex; flex-direction: column; gap: 12px; }
+.pz-seccion__titular { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
+.pz-titulo { display: flex; align-items: center; gap: 10px; color: var(--pz-texto); font-size: 19px; line-height: 26px; font-weight: 700; }
+.pz-titulo__icono { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--pz-claro-2); color: var(--pz-primario); }
+.pz-titulo__icono svg { width: 18px; height: 18px; }
+.pz-ayuda { color: var(--pz-gris); font-size: 13.5px; }
+
+/* Accesos rápidos: ícono, nombre y para qué sirve; abajo, lo que espera en esa sección */
+.pz-accesos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pz-acceso {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 12px; height: 100%; padding: 14px 16px; box-sizing: border-box;
+  border: 1px solid var(--pz-borde); border-radius: 16px; background: #fff; color: var(--pz-texto); text-decoration: none;
+  box-shadow: var(--pz-sombra); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.pz-acceso:hover { transform: translateY(-4px); border-color: var(--pz-decor); box-shadow: 0 12px 24px rgba(34, 50, 63, 0.14); }
+.pz-acceso:hover .pz-acceso__titulo { text-decoration-color: var(--pz-acento-suave); }
+.pz-acceso--urgente { border-color: #e2b9c3; }
+.pz-acceso__cabecera { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.pz-acceso__icono { display: grid; flex: none; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: var(--pz-claro); color: var(--pz-primario); }
+.pz-acceso__icono svg { width: 21px; height: 21px; }
+.pz-acceso--urgente .pz-acceso__icono { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.pz-acceso__textos { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pz-acceso__titulo { font-size: 15.5px; line-height: 21px; font-weight: 700; text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease; }
+.pz-acceso__texto { color: var(--pz-gris); font-size: 13px; line-height: 18px; }
+
+/* Estados: punto y texto; el color dice qué significa (vino = urgente, arena = en curso, pizarra = listo, gris = sin prisa) */
+.pz-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+  background: var(--pz-claro); color: var(--pz-primario); font-size: 12.5px; font-weight: 700;
+}
+.pz-chip__punto { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pz-chip--guinda { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.pz-chip--dorado { background: var(--pz-tono); color: var(--pz-tono-texto); }
+.pz-chip--gris { background: #efeeee; color: var(--pz-gris); }
+
+/* Área de trabajo ajustada a la pantalla (AGENTS §1 y §7 B): pendientes | lateral de 340 px, las dos columnas del alto
+   visible (el alto del área con scroll menos los 32 px de arriba y abajo); el scroll la encuadra y cada lista se desplaza
+   dentro de su tarjeta, así la columna derecha acompaña siempre a la de pendientes y terminan a la par. */
+@media (min-width: 1301px) {
+  .panel .panel-desplazamiento:has(.pz-columnas) { container-type: size; scroll-snap-type: y proximity; scroll-padding-top: 32px; }
+  .pz-columnas { height: max(520px, calc(100cqh - 64px)); grid-template-rows: minmax(0, 1fr); margin-bottom: 32px; scroll-snap-align: start; } /* 32 px abajo: queda encuadrada */
+  .pz-columnas > * { min-height: 0; }
+  .panel-contenido:has(.pz-columnas) { scroll-snap-align: start; } /* arriba de todo también se encuadra: al cargar no salta a la lista */
+  .pz-pendientes, .pz-lateral { height: 100%; }
+}
+.pz-columnas { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: stretch; }
+.pz-lateral { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
+.pz-pendientes { min-height: 0; }
+.pz-tarjeta--actividades { flex: 1 1 auto; min-height: 0; }
+
+/* Tarjetas: franja de color arriba, cabecera con ícono, título y ayuda */
+.pz-tarjeta {
+  position: relative; display: flex; flex-direction: column; gap: 14px; padding: 20px; box-sizing: border-box; overflow: hidden; scroll-margin-top: 16px;
+  border: 1px solid var(--pz-borde); border-radius: 20px; background: #fff; box-shadow: var(--pz-sombra);
+}
+.pz-tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-decor); }
+.pz-pendientes::before { background: var(--pz-franja); }
+.pz-tarjeta__cabecera { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--pz-borde); }
+.pz-tarjeta__icono { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--pz-primario); color: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-tarjeta__icono svg { width: 19px; height: 19px; }
+.pz-tarjeta h3 { color: var(--pz-texto); font-size: 17px; line-height: 22px; font-weight: 700; }
+.pz-tarjeta__titulos { flex: 1; min-width: 0; }
+.pz-tarjeta__accion { display: flex; flex: none; align-items: center; gap: 8px; }
+.pz-tarjeta__texto { color: var(--pz-gris); font-size: 13px; }
+
+/* Herramientas: plazo segmentado a la izquierda; área y búsqueda a la derecha */
+.pz-herramientas { display: flex; align-items: center; justify-content: space-between; gap: 10px 12px; flex-wrap: wrap; }
+.pz-herramientas__campos { display: flex; gap: 8px; flex-wrap: wrap; }
+.pz-segmentado { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid var(--pz-borde); border-radius: 999px; background: var(--pz-fondo); }
+.pz-opcion {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px 0 14px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--pz-texto); font-family: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+.pz-opcion:hover { background: var(--pz-claro-2); }
+.pz-opcion--activa, .pz-opcion--activa:hover { background: var(--pz-primario); color: #fff; box-shadow: 0 4px 10px rgba(34, 50, 63, 0.2); }
+.pz-opcion__cantidad { display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: #fff; color: var(--pz-primario); font-size: 12px; font-weight: 700; }
+.pz-opcion--urgente .pz-opcion__cantidad { background: var(--pz-urgente); color: #fff; }
+.pz-campo select, .pz-campo input {
+  height: 44px; padding: 0 14px; box-sizing: border-box; border: 1px solid #b9c4cd; border-radius: 12px;
+  background: #fff; color: var(--pz-texto); font-family: inherit; font-size: 14px; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.pz-campo select { padding-right: 32px; cursor: pointer; }
+.pz-campo--buscar input { width: 220px; }
+.pz-campo :is(select, input):focus { border-color: var(--pz-primario); outline: none; box-shadow: 0 0 0 3px var(--pz-acento-suave); }
+
+/* Lista agrupada por vencimiento: cada pendiente es una tarjeta de lista (sin franjas al costado) */
+.pz-grupos {
+  display: flex; flex: 1 1 auto; flex-direction: column; gap: 16px; min-height: 0; margin: 0 -8px 0 0; padding: 0 8px 4px 0; overflow-y: auto;
+  overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--pz-acento-suave) transparent;
+}
+.pz-grupos:focus-visible { outline: 3px solid var(--pz-primario); outline-offset: 2px; border-radius: 12px; }
+.pz-grupo { display: flex; flex-direction: column; gap: 2px; }
+.pz-grupo__titulo { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 8px; padding: 2px 0 6px; background: #fff; color: var(--pz-texto); font-size: 13.5px; font-weight: 700; }
+.pz-grupo__titulo::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--pz-decor); }
+.pz-grupo__titulo--hoy { color: var(--pz-urgente); }
+.pz-grupo__titulo--hoy::before { background: var(--pz-urgente); }
+.pz-grupo__titulo--manana::before { background: var(--pz-tono-borde); }
+.pz-grupo__titulo span { display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--pz-fondo); color: var(--pz-gris); font-size: 12px; }
+.pz-filas { display: flex; flex-direction: column; gap: 8px; }
+.pz-filas li { animation: pz-entra 0.35s ease-out backwards; }
+.pz-filas li:nth-child(2) { animation-delay: 40ms; }
+.pz-filas li:nth-child(3) { animation-delay: 80ms; }
+.pz-filas li:nth-child(n + 4) { animation-delay: 120ms; }
+.pz-fila {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 12px 14px;
+  border: 1px solid var(--pz-borde); border-radius: 16px; background: #fff; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.pz-fila:hover { border-color: var(--pz-acento-suave); box-shadow: 0 8px 18px rgba(34, 50, 63, 0.08); }
+.pz-fila__icono { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--pz-claro); color: var(--pz-primario); }
+.pz-fila__icono svg { width: 20px; height: 20px; }
+.pz-fila__textos { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pz-fila__titulo { overflow: hidden; color: var(--pz-texto); font-size: 15px; line-height: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.pz-fila__detalle { display: flex; flex-wrap: nowrap; gap: 2px 12px; min-width: 0; overflow: hidden; white-space: nowrap; color: var(--pz-gris); font-size: 13px; }
+.pz-fila__folio { color: var(--pz-primario); font-weight: 700; }
+.pz-vence { justify-self: start; padding: 3px 10px; border-radius: 999px; background: #efeeee; color: var(--pz-gris); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.pz-vence--hoy { background: var(--pz-urgente); color: #fff; }
+.pz-vence--manana { background: var(--pz-tono); color: var(--pz-tono-texto); box-shadow: inset 0 0 0 1px var(--pz-tono-borde); }
+.pz-fila .pz-chip { justify-self: start; }
+.pz-vacio { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 28px 20px; color: var(--pz-gris); font-size: 14px; text-align: center; }
+.pz-vacio__insignia { display: grid; place-items: center; width: 56px; height: 56px; margin-bottom: 4px; border-radius: 50%; background: var(--pz-primario); color: #fff; box-shadow: 0 0 0 4px var(--pz-claro-2); }
+.pz-vacio__insignia svg { width: 26px; height: 26px; }
+.pz-vacio__titulo { color: var(--pz-texto); font-size: 16px; font-weight: 700; }
+.pz-vacio .pz-boton { margin-top: 6px; }
+
+/* Botones: solo texto; principal pizarra, secundario con contorno; suben 2 px */
+.pz-boton {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 18px; box-sizing: border-box;
+  border: 1.5px solid var(--pz-primario); border-radius: 999px; background: var(--pz-primario); color: #fff;
+  font-family: inherit; font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.pz-boton:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(34, 50, 63, 0.16); }
+.pz-boton:active { transform: none; box-shadow: none; }
+.pz-boton--contorno { background: #fff; color: var(--pz-primario); }
+.pz-boton--contorno:hover { background: var(--pz-claro); }
+.pz-boton--chico { min-height: 36px; padding: 0 16px; font-size: 13.5px; }
+.pz-sin-enlace { opacity: 0.6; cursor: default; }
+.pz-enlace { align-self: flex-start; color: var(--pz-primario); font-size: 14px; font-weight: 700; text-decoration: underline 2px var(--pz-acento-suave); text-underline-offset: 4px; transition: text-decoration-color 0.2s ease; }
+.pz-enlace:hover { text-decoration-color: var(--pz-primario); }
+
+/* Actividades de hoy */
+.pz-actividades {
+  display: flex; flex: 1 1 auto; flex-direction: column; gap: 8px; min-height: 0; margin-right: -8px; padding-right: 8px; overflow-y: auto;
+  overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--pz-acento-suave) transparent;
+}
+.pz-actividades li { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); }
+/* Hora en un bloque, como el bloque de fecha de las listas */
+.pz-actividades__hora {
+  display: flex; flex: none; flex-direction: column; align-items: center; justify-content: center; width: 54px; height: 50px; border-radius: 12px;
+  background: #fff; box-shadow: inset 0 0 0 1px var(--pz-borde); color: var(--pz-primario); line-height: 1;
+}
+.pz-actividades__hora strong { font-size: 15px; }
+.pz-actividades__hora span { margin-top: 3px; color: var(--pz-gris); font-size: 11px; font-weight: 700; }
+.pz-actividades__textos { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.pz-actividades__titulo { color: var(--pz-texto); font-size: 14px; line-height: 19px; font-weight: 700; overflow-wrap: anywhere; }
+.pz-actividades__detalle { color: var(--pz-gris); font-size: 12.5px; line-height: 17px; }
+.pz-actividades__pie { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+
+/* Momento de cada actividad: la que está ahora o la que sigue resaltadas con su etiqueta; las que ya pasaron, apagadas */
+.pz-actividades li { position: relative; }
+
+.pz-tarjeta--actividades .pz-actividades { padding-top: 10px; }
+.pz-cambios li { padding-block: 10px; }
+
+/* Reglas de operación: plegables (la mayoría ya las conoce) */
+.pz-reglas { flex: none; gap: 0; max-height: 60%; padding: 0; }
+.pz-reglas[open] ul { overflow-y: auto; }
+.pz-reglas summary { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 16px 20px; list-style: none; cursor: pointer; }
+.pz-reglas summary::-webkit-details-marker { display: none; }
+.pz-reglas__titulo { flex: 1; color: var(--pz-texto); font-size: 16px; font-weight: 700; }
+.pz-reglas__mas { position: relative; width: 14px; height: 14px; }
+.pz-reglas__mas::before, .pz-reglas__mas::after { content: ""; position: absolute; top: 6px; left: 0; width: 14px; height: 2px; border-radius: 2px; background: var(--pz-primario); transition: transform 0.3s ease; }
+.pz-reglas__mas::after { transform: rotate(90deg); }
+.pz-reglas[open] .pz-reglas__mas::after { transform: rotate(0deg); }
+.pz-reglas ul { display: flex; flex-direction: column; gap: 10px; padding: 0 20px 18px 20px; animation: pz-entra 0.3s ease-out; }
+.pz-reglas li { position: relative; padding-left: 16px; color: var(--pz-gris); font-size: 13.5px; line-height: 20px; }
+.pz-reglas li::before { content: ""; position: absolute; top: 7px; left: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--pz-tono-borde); }
+
+/* ---------- Piezas de los módulos (21 nov 2026, Administración) ---------- */
+.pz-fila--pendiente { grid-template-columns: auto minmax(0, 1fr) 96px 132px auto; }
+.pz-fila__icono--letra { background: var(--pz-primario); color: #fff; font-size: 16px; font-weight: 800; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-fila--elegida { border-color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-fila--sensible .pz-fila__icono { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.pz-fila__acciones { display: flex; align-items: center; gap: 10px; }
+/* Bloque de fecha (día y mes), como en las listas del portal */
+.pz-fecha { display: flex; flex: none; flex-direction: column; align-items: center; justify-content: center; width: 52px; height: 50px; border-radius: 12px; background: var(--pz-claro); color: var(--pz-primario); line-height: 1; }
+.pz-fecha strong { font-size: 18px; }
+.pz-fecha span { margin-top: 3px; color: var(--pz-gris); font-size: 11.5px; font-weight: 700; }
+
+/* Columnas libres (fichas y formularios): crecen con su contenido y el lateral acompaña al bajar */
+.pz-columnas.pz-columnas--libre { height: auto; grid-template-rows: none; align-items: start; margin-bottom: 0; scroll-snap-align: none; }
+.pz-principal { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.pz-columnas--libre > .pz-lateral { position: sticky; top: 0; height: auto; }
+
+/* Pie de una tarjeta de lista: cuántos hay y la paginación */
+.pz-tarjeta__pie { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--pz-borde); color: var(--pz-gris); font-size: 13px; }
+.pz-paginas { display: flex; align-items: center; gap: 8px; }
+.pz-paginas__actual { padding: 0 4px; color: var(--pz-texto); font-size: 13.5px; font-weight: 700; }
+.pz-boton:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+.pz-boton--guinda { border-color: var(--pz-urgente); background: var(--pz-urgente); }
+.pz-boton--guinda.pz-boton--contorno { background: #fff; color: var(--pz-urgente); }
+.pz-acciones { display: flex; flex-direction: column; gap: 8px; }
+.pz-acciones .pz-boton { width: 100%; }
+.pz-acciones__nota { margin: 0; color: var(--pz-gris); font-size: 12.5px; line-height: 18px; }
+
+/* Fichas de datos */
+.pz-datos { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin: 0; }
+.pz-dato { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-radius: 14px; background: var(--pz-claro); }
+.pz-dato--ancho { grid-column: 1 / -1; }
+.pz-dato dt { color: var(--pz-primario); font-size: 12px; font-weight: 700; }
+.pz-dato dd { margin: 0; color: var(--pz-texto); font-size: 14.5px; font-weight: 700; overflow-wrap: anywhere; }
+.pz-nota { padding: 14px 16px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); }
+.pz-nota__titulo { margin: 0 0 4px !important; color: var(--pz-gris); font-size: 12.5px; font-weight: 700; }
+.pz-nota__texto { color: var(--pz-texto); font-size: 14px; line-height: 21px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Etiquetas (capacidades, roles) y grupos por módulo */
+.pz-etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+.pz-etiqueta { padding: 3px 10px; border-radius: 999px; background: var(--pz-claro-2); color: var(--pz-primario); font-size: 12.5px; font-weight: 700; }
+.pz-etiqueta--vacia { background: #efeeee; color: var(--pz-gris); font-weight: 600; }
+.pz-modulos { display: flex; flex-direction: column; margin: 0; }
+.pz-modulos > div { display: grid; grid-template-columns: 130px minmax(0, 1fr); align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--pz-borde); }
+.pz-modulos > div:first-child { border-top: 0; padding-top: 0; }
+.pz-modulos dt { color: var(--pz-texto); font-size: 13.5px; font-weight: 700; }
+.pz-modulos dd { margin: 0; }
+
+/* Opciones con casilla (roles y capacidades) */
+.pz-opciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
+.pz-casilla {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid var(--pz-borde); border-radius: 14px; background: #fff;
+  color: var(--pz-texto); font-size: 13.5px; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+.pz-casilla:hover { border-color: var(--pz-primario); transform: translateY(-2px); }
+.pz-casilla input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--pz-primario); }
+.pz-casilla strong { display: block; font-size: 14px; }
+.pz-casilla small { display: block; margin-top: 2px; color: var(--pz-gris); font-size: 12.5px; }
+.pz-casilla--elegida { border-color: var(--pz-primario); background: var(--pz-claro); }
+.pz-casilla--bloqueada { opacity: 0.55; cursor: not-allowed; }
+.pz-casilla--bloqueada:hover { transform: none; border-color: var(--pz-borde); }
+.pz-grupo-opciones { display: flex; flex-direction: column; gap: 8px; }
+.pz-grupo-opciones + .pz-grupo-opciones { margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--pz-borde); }
+.pz-grupo-opciones__titulo { margin: 0; color: var(--pz-texto); font-size: 14px; font-weight: 700; }
+
+/* Catálogo de tarjetas (estados del sistema) */
+.pz-catalogo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pz-ficha {
+  position: relative; display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 18px 16px 16px; box-sizing: border-box; overflow: hidden;
+  border: 1px solid var(--pz-borde); border-radius: 16px; background: #fff; text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.pz-ficha::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-primario); }
+.pz-ficha--guinda::before { background: var(--pz-urgente); }
+.pz-ficha--dorado::before { background: var(--pz-tono-borde); }
+a.pz-ficha:hover { transform: translateY(-4px); border-color: var(--pz-acento-suave); box-shadow: 0 12px 24px rgba(20, 30, 40, 0.12); }
+.pz-ficha__cabecera { display: flex; align-items: center; gap: 10px; }
+.pz-ficha__icono { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--pz-claro); color: var(--pz-primario); }
+.pz-ficha--guinda .pz-ficha__icono { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.pz-ficha--dorado .pz-ficha__icono { background: var(--pz-tono); color: var(--pz-tono-texto); }
+.pz-ficha__icono svg { width: 19px; height: 19px; }
+.pz-ficha strong { color: var(--pz-texto); font-size: 15px; line-height: 20px; }
+.pz-ficha p { flex: 1; margin: 0; color: var(--pz-gris); font-size: 13.5px; line-height: 20px; }
+.pz-ficha__accion { color: var(--pz-primario); font-size: 13.5px; font-weight: 700; text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease; }
+a.pz-ficha:hover .pz-ficha__accion { text-decoration-color: var(--pz-tono-borde); }
+
+/* Campos con etiqueta visible arriba (filtros del lateral) y en fila de dos */
+.pz-campo--lleno { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pz-campo--lleno > span { color: var(--pz-texto); font-size: 12.5px; font-weight: 700; }
+.pz-campo--lleno :is(input, select) { width: 100%; }
+.pz-campos-fila { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pz-filtros { gap: 12px; }
+.pz-filtros .pz-acciones { margin-top: auto; }
+.pz-herramientas--barra { justify-content: flex-start; gap: 12px; }
+.pz-alinear-inicio { align-self: flex-start; }
+.pz-enlace--boton { padding: 0; border: 0; background: none; font-family: inherit; cursor: pointer; }
+.pz-enlace-fila { color: var(--pz-texto); text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease; }
+.pz-enlace-fila:hover { text-decoration-color: var(--pz-tono-borde); }
+.pz-nota__desplazable { max-height: 180px; overflow-y: auto; scrollbar-width: thin; }
+
+/* Columnas libres: el lateral no pasa del alto visible y se desplaza por dentro si su contenido es largo */
+@media (min-width: 1301px) {
+  .pz-columnas--libre > .pz-lateral { max-height: calc(100cqh - 64px); overflow-y: auto; scrollbar-width: thin; }
+}
+
+/* Formularios en tarjeta (registrar una fuente) */
+.pz-formulario fieldset { display: flex; flex-direction: column; gap: 12px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.pz-formulario .pz-boton { align-self: flex-start; }
+
+/* Apartados de una pantalla en el lateral (Configuración): como el menú del perfil, con la rayita al elegir */
+.pz-apartados { gap: 4px; padding: 10px; }
+.pz-apartados::before { display: none; }
+.pz-apartados .pz-apartado {
+  display: flex; flex-direction: row; justify-content: flex-start; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 10px; box-sizing: border-box;
+  border: 0; border-radius: 12px; background: transparent; color: var(--pz-texto); font-family: inherit; text-align: left; cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.pz-apartado:hover { background: var(--pz-claro); }
+.pz-apartado__icono { display: grid; flex: none; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--pz-claro); color: var(--pz-primario); }
+.pz-apartado__icono svg { width: 18px; height: 18px; }
+.pz-apartado__textos { display: flex; flex-direction: column; min-width: 0; }
+.pz-apartado__nombre { position: relative; align-self: flex-start; font-size: 14px; font-weight: 600; }
+.pz-apartado__nombre::after { content: ""; position: absolute; right: 0; bottom: -3px; left: 0; height: 2px; border-radius: 2px; background: var(--pz-tono-borde); transform: scaleX(0); transform-origin: left; transition: transform 0.2s ease; }
+.pz-apartado:hover .pz-apartado__nombre::after { transform: scaleX(1); }
+.pz-apartado__detalle { color: var(--pz-gris); font-size: 12.5px; }
+.pz-apartado--activa { background: var(--pz-claro); }
+.pz-apartado--activa .pz-apartado__icono { background: var(--pz-primario); color: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-apartado--activa .pz-apartado__nombre { color: var(--pz-primario); font-weight: 800; }
+.pz-apartado--activa .pz-apartado__nombre::after { height: 3px; transform: scaleX(1); animation: pz-raya 0.35s ease-out; }
+@keyframes pz-raya { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Tarjeta de guardar: dice si hay cambios (punto dorado que late) */
+.pz-guardar { gap: 12px; }
+.pz-guardar__estado { display: flex; align-items: center; gap: 8px; color: var(--pz-gris); font-size: 13.5px; font-weight: 700; }
+.pz-guardar__punto { position: relative; width: 9px; height: 9px; border-radius: 50%; background: #b9b3a5; }
+.pz-guardar--cambios { border-color: var(--pz-tono-borde); }
+.pz-guardar--cambios::before { background: var(--pz-tono-borde); }
+.pz-guardar--cambios .pz-guardar__estado { color: var(--pz-tono-texto); }
+.pz-guardar--cambios .pz-guardar__punto { background: #c9a24a; }
+.pz-guardar--cambios .pz-guardar__punto::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: inherit; animation: marco-late 1.8s ease-out infinite; }
+
+/* Indicadores (cifras que no son botón) en fila */
+.pz-indicadores { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pz-indicadores .pz-cifra { min-width: 0; border: 1px solid var(--pz-borde); background: #fff; box-shadow: var(--pz-sombra); }
+.pz-indicadores .pz-cifra__textos span { line-height: 17px; }
+
+/* Lo más visto: lugar, nombre con barra de porcentaje y total */
+.pz-ranking { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.pz-ranking li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.pz-ranking__lugar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--pz-claro-2); color: var(--pz-primario); font-size: 13px; font-weight: 800; }
+.pz-ranking__textos { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pz-ranking__nombre { overflow: hidden; color: var(--pz-texto); font-size: 13.5px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.pz-ranking__barra { height: 6px; border-radius: 999px; background: var(--pz-claro); overflow: hidden; }
+.pz-ranking__barra span { display: block; height: 100%; border-radius: inherit; background: var(--pz-primario); }
+.pz-ranking__valor { display: flex; flex-direction: column; align-items: flex-end; color: var(--pz-gris); font-size: 12px; }
+.pz-ranking__valor strong { color: var(--pz-texto); font-size: 14px; }
+
+/* Buscador de una lista: campo con lupa que toma el ancho y, a su lado, los filtros avanzados */
+.pz-buscador { display: flex; align-items: center; gap: 10px; }
+.pz-buscador__campo { position: relative; display: flex; flex: 1; min-width: 0; }
+.pz-buscador__lupa { position: absolute; top: 50%; left: 14px; display: grid; color: var(--pz-gris); transform: translateY(-50%); pointer-events: none; }
+.pz-buscador__lupa svg { width: 18px; height: 18px; }
+.pz-buscador input {
+  width: 100%; height: 44px; padding: 0 16px 0 42px; box-sizing: border-box; border: 1px solid var(--pz-borde); border-radius: 999px;
+  background: var(--pz-fondo); color: var(--pz-texto); font-family: inherit; font-size: 14px; transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.pz-buscador input:hover { border-color: var(--pz-acento-suave); }
+.pz-buscador input:focus { outline: none; border-color: var(--pz-primario); background: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+
+/* Filtros avanzados: botón y panel que baja (0.22 s) por encima de la lista */
+.pz-filtros-av { position: relative; flex: none; }
+.pz-filtros-av__boton {
+  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; box-sizing: border-box; border: 1px solid var(--pz-borde); border-radius: 999px;
+  background: #fff; color: var(--pz-texto); font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.pz-filtros-av__boton:hover { transform: translateY(-2px); border-color: var(--pz-primario); box-shadow: 0 8px 16px rgba(20, 30, 40, 0.1); }
+.pz-filtros-av__boton[aria-expanded="true"], .pz-filtros-av__boton--activo { border-color: var(--pz-primario); background: var(--pz-claro); color: var(--pz-primario); }
+.pz-filtros-av__icono { position: relative; width: 16px; height: 12px; }
+.pz-filtros-av__icono::before, .pz-filtros-av__icono::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; border-radius: 2px; background: currentColor; }
+.pz-filtros-av__icono::before { top: 1px; box-shadow: 0 4px 0 -0px currentColor; }
+.pz-filtros-av__icono::after { bottom: 1px; left: 5px; right: 5px; }
+.pz-filtros-av__panel {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; display: flex; flex-direction: column; gap: 14px; width: 340px; max-height: min(420px, 62vh); padding: 20px 18px 0; box-sizing: border-box; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--pz-acento-suave) transparent;
+  border: 1px solid var(--pz-borde); border-radius: 20px; background: var(--pz-fondo); box-shadow: 0 18px 44px rgba(20, 30, 40, 0.2); animation: cab-entra 0.22s ease-out backwards;
+}
+.pz-filtros-av__panel::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-franja); }
+.pz-filtros-av__titulo { margin: 0; color: var(--pz-texto); font-size: 16px; font-weight: 800; }
+.pz-filtros-av__grupo { display: flex; flex-direction: column; gap: 8px; min-width: 0; margin: 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--pz-borde); animation: pz-entra 0.3s ease-out backwards; }
+.pz-filtros-av__grupo:nth-of-type(2) { animation-delay: 40ms; }
+.pz-filtros-av__grupo:nth-of-type(3) { animation-delay: 80ms; }
+.pz-filtros-av__grupo legend { float: left; width: 100%; margin-bottom: 8px; padding: 0; color: var(--pz-tono-texto); font-size: 13px; font-weight: 700; }
+.pz-filtros-av__opciones { clear: both; display: flex; flex-wrap: wrap; gap: 6px; }
+.pz-pastilla {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--pz-borde); border-radius: 999px; background: #fff;
+  color: var(--pz-texto); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+.pz-pastilla:hover { transform: translateY(-2px); border-color: var(--pz-primario); background: var(--pz-claro); }
+.pz-pastilla--activa, .pz-pastilla--activa:hover { border-color: var(--pz-primario); background: var(--pz-primario); color: #fff; box-shadow: 0 4px 10px rgba(20, 30, 40, 0.18); animation: pz-pulso 0.25s ease-out; }
+@keyframes pz-pulso { from { transform: scale(0.96); } to { transform: scale(1); } }
+.pz-pastilla__cantidad { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: var(--pz-claro-2); color: var(--pz-primario); font-size: 11.5px; font-weight: 700; }
+.pz-pastilla--activa .pz-pastilla__cantidad { background: #fff; }
+.pz-filtros-av__pie { position: sticky; bottom: 0; z-index: 1; display: flex; flex: none; align-items: center; justify-content: space-between; gap: 10px; margin: 0 -18px; padding: 12px 18px 14px; border-top: 1px solid var(--pz-borde); background: var(--pz-fondo); }
+.pz-filtros-av__grupo, .pz-filtros-av__titulo { flex: none; }
+.pz-filtros-av__quitar { padding: 0; border: 0; background: none; color: var(--pz-urgente); font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; text-decoration: underline 1.5px transparent; text-underline-offset: 4px; }
+.pz-filtros-av__quitar:hover:not(:disabled) { text-decoration-color: currentColor; }
+.pz-filtros-av__quitar:disabled { color: var(--pz-gris); opacity: 0.6; cursor: default; }
+
+/* Conteo por grupo que filtra al tocarlo (Bitácora · Por módulo) */
+.pz-ranking--botones { gap: 6px; }
+.pz-ranking--botones li { display: block; }
+.pz-ranking__boton {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; box-sizing: border-box;
+  border: 1px solid var(--pz-borde); border-radius: 14px; background: #fff; font-family: inherit; text-align: left; cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+.pz-ranking__boton:hover { transform: translateY(-2px); border-color: var(--pz-primario); }
+.pz-ranking__boton--activo, .pz-ranking__boton--activo:hover { border-color: var(--pz-primario); background: var(--pz-claro); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-exportar { flex: none; padding: 16px; }
+.pz-exportar::before { display: none; }
+
+/* Filas que son botón (elegir un mensaje) y su tono */
+.pz-fila--boton { width: 100%; font-family: inherit; text-align: left; cursor: pointer; }
+.pz-fila--boton:hover { transform: translateY(-2px); }
+.pz-fila--boton .pz-fila__titulo { display: block; }
+.pz-fila--boton .pz-fila__detalle { display: flex; }
+.pz-fila--boton .pz-fila__detalle span:last-child { overflow: hidden; text-overflow: ellipsis; }
+.pz-fila--guinda .pz-fila__icono { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.pz-fila--dorado .pz-fila__icono { background: var(--pz-tono); color: var(--pz-tono-texto); }
+
+/* Lista | vista previa ancha (Estados del sistema) */
+.pz-columnas.pz-columnas--previa { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.pz-columnas--previa .pz-segmentado { flex-wrap: nowrap; align-self: flex-start; }
+.pz-columnas--previa .pz-opcion { padding: 0 10px 0 12px; }
+.pz-previa { min-height: 0; }
+.pz-previa__marco { display: flex; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); box-shadow: inset 0 2px 8px rgba(20, 30, 40, 0.05); }
+.pz-previa__barra { display: flex; flex: none; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-bottom: 1px solid var(--pz-borde); background: #fff; }
+.pz-previa__barra span { width: 9px; height: 9px; border-radius: 50%; background: var(--pz-borde); }
+.pz-previa__barra p { margin: 0 0 0 8px; color: var(--pz-gris); font-size: 12px; font-weight: 600; }
+/* El contenido se dibuja al 70 % y las ventanas fijas quedan dentro del marco (transform crea su propio contenedor) */
+.pz-previa__contenido { position: relative; flex: 1; min-height: 0; overflow: auto; transform: translateZ(0); scrollbar-width: thin; animation: pz-entra 0.3s ease-out; }
+.pz-previa__escala { padding: 24px; zoom: 0.7; }
+.pz-previa__vacio { display: grid; flex: 1; place-items: center; }
+
+/* Columnas parejas (ficha de una cuenta): el lateral mide lo mismo que la columna principal */
+.pz-columnas.pz-columnas--parejas { align-items: stretch; }
+.pz-columnas--parejas > .pz-lateral { position: static; max-height: none; overflow: visible; }
+.pz-columnas--parejas > .pz-lateral > .pz-tarjeta { flex: 1; }
+/* Tarjeta de acciones: estado arriba, acciones principales al centro y las delicadas al pie */
+.pz-tarjeta--acciones { justify-content: flex-start; }
+.pz-acciones--pie { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--pz-borde); }
+.pz-estado-cuenta { padding: 12px 14px; border-radius: 14px; background: var(--pz-claro); color: var(--pz-gris); font-size: 13px; line-height: 19px; }
+.pz-estado-cuenta p { margin: 0; }
+.pz-estado-cuenta__titulo { color: var(--pz-primario); font-size: 14px; font-weight: 800; }
+.pz-estado-cuenta--guinda { background: var(--pz-urgente-claro); }
+.pz-estado-cuenta--guinda .pz-estado-cuenta__titulo { color: var(--pz-urgente); }
+.pz-estado-cuenta--dorado { background: var(--pz-tono); }
+.pz-estado-cuenta--dorado .pz-estado-cuenta__titulo { color: var(--pz-tono-texto); }
+
+/* Días especiales: lista con bloque de fecha y, abajo, el renglón para agregar uno */
+.pz-especiales .pz-fila__detalle span:first-child::first-letter { text-transform: uppercase; }
+.pz-agregar { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 1px dashed var(--pz-acento-suave); border-radius: 16px; background: var(--pz-fondo); }
+.pz-agregar__titulo { margin: 0; color: var(--pz-texto); font-size: 14px; font-weight: 700; }
+.pz-agregar__campos { display: grid; grid-template-columns: 180px minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.pz-agregar__campos .pz-boton { height: 44px; }
+.pz-campo--lleno input { height: 44px; padding: 0 14px; box-sizing: border-box; border: 1px solid #b9c4cd; border-radius: 12px; background: #fff; color: var(--pz-texto); font-family: inherit; font-size: 14px; }
+.pz-campo--lleno input:focus { border-color: var(--pz-primario); outline: none; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+
+/* Con el panel de filtros abierto, la tarjeta deja que se salga de su borde y queda por encima del lateral */
+.pz-tarjeta:has(.pz-filtros-av__panel) { z-index: 5; overflow: visible; }
+.pz-tarjeta::before { border-radius: 20px 20px 0 0; }
+
+/* Reglas con valor numérico (Configuración · Actividades): ícono | qué es y valores comunes | campo con su unidad */
+.pz-reglas-act { display: flex; flex-direction: column; gap: 10px; }
+.pz-regla {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) 200px; align-items: center; gap: 16px; padding: 16px; border: 1px solid var(--pz-borde); border-radius: 16px; background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.pz-regla:focus-within { border-color: var(--pz-acento-suave); box-shadow: 0 8px 18px rgba(20, 30, 40, 0.06); }
+.pz-regla--error { border-color: #e2b9c3; background: var(--pz-urgente-claro); }
+.pz-regla__icono { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--pz-claro); color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-regla__icono svg { width: 21px; height: 21px; }
+.pz-regla__textos { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pz-regla__titulo { margin: 0; color: var(--pz-texto); font-size: 15px; font-weight: 800; }
+.pz-regla__texto { margin: 0; color: var(--pz-gris); font-size: 13px; line-height: 19px; }
+.pz-regla__sugeridos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.pz-regla__sugeridos .pz-pastilla { min-width: 44px; justify-content: center; }
+.pz-regla__campo { display: flex; flex-direction: column; gap: 4px; }
+.pz-regla__control { display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 14px 0 6px; box-sizing: border-box; border: 1px solid #b9c4cd; border-radius: 14px; background: #fff; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.pz-regla__control:focus-within { border-color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-regla__control input { width: 76px; height: 40px; padding: 0 8px; border: 0; background: transparent; color: var(--pz-texto); font-family: inherit; font-size: 22px; font-weight: 800; text-align: right; }
+.pz-regla__control input:focus { outline: none; }
+.pz-regla__control span { color: var(--pz-gris); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.pz-regla__rango { margin: 0; color: var(--pz-gris); font-size: 12px; text-align: right; }
+.pz-regla__error { margin: 0; color: var(--pz-urgente); font-size: 12.5px; font-weight: 700; text-align: right; }
+
+/* Colores de los roles (fijos, iguales en todos los temas): Usuario gris, Editor dorado, Coordinación verde,
+   Administración vino y Varios roles pizarra. Se usan en pastillas, avatares, la leyenda y las casillas de rol. */
+.pz-tono-rol--usuario { --rol: #8a8889; --rol-claro: #efeeee; --rol-texto: #4d4b4c; }
+.pz-tono-rol--editor { --rol: #b88b2c; --rol-claro: #f6eeda; --rol-texto: #6b4f12; }
+.pz-tono-rol--responsable_actividades { --rol: #1f6b5c; --rol-claro: #e4efeb; --rol-texto: #164f44; }
+.pz-tono-rol--administrador { --rol: #77162a; --rol-claro: #f6e9ec; --rol-texto: #77162a; }
+.pz-tono-rol--varios { --rol: #3f5a6e; --rol-claro: #dce8f0; --rol-texto: #2e4456; }
+.pz-roles { display: inline-flex; flex-wrap: nowrap; gap: 4px; min-width: 0; }
+.pz-rol { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px; background: var(--rol-claro); color: var(--rol-texto); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.pz-rol::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--rol); }
+.pz-rol-avatar { background: var(--rol) !important; color: #fff !important; font-size: 16px; font-weight: 800; box-shadow: 0 0 0 3px var(--rol-claro) !important; }
+.pz-leyenda-rol { align-items: center !important; }
+.pz-leyenda-rol__muestra { flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--rol); box-shadow: 0 0 0 3px var(--rol-claro); }
+.pz-casilla--rol.pz-casilla--elegida { border-color: var(--rol); background: var(--rol-claro); }
+.pz-casilla--rol input { accent-color: var(--rol); }
+.pz-rol-punto { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--rol); vertical-align: 1px; }
+
+/* Ficha de una cuenta: identidad, datos con ícono, permisos por módulo e historial */
+.pz-identidad { display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 16px; background: linear-gradient(90deg, var(--rol-claro), #fff 70%); }
+.pz-identidad__avatar { display: grid; flex: none; place-items: center; width: 60px; height: 60px; border-radius: 50%; font-size: 24px !important; }
+.pz-identidad__textos { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pz-identidad p { margin: 0; }
+.pz-identidad__nombre { color: var(--pz-texto); font-size: 18px; font-weight: 800; }
+.pz-identidad__correo { color: var(--pz-gris); font-size: 13.5px; overflow-wrap: anywhere; }
+.pz-identidad + .pz-datos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pz-dato dt { display: flex; align-items: center; gap: 6px; }
+.pz-dato__icono { display: grid; color: var(--pz-primario); }
+.pz-dato__icono svg { width: 14px; height: 14px; }
+.pz-dato dd .pz-chip { margin-top: 2px; }
+.pz-permisos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pz-permisos li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: #fff; }
+.pz-permisos__icono { display: grid; flex: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--pz-claro); color: var(--pz-primario); }
+.pz-permisos__icono svg { width: 16px; height: 16px; }
+.pz-permisos__textos { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; }
+.pz-permisos .pz-ranking__barra { display: none; }
+.pz-permisos .pz-etiqueta { font-size: 12px; }
+.pz-permisos__modulo { display: flex; justify-content: space-between; margin: 0; color: var(--pz-texto); font-size: 13.5px; font-weight: 800; line-height: 30px; }
+.pz-permisos__modulo span { color: var(--pz-gris); font-size: 12.5px; font-weight: 700; }
+.pz-permisos--sin { background: var(--pz-fondo) !important; }
+.pz-permisos--sin .pz-permisos__icono { background: #efeeee; color: var(--pz-gris); }
+.pz-historial li { align-items: flex-start; }
+.pz-historial__punto { flex: none; width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; background: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+
+/* Tarjetas plegables (reglas, cómo funcionan los cambios): se abren y se cierran animando su alto (0.35 s) y sus
+   puntos aparecen uno tras otro; el «+» gira al abrir */
+.pz-reglas { interpolate-size: allow-keywords; }
+.pz-reglas::details-content { height: 0; overflow: hidden; transition: height 0.35s ease, content-visibility 0.35s allow-discrete; }
+.pz-reglas[open]::details-content { height: auto; }
+.pz-reglas summary { transition: background-color 0.2s ease; }
+.pz-reglas summary:hover .pz-reglas__titulo { color: var(--pz-primario); }
+.pz-reglas[open] summary { border-bottom: 1px solid var(--pz-borde); margin-bottom: 12px; }
+.pz-reglas[open] li { animation: pz-entra 0.3s ease-out backwards; }
+.pz-reglas[open] li:nth-child(2) { animation-delay: 60ms; }
+.pz-reglas[open] li:nth-child(3) { animation-delay: 120ms; }
+.pz-reglas[open] li:nth-child(n + 4) { animation-delay: 180ms; }
+.pz-reglas[open] .pz-reglas__mas::after { transform: rotate(0deg); }
+
+/* Enlaces del lateral para empezar algo (Editor · ¿Qué quieres redactar?): toda la fila es el enlace */
+.pz-redactar li { padding: 0 !important; border: 0 !important; background: none !important; }
+.pz-redactar__enlace {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; box-sizing: border-box; border: 1px solid var(--pz-borde); border-radius: 14px;
+  background: var(--pz-fondo); color: inherit; text-decoration: none; transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.pz-redactar__enlace:hover { transform: translateY(-2px); border-color: var(--pz-primario); background: #fff; }
+.pz-redactar__enlace:hover .pz-actividades__titulo { color: var(--pz-primario); }
+
+/* Lista de pasos numerados en el lateral (Revisión · Cómo se revisa) */
+.pz-pasos-lista { margin: 0; padding-left: 0; list-style: none; }
+.pz-pasos-lista li { align-items: flex-start; }
+.pz-pasos-lista__numero { display: grid; flex: none; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--pz-primario); color: #fff; font-size: 13px; font-weight: 800; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-fila--espera .pz-fila__icono { background: var(--pz-tono); color: var(--pz-tono-texto); }
+
+/* Resumen del Editor: cifras en cuadrícula de 2 × 2 y su lista de lo más reciente */
+/* Columna izquierda doble: pendientes (lo que necesiten, hasta la mitad) y debajo lo más reciente, que toma el resto */
+.pz-columna-doble { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
+.pz-columna-doble > .pz-pendientes { flex: 0 0 auto; height: auto !important; max-height: 62%; }
+.pz-columna-doble > .pz-recientes-tarjeta { flex: 1 1 0; min-height: 0; }
+@media (max-width: 1300px) { .pz-columna-doble > .pz-pendientes { max-height: none; } }
+.pz-mini-cifras { display: grid; flex: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.pz-mini-cifra { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--pz-claro); }
+.pz-mini-cifra dt { color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.pz-mini-cifra dd { margin: 0; color: var(--pz-primario); font-size: 22px; line-height: 26px; font-weight: 800; }
+.pz-mini-cifra--dorado { background: var(--pz-tono); }
+.pz-mini-cifra--dorado dd { color: var(--pz-tono-texto); }
+.pz-mini-cifra--guinda { background: var(--pz-urgente-claro); }
+.pz-mini-cifra--guinda dd { color: var(--pz-urgente); }
+.pz-mini-cifra--gris { background: #f1f0ef; }
+.pz-mini-cifra--gris dd { color: var(--pz-texto); }
+.pz-subtitulo { flex: none; margin: 2px 0 -4px; color: var(--pz-texto); font-size: 13px; font-weight: 800; }
+.pz-recientes li { align-items: center; padding: 10px; background: #fff; }
+.pz-recientes .pz-fila__icono { width: 32px; height: 32px; border-radius: 10px; }
+.pz-recientes .pz-fila__icono svg { width: 16px; height: 16px; }
+.pz-recientes .pz-actividades__titulo { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+.pz-recientes .pz-chip { flex: none; font-size: 11.5px; }
+
+/* Línea del tiempo (historial de un contenido): cada paso con su ícono y su color, unidos por una línea; el más reciente
+   con aro. Verde = autorizado o publicado, dorado = enviado o en espera, guinda = observaciones o rechazo, gris = lo demás */
+.pz-linea { position: relative; display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.pz-linea::before { content: ""; position: absolute; top: 8px; bottom: 8px; left: 15px; width: 2px; border-radius: 2px; background: linear-gradient(var(--pz-acento-suave), var(--pz-borde)); }
+.pz-linea__paso { position: relative; display: flex; align-items: flex-start; gap: 12px; animation: pz-entra 0.35s ease-out backwards; }
+.pz-linea__paso:nth-child(2) { animation-delay: 60ms; }
+.pz-linea__paso:nth-child(3) { animation-delay: 120ms; }
+.pz-linea__paso:nth-child(n + 4) { animation-delay: 180ms; }
+.pz-linea__icono { position: relative; display: grid; flex: none; place-items: center; width: 32px; height: 32px; border: 2px solid #fff; border-radius: 50%; background: #efeeee; color: var(--pz-gris); }
+.pz-linea__icono svg { width: 16px; height: 16px; }
+.pz-linea__paso--verde .pz-linea__icono { background: var(--pz-claro-2); color: var(--pz-primario); }
+.pz-linea__paso--dorado .pz-linea__icono { background: var(--pz-tono); color: var(--pz-tono-texto); }
+.pz-linea__paso--guinda .pz-linea__icono { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.pz-linea__paso--actual .pz-linea__icono { box-shadow: 0 0 0 3px var(--pz-acento-suave); animation: pz-aro 0.9s ease-out 0.3s 1; }
+.pz-linea__textos { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding-top: 4px; }
+.pz-linea__textos p { margin: 0; }
+.pz-linea__titulo { color: var(--pz-texto); font-size: 14px; font-weight: 800; }
+.pz-linea__paso--actual .pz-linea__titulo { color: var(--pz-primario); }
+.pz-linea__detalle { color: var(--pz-gris); font-size: 12.5px; }
+.pz-linea__nota { margin-top: 4px !important; padding: 6px 10px; border-radius: 10px; background: var(--pz-fondo); color: var(--pz-texto); font-size: 12.5px; line-height: 18px; overflow-wrap: anywhere; }
+
+/* Cancelar o editar un envío: dos botones y la confirmación en el lugar (anima su alto) */
+.rv-cancelar { display: flex; flex-direction: column; gap: 8px; }
+.rv-confirmar { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid #e8c3cf; border-radius: 14px; background: #fbf1f4; font-size: 13px; line-height: 19px; animation: pz-baja 0.3s ease-out; }
+.rv-confirmar p { margin: 0; }
+.rv-confirmar strong { color: var(--pz-urgente); font-size: 14px; }
+.rv-confirmar__error { color: var(--pz-urgente); font-weight: 700; }
+.rv-confirmar__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+/* Formularios del Editor (redactar, corregir, Acerca de, revisar): sus clases `contenidos-*` toman el aspecto de las piezas
+   del panel cuando la pantalla usa la paleta (AGENTS, «Plantillas de pantalla del panel» → Formulario). Columnas: el formulario
+   | lateral de 340 px que acompaña al bajar; tarjetas con franja de color arriba y cabecera con ícono en círculo. */
+.panel--paleta .contenidos-formulario { grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; }
+.panel--paleta .contenidos-formulario__lateral { position: sticky; top: 0; gap: 16px; }
+.panel--paleta :is(.contenidos-formulario, .contenidos-tipos, .rv-columna) .contenidos-panel,
+.panel--paleta .contenidos-formulario__lateral > section {
+  position: relative; gap: 14px; padding: 20px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 20px; background: #fff;
+  box-shadow: var(--pz-sombra); animation: pz-entra 0.4s ease-out backwards;
+}
+.panel--paleta :is(.contenidos-formulario, .rv-columna) .contenidos-panel::before,
+.panel--paleta .contenidos-formulario__lateral > section::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-primario); }
+.panel--paleta .contenidos-formulario__lateral > :nth-child(2) { animation-delay: 0.08s; }
+.panel--paleta .contenidos-formulario__lateral > :nth-child(n + 3) { animation-delay: 0.14s; }
+.panel--paleta .contenidos-formulario .contenidos-lista__cabecera { padding-bottom: 12px; border-bottom: 1px solid var(--pz-borde); }
+.panel--paleta .contenidos-formulario .contenidos-lista__icono { width: 36px; height: 36px; border-radius: 50%; background: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.panel--paleta .contenidos-formulario .contenidos-lista__cabecera h2 { color: var(--pz-texto); font-size: 17px; line-height: 22px; }
+.panel--paleta .contenidos-formulario .contenidos-lista__cabecera p { font-size: 13px; }
+/* Tarjeta de estado del borrador: como la tarjeta de guardar (fondo blanco, franja dorada) */
+.panel--paleta .contenidos-panel--estado { border-color: var(--pz-tono-borde) !important; background: #fff !important; }
+.panel--paleta .contenidos-panel--estado::before { background: var(--pz-tono-borde) !important; }
+.panel--paleta .contenidos-panel--estado .contenidos-boton { min-height: 44px; }
+/* Elegir tipo: el ícono del tipo en un círculo, como en la bandeja */
+.panel--paleta .contenidos-tipo__letra--icono { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--pz-claro); color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.panel--paleta .contenidos-tipo__letra--icono svg { width: 21px; height: 21px; }
+/* Subir imagen: recuadro punteado como «Agregar un día» */
+.panel--paleta .contenidos-subir { border: 1px dashed var(--pz-acento-suave); border-radius: 16px; background: var(--pz-fondo); transition: border-color 0.2s ease, background-color 0.2s ease; }
+.panel--paleta .contenidos-subir:hover, .panel--paleta .contenidos-subir:focus-within { border-color: var(--pz-primario); background: var(--pz-claro); }
+.panel--paleta .contenidos-subir strong { color: var(--pz-primario); }
+@media (max-width: 1100px) {
+  .panel--paleta .contenidos-formulario { grid-template-columns: minmax(0, 1fr); }
+  .panel--paleta .contenidos-formulario__lateral { position: static; }
+}
+
+/* ---------- Pantallas con las piezas del Editor (`contenidos-*`, `at-*`) en la paleta (21 nov 2026: Actividades) ----------
+   Mientras cada pantalla no se reescribe con piezasPanel, sus clases toman el mismo aspecto: encabezado de módulo, cifras
+   (antes «Accesos rápidos»), tarjeta de lista con franja, filtros segmentados, buscador en píldora y filas en tarjeta. */
+body .panel.panel--paleta .contenidos-encabezado:not(.contenidos-encabezado--tarjeta) {
+  position: relative; align-items: center; gap: 20px; padding: 20px 24px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 20px; box-shadow: var(--pz-sombra);
+  background: radial-gradient(circle at 0% 0%, var(--pz-luz-1), transparent 32%), radial-gradient(circle at 100% 100%, var(--pz-luz-2), transparent 38%), #fff;
+  animation: pz-entra 0.4s ease-out backwards;
+}
+body .panel.panel--paleta .contenidos-encabezado:not(.contenidos-encabezado--tarjeta)::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-franja); }
+body .panel.panel--paleta .contenidos-encabezado h1 { color: var(--pz-texto); font-size: 25px; line-height: 31px; }
+body .panel.panel--paleta .contenidos-encabezado__texto { color: var(--pz-gris); font-size: 14px; line-height: 21px; }
+/* Cifras */
+body .panel.panel--paleta .contenidos-resumen h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+body .panel.panel--paleta .contenidos-resumen__tarjetas { gap: 12px; }
+body .panel.panel--paleta .contenidos-resumen__tarjeta {
+  --tono: var(--pz-primario); --tono-claro: var(--pz-claro);
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "icono cifra" "icono titulo" "texto texto" "enlace enlace";
+  align-items: center; column-gap: 12px; row-gap: 0; padding: 14px 16px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 16px; background: #fff;
+  box-shadow: var(--pz-sombra); animation: pz-entra 0.4s ease-out backwards; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+body .panel.panel--paleta .contenidos-resumen__tarjeta:nth-child(2) { animation-delay: 40ms; }
+body .panel.panel--paleta .contenidos-resumen__tarjeta:nth-child(3) { animation-delay: 80ms; }
+body .panel.panel--paleta .contenidos-resumen__tarjeta:nth-child(n + 4) { animation-delay: 120ms; }
+body .panel.panel--paleta .contenidos-resumen__tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--tono); }
+body .panel.panel--paleta .contenidos-resumen__tarjeta--guinda { --tono: var(--pz-urgente); --tono-claro: var(--pz-urgente-claro); }
+body .panel.panel--paleta .contenidos-resumen__tarjeta--gris { --tono: var(--pz-tono-texto); --tono-claro: var(--pz-tono); }
+body .panel.panel--paleta .contenidos-resumen__fila { display: contents; }
+body .panel.panel--paleta .contenidos-resumen__icono { grid-area: icono; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--tono-claro); color: var(--tono); box-shadow: 0 0 0 3px #fff, 0 0 0 4px var(--pz-borde); }
+body .panel.panel--paleta .contenidos-resumen__cifra { grid-area: cifra; margin: 0; color: var(--tono); font-size: 26px; line-height: 30px; font-weight: 800; }
+body .panel.panel--paleta .contenidos-resumen__titulo { grid-area: titulo; margin: 0; color: var(--pz-texto); font-size: 14px; font-weight: 700; }
+body .panel.panel--paleta .contenidos-resumen__texto { grid-area: texto; margin: 8px 0 0; color: var(--pz-gris); font-size: 12.5px; }
+body .panel.panel--paleta .contenidos-resumen__enlace {
+  grid-area: enlace; justify-self: start; margin-top: 8px; padding: 0; border: 0; background: none; color: var(--tono); font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+  text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease;
+}
+body .panel.panel--paleta .contenidos-resumen__tarjeta:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(20, 30, 40, 0.1); }
+body .panel.panel--paleta .contenidos-resumen__tarjeta:hover .contenidos-resumen__enlace { text-decoration-color: currentColor; }
+body .panel.panel--paleta .contenidos-resumen__tarjeta.at-tarjeta--activa { border-color: var(--tono); box-shadow: 0 0 0 3px var(--tono-claro); animation: pz-pulso 0.25s ease-out; }
+/* Tarjeta de lista */
+body .panel.panel--paleta .contenidos-lista {
+  position: relative; gap: 14px; padding: 20px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 20px; background: #fff; box-shadow: var(--pz-sombra);
+  animation: pz-entra 0.4s ease-out 0.12s backwards;
+}
+body .panel.panel--paleta .contenidos-lista::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-franja); }
+body .panel.panel--paleta .contenidos-lista__cabecera { padding-bottom: 12px; border-bottom: 1px solid var(--pz-borde); }
+body .panel.panel--paleta .contenidos-lista__icono { width: 36px; height: 36px; border-radius: 50%; background: var(--pz-primario); color: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+body .panel.panel--paleta .contenidos-lista__cabecera h2 { color: var(--pz-texto); font-size: 17px; line-height: 22px; }
+/* Filtros segmentados y buscador */
+body .panel.panel--paleta .contenidos-filtros { gap: 4px; padding: 4px; border: 1px solid var(--pz-borde); border-radius: 999px; background: var(--pz-fondo); }
+body .panel.panel--paleta .contenidos-filtro { min-height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--pz-texto); font-size: 13.5px; font-weight: 600; box-shadow: none; transition: background-color 0.2s ease, color 0.2s ease; }
+body .panel.panel--paleta .contenidos-filtro:hover { background: var(--pz-claro-2); transform: none; }
+body .panel.panel--paleta .contenidos-filtro--activo, body .panel.panel--paleta .contenidos-filtro--activo:hover { background: var(--pz-primario); color: #fff; box-shadow: 0 4px 10px rgba(20, 30, 40, 0.2); animation: pz-pulso 0.25s ease-out; }
+body .panel.panel--paleta .contenidos-buscar { min-height: 44px; border: 1px solid var(--pz-borde); border-radius: 999px; background: var(--pz-fondo); }
+body .panel.panel--paleta .contenidos-buscar:focus-within { border-color: var(--pz-primario); background: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+/* Filas de las tablas en tarjeta */
+body .panel.panel--paleta .contenidos-tabla__fila:not(.contenidos-tabla__fila--titulos) {
+  border: 1px solid var(--pz-borde); border-radius: 14px; background: #fff; transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; animation: pz-entra 0.35s ease-out backwards;
+}
+body .panel.panel--paleta .contenidos-tabla__fila:not(.contenidos-tabla__fila--titulos):hover { transform: translateY(-2px); border-color: var(--pz-acento-suave); box-shadow: 0 8px 18px rgba(20, 30, 40, 0.08); }
+body .panel.panel--paleta .contenidos-tabla__fila--titulos { color: var(--pz-gris); }
+body .panel.panel--paleta .contenidos-tabla__folio { color: var(--pz-primario); }
+/* Calendario, Visitas y las fichas de Actividades usan las piezas de demostración (`cn-*`): el mismo aspecto */
+body .panel.panel--paleta .cn-encabezado {
+  position: relative; padding: 20px 24px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 20px; box-shadow: var(--pz-sombra);
+  background: radial-gradient(circle at 0% 0%, var(--pz-luz-1), transparent 32%), radial-gradient(circle at 100% 100%, var(--pz-luz-2), transparent 38%), #fff;
+  animation: pz-entra 0.4s ease-out backwards;
+}
+body .panel.panel--paleta .cn-encabezado::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-franja); }
+body .panel.panel--paleta .cn-encabezado .cn-titulo { color: var(--pz-texto); font-size: 25px; line-height: 31px; }
+body .panel.panel--paleta .cn-encabezado .cn-entrada { color: var(--pz-gris); font-size: 14px; }
+body .panel.panel--paleta .cn-resumen__titular { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+body .panel.panel--paleta .cn-acceso {
+  --tono: var(--pz-primario); --tono-claro: var(--pz-claro);
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "icono numero" "icono titulo" "texto texto" "enlace enlace";
+  align-items: center; column-gap: 12px; row-gap: 0; padding: 14px 16px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 16px; background: #fff;
+  box-shadow: var(--pz-sombra); text-align: left; animation: pz-entra 0.4s ease-out backwards; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+body .panel.panel--paleta .cn-acceso:nth-child(2) { animation-delay: 40ms; }
+body .panel.panel--paleta .cn-acceso:nth-child(3) { animation-delay: 80ms; }
+body .panel.panel--paleta .cn-acceso:nth-child(n + 4) { animation-delay: 120ms; }
+body .panel.panel--paleta .cn-acceso::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--tono); }
+body .panel.panel--paleta .cn-acceso--guinda { --tono: var(--pz-urgente); --tono-claro: var(--pz-urgente-claro); }
+body .panel.panel--paleta .cn-acceso--dorado { --tono: var(--pz-tono-texto); --tono-claro: var(--pz-tono); }
+body .panel.panel--paleta .cn-acceso__fila { display: contents; }
+body .panel.panel--paleta .cn-acceso__icono { grid-area: icono; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--tono-claro); }
+body .panel.panel--paleta .cn-acceso__numero { grid-area: numero; color: var(--tono); font-size: 26px; line-height: 30px; font-weight: 800; }
+body .panel.panel--paleta .cn-acceso__titulo { grid-area: titulo; color: var(--pz-texto); font-size: 14px; font-weight: 700; }
+body .panel.panel--paleta .cn-acceso__texto { grid-area: texto; margin-top: 8px; color: var(--pz-gris); font-size: 12.5px; }
+body .panel.panel--paleta .cn-acceso__enlace { grid-area: enlace; justify-self: start; margin-top: 8px; color: var(--tono); font-size: 13px; font-weight: 700; text-decoration: underline 2px transparent; text-underline-offset: 4px; transition: text-decoration-color 0.2s ease; }
+body .panel.panel--paleta button.cn-acceso:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(20, 30, 40, 0.1); background: #fff; }
+body .panel.panel--paleta button.cn-acceso:hover .cn-acceso__enlace { text-decoration-color: currentColor; }
+body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--tono); box-shadow: 0 0 0 3px var(--tono-claro); animation: pz-pulso 0.25s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  body .panel.panel--paleta :is(.contenidos-encabezado, .contenidos-resumen__tarjeta, .contenidos-lista, .contenidos-tabla__fila, .contenidos-filtro--activo, .cn-encabezado, .cn-acceso) { animation: none; transition: none; }
+}
+
+/* ---------- Ficha y formulario de una actividad (22 nov 2026; reutilizables en otras fichas con etapas) ---------- */
+.pz-pila { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.pz-pila .pz-datos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pz-formulario { display: flex; flex-direction: column; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.pz-formulario .pz-tarjeta { gap: 14px; }
+.pz-campo--lleno textarea {
+  width: 100%; min-height: 110px; padding: 10px 14px; box-sizing: border-box; border: 1px solid #b9c4cd; border-radius: 12px; background: #fff;
+  color: var(--pz-texto); font-family: inherit; font-size: 14px; line-height: 21px; resize: vertical;
+}
+.pz-campo--lleno textarea:focus { border-color: var(--pz-primario); outline: none; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-campo--lleno select { height: 44px; padding: 0 32px 0 14px; border-radius: 12px; }
+.pz-campo__ayuda { color: var(--pz-gris); font-size: 12px; }
+.pz-campo--error :is(input, select) { border-color: var(--pz-urgente); }
+.pz-campo__error { margin: -6px 0 0; color: var(--pz-urgente); font-size: 12.5px; font-weight: 700; animation: pz-baja 0.3s ease-out; }
+.pz-campos-fila--tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Pastillas para elegir una opción frecuente (tipo de actividad) y un campo «Otro» */
+.pz-pastillas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pz-pastilla {
+  min-height: 36px; padding: 0 14px; border: 1px solid var(--pz-borde); border-radius: 999px; background: #fff; color: var(--pz-texto);
+  font-family: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+.pz-pastilla:hover { border-color: var(--pz-primario); background: var(--pz-claro); transform: translateY(-2px); }
+.pz-pastilla--elegida, .pz-pastilla--elegida:hover { border-color: var(--pz-primario); background: var(--pz-primario); color: #fff; animation: pz-pulso 0.25s ease-out; }
+.pz-pastilla:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.pz-pastillas__otro { flex: 1 1 140px; height: 36px !important; border-radius: 999px !important; }
+/* Vista previa de cómo sale en la agenda */
+.pz-fila--previa { grid-template-columns: auto minmax(0, 1fr); background: var(--pz-fondo); }
+.pz-fila--previa:hover { box-shadow: none; }
+/* Tarjeta de guardar con lo que falta para enviar: avance, lista en dos columnas con su marca y botones */
+.pz-envio { gap: 14px; }
+.pz-envio__avance { display: flex; flex-direction: column; gap: 6px; }
+.pz-envio__avance p { margin: 0; color: var(--pz-gris); font-size: 13px; }
+.pz-envio__avance strong { color: var(--pz-texto); font-size: 15px; }
+.pz-envio__barra { display: block; height: 8px; overflow: hidden; border-radius: 999px; background: #efeeee; }
+.pz-envio__barra span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #c9a24a, var(--pz-primario)); transition: width 0.35s ease-out; }
+.pz-envio__lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; margin: 0; padding: 0; list-style: none; }
+.pz-envio__lista li { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--pz-gris); font-size: 13px; font-weight: 600; }
+.pz-envio__marca { display: grid; flex: none; place-items: center; width: 20px; height: 20px; box-sizing: border-box; border: 2px solid #cfd4d9; border-radius: 50%; color: #fff; transition: background-color 0.2s ease, border-color 0.2s ease; }
+.pz-envio__marca svg { width: 12px; height: 12px; }
+.pz-envio__dato--listo { color: var(--pz-texto) !important; }
+.pz-envio__dato--listo .pz-envio__marca { border-color: var(--pz-primario); background: var(--pz-primario); animation: pz-pulso 0.25s ease-out; }
+.pz-envio--listo { border-color: var(--pz-acento-suave); }
+.pz-envio--listo .pz-tarjeta__icono { animation: pz-aro 0.9s ease-out 1; }
+/* Nota bajo el valor de un dato y barra de ocupación */
+.pz-dato__nota { display: block; margin-top: 2px; color: var(--pz-gris); font-size: 12px; font-weight: 600; }
+.pz-ocupacion { display: block; height: 6px; margin-top: 6px; overflow: hidden; border-radius: 999px; background: #fff; }
+.pz-ocupacion__relleno { display: block; height: 100%; border-radius: inherit; transform-origin: left; animation: pz-crece-x 0.6s ease-out 0.2s backwards; }
+.pz-ocupacion__relleno--verde { background: var(--pz-primario); }
+.pz-ocupacion__relleno--dorado { background: #c9a24a; }
+.pz-ocupacion__relleno--guinda { background: var(--pz-urgente); }
+/* Etapas de una publicación en fila: hechas con palomita, la actual con aro que late una vez, cerrada en vino */
+.pz-etapas { display: flex; gap: 8px; margin: 0; padding: 10px; border: 1px solid var(--pz-borde); border-radius: 18px; background: #fff; box-shadow: var(--pz-sombra); list-style: none; animation: pz-entra 0.4s ease-out 0.08s backwards; }
+.pz-etapas__paso { position: relative; display: flex; flex: 1 1 0; align-items: center; gap: 10px; min-width: 0; padding: 6px 10px; border-radius: 12px; color: var(--pz-gris); font-size: 13.5px; font-weight: 700; }
+.pz-etapas__paso + .pz-etapas__paso::before { content: ""; position: absolute; left: -8px; top: 50%; width: 8px; height: 2px; background: var(--pz-borde); }
+.pz-etapas__numero { display: grid; flex: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #efeeee; font-size: 13px; }
+.pz-etapas__numero svg { width: 15px; height: 15px; }
+.pz-etapas__paso--hecho { color: var(--pz-primario); }
+.pz-etapas__paso--hecho .pz-etapas__numero { background: var(--pz-claro-2); color: var(--pz-primario); }
+.pz-etapas__paso--actual { background: var(--pz-claro); color: var(--pz-texto); }
+.pz-etapas__paso--actual .pz-etapas__numero { background: var(--pz-primario); color: #fff; box-shadow: 0 0 0 3px var(--pz-acento-suave); animation: pz-aro 0.9s ease-out 0.4s 1; }
+.pz-etapas__paso--cerrado { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.pz-etapas__paso--cerrado .pz-etapas__numero { background: var(--pz-urgente); color: #fff; }
+/* Decisión que se abre en el lugar */
+.pz-decision { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); animation: pz-baja 0.3s ease-out; }
+.pz-acciones .pz-boton[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.pz-sesion--cancelada .pz-fila { background: #fbfaf9; }
+.pz-sesion--cancelada .pz-fila__titulo { color: var(--pz-gris); }
+@media (prefers-reduced-motion: reduce) {
+  :is(.pz-etapas, .pz-etapas__numero, .pz-decision, .pz-campo__error, .pz-ocupacion__relleno, .pz-pastilla--elegida, .pz-envio__marca, .pz-envio--listo .pz-tarjeta__icono) { animation: none !important; }
+  .pz-envio__barra span { transition: none; }
+  .pz-pastilla:hover { transform: none; }
+}
+
+/* Confirmación de envío (Contenidos › Enviado a autorización) y fila de acciones */
+.pz-envio-ok { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--pz-claro); }
+.pz-envio-ok p { margin: 0; color: var(--pz-texto); font-size: 14px; }
+.pz-envio-ok__insignia { display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--pz-primario); color: #fff; animation: pz-aro 0.9s ease-out 0.3s 1; }
+.pz-envio-ok__insignia svg { width: 20px; height: 20px; }
+.pz-acciones--fila { flex-direction: row; flex-wrap: wrap; }
+.pz-acciones--fila .pz-boton { width: auto; }
+@media (prefers-reduced-motion: reduce) { .pz-envio-ok__insignia { animation: none; } }
+
+/* ---------- Listas de Actividades con las piezas (PiezasLista: Visitas, Cambios, Inscripciones, Asistencia, Evidencias; 22 nov 2026) ---------- */
+.ac-cifras { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.ac-cifras .pz-cifra { align-items: flex-start; text-align: left; font-family: inherit; }
+.ac-cifras .pz-cifra__icono svg { width: 20px; height: 20px; }
+.ac-cifras .pz-cifra__textos small { display: block; margin-top: 2px; color: var(--pz-gris); font-size: 12px; font-weight: 600; line-height: 16px; }
+.ac-cifras button.pz-cifra { cursor: pointer; }
+.pz-tarjeta__icono svg { width: 18px; height: 18px; }
+.ac-lista { animation: pz-entra 0.4s ease-out 0.12s backwards; overflow: visible; }
+.ac-lista > .pz-herramientas { position: relative; z-index: 5; }
+.ac-lista .contenidos-tabla { margin-top: 0; }
+@media (prefers-reduced-motion: reduce) { .ac-lista { animation: none; } }
+
+/* ---------- Actividades rehechas con las piezas (22 nov 2026): Visitas, Cambios, Inscripciones, Asistencia y Evidencias ---------- */
+.pz-ranking__lugar svg { width: 15px; height: 15px; }
+.pz-fila__plazo { margin: 4px 0 0; color: var(--pz-urgente); font-size: 12px; font-weight: 700; }
+.pz-fila__icono--vino { background: var(--pz-urgente-claro) !important; color: var(--pz-urgente) !important; }
+.vis-semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.vis-semana__dia { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px; border-radius: 12px; background: var(--pz-fondo); color: var(--pz-gris); text-align: center; animation: pz-entra 0.35s ease-out backwards; }
+.vis-semana__dia span { font-size: 11px; font-weight: 700; text-transform: capitalize; }
+.vis-semana__dia strong { color: var(--pz-texto); font-size: 16px; }
+.vis-semana__dia small { font-size: 10px; font-weight: 700; line-height: 12px; }
+.vis-semana__dia--ocupado { background: var(--pz-claro-2); color: var(--pz-primario); }
+.vis-semana__dia--hoy { box-shadow: inset 0 0 0 2px var(--pz-tono-borde); }
+.vis-plazo--holgado { color: var(--pz-tono-texto) !important; }
+.vis-proxima__grupo { margin: 0; color: var(--pz-texto); font-size: 16px; font-weight: 800; }
+.ac-solo-desarrollo { margin: 0; color: var(--pz-gris); font-size: 12px; }
+/* Cambio de programación: antes (tachado) y después */
+.ac-cambio { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 0; font-size: 12.5px; }
+.ac-cambio__antes { padding: 2px 8px; border-radius: 8px; background: #efeeee; color: var(--pz-gris); text-decoration: line-through; }
+.ac-cambio__a { color: var(--pz-gris); font-weight: 600; }
+.ac-cambio__despues { padding: 2px 8px; border-radius: 8px; background: var(--pz-claro-2); color: var(--pz-primario); font-weight: 700; }
+.pz-linea--tarjetas .pz-linea__textos { flex: 1; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: #fff; }
+.pz-linea--tarjetas .pz-linea__titulo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+/* Inscripciones: cupo en la fila, medidor circular y lista de lo que se llena */
+.ins-cupo { display: flex; flex-direction: column; gap: 4px; min-width: 110px; }
+.ins-cupo__texto { display: flex; align-items: baseline; gap: 4px; color: var(--pz-gris); font-size: 12.5px; }
+.ins-cupo__texto strong { color: var(--pz-texto); font-size: 15px; }
+.ins-cupo__texto small { margin-left: auto; font-size: 11.5px; font-weight: 700; }
+.ins-cupo .pz-ocupacion { margin-top: 0; background: var(--pz-fondo); }
+.ins-llenas { display: flex; flex: 1 1 auto; flex-direction: column; gap: 8px; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.ins-llenas li { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); animation: pz-entra 0.35s ease-out backwards; }
+.ins-llenas li small { color: var(--pz-gris); font-size: 12px; }
+.ins-medidor {
+  --tono: var(--pz-primario); position: relative; display: grid; flex: none; place-items: center; width: 150px; height: 150px; margin: 4px auto; border-radius: 50%;
+  background: conic-gradient(var(--tono) var(--p), var(--pz-fondo) 0); animation: pz-entra 0.5s ease-out backwards;
+}
+.ins-medidor--dorado { --tono: #c9a24a; }
+.ins-medidor--guinda { --tono: var(--pz-urgente); }
+.ins-medidor::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 1px var(--pz-borde); }
+.ins-medidor__centro { position: relative; display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.ins-medidor__centro strong { color: var(--pz-texto); font-size: 30px; font-weight: 800; }
+.ins-medidor__centro small { color: var(--pz-gris); font-size: 12.5px; font-weight: 700; }
+.ins-desglose__punto { width: 12px !important; height: 12px !important; margin: 0 8px; }
+.ins-desglose__punto--verde { background: var(--pz-primario) !important; }
+.ins-desglose__punto--dorado { background: #c9a24a !important; }
+.ins-desglose__punto--guinda { background: var(--pz-urgente) !important; }
+.ins-desglose__punto--gris { background: #b9b3a5 !important; }
+.as-barra--gris span { background: #b9b3a5 !important; }
+.as-barra--verde span { background: var(--pz-primario) !important; }
+.pz-tarjeta--actividades.pz-tarjeta { overflow-y: auto; scrollbar-width: thin; }
+.ins-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; }
+.ins-decision { margin: 6px 0 4px 52px; }
+/* Asistencia: número, nota en línea, presente o ausente segmentado y color por marca */
+.as-numero { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--pz-fondo); color: var(--pz-gris); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.as-fila--presente .as-numero { background: var(--pz-claro-2); color: var(--pz-primario); }
+.as-fila--ausente .as-numero { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.as-nota { width: 100%; max-width: 320px; height: 32px; margin-top: 4px; padding: 0 10px; box-sizing: border-box; border: 1px solid var(--pz-borde); border-radius: 10px; background: var(--pz-fondo); font-family: inherit; font-size: 12.5px; }
+.as-nota:focus { border-color: var(--pz-primario); outline: none; background: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.as-marcar .pz-opcion { min-width: 92px; }
+.as-marcar .as-marcar__ausente.pz-opcion--activa { background: var(--pz-urgente); }
+.as-barra--dorado span { background: #c9a24a !important; }
+.as-barra--guinda span { background: var(--pz-urgente) !important; }
+.as-resumen { grid-template-columns: auto minmax(0, 1fr) 140px auto; }
+/* Evidencias: archivo para subir, filas restringidas y accesos */
+.ev-fila--restringida { background: #fbfaf9; }
+.ev-fila--restringida .pz-fila__icono { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.ev-tipo-boton { padding: 0; border: 0; background: none; font-family: inherit; text-align: left; cursor: pointer; }
+.ev-tipo-boton[aria-pressed="true"] { color: var(--pz-primario); text-decoration: underline 2px; text-underline-offset: 3px; }
+.ev-archivo {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 28px 16px; border: 2px dashed var(--pz-acento-suave); border-radius: 18px; background: var(--pz-fondo);
+  color: var(--pz-texto); text-align: center; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.ev-archivo:hover, .ev-archivo:focus-within { border-color: var(--pz-primario); background: var(--pz-claro); }
+.ev-archivo__icono { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--pz-primario); color: #fff; box-shadow: 0 0 0 4px var(--pz-claro-2); }
+.ev-archivo__icono svg { width: 24px; height: 24px; }
+.ev-archivo small { color: var(--pz-gris); font-size: 12.5px; }
+.ev-archivo--listo { border-style: solid; border-color: var(--pz-primario); background: var(--pz-claro); }
+.ev-archivo--error { border-color: var(--pz-urgente); background: var(--pz-urgente-claro); }
+.ev-archivo--error .ev-archivo__icono { background: var(--pz-urgente); }
+.pz-opciones-acceso { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pz-envio__lista--una { grid-template-columns: 1fr; }
+@media (prefers-reduced-motion: reduce) { :is(.ins-medidor, .ins-llenas li) { animation: none; } }
+
+/* ---------- Reglas comunes de listas (22 nov 2026, Aldahir) ----------
+   1) El mensaje de «no hay nada» (Vacio) va centrado en el alto y el ancho de su tarjeta.
+   2) Filas simétricas: el chip de estado y la acción tienen ancho fijo, así al cambiar el estado de una solicitud
+      («Por revisar» → «Aprobada») las columnas no se encogen ni se mueven, en ninguna lista. */
+.pz-tarjeta > .pz-vacio, .pz-tarjeta > .pz-grupos > .pz-vacio, .pz-pila .pz-tarjeta > .pz-vacio { flex: 1 1 auto; justify-content: center; min-height: 180px; }
+.pz-fila > .pz-chip { justify-self: end; justify-content: center; width: 138px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pz-fila > .pz-boton, .pz-fila > a.pz-boton { justify-self: end; justify-content: center; min-width: 108px; box-sizing: border-box; text-align: center; }
+.pz-fila > span[aria-hidden="true"]:empty { width: 108px; }
+.pz-fila > .pz-acciones__nota { justify-self: end; width: 108px; text-align: center; }
+
+/* Mapa «Dónde es» en el panel (MapaDonde: detalle de espacio y de propuesta), con el plano del portal en solo lectura */
+.pz-mapa { position: relative; height: 280px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 16px; }
+.pz-mapa .esp-mapa__lienzo { position: absolute; inset: 0; background: #fbf9f4 radial-gradient(#ebe4d6 1px, transparent 1px) 0 0 / 18px 18px; }
+.pz-mapa .esp-mapa__svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.pz-mapa .esp-mapa__svg--foco .esp-mapa__fondo { filter: blur(2.5px) saturate(0.55); opacity: 0.55; }
+.pz-mapa .esp-zona--tenue, .pz-mapa .esp-etiqueta--tenue { opacity: 0.25; }
+.at-detalle .at-columna { display: flex; flex-direction: column; gap: 16px; }
+
+/* ---------- Progreso y recompensas, bandeja de Atención y Estadísticas (22 nov 2026) ---------- */
+.pr-pendiente { margin: 0 !important; }
+.pr-puntos { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--pz-tono); color: var(--pz-tono-texto); font-size: 11.5px; font-weight: 800; }
+.pz-herramientas--apiladas { flex-direction: column-reverse; align-items: stretch; }
+.pz-herramientas--apiladas .pz-segmentado { align-self: flex-start; }
+/* Bandeja de Atención: título de la solicitud y sus datos en fichas */
+.ba-fila { align-items: center; }
+.ba-titulo .at-celda-doble { display: flex; flex-direction: column; gap: 1px; }
+.ba-titulo .at-celda-doble span { color: var(--pz-texto); font-size: 15px; font-weight: 800; }
+.ba-titulo .at-celda-doble small { color: var(--pz-gris); font-size: 12.5px; font-weight: 600; }
+.ba-datos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px 16px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--pz-borde); }
+.ba-dato { display: flex; flex-direction: column; gap: 2px; min-width: 0; color: var(--pz-texto); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+.ba-dato > small { color: var(--pz-gris); font-size: 11.5px; font-weight: 600; }
+.ba-dato .at-celda-doble { display: flex; flex-direction: column; gap: 1px; }
+.ba-dato .at-celda-doble small { color: var(--pz-gris); font-size: 11.5px; font-weight: 600; }
+.ba-dato .pz-fila__folio { align-self: flex-start; }
+.ba-fila { align-items: center; padding: 14px 16px; }
+.ba-datos--fila { grid-column: 1 / -1; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 4px; }
+.ba-fila > .pz-fila__plazo { grid-column: 2 / -1; margin-top: -6px !important; }
+.ba-fila > .pz-fila__icono, .ba-fila > .pz-chip, .ba-fila > .pz-boton { margin-top: 2px; }
+.ba-icono--pendiente { background: var(--pz-tono) !important; color: var(--pz-tono-texto) !important; }
+.ba-icono--observaciones { background: var(--pz-urgente-claro) !important; color: var(--pz-urgente) !important; }
+.ba-icono--aprobada { background: var(--pz-claro-2) !important; color: var(--pz-primario) !important; }
+.ba-icono--rechazada { background: #efeeee !important; color: var(--pz-gris) !important; }
+/* Estadísticas: barra, indicadores en tarjetas y gráfica con escala */
+.est-barra__grupo { display: flex; align-items: center; gap: 10px; }
+.est-barra__grupo > span { color: var(--pz-gris); font-size: 12.5px; font-weight: 700; }
+.est-indicadores { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.est-indicador {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "icono valor" "icono titulo" "detalle detalle";
+  column-gap: 12px; padding: 16px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 18px; background: #fff; box-shadow: var(--pz-sombra);
+  animation: pz-entra 0.4s ease-out backwards;
+}
+.est-indicador:nth-child(2) { animation-delay: 40ms; }
+.est-indicador:nth-child(3) { animation-delay: 80ms; }
+.est-indicador:nth-child(4) { animation-delay: 120ms; }
+.est-indicador::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pz-decor); }
+.est-indicador--principal { background: radial-gradient(circle at 100% 0%, var(--pz-luz-1), transparent 50%), #fff; }
+.est-indicador--principal::before { background: var(--pz-franja); }
+.est-indicador p { margin: 0; }
+.est-indicador__icono { grid-area: icono; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--pz-claro-2); color: var(--pz-primario); }
+.est-indicador__icono svg { width: 20px; height: 20px; }
+.est-indicador__valor { grid-area: valor; color: var(--pz-texto); font-size: 28px; line-height: 32px; font-weight: 800; }
+.est-indicador__titulo { grid-area: titulo; color: var(--pz-texto); font-size: 13.5px; font-weight: 700; }
+.est-indicador__detalle { grid-area: detalle; margin-top: 8px !important; padding-top: 8px; border-top: 1px solid var(--pz-borde); color: var(--pz-gris); font-size: 12.5px; }
+.est-resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.est-resumen span { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-radius: 14px; background: var(--pz-claro); }
+.est-resumen small { color: var(--pz-primario); font-size: 12px; font-weight: 700; }
+.est-resumen strong { color: var(--pz-texto); font-size: 18px; }
+.est-grafica { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px; }
+.est-grafica__escala { display: flex; flex-direction: column; justify-content: space-between; height: 252px; padding-top: 12px; box-sizing: border-box; color: var(--pz-gris); font-size: 11.5px; text-align: right; }
+.est-grafica__barras {
+  height: 252px; padding-top: 12px; box-sizing: border-box;
+  background: repeating-linear-gradient(to top, transparent 0, transparent calc(25% - 1px), var(--pz-borde) calc(25% - 1px), var(--pz-borde) 25%);
+}
+.est-grafica__barras .ad-grafica__barra { transform-origin: bottom; animation: pz-crece-y 0.6s ease-out 0.2s backwards; }
+.est-grafica__valor { margin-bottom: 4px; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.est-grafica__columna--mayor .ad-grafica__barra { background: linear-gradient(180deg, #c9a24a, #e6d194); }
+.est-grafica__columna--mayor .est-grafica__valor { color: var(--pz-tono-texto); }
+.est-grafica__ejes { margin-left: 52px; }
+@media (prefers-reduced-motion: reduce) { :is(.est-indicador, .est-grafica__barras .ad-grafica__barra) { animation: none; } }
+
+/* ---------- Calendario y salas (22 nov 2026): barra, mes que llena su tarjeta, salas del día y detalle de sala ---------- */
+.cal-barra { gap: 12px; padding: 14px 18px; overflow: visible; z-index: 5; animation: pz-entra 0.4s ease-out 0.06s backwards; }
+.cal-barra__fila { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.cal-barra__fila .pz-buscador { flex: 0 1 460px; }
+.cal-barra__fila--periodo { padding-top: 12px; border-top: 1px solid var(--pz-borde); }
+.cal-barra__periodo { display: flex; align-items: center; gap: 10px; }
+.cal-barra__periodo h2 { min-width: 220px; margin: 0; color: var(--pz-texto); font-size: 17px; line-height: 22px; text-align: center; }
+.cal-barra__periodo h2::first-letter { text-transform: uppercase; }
+/* Cambiar de periodo: «Anterior · periodo · Siguiente» en una sola pastilla; el periodo entra suave al cambiar */
+.cal-periodo { display: flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid var(--pz-borde); border-radius: 999px; background: var(--pz-fondo); }
+.cal-periodo__boton {
+  min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: #fff; color: var(--pz-primario); font-family: inherit; font-size: 13.5px; font-weight: 700;
+  box-shadow: 0 1px 3px rgba(20, 30, 40, 0.08); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.cal-periodo__boton:hover { transform: translateY(-2px); background: var(--pz-claro); box-shadow: 0 6px 12px rgba(20, 30, 40, 0.1); }
+.cal-periodo__boton:active { transform: none; }
+.cal-periodo__boton:focus-visible, .cal-periodo__hoy:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.cal-periodo__nombre { min-width: 230px; margin: 0; padding: 0 8px; color: var(--pz-texto); font-size: 16px; line-height: 22px; text-align: center; animation: pz-entra 0.3s ease-out; }
+.cal-periodo__nombre::first-letter { text-transform: uppercase; }
+.cal-periodo__hoy {
+  min-height: 36px; padding: 0 16px; border: 1px solid var(--pz-primario); border-radius: 999px; background: var(--pz-primario); color: #fff; font-family: inherit; font-size: 13.5px; font-weight: 700;
+  cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cal-periodo__hoy:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(20, 30, 40, 0.15); }
+.cal-periodo__hoy:disabled { border-color: var(--pz-borde); background: #fff; color: var(--pz-gris); cursor: default; }
+@media (prefers-reduced-motion: reduce) { .cal-periodo__nombre { animation: none; } .cal-periodo__boton:hover, .cal-periodo__hoy:hover { transform: none; } }
+.cal-leyenda { display: flex; flex-wrap: wrap; gap: 14px; margin: 0; color: var(--pz-gris); font-size: 12.5px; font-weight: 600; }
+.cal-leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-punto { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+.cal-punto--verde { background: var(--pz-primario); }
+.cal-punto--dorado { background: #c9a24a; }
+.cal-punto--gris { background: #b9b3a5; }
+/* Mes: la rejilla llena el alto de su tarjeta (seis renglones iguales) */
+.panel--paleta .cal-mes { min-height: 0; }
+.panel--paleta .cal-mes .ac-mes__dias { flex: none; }
+.panel--paleta .cal-mes .ac-mes__dias span { padding: 0 6px; color: var(--pz-gris); font-size: 12.5px; }
+.panel--paleta .cal-mes .ac-mes__rejilla { flex: 1 1 auto; min-height: 0; grid-auto-rows: minmax(0, 1fr); gap: 6px; }
+.panel--paleta .ac-dia {
+  display: flex; flex-direction: column; align-items: stretch; gap: 3px; min-height: 0; padding: 6px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 12px;
+  background: #fff; font-family: inherit; text-align: left; cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.panel--paleta .ac-dia:hover { border-color: var(--pz-primario); transform: translateY(-2px); box-shadow: 0 6px 14px rgba(20, 30, 40, 0.08); }
+.panel--paleta .ac-dia--hueco { border-color: transparent; background: transparent !important; }
+.panel--paleta .ac-dia--hueco:hover { transform: none; box-shadow: none; }
+.panel--paleta .ac-dia--pasado { background: #fbfaf9; }
+
+.panel--paleta .ac-dia__numero { align-self: flex-start; display: grid; place-items: center; min-width: 24px; height: 24px; border-radius: 999px; color: var(--pz-texto); font-size: 13px; font-weight: 700; }
+.panel--paleta .ac-dia--hoy { border-color: var(--pz-tono-borde); background: #fff; }
+.panel--paleta .ac-dia--hoy .ac-dia__numero { background: var(--pz-tono); color: var(--pz-tono-texto); }
+.panel--paleta .ac-dia--elegido, .panel--paleta .ac-dia--elegido:hover { border-color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); animation: pz-pulso 0.25s ease-out; }
+.panel--paleta .ac-dia--elegido .ac-dia__numero { background: var(--pz-primario); color: #fff; }
+
+.cal-ver-dia { flex: none; align-self: flex-start; margin-top: auto; }
+.pz-tarjeta--actividades > .pz-actividades { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.pz-tarjeta--actividades .pz-actividades .pz-chip { align-self: flex-start; margin-top: 4px; }
+/* Mes: cada día solo dice cuántas actividades tiene (los nombres no se leían) y un punto por actividad con el color de su estado */
+.panel--paleta .ac-dia__total {
+  display: flex; align-items: center; align-self: flex-start; gap: 5px; margin-top: auto; padding: 2px 8px 2px 6px; border-radius: 999px; background: var(--pz-claro-2);
+  color: var(--pz-primario); line-height: 16px; white-space: nowrap; max-width: 100%; box-sizing: border-box; overflow: hidden;
+}
+.panel--paleta .ac-dia__total strong { min-width: 10px; font-size: 13px; font-weight: 800; text-align: center; }
+.panel--paleta .ac-dia__total small { color: var(--pz-primario); font-size: 11px; font-weight: 700; }
+.panel--paleta .ac-dia__puntos { display: flex; gap: 2px; }
+.panel--paleta .ac-dia__puntos .cal-punto { width: 6px; height: 6px; }
+.panel--paleta .ac-dia { justify-content: space-between; }
+.panel--paleta .ac-dia--elegido .ac-dia__total { background: var(--pz-primario); }
+.panel--paleta .ac-dia--elegido .ac-dia__total :is(strong, small) { color: #fff; }
+.panel--paleta .ac-dia--elegido .ac-dia__puntos .cal-punto { box-shadow: 0 0 0 1px #fff; }
+.cal-punto--guinda { background: var(--pz-urgente); }
+.panel--paleta .ac-dia--pasado .ac-dia__total { opacity: 0.65; }
+.panel--paleta .cal-mes .ac-mes__rejilla > :nth-child(7n), .panel--paleta .cal-mes .ac-mes__rejilla > :nth-child(7n - 1) { background: var(--pz-fondo); }
+.panel--paleta .cal-mes .ac-mes__dias { padding: 6px 0; border-radius: 12px; background: var(--pz-fondo); }
+.panel--paleta .cal-mes .ac-mes__dias span { text-align: center; }
+.panel--paleta .ac-dia:not(.ac-dia--hueco):has(.ac-dia__total) { border-color: var(--pz-acento-suave); }
+.panel--paleta .cal-mes .ac-mes__rejilla > .ac-dia--elegido { background: #fff; }
+.panel--paleta .cal-mes .ac-mes__dias span:nth-child(n + 6) { color: var(--pz-acento-suave); }
+/* Bloque de una actividad (semana y día): franja de su color a la izquierda del bloque, hora, nombre y sala */
+.cal-bloque {
+  --tono: var(--pz-primario); --tono-claro: var(--pz-claro);
+  display: flex; flex-direction: column; gap: 1px; min-width: 0; height: 100%; padding: 6px 10px 6px 12px; box-sizing: border-box; overflow: hidden;
+  border: 1px solid var(--pz-borde); border-radius: 12px; background: linear-gradient(90deg, var(--tono) 0 4px, var(--tono-claro) 4px); color: var(--pz-texto); text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cal-bloque--dorado { --tono: #c9a24a; --tono-claro: var(--pz-tono); }
+.cal-bloque--gris { --tono: #b9b3a5; --tono-claro: #f1efea; }
+.cal-bloque--guinda { --tono: var(--pz-urgente); --tono-claro: var(--pz-urgente-claro); }
+.cal-bloque:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(20, 30, 40, 0.1); }
+.cal-bloque:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.cal-bloque__hora { color: var(--pz-gris); font-size: 11.5px; font-weight: 800; }
+.cal-bloque strong { overflow: hidden; font-size: 13.5px; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
+.cal-bloque small { overflow: hidden; color: var(--pz-gris); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.cal-bloque--pasado { opacity: 0.6; }
+/* Semana: un renglón por día */
+.cal-semana-lista { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.cal-semana-lista__dia { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 12px; padding: 8px; border: 1px solid var(--pz-borde); border-radius: 16px; background: #fff; animation: pz-entra 0.35s ease-out backwards; }
+.cal-semana-lista__dia:nth-child(2) { animation-delay: 30ms; }
+.cal-semana-lista__dia:nth-child(3) { animation-delay: 60ms; }
+.cal-semana-lista__dia:nth-child(4) { animation-delay: 90ms; }
+.cal-semana-lista__dia:nth-child(5) { animation-delay: 120ms; }
+.cal-semana-lista__dia:nth-child(n + 6) { animation-delay: 150ms; }
+.cal-semana-lista__dia--libre { background: var(--pz-fondo); }
+.cal-semana-lista__dia--pasado { opacity: 0.7; }
+.cal-semana-lista__dia--hoy { border-color: var(--pz-tono-borde); box-shadow: 0 0 0 3px var(--pz-tono); opacity: 1; }
+.cal-semana-lista__fecha {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 58px; padding: 4px; border: 0; border-radius: 12px;
+  background: var(--pz-claro); color: var(--pz-primario); font-family: inherit; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.cal-semana-lista__fecha:hover { transform: translateY(-2px); background: var(--pz-claro-2); }
+.cal-semana-lista__fecha span { color: var(--pz-gris); font-size: 11.5px; font-weight: 700; }
+.cal-semana-lista__fecha strong { font-size: 20px; line-height: 22px; }
+.cal-semana-lista__fecha small { padding: 0 6px; border-radius: 999px; background: var(--pz-tono); color: var(--pz-tono-texto); font-size: 10.5px; font-weight: 800; }
+.cal-semana-lista__dia--hoy .cal-semana-lista__fecha { background: var(--pz-tono); color: var(--pz-tono-texto); }
+.cal-semana-lista__eventos { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.cal-semana-lista__eventos .cal-bloque { height: auto; }
+.cal-semana-lista__libre { margin: 0; color: var(--pz-gris); font-size: 13px; }
+/* La semana en números: barras por día que crecen desde abajo */
+.cal-barras { display: grid; flex: none; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; height: 150px; }
+.cal-barras__dia { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 0; padding: 0; border: 0; background: none; font-family: inherit; cursor: pointer; }
+.cal-barras__cifra { height: 16px; color: var(--pz-texto); font-size: 12px; font-weight: 800; }
+.cal-barras__pista { position: relative; display: block; flex: 1 1 auto; width: 100%; max-width: 26px; border-radius: 8px; background: var(--pz-fondo); }
+.cal-barras__barra { position: absolute; inset: auto 0 0; min-height: 0; border-radius: 8px; background: var(--pz-primario); transform-origin: bottom; animation: pz-crece-y 0.6s ease-out 0.2s backwards; }
+.cal-barras__dia--hoy .cal-barras__barra { background: #c9a24a; }
+.cal-barras__nombre { color: var(--pz-gris); font-size: 11.5px; font-weight: 700; }
+.cal-barras__dia--hoy .cal-barras__nombre { color: var(--pz-tono-texto); }
+.cal-uso { flex-direction: row !important; align-items: center; justify-content: space-between; }
+/* Día: línea de tiempo con las horas a la izquierda y la línea de «Ahora» */
+.cal-linea { padding-right: 4px; }
+.cal-linea__lienzo { position: relative; margin: 8px 0 12px; }
+.cal-linea__hora { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--pz-borde); color: var(--pz-gris); font-size: 11.5px; font-weight: 700; }
+.cal-linea__hora { display: block; line-height: 0; font-variant-numeric: tabular-nums; }
+.cal-linea__eventos { position: absolute; inset: 0 0 0 60px; margin: 0; padding: 0; list-style: none; }
+.cal-linea__eventos li { position: absolute; padding: 2px 0; box-sizing: border-box; animation: pz-entra 0.35s ease-out backwards; }
+.cal-linea__ahora { position: absolute; left: 52px; right: 0; z-index: 2; height: 0; border-top: 2px solid var(--pz-urgente); pointer-events: none; }
+.cal-linea__ahora::before { content: ""; position: absolute; left: -5px; top: -6px; width: 10px; height: 10px; border-radius: 50%; background: var(--pz-urgente); }
+.cal-linea__ahora span { position: absolute; right: 0; top: -10px; padding: 0 8px; border-radius: 999px; background: var(--pz-urgente); color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.cal-semana-lista__dia, .cal-barras__barra, .cal-linea__eventos li) { animation: none !important; }
+  :is(.cal-bloque, .cal-semana-lista__fecha):hover { transform: none; }
+}
+/* Salas del día */
+.cal-salas-dia { display: flex; flex: 1 1 auto; flex-direction: column; gap: 8px; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; scrollbar-width: thin; }
+.cal-salas-dia li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); animation: pz-entra 0.35s ease-out backwards; }
+.cal-salas-dia li:nth-child(2) { animation-delay: 40ms; }
+.cal-salas-dia li:nth-child(n + 3) { animation-delay: 80ms; }
+.cal-salas-dia--ocupada { background: #fff !important; }
+.cal-salas-dia__icono { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--pz-claro-2); color: var(--pz-primario); }
+.cal-salas-dia--ocupada .cal-salas-dia__icono { background: var(--pz-tono); color: var(--pz-tono-texto); }
+.cal-salas-dia__icono svg { width: 17px; height: 17px; }
+.cal-salas-dia strong { display: block; color: var(--pz-texto); font-size: 13.5px; }
+.cal-salas-dia small { display: block; color: var(--pz-gris); font-size: 12px; }
+/* Salas: filas que se eligen y el detalle a un lado */
+.cal-sala-fila { width: 100%; grid-template-columns: auto minmax(0, 1fr) auto; font-family: inherit; text-align: left; cursor: pointer; }
+.cal-sala-fila:hover { transform: translateY(-2px); }
+.cal-sala-fila--elegida, .cal-sala-fila--elegida:hover { border-color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); }
+.cal-sala-fila--apagada { opacity: 0.6; }
+.cal-sala-fila:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.cal-sala-detalle { overflow-y: auto; scrollbar-width: thin; animation: pz-entra 0.35s ease-out backwards; }
+.cal-sala-detalle .pz-datos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cal-sala-detalle__proximas { display: flex; flex-direction: column; gap: 6px; }
+.cal-sala-detalle__titulo { margin: 0; color: var(--pz-texto); font-size: 13.5px; font-weight: 800; }
+.cal-sala-detalle__proximas ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.cal-sala-detalle__proximas li { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px; border-radius: 12px; background: var(--pz-fondo); font-size: 13.5px; font-weight: 700; }
+.cal-sala-detalle__proximas small { color: var(--pz-gris); font-size: 12px; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.cal-barra, .cal-salas-dia li, .cal-sala-detalle, .ac-dia--elegido) { animation: none !important; }
+  :is(.ac-dia, .cal-sala-fila):hover { transform: none !important; }
+}
+
+/* Resultado de una acción (cuenta suspendida, permisos guardados) */
+.pz-resultado { max-width: 640px; margin: 8px auto 0; }
+.pz-resultado__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }
+
+/* Aviso en línea (lo que pasó al guardar, exportar…) */
+.pz-aviso { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid var(--pz-acento-suave); border-radius: 14px; background: var(--pz-claro); color: var(--pz-texto); font-size: 14px; animation: pz-entra 0.3s ease-out; }
+.pz-aviso strong { color: var(--pz-primario); }
+.pz-aviso--error { border-color: #e2b9c3; background: var(--pz-urgente-claro); }
+.pz-aviso--error strong { color: var(--pz-urgente); }
+.pz-aviso--espera { border-color: var(--pz-tono-borde); background: var(--pz-tono); }
+.pz-aviso--espera strong { color: var(--pz-tono-texto); }
+.pz-aviso p { margin: 0; }
+.pz-aviso > :last-child:not(:first-child) { margin-left: auto; }
+
+/* ---------- 2. Pantallas medianas, tableta y teléfono ---------- */
+@media (max-width: 1500px) {
+  .pz-fila--pendiente { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+  .pz-fila--pendiente .pz-chip { display: none; } /* el plazo y «Atender» bastan; el estado se ve al abrir */
+}
+@media (max-width: 1300px) {
+  .pz-indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pz-catalogo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pz-columnas--libre > .pz-lateral { position: static; }
+  .pz-columnas { grid-template-columns: minmax(0, 1fr); }
+  .pz-lateral { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
+  .pz-grupos, .pz-actividades { overflow: visible; }
+  .pz-accesos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .pz-pagina { gap: 20px; }
+  .pz-saludo { flex-direction: column; align-items: stretch; padding: 20px 16px; }
+  .pz-saludo h2 { font-size: 24px; line-height: 30px; }
+  .pz-cifra { flex: 1; min-width: 0; }
+  .pz-accesos { grid-template-columns: minmax(0, 1fr); }
+  .pz-tarjeta { padding: 16px; }
+  .pz-herramientas__campos, .pz-campo, .pz-campo :is(select, input) { width: 100%; }
+  .pz-fila { grid-template-columns: auto minmax(0, 1fr); }
+  .pz-fila .pz-vence { grid-column: 2; }
+  .pz-fila > :last-child { grid-column: 1 / -1; width: 100%; }
+}
+
+/* ---------- 3. Movimiento (AGENTS §3; Resumen y Administración) ----------
+   Entrada: los bloques suben y aparecen uno tras otro (0.4 s, 50 ms); dentro de las tarjetas, filas, fichas, cifras y
+   accesos también, escalonados (máximo 180 ms). Al pasar el mouse: botones 2 px, tarjetas clicables 4 px, una sola
+   animación por elemento. Al elegir: pulso corto. Insignias: aro que late una vez. Barras: crecen desde su base.
+   Todo se apaga con «reducir movimiento». */
+@keyframes pz-entra { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes pz-baja { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes pz-crece-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes pz-crece-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes pz-aro { 0% { box-shadow: 0 0 0 4px var(--pz-claro-2); } 50% { box-shadow: 0 0 0 12px transparent; } 100% { box-shadow: 0 0 0 4px var(--pz-claro-2); } }
+@keyframes pz-late { from { transform: scale(1); opacity: 0.6; } to { transform: scale(2.4); opacity: 0; } }
+
+/* Bloques de la página, uno tras otro */
+.pz-pagina > * { animation: pz-entra 0.4s ease-out backwards; }
+.pz-pagina > :nth-child(2) { animation-delay: 0.05s; }
+.pz-pagina > :nth-child(3) { animation-delay: 0.1s; }
+.pz-pagina > :nth-child(n + 4) { animation-delay: 0.15s; }
+/* Lateral y columnas: la segunda columna entra un poco después */
+.pz-columnas > :nth-child(2) { animation: pz-entra 0.4s ease-out 0.12s backwards; }
+.pz-lateral > :nth-child(2) { animation: pz-entra 0.4s ease-out 0.18s backwards; }
+.pz-principal > :nth-child(2) { animation: pz-entra 0.4s ease-out 0.1s backwards; }
+/* Cifras del encabezado y accesos rápidos, escalonados */
+.pz-saludo__cifras > *, .pz-indicadores > *, .pz-accesos > li, .pz-catalogo > li { animation: pz-entra 0.4s ease-out backwards; }
+.pz-saludo__cifras > :nth-child(1), .pz-indicadores > :nth-child(1), .pz-accesos > li:nth-child(1), .pz-catalogo > li:nth-child(1) { animation-delay: 0.08s; }
+.pz-saludo__cifras > :nth-child(2), .pz-indicadores > :nth-child(2), .pz-accesos > li:nth-child(2), .pz-catalogo > li:nth-child(2) { animation-delay: 0.12s; }
+.pz-saludo__cifras > :nth-child(3), .pz-indicadores > :nth-child(3), .pz-accesos > li:nth-child(3), .pz-catalogo > li:nth-child(3) { animation-delay: 0.16s; }
+.pz-saludo__cifras > :nth-child(n + 4), .pz-indicadores > :nth-child(n + 4), .pz-accesos > li:nth-child(n + 4), .pz-catalogo > li:nth-child(n + 4) { animation-delay: 0.18s; }
+/* Filas de las listas y de las tarjetas laterales */
+.pz-filas li, .pz-actividades li, .pz-ranking li, .pz-reglas-act > *, .pz-apartados > *, .pz-datos > *, .pz-modulos > div, .pz-opciones > *, .pz-acciones > * { animation: pz-entra 0.35s ease-out backwards; }
+:is(.pz-filas, .pz-actividades, .pz-ranking, .pz-reglas-act, .pz-apartados, .pz-datos, .pz-modulos, .pz-opciones, .pz-acciones) > :nth-child(2) { animation-delay: 40ms; }
+:is(.pz-filas, .pz-actividades, .pz-ranking, .pz-reglas-act, .pz-apartados, .pz-datos, .pz-modulos, .pz-opciones, .pz-acciones) > :nth-child(3) { animation-delay: 80ms; }
+:is(.pz-filas, .pz-actividades, .pz-ranking, .pz-reglas-act, .pz-apartados, .pz-datos, .pz-modulos, .pz-opciones, .pz-acciones) > :nth-child(4) { animation-delay: 120ms; }
+:is(.pz-filas, .pz-actividades, .pz-ranking, .pz-reglas-act, .pz-apartados, .pz-datos, .pz-modulos, .pz-opciones, .pz-acciones) > :nth-child(n + 5) { animation-delay: 160ms; }
+/* Avisos y lo que aparece en el lugar: baja 8 px */
+.pz-aviso, .pz-regla__error, .pz-acciones__nota[role="alert"] { animation: pz-baja 0.3s ease-out backwards; }
+/* Insignias de los vacíos: el aro late una vez */
+.pz-vacio__insignia { animation: pz-aro 0.9s ease-out 0.2s 1; }
+/* Barras: crecen desde su base (ranking, gráfica) */
+.pz-ranking__barra span { transform-origin: left center; animation: pz-crece-x 0.7s ease-out 0.2s backwards; }
+.ad-grafica__barra { transform-origin: bottom center; animation: pz-crece-y 0.6s ease-out backwards; }
+.ad-grafica__columna:nth-child(2) .ad-grafica__barra { animation-delay: 60ms; }
+.ad-grafica__columna:nth-child(3) .ad-grafica__barra { animation-delay: 120ms; }
+.ad-grafica__columna:nth-child(4) .ad-grafica__barra { animation-delay: 180ms; }
+.ad-grafica__columna:nth-child(n + 5) .ad-grafica__barra { animation-delay: 240ms; }
+/* Al elegir: pulso corto (filtros, cifras, casillas, pastillas) */
+.pz-opcion--activa, .pz-cifra--activa, .pz-casilla--elegida, .pz-ranking__boton--activo, .pz-fila--elegida { animation: pz-pulso 0.25s ease-out; }
+/* Una cifra del encabezado ya entró con «pz-entra»: al elegirla o dejarla, esa animación conserva su nombre (va primero)
+   para que no se repita la entrada; solo se suma el pulso (22 nov 2026: al cambiar de vista en el Calendario se repetía) */
+.pz-saludo__cifras > .pz-cifra--activa, .pz-indicadores > .pz-cifra--activa { animation: pz-entra 0.4s ease-out backwards, pz-pulso 0.25s ease-out; }
+/* Elementos vivos: el punto de los chips «En curso» y «Asistencia abierta» late */
+.pz-chip--dorado .pz-chip__punto, .pz-chip--verde .pz-chip__punto { position: relative; }
+.pz-actividades .pz-chip--dorado .pz-chip__punto::after, .pz-actividades .pz-chip--verde .pz-chip__punto::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; background: inherit; animation: pz-late 1.8s ease-out infinite;
+}
+/* Al pasar el mouse: tarjetas clicables suben 4 px; filas, 2 px (una sola animación) */
+.pz-fila { transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.pz-filas .pz-fila:hover { transform: translateY(-2px); }
+.pz-datos > .pz-dato { transition: background-color 0.2s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pz-pagina *, .pz-pagina *::before, .pz-pagina *::after, .pz-filtros-av__panel, .pz-filtros-av__panel * { animation: none !important; transition: none !important; }
+  .pz-pagina :is(.pz-acceso, .pz-cifra, .pz-boton, .pz-fila, .pz-ficha, .pz-casilla, .pz-pastilla, .pz-ranking__boton):hover { transform: none; }
+}
+
+/* ---------- Ajustes del 22 nov 2026 (T3, pedidos por Aldahir) ---------- */
+/* Fichas y formularios: las tarjetas del lateral no se encogen (con overflow: hidden se recortaban sus botones del pie);
+   si no caben, el lateral se desplaza por dentro. */
+.pz-columnas--libre > .pz-lateral > * { flex-shrink: 0; }
+/* Pie de las tablas: sin el texto «N de M …» a la vista (Aldahir); se queda para lectores de pantalla (aria-live)
+   y la paginación pasa a la derecha. Si el pie solo tenía ese texto, ya no deja línea ni espacio. */
+:is(.pz-tarjeta__pie, .contenidos-lista__pie) > p:not(.ac-solo-desarrollo) {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+:is(.pz-tarjeta__pie, .contenidos-lista__pie) { justify-content: flex-end; }
+:is(.pz-tarjeta__pie, .contenidos-lista__pie):not(:has(> :not(p:not(.ac-solo-desarrollo)))) { padding: 0; border: 0; margin: 0; min-height: 0; }
+/* Vacío dentro de una tarjeta del lateral (p. ej. «Sin citas próximas»): ocupa el alto libre y queda centrado */
+.pz-tarjeta--actividades > .pz-vacio { flex: 1 1 auto; justify-content: center; }
+/* Esqueletos de carga con la paleta del panel (T3, 22 nov 2026): los bloques venían del portal en crema y verde.
+   Dentro del panel van en azul claro y con el borde de la paleta; el brillo no cambia. */
+.panel--paleta .esqueleto__bloque, .panel--paleta .ac-cifra-cargando { background: var(--adm-celeste-100); }
+.panel--paleta :is(.esqueleto-lista__fila, .esqueleto-detalle__principal, .esqueleto-detalle__lateral, .estado-panel__esqueleto) { border-color: var(--adm-borde); }
+.panel--paleta :is(.esqueleto-panel__tarjeta, .esqueleto-panel__tabla) { background: var(--adm-celeste-100); }
+/* Apartados que son enlaces (Mi cuenta): sin subrayado, igual que los botones de Configuración */
+a.pz-apartado, a.pz-apartado:hover { color: inherit; text-decoration: none; }
+/* Etiqueta que es enlace (Mi cuenta › Lo que puedes hacer): lleva a esa pantalla; al pasar el mouse, se rellena del color principal */
+a.pz-etiqueta--enlace { color: inherit; text-decoration: none; transition: border-color 0.2s ease, background-color 0.2s ease; }
+a.pz-etiqueta--enlace:hover { background: var(--pz-primario); color: #fff; }
+
+/* ---------- Segunda vuelta del 22 nov 2026 (Aldahir, perfil de responsable) ---------- */
+/* Visitas › La próxima visita: bloque de fecha, grupo y folio, chip; datos en un renglón de tres columnas */
+.vis-proxima { display: flex; flex-direction: column; gap: 12px; }
+.vis-proxima__cabeza { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.vis-proxima__textos { min-width: 0; }
+.vis-proxima__grupo { overflow: hidden; margin: 0; color: var(--pz-texto); font-size: 15px; font-weight: 800; line-height: 20px; text-overflow: ellipsis; white-space: nowrap; }
+.vis-proxima__folio { margin: 2px 0 0; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.vis-proxima__cabeza > .pz-chip { width: auto; }
+.vis-proxima__datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; }
+.vis-proxima__datos > div { min-width: 0; padding: 8px 10px; border-radius: 12px; background: var(--pz-fondo); }
+.vis-proxima__datos dt { display: flex; align-items: center; gap: 4px; color: var(--pz-gris); font-size: 11.5px; font-weight: 700; }
+.vis-proxima__datos dt svg { width: 13px; height: 13px; }
+.vis-proxima__datos dd { overflow: hidden; margin: 2px 0 0; color: var(--pz-texto); font-size: 14px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.vis-proxima__boton { align-self: stretch; justify-content: center; }
+/* Los próximos 7 días: día, número y, si hay visitas, su cantidad en un círculo */
+.vis-semana__dia { gap: 3px; padding: 8px 2px; }
+.vis-semana__dia small { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; font-size: 11px; line-height: 1; }
+.vis-semana__dia--ocupado small { background: var(--pz-primario); color: #fff; }
+
+/* Resumen › Actividades de hoy, simple (Aldahir, 22 nov: «es un resumen»): un renglón por actividad con la hora,
+   un punto del color de su estado y el nombre; la que está ahora se resalta, las que pasaron se apagan.
+   El detalle (sala, cupo, pasar lista) está en el Calendario y en Asistencia. */
+.pz-hoy-simple { display: flex; flex: 1 1 auto; flex-direction: column; gap: 2px; min-height: 0; margin: 0; padding: 8px 0 0; overflow-y: auto; list-style: none; scrollbar-width: thin; }
+.pz-hoy-simple__item { display: grid; grid-template-columns: 44px 8px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 12px; animation: pz-entra 0.35s ease-out backwards; }
+.pz-hoy-simple__item + .pz-hoy-simple__item { border-top: 1px solid var(--pz-borde); border-radius: 0; }
+.pz-hoy-simple__hora { color: var(--pz-gris); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pz-hoy-simple__punto { width: 8px; height: 8px; border-radius: 999px; background: var(--pz-borde); }
+.pz-hoy-simple__punto--verde { background: var(--pz-primario); }
+.pz-hoy-simple__punto--dorado { background: #c9a24a; }
+.pz-hoy-simple__punto--guinda { background: var(--pz-urgente); }
+.pz-hoy-simple__titulo { overflow: hidden; color: var(--pz-texto); font-size: 14px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.pz-hoy-simple__marca { padding: 2px 9px; border-radius: 999px; background: var(--pz-primario); color: #fff; font-size: 11.5px; font-weight: 800; }
+.pz-hoy-simple__estado { color: var(--pz-urgente); font-size: 12px; font-weight: 700; }
+.pz-hoy-simple__item--ahora { border: 0 !important; border-radius: 12px !important; background: var(--pz-claro-2); }
+.pz-hoy-simple__item--ahora .pz-hoy-simple__hora { color: var(--pz-primario); }
+.pz-hoy-simple__item--pasada { opacity: 0.55; }
+.pz-hoy-simple__item--cancelada .pz-hoy-simple__titulo { color: var(--pz-gris); text-decoration: line-through; }
+@media (prefers-reduced-motion: reduce) { .pz-hoy-simple__item { animation: none; } }
+/* Mi cuenta › Lo que puedes hacer en el panel: un renglón por módulo, todos del mismo ancho;
+   a la izquierda el módulo con su avance y a la derecha sus pantallas como enlaces */
+.pz-puede { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pz-puede__modulo { display: grid; grid-template-columns: 230px minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 14px; border: 1px solid var(--pz-borde); border-radius: 16px; background: var(--pz-fondo); animation: pz-entra 0.35s ease-out backwards; }
+.pz-puede__cabeza { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pz-puede__icono { display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 999px; background: var(--pz-claro); color: var(--pz-primario); }
+.pz-puede__icono svg { width: 18px; height: 18px; }
+.pz-puede__textos { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; }
+.pz-puede__nombre { margin: 0; color: var(--pz-texto); font-size: 14.5px; font-weight: 800; }
+.pz-puede__cuenta { margin: 0; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.pz-puede__enlaces { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 16px; border-left: 1px solid var(--pz-borde); }
+.pz-puede__modulo:nth-child(2) { animation-delay: 40ms; } .pz-puede__modulo:nth-child(3) { animation-delay: 80ms; } .pz-puede__modulo:nth-child(n + 4) { animation-delay: 120ms; }
+@media (prefers-reduced-motion: reduce) { .pz-puede__modulo { animation: none; } }
+/* Lateral de las listas: solo la tarjeta que tiene lista propia (`pz-tarjeta--actividades`) se encoge y se desplaza por dentro;
+   las demás (próxima visita, Solo en desarrollo, plegables) conservan su alto y nada queda cortado */
+.pz-columnas > .pz-lateral { overflow-y: auto; scrollbar-width: thin; }
+.pz-columnas > .pz-lateral > :not(.pz-tarjeta--actividades) { flex-shrink: 0; }
+.pz-columnas > .pz-lateral > .pz-tarjeta--actividades { min-height: 220px; }
+/* Cambios › Solo en desarrollo: tarjeta compacta con borde punteado, título chico y los dos botones en una fila */
+.ac-desarrollo { gap: 10px; padding: 14px 16px; border-style: dashed; background: var(--pz-fondo); }
+.ac-desarrollo::before { display: none; }
+.ac-desarrollo__cabecera { display: flex; align-items: flex-start; gap: 10px; }
+.ac-desarrollo__insignia { display: grid; flex: none; place-items: center; width: 30px; height: 30px; border-radius: 999px; background: var(--pz-tono); color: var(--pz-tono-texto); }
+.ac-desarrollo__insignia svg { width: 16px; height: 16px; }
+.ac-desarrollo h3 { margin: 0; color: var(--pz-texto); font-size: 14px; font-weight: 800; }
+.ac-desarrollo p { margin: 2px 0 0; color: var(--pz-gris); font-size: 12.5px; line-height: 17px; }
+.ac-desarrollo .pz-acciones--fila { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ac-desarrollo .pz-acciones--fila .pz-boton { justify-content: center; min-width: 0; padding-inline: 8px; white-space: nowrap; font-size: 12.5px; }
+/* Cambios › detalle: antes y después lado a lado; en «después» lo que cambia va en verde; la cancelación en guinda */
+.cb-comparar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 12px; }
+.cb-lado { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 1px solid var(--pz-borde); border-radius: 16px; background: var(--pz-fondo); animation: pz-entra 0.35s ease-out backwards; }
+.cb-lado--despues { border-color: var(--pz-primario); background: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); animation-delay: 80ms; }
+.cb-lado--cancelada { border-color: var(--pz-urgente); background: var(--pz-urgente-claro); animation-delay: 80ms; }
+.cb-lado__titulo { margin: 0; color: var(--pz-gris); font-size: 12.5px; font-weight: 800; }
+.cb-lado__datos { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+.cb-lado__datos > div { display: grid; grid-template-columns: 80px minmax(0, 1fr); align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; }
+.cb-lado__datos dt { display: flex; align-items: center; gap: 6px; color: var(--pz-gris); font-size: 12.5px; font-weight: 700; }
+.cb-lado__datos dt svg { width: 14px; height: 14px; }
+.cb-lado__datos dd { margin: 0; color: var(--pz-texto); font-size: 14px; font-weight: 800; }
+.cb-lado--antes .cb-lado__datos dd { color: var(--pz-gris); }
+.cb-cambia { background: var(--pz-claro-2); }
+.cb-cambia dd { color: var(--pz-primario) !important; }
+.cb-comparar__paso { align-self: center; padding: 4px 10px; border-radius: 999px; background: var(--pz-tono); color: var(--pz-tono-texto); font-size: 12px; font-weight: 800; }
+.cb-lado__cancelada { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--pz-urgente); font-size: 18px; font-weight: 800; }
+.cb-lado__cancelada svg { width: 20px; height: 20px; }
+.cb-lado__nota { margin: 0; color: var(--pz-texto); font-size: 13px; }
+.cb-error { margin: 0; color: var(--pz-urgente); font-size: 12.5px; font-weight: 700; }
+.cb-ver-historial { align-self: stretch; justify-content: center; margin-top: 10px; }
+.pz-decision textarea { width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid #b9c4cd; border-radius: 12px; background: #fff; color: var(--pz-texto); font-family: inherit; font-size: 14px; resize: vertical; }
+.pz-decision textarea:focus { border-color: var(--pz-primario); outline: none; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+@media (prefers-reduced-motion: reduce) { .cb-lado { animation: none; } }
+/* Inscripciones › bandeja: columnas fijas (fecha, actividad en dos renglones, cupo, estado, acción); toda fila lleva su
+   chip (Abierta o Cerrada al registro, Realizada, Cancelada), así las filas quedan simétricas */
+.ins-fila { grid-template-columns: 52px minmax(0, 1fr) 112px 108px 112px; }
+.ins-fila .ins-cupo { min-width: 0; }
+.ins-fila > .pz-chip { width: 108px; }
+.ins-fila > .pz-boton, .ins-fila > a.pz-boton { width: 112px; min-width: 0; }
+.ins-fila .pz-fila__titulo { display: -webkit-box; overflow: hidden; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ins-fila .pz-fila__detalle span:first-child { display: inline-block; }
+.ins-fila .pz-fila__detalle span:first-child::first-letter { text-transform: uppercase; }
+/* Se están llenando: tarjeta que se abre, con el título, el porcentaje en pastilla, la fecha y la barra con lugares */
+.ins-llenas li { padding: 0; border: 0; background: none; }
+.ins-llena { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); color: inherit; text-decoration: none; transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.ins-llena:hover { border-color: var(--pz-primario); background: #fff; box-shadow: 0 6px 14px rgba(34, 50, 63, 0.08); transform: translateY(-2px); }
+.ins-llena__cabeza { display: flex; align-items: center; gap: 8px; }
+.ins-llena__titulo { flex: 1; overflow: hidden; color: var(--pz-texto); font-size: 14px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.ins-llena__pct { flex: none; padding: 2px 8px; border-radius: 999px; background: var(--pz-claro-2); color: var(--pz-primario); font-size: 12px; font-weight: 800; }
+.ins-llena__pct--dorado { background: var(--pz-tono); color: var(--pz-tono-texto); }
+.ins-llena__pct--guinda { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.ins-llena__fecha { display: block; color: var(--pz-gris); font-size: 12px; }
+.ins-llena__fecha::first-letter { text-transform: uppercase; }
+.ins-llena .pz-ocupacion { margin: 0; background: #fff; }
+.ins-llena__pie { display: flex; justify-content: space-between; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.ins-llena__pie strong { color: var(--pz-texto); }
+@media (prefers-reduced-motion: reduce) { .ins-llena, .ins-llena:hover { transition: none; transform: none; } }
+/* Asistencia: la actividad cancelada no tiene lista; su lugar mide lo mismo que el botón para que la fila no se descuadre */
+.pz-fila > .as-sin-lista { justify-self: end; width: 108px; color: var(--pz-gris); font-size: 12.5px; font-weight: 700; text-align: center; }
+/* Pasar lista: columnas fijas (número, persona, marca, corregir) */
+.as-fila { grid-template-columns: 40px minmax(0, 1fr) 200px 108px; }
+.as-fila > .pz-chip { justify-self: center; }
+/* Evidencias › lateral: tres mosaicos por tipo (ícono, número y nombre) que filtran la lista, y quién puede verlas */
+.ev-tipos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ev-tipo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); color: var(--pz-gris); font: inherit; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease; }
+.ev-tipo:hover { border-color: var(--pz-primario); background: #fff; transform: translateY(-2px); }
+.ev-tipo__icono { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; background: var(--pz-claro); color: var(--pz-primario); }
+.ev-tipo__icono svg { width: 17px; height: 17px; }
+.ev-tipo strong { color: var(--pz-texto); font-size: 20px; line-height: 1; }
+.ev-tipo > span:last-child { font-size: 12px; font-weight: 700; text-align: center; }
+.ev-tipo--activo { border-color: var(--pz-primario); background: var(--pz-primario); color: #fff; animation: pz-pulso 0.25s ease-out; }
+.ev-tipo--activo strong { color: #fff; }
+.ev-tipo--activo .ev-tipo__icono { background: rgba(255, 255, 255, 0.18); color: #fff; }
+.ev-accesos { display: flex; flex-direction: column; gap: 6px; margin: 0 0 10px; padding: 0; list-style: none; }
+.ev-acceso { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 12px; background: var(--pz-fondo); color: var(--pz-texto); font: inherit; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; transition: border-color 0.2s ease, transform 0.2s ease; }
+.ev-acceso:hover { border-color: var(--pz-primario); transform: translateY(-2px); }
+.ev-acceso strong { display: grid; place-items: center; min-width: 26px; height: 26px; border-radius: 999px; background: var(--pz-claro-2); color: var(--pz-primario); font-size: 13px; }
+.ev-acceso--activo { border-color: var(--pz-primario); background: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+@media (prefers-reduced-motion: reduce) { .ev-tipo, .ev-tipo:hover, .ev-acceso, .ev-acceso:hover { transition: none; transform: none; animation: none; } }
+/* Progreso y recompensas: columnas fijas en todas sus vistas (ícono o avatar, texto, avance, estado, acción) */
+.pr-fila { grid-template-columns: 40px minmax(0, 1fr) 104px 120px 96px; }
+.pr-fila--meta { grid-template-columns: 40px minmax(0, 1fr) 120px 96px; }
+.pr-fila--entrega { grid-template-columns: 52px minmax(0, 1fr) 120px; }
+.pr-fila .ins-cupo { min-width: 0; }
+.pr-fila > .pz-chip { width: 120px; }
+.pr-fila > .pz-boton, .pr-fila > a.pz-boton { width: 96px; }
+/* Por entregar: una tarjeta por persona (avatar, nombre, folio y credencial), su recompensa y su meta en fichas, y el botón */
+.pr-entregar { display: flex; flex: 1 1 auto; flex-direction: column; gap: 10px; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; scrollbar-width: thin; }
+.pr-entregar__item { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--pz-borde); border-radius: 16px; background: var(--pz-fondo); animation: pz-entra 0.35s ease-out backwards; }
+.pr-entregar__persona { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pr-entregar__textos { min-width: 0; }
+.pr-entregar__nombre { overflow: hidden; margin: 0; color: var(--pz-texto); font-size: 14.5px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.pr-entregar__folio { margin: 1px 0 0; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.pr-entregar__datos { display: grid; gap: 6px; margin: 0; }
+.pr-entregar__datos > div { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: #fff; }
+.pr-entregar__datos dt { display: flex; align-items: center; gap: 6px; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.pr-entregar__datos dt svg { width: 14px; height: 14px; }
+.pr-entregar__datos dd { overflow: hidden; margin: 0; color: var(--pz-texto); font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.pr-entregar__boton { justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .pr-entregar__item { animation: none; } }
+/* Barra de vistas + buscador: el buscador toma todo lo que queda de la fila (si baja de renglón, ocupa todo el ancho) */
+.cal-barra__fila .pz-buscador { flex: 1 1 360px; min-width: 0; }
+.cal-barra__fila > .pz-segmentado { flex: none; }
+/* Detalle de Atención (lateral pegajoso con alto máximo): sus tarjetas no se encogen, el lateral se desplaza por dentro */
+.tr-lateral > * { flex-shrink: 0; }
+/* Solicitudes de espacios: fila compacta (fecha de uso | nombre y tipo, datos con ícono, espera | estado | acción) */
+.ba-compacta { grid-template-columns: 52px minmax(0, 1fr) 124px 108px; }
+.ba-compacta__cabeza { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; }
+.ba-compacta__cabeza .pz-fila__titulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ba-compacta__tipo { flex: none; padding: 1px 8px; border-radius: 999px; background: var(--pz-claro); color: var(--pz-primario); font-size: 11.5px; font-weight: 700; }
+.ba-compacta__datos { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 3px 0 0; padding: 0; list-style: none; color: var(--pz-gris); font-size: 12.5px; }
+.ba-compacta__datos li { display: inline-flex; align-items: center; gap: 4px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ba-compacta__datos svg { flex: none; width: 13px; height: 13px; }
+.ba-compacta__espera { margin: 4px 0 0; color: var(--pz-tono-texto); font-size: 12px; font-weight: 700; }
+.ba-compacta__espera--larga { color: var(--pz-urgente); }
+.ba-compacta > .pz-chip { width: 124px; }
+/* Atención › Llevan más tiempo esperando: tarjeta que se abre con inicial, nombre, folio y los días en espera */
+.at-espera { display: flex; flex: 1 1 auto; flex-direction: column; gap: 8px; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; scrollbar-width: thin; }
+.at-espera > li { animation: pz-entra 0.35s ease-out backwards; }
+.at-espera > li:nth-child(2) { animation-delay: 40ms; } .at-espera > li:nth-child(3) { animation-delay: 80ms; } .at-espera > li:nth-child(n + 4) { animation-delay: 120ms; }
+.at-espera__item { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); color: inherit; text-decoration: none; transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.at-espera__item:hover { border-color: var(--pz-primario); background: #fff; box-shadow: 0 6px 14px rgba(34, 50, 63, 0.08); transform: translateY(-2px); }
+.at-espera__inicial { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--pz-claro); color: var(--pz-primario); font-size: 15px; font-weight: 800; }
+.at-espera__textos { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.at-espera__titulo { overflow: hidden; color: var(--pz-texto); font-size: 14px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.at-espera__detalle { overflow: hidden; color: var(--pz-gris); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.at-espera__dias { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 46px; height: 42px; padding: 0 6px; border-radius: 12px; background: var(--pz-tono); color: var(--pz-tono-texto); line-height: 1; }
+.at-espera__dias strong { font-size: 16px; }
+.at-espera__dias small { margin-top: 2px; font-size: 10.5px; font-weight: 700; }
+.at-espera__dias--larga { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+@media (prefers-reduced-motion: reduce) { .at-espera > li, .at-espera__item, .at-espera__item:hover { animation: none; transition: none; transform: none; } }

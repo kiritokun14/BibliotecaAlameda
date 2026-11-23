@@ -3,7 +3,11 @@ import { lazy, Suspense } from "react";
 import { EsqueletoPagina } from "./components/portal/Esqueleto";
 const RetornoAuth = lazy(() => import("./pages/acceso/RetornoAuth"));
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+// Inicio va en el paquete principal: se probó descargarlo aparte (21 nov 2026) y la portada pintaba 1 s más tarde.
 import Inicio from "./pages/publico/inicio/Inicio.tsx";
+// En el panel la comprobación de permisos necesita la librería de sesión: se pide desde el arranque, en paralelo
+// con el código de la pantalla, en lugar de esperar a que llegue AccesoPanel.
+if (window.location.pathname.startsWith("/admin")) void import("./servicios/api").then((m) => m.obtenerSupabase()).catch(() => undefined);
 const Login = lazy(() => import("./pages/acceso/Login.tsx"));
 const CuentaDeshabilitada = lazy(() => import("./pages/acceso/CuentaDeshabilitada.tsx"));
 const SesionIniciada = lazy(() => import("./pages/acceso/SesionIniciada.tsx"));
@@ -20,11 +24,11 @@ const RecuperacionAsistida = lazy(() => import("./pages/acceso/recuperar/Recuper
 
 const AltaAsistida = lazy(() => import("./pages/personal/AltaAsistida"));
 
-const ModeracionForo = lazy(() => import("./pages/admin/participantes/ModeracionForo.tsx"));
 const AvisosManuales = lazy(() => import("./pages/admin/atencion/AvisosManuales.tsx"));
 const Tramites = lazy(() => import("./pages/publico/tramites/Tramites.tsx"));
-const Credenciales = lazy(() => import("./pages/admin/atencion/AtencionTramites.tsx"));
-const DetalleCredencial = lazy(() => import("./pages/admin/atencion/AtencionTramites.tsx"));
+// Solicitudes de credencial rehechas con las piezas del panel (perfil de Préstamos, 22 nov 2026); Propuestas sigue en AtencionTramites
+const Credenciales = lazy(() => import("./pages/admin/atencion/credenciales/SolicitudesCredencial.tsx"));
+const DetalleCredencial = lazy(() => import("./pages/admin/atencion/credenciales/SolicitudesCredencial.tsx").then(m => ({ default: m.DetalleCredencial })));
 const Espacios = lazy(() => import("./pages/admin/atencion/espacios/Espacios.tsx"));
 const DetalleEspacio = lazy(() => import("./pages/admin/atencion/espacios/DetalleEspacio.tsx"));
 const Propuestas = lazy(() => import("./pages/admin/atencion/AtencionTramites.tsx"));
@@ -90,6 +94,8 @@ const DetalleResena = lazy(() => import("./pages/publico/lecturas/DetalleResena.
 const DetalleMemoria = lazy(() => import("./pages/publico/lecturas/DetalleMemoria.tsx"));
 const Resumen = lazy(() => import("./pages/admin/resumen/Resumen.tsx"));
 const Notificaciones = lazy(() => import("./pages/admin/notificaciones/Notificaciones.tsx"));
+// Mi cuenta del personal dentro del panel (T3, 22 nov 2026); el portal conserva su propio /mi-perfil
+const PerfilPanel = lazy(() => import("./pages/admin/perfil/PerfilPanel.tsx"));
 const BandejaRevision = lazy(() => import("./pages/admin/revision/Revision.tsx").then(m => ({ default: m.BandejaRevision })));
 const RevisarContenido = lazy(() => import("./pages/admin/revision/Revision.tsx"));
 const PedirCambios = lazy(() => import("./pages/admin/revision/Revision.tsx"));
@@ -199,7 +205,8 @@ function App() {
         <Route path="/recuperar/enlace-vencido" element={<EnlaceVencido />} />
         <Route path="/recuperar/asistida" element={<RecuperacionAsistida />} />
 
-        <Route path="/admin/participantes/foro" element={<AccesoPanel><ModeracionForo /></AccesoPanel>} />
+        {/* Bibliocomunidad se eliminó (Aldahir, 22 nov 2026): sus direcciones llevan al Resumen */}
+        <Route path="/admin/participantes/foro" element={<Navigate to="/admin/resumen" replace />} />
         <Route path="/admin/atencion/avisos" element={<AccesoPanel><AvisosManuales /></AccesoPanel>} />
         {/* Panel del personal: bandejas de atención. */}
         <Route path="/admin" element={<AccesoPanel><Navigate to="/admin/atencion/credenciales" replace /></AccesoPanel>} />
@@ -235,7 +242,8 @@ function App() {
         <Route path="/admin/atencion/avisos/demostracion/:folio/retirado" element={<AccesoPanel><ResultadoAviso tipo="retirado" /></AccesoPanel>} />
         <Route path="/admin/atencion/avisos/demostracion/:folio/borrador" element={<AccesoPanel><ResultadoAviso tipo="borrador" /></AccesoPanel>} />
 
-        <Route path="/admin/atencion/bibliocomunidad" element={<AccesoPanel><AtencionComunidad key="bibliocomunidad" bibliocomunidad /></AccesoPanel>} />
+        <Route path="/admin/atencion/bibliocomunidad" element={<Navigate to="/admin/resumen" replace />} />
+        <Route path="/admin/atencion/altas-asistidas" element={<AccesoPanel><AltaAsistida /></AccesoPanel>} />
         <Route path="/admin/atencion/contactos" element={<AccesoPanel><AtencionComunidad key="contactos" /></AccesoPanel>} />
         <Route path="/admin/administracion/fuentes" element={<AccesoPanel><FuentesAsistente /></AccesoPanel>} />
         {/* Administración: Cuentas y permisos, Estadísticas, Bitácora y Configuración */}
@@ -312,6 +320,10 @@ function App() {
         <Route path="/lecturas/:id" element={<DetalleResena />} />
         <Route path="/admin/resumen" element={<AccesoPanel><Resumen /></AccesoPanel>} />
         <Route path="/admin/notificaciones" element={<AccesoPanel><Notificaciones /></AccesoPanel>} />
+        <Route path="/admin/perfil" element={<AccesoPanel><PerfilPanel key="resumen" seccion="resumen" /></AccesoPanel>} />
+        <Route path="/admin/perfil/datos" element={<AccesoPanel><PerfilPanel key="datos" seccion="datos" /></AccesoPanel>} />
+        <Route path="/admin/perfil/avisos" element={<AccesoPanel><PerfilPanel key="avisos" seccion="avisos" /></AccesoPanel>} />
+        <Route path="/admin/perfil/seguridad" element={<AccesoPanel><PerfilPanel key="seguridad" seccion="seguridad" /></AccesoPanel>} />
         <Route path="/admin/contenidos/demostracion" element={<Navigate to="/admin/contenidos/editor" replace />} />
         <Route path="/admin/contenidos/demostracion/nuevo" element={<Navigate to="/admin/contenidos/editor" replace />} />
         <Route path="/admin/contenidos/demostracion/:folio" element={<Navigate to="/admin/contenidos/editor" replace />} />

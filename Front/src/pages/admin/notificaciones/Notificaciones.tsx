@@ -1,115 +1,121 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+// Admin · Notificaciones (Figma 632:58443), rehecha con las piezas del panel (22 nov 2026, T3): plantilla «Lista» de
+// Administración (cifras que filtran, lista con buscador y «Filtros» | lateral del mismo alto) y solo con lo que la
+// cuenta puede atender. Los datos siguen siendo de ejemplo (TODO backend en datos.ts); la campana usa el mismo almacén.
+import { useContext, useId, useState } from "react";
+import { Link, useNavigate } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { Ventana } from "../Ventana";
-import "./Notificaciones.css";
-import { capacidadPanel } from "../../../servicios/accesoPanel";
-import { AREAS_NOTIFICACION, filtrarNotificaciones, useNotificaciones, type FiltroNotificacion, type Notificacion } from "./datos";
-import iconoReloj from "../../../assets/comun/iconos/reloj-blanco.svg";
-import { EncabezadoPagina, EstadoVacio, Migas } from "../componentes";
-import { IconoBuscar } from "../contenidos/piezas";
-import vacioCheck from "../../../assets/admin/vacio-check.svg";
-import vacioBuscar from "../../../assets/admin/vacio-search.svg";
+import { Migas } from "../componentes";
+import { Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, Tarjeta, Vacio, type NombreIcono } from "../piezasPanel";
+import { ContextoPanel, capacidadPanel } from "../../../servicios/accesoPanel";
+import { AREAS_NOTIFICACION, filtrarNotificaciones, useNotificaciones, type AreaNotificacion, type Notificacion } from "./datos";
 import iconoAlerta from "../../../assets/admin/modal-alert.svg";
 
-// Admin · Notificaciones (Figma 632:58443): lista, todas leídas, confirmar eliminar leídas y vacío.
+const ICONO_AREA: Record<AreaNotificacion, NombreIcono> = { contenidos: "contenido", actividades: "calendario", atencion: "mensajes", participantes: "inscripciones" };
+const NOMBRE_AREA = Object.fromEntries(AREAS_NOTIFICACION.map((a) => [a.id, a.nombre])) as Record<AreaNotificacion, string>;
+
 export default function Notificaciones() {
-    const { lista, pendientes, leer, leerTodas, eliminarLeidas } = useNotificaciones();
-    const [filtro, setFiltro] = useState<FiltroNotificacion>("todas");
+    const id = useId();
+    const identidad = useContext(ContextoPanel);
+    const { lista, pendientes, leer, leerTodas, eliminarLeidas } = useNotificaciones(identidad?.acceso);
+    const [estado, setEstado] = useState<"todas" | "sin-leer">("todas");
+    const [area, setArea] = useState<AreaNotificacion | "todas">("todas");
     const [texto, setTexto] = useState("");
     const [confirmando, setConfirmando] = useState(false);
     const navegar = useNavigate();
-    const visibles = filtrarNotificaciones(lista, filtro, texto);
+
+    // Solo las áreas que la cuenta atiende (las de sus notificaciones)
+    const areas = AREAS_NOTIFICACION.filter((a) => lista.some((n) => n.area === a.id));
+    const cumpleEstado = (n: Notificacion) => estado === "todas" || !n.leida;
+    const cumpleArea = (n: Notificacion) => area === "todas" || n.area === area;
+    const visibles = filtrarNotificaciones(lista, "todas", texto).filter((n) => cumpleEstado(n) && cumpleArea(n));
     const leidas = lista.length - pendientes;
+    const activos = (estado !== "todas" ? 1 : 0) + (area !== "todas" ? 1 : 0);
+    const quitarFiltros = () => { setEstado("todas"); setArea("todas"); };
 
     // Abrir una notificación la marca como leída y lleva a donde se atiende (si esa pantalla ya existe)
-    function abrir(notificacion: Notificacion) {
-        leer(notificacion.id);
-        if (capacidadPanel(notificacion.ruta)) navegar(notificacion.ruta);
+    function abrir(n: Notificacion) {
+        leer(n.id);
+        if (capacidadPanel(n.ruta)) navegar(n.ruta);
     }
 
-    const filtros: { id: FiltroNotificacion; texto: string }[] = [
-        { id: "todas", texto: `Todas (${lista.length})` },
-        { id: "sin-leer", texto: `Sin leer (${pendientes})` },
-        ...AREAS_NOTIFICACION.map((a) => ({ id: a.id as FiltroNotificacion, texto: a.nombre })),
-    ];
-
     return (
-        <PanelLayout titulo="Notificaciones" tema="contenidos">
-            <div className="notif">
+        <PanelLayout titulo="Notificaciones" tema="contenidos paleta">
             <Migas raiz="Resumen" pasos={[["Notificaciones"]]} />
-            <EncabezadoPagina
-                etiqueta="Panel · Notificaciones"
-                titulo="Notificaciones"
-                texto="Avisos del panel para el personal."
-                accion={
-                    <div className="notificaciones-acciones">
-                        <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={leerTodas} disabled={pendientes === 0}>
-                            Marcar todas como leídas
-                        </button>
-                        <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => setConfirmando(true)} disabled={leidas === 0}>
-                            Eliminar leídas
-                        </button>
-                    </div>
-                }
-            />
+            <div className="pz-pagina">
+                <Encabezado titulo="Notificaciones" texto="Lo que llegó para ti en el panel. Abrir una la marca como leída y te lleva a donde se atiende.">
+                    <Cifra icono="aviso" tono="vino" valor={pendientes} texto="sin leer" activa={estado === "sin-leer" && area === "todas"} alPresionar={() => { setEstado("sin-leer"); setArea("todas"); }} />
+                    <Cifra icono="lista" valor={lista.length} texto="en total" activa={estado === "todas" && area === "todas"} alPresionar={quitarFiltros} />
+                </Encabezado>
 
-            <section className="contenidos-lista" aria-labelledby="titulo-lista">
-                <div className="contenidos-lista__cabecera">
-                    <span className="contenidos-lista__icono"><img src={iconoReloj} alt="" className="at-icono" /></span>
-                    <div>
-                        <h2 id="titulo-lista">Notificaciones del panel</h2>
-                        <p>{pendientes ? `${pendientes} sin leer.` : "Estás al día."}</p>
-                    </div>
+                <div className="pz-columnas">
+                    <Tarjeta icono="aviso" id={`${id}-lista`} titulo="Avisos del panel" className="pz-pendientes"
+                        texto={pendientes ? `${pendientes} sin leer; lo más reciente arriba` : "Todo leído; lo más reciente arriba"}>
+                        <Buscador etiqueta="Buscar notificación" placeholder="Buscar notificación" valor={texto} alCambiar={setTexto}>
+                            <FiltrosAvanzados activos={activos} alQuitar={quitarFiltros} grupos={[
+                                { titulo: "Mostrar", valor: estado, alCambiar: (v) => setEstado(v as "todas" | "sin-leer"), opciones: [
+                                    { valor: "todas", texto: "Todas", cantidad: lista.filter(cumpleArea).length },
+                                    { valor: "sin-leer", texto: "Sin leer", cantidad: lista.filter((n) => !n.leida && cumpleArea(n)).length },
+                                ] },
+                                ...(areas.length > 1 ? [{ titulo: "Área", valor: area, alCambiar: (v: string) => setArea(v as AreaNotificacion | "todas"), opciones: [
+                                    { valor: "todas", texto: "Todas" },
+                                    ...areas.map((a) => ({ valor: a.id, texto: a.nombre, cantidad: lista.filter((n) => n.area === a.id && cumpleEstado(n)).length })),
+                                ] }] : []),
+                            ]} />
+                        </Buscador>
+
+                        {visibles.length === 0 ? (
+                            lista.length === 0 ? <Vacio titulo="Estás al día" texto="No tienes notificaciones. Cuando llegue algo que atender, aparecerá aquí." />
+                                : texto.trim() || activos ? <Vacio icono="buscarCuenta" titulo="Sin resultados" texto="No hay notificaciones con esa búsqueda o esos filtros."
+                                    accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setTexto(""); quitarFiltros(); }}>Quitar filtros</button>} />
+                                    : <Vacio titulo="Todo leído" texto="Ya leíste todas tus notificaciones." />
+                        ) : (
+                            <div className="pz-grupos" tabIndex={0} role="region" aria-label="Lista de notificaciones">
+                                <ul className="pz-filas">
+                                    {visibles.map((n) => (
+                                        <li key={n.id}>
+                                            <article className={`pz-fila${n.leida ? "" : " pz-fila--dorado"}`}>
+                                                <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={ICONO_AREA[n.area]} /></span>
+                                                <div className="pz-fila__textos">
+                                                    <h4 className="pz-fila__titulo">{n.titulo}</h4>
+                                                    <p className="pz-fila__detalle"><span>{NOMBRE_AREA[n.area]}</span><span>{n.cuando}</span></p>
+                                                </div>
+                                                {n.leida ? <Chip tono="gris">Leída</Chip> : <Chip tono="dorado">Sin leer</Chip>}
+                                                <button type="button" className={`pz-boton pz-boton--chico${n.leida ? " pz-boton--contorno" : ""}`} onClick={() => abrir(n)}>
+                                                    {n.leida ? "Ver" : "Atender"}<span className="solo-lectores"> {n.titulo}</span>
+                                                </button>
+                                            </article>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </Tarjeta>
+
+                    <aside className="pz-lateral" aria-label="Por área y acciones">
+                        <Tarjeta icono="lista" id={`${id}-areas`} titulo="Por área" texto="Sin leer de cada sección que atiendes" className="pz-tarjeta--actividades">
+                            {areas.length === 0 ? <p className="pz-acciones__nota">Aquí verás cuántas notificaciones tienes por área.</p> : (
+                                <dl className="pz-mini-cifras">
+                                    {areas.map((a) => {
+                                        const n = lista.filter((x) => x.area === a.id && !x.leida).length;
+                                        return (
+                                            <div key={a.id} className={`pz-mini-cifra pz-mini-cifra--${n ? "dorado" : "gris"}`}>
+                                                <dt>{a.nombre}</dt>
+                                                <dd>{n}</dd>
+                                            </div>
+                                        );
+                                    })}
+                                </dl>
+                            )}
+                            <div className="pz-acciones pz-acciones--pie">
+                                <button type="button" className="pz-boton" disabled={pendientes === 0} onClick={leerTodas}>Marcar todas como leídas</button>
+                                <button type="button" className="pz-boton pz-boton--guinda pz-boton--contorno" disabled={leidas === 0} onClick={() => setConfirmando(true)}>Eliminar leídas</button>
+                                <Link to="/admin/perfil/avisos" className="pz-boton pz-boton--contorno">Avisos que recibo</Link>
+                            </div>
+                        </Tarjeta>
+                    </aside>
                 </div>
-
-                <div className="contenidos-lista__herramientas">
-                    <div className="contenidos-filtros" role="group" aria-label="Filtrar notificaciones">
-                        {filtros.map((f) => (
-                            <button
-                                key={f.id}
-                                type="button"
-                                className={`contenidos-filtro${filtro === f.id ? " contenidos-filtro--activo" : ""}`}
-                                aria-pressed={filtro === f.id}
-                                onClick={() => setFiltro(f.id)}
-                            >
-                                {f.texto}
-                            </button>
-                        ))}
-                    </div>
-                    <label className="contenidos-buscar">
-                        <IconoBuscar />
-                        <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar notificación" aria-label="Buscar notificación" />
-                    </label>
-                </div>
-
-                {visibles.length > 0 ? (
-                    <ul className="lista-notificaciones">
-                        {visibles.map((n) => (
-                            <li key={n.id}>
-                                <button type="button" className={`notificacion${n.leida ? "" : " notificacion--sin-leer"}`} onClick={() => abrir(n)}>
-                                    <span className="notificacion__punto" aria-hidden="true" />
-                                    <span className="notificacion__textos">
-                                        <span className="notificacion__titulo">
-                                            {n.titulo}
-                                            {!n.leida && <span className="solo-lectores"> (sin leer)</span>}
-                                        </span>
-                                        <span className="notificacion__cuando">{n.cuando}</span>
-                                    </span>
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <EstadoVacio
-                        icono={lista.length === 0 ? vacioCheck : vacioBuscar}
-                        titulo={lista.length === 0 ? "Sin notificaciones" : "No hay notificaciones con ese filtro"}
-                        texto={lista.length === 0 ? "Estás al día." : "Prueba con otro filtro o búsqueda."}
-                    />
-                )}
-
-                <div className="contenidos-lista__pie"><p aria-live="polite">Mostrando {visibles.length} de {lista.length}</p></div>
-            </section>
+            </div>
 
             {confirmando && (
                 <Ventana
@@ -123,7 +129,6 @@ export default function Notificaciones() {
                     alCerrar={() => setConfirmando(false)}
                 />
             )}
-            </div>
         </PanelLayout>
     );
 }

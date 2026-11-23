@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { Campo, IconoBandera, IconoDocumento, IconoFlechaIzq, IconoLapiz, Interruptor, Migas, PanelEstado, SubirImagen } from "./piezas";
+import { Campo, IconoBandera, IconoDocumento, IconoLapiz, Interruptor, Migas, PanelEstado, SubirImagen } from "./piezas";
 import ConfirmarEnvio from "./ConfirmarEnvio";
 import { datoSiNo, datoTexto, useBorrador } from "./usarBorrador";
 import type { Contenido } from "../../../servicios/contenidos";
+import { Encabezado as EncabezadoPz } from "../piezasPanel";
 import "./Contenidos.css";
 
 // Formulario para redactar una reseña bibliográfica nueva o seguir un borrador (inicial).
@@ -47,20 +47,10 @@ function RedactarResena({ inicial }: { inicial?: Contenido }) {
     };
 
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <Migas actual="Borrador" />
 
-            <div className="contenidos-encabezado contenidos-encabezado--tarjeta">
-                <div>
-                    <Link to="/admin/contenidos/editor" className="contenidos-volver">
-                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
-                        Volver a Mis contenidos
-                    </Link>
-                    {/* El folio (CN-0000) lo asigna la base al guardar el primer borrador */}
-                    <h1>Redactar reseña bibliográfica</h1>
-                    <p className="contenidos-encabezado__texto">La reseña la firma el equipo de la biblioteca. Los campos con * son obligatorios.</p>
-                </div>
-            </div>
+            <EncabezadoPz titulo="Redactar reseña bibliográfica" texto="La reseña la firma el equipo de la biblioteca. Los campos con * son obligatorios." />
 
             <form
                 className="contenidos-formulario"

@@ -95,7 +95,8 @@ export function EsqueletoPanel() {
     return (
         <div className="esqueleto-panel" role="status">
             <Anuncio texto="Comprobando acceso al panel…" />
-            <div className="esqueleto-pagina__franja" aria-hidden="true" />
+            {/* Rendimiento (21 nov): el nombre del panel se ve desde el primer instante, mientras se comprueba el acceso */}
+            <div className="esqueleto-pagina__franja esqueleto-panel__franja" aria-hidden="true"><span>Biblioteca Solón Argüello</span><strong>Panel de administración</strong></div>
             <div className="esqueleto-panel__cuerpo" aria-hidden="true">
                 <div className="esqueleto-panel__menu">
                     <Bloque clase="esqueleto__titulo esqueleto__bloque--claro" ancho="70%" />

@@ -23,30 +23,14 @@ import notaInfoDorada from "../../../assets/perfil/nota-info-dorada.svg";
 import tarjetaLista from "../../../assets/perfil/tarjeta-lista.svg";
 import tarjetaEstrella from "../../../assets/perfil/tarjeta-estrella.svg";
 import tarjetaCandado from "../../../assets/perfil/tarjeta-candado.svg";
-import filaCalendario from "../../../assets/perfil/fila-calendario-verde.svg";
 import progresoCirculo from "../../../assets/perfil/progreso-circulo.svg";
 
-import { EsqueletoLista } from "../../../components/portal/Esqueleto";
+import { GaleriaInsignias } from "../../../components/portal/Insignias";
+import { insigniasDe } from "../../../servicios/insignias"; // TODO backend: GET /v1/me/insignias
+import { FilaPerfil, ListaPerfil } from "./ListaPerfil";
+import { coincide, diaMes } from "./utilesLista";
 function NotaInfo({ children }: { children: ReactNode }) {
     return <div className="perfil-nota"><img src={notaInfo} alt="" /><p>{children}</p></div>;
-}
-
-function Filtros<T extends string>({ opciones, actual, alElegir }: { opciones: { valor: T; texto: string }[]; actual: T; alElegir: (v: T) => void }) {
-    return (
-        <div className="perfil-filtros" role="group" aria-label="Filtrar">
-            {opciones.map((o) => {
-                const partes = o.texto.match(/^(.*?)(?: \((\d+)\))?$/);
-                const texto = partes?.[1] ?? o.texto;
-                const cuenta = partes?.[2];
-                return (
-                    <button key={o.valor} type="button" aria-pressed={actual === o.valor}
-                        className={`perfil-filtro${actual === o.valor ? " perfil-filtro--activo" : ""}`} onClick={() => alElegir(o.valor)}>
-                        {texto}{cuenta !== undefined && <span className="perfil-filtro__cuenta">{cuenta}</span>}
-                    </button>
-                );
-            })}
-        </div>
-    );
 }
 
 // ---------- Mi credencial ----------
@@ -98,71 +82,44 @@ function useHistorial(): [CargaHistorial, () => void] {
     return [carga, () => { setCarga(null); setIntento((x) => x + 1); }];
 }
 
-function EstadoCarga({ carga, alReintentar }: { carga: CargaHistorial; alReintentar: () => void }) {
-    if (!carga) return <EsqueletoLista filas={3} />;
-    if ("error" in carga) return (
-        <div className="perfil-vacio">
-            <p role="alert">{carga.error}</p>
-            <button type="button" className="perfil-boton perfil-boton--contorno" onClick={alReintentar}>Reintentar</button>
-        </div>
-    );
-    return null;
-}
-
-type Fila = { id: string; titulo: string; detalle: string; estado: { texto: string; color: "dorado" | "guinda" | "gris" | "verde"; accion: string | null }; ruta: string };
-function ListaSolicitudes({ filas, vacio, vacioTexto, vacioAccion }: { filas: Fila[]; vacio: string; vacioTexto?: string; vacioAccion?: ReactNode }) {
-    if (!filas.length) return (
-        <div className="perfil-vacio perfil-vacio--eventos perfil-vacio--panel">
-            <span className="perfil-vacio__insignia" aria-hidden="true" />
-            <p><strong>{vacio}</strong>{vacioTexto}</p>
-            {vacioAccion}
-        </div>
-    );
-    return (
-        <ul className="perfil-solicitudes">
-            {filas.map((f) => (
-                <li key={f.id} className={`perfil-solicitud perfil-solicitud--${f.estado.color}`}>
-                    <span className="perfil-lista__icono"><img src={filaCalendario} alt="" /></span>
-                    <div className="perfil-solicitud__textos"><strong>{f.titulo}</strong><span>{f.detalle}</span></div>
-                    <Chip color={f.estado.color}>{f.estado.texto}</Chip>
-                    {f.estado.accion && (
-                        <Link to={f.ruta} className={`perfil-boton perfil-boton--chico${f.estado.color === "guinda" && f.estado.accion !== "Ver" ? "" : " perfil-boton--contorno"}`}>
-                            {f.estado.accion}
-                        </Link>
-                    )}
-                </li>
-            ))}
-        </ul>
-    );
-}
+// Filtro de estado de las dos listas: «todas» o un grupo
+type FiltroGrupo = GrupoFiltro | "todas";
+const opcionesGrupo = (lista: [FiltroGrupo, string][], cuenta: Record<GrupoFiltro, number>, total: number) =>
+    lista.map(([valor, texto]) => ({ valor, texto, cantidad: valor === "todas" ? total : cuenta[valor] }));
 
 export function MisPropuestas() {
     const [carga, reintentar] = useHistorial();
-    const [filtro, setFiltro] = useState<GrupoFiltro | "todas">("todas");
+    const [filtro, setFiltro] = useState<FiltroGrupo>("todas");
+    const [texto, setTexto] = useState("");
     const propuestas = carga && "datos" in carga ? carga.datos.propuestas_eventos : [];
     const cuenta = contarPorGrupo(propuestas, (p) => estadoPropuesta[p.estadoRevision].grupo);
-    const visibles = filtro === "todas" ? propuestas : propuestas.filter((p) => estadoPropuesta[p.estadoRevision].grupo === filtro);
+    const filtradas = propuestas.filter((p) => (filtro === "todas" || estadoPropuesta[p.estadoRevision].grupo === filtro)
+        && coincide(texto, p.tituloPropuesta, p.tipoPropuesta, estadoPropuesta[p.estadoRevision].texto));
+    const visibles = filtradas;
     return (
         <>
             <EncabezadoSeccion titulo="Mis propuestas" texto="Lo que has propuesto a la biblioteca y en qué estado va cada propuesta."
                 accion={<Link to="/proponer" className="perfil-boton">Proponer una actividad</Link>} />
-            <section className="perfil-panel" aria-label="Lista de propuestas">
-            <Filtros actual={filtro} alElegir={setFiltro} opciones={[
-                { valor: "todas", texto: `Todas (${propuestas.length})` }, { valor: "atencion", texto: `En atención (${cuenta.atencion})` },
-                { valor: "observaciones", texto: `Con observaciones (${cuenta.observaciones})` }, { valor: "borradores", texto: `Borradores (${cuenta.borradores})` },
-            ]} />
-            <EstadoCarga carga={carga} alReintentar={reintentar} />
-            {carga && "datos" in carga && (
-                <ListaSolicitudes vacio={filtro === "todas" ? "Aún no has propuesto actividades" : "No hay propuestas en este grupo"}
-                    vacioTexto="Propón un taller, un club o una charla; el personal la revisa y te responde aquí."
-                    vacioAccion={filtro === "todas" ? <Link to="/proponer" className="perfil-boton">Proponer una actividad</Link> : undefined}
-                    filas={visibles.map((p) => ({
-                    id: p.id, titulo: p.tituloPropuesta, estado: estadoPropuesta[p.estadoRevision],
-                    detalle: p.estadoRevision === "borrador" ? `Borrador guardado el ${fechaCorta(p.creadaEn)}` : `Enviada el ${fechaCorta(p.creadaEn)}`,
-                    ruta: "/proponer/" + p.id,
-                }))} />
-            )}
-            </section>
+            <ListaPerfil icono="propuesta" titulo="Tus propuestas" texto="Ábrelas para ver su revisión o corregirlas"
+                buscar={{ etiqueta: "Buscar una propuesta", placeholder: "Nombre o tipo de actividad", valor: texto, alCambiar: (v) => { setTexto(v); } }}
+                filtros={[{
+                    titulo: "Estado", valor: filtro, alCambiar: (v) => { setFiltro(v as FiltroGrupo); },
+                    opciones: opcionesGrupo([["todas", "Todas"], ["atencion", "En revisión"], ["aceptadas", "Aceptadas"], ["observaciones", "Con observaciones"], ["borradores", "Borradores"]], cuenta, propuestas.length),
+                }]}
+                activos={filtro === "todas" ? 0 : 1} alQuitar={() => { setFiltro("todas"); }}
+                estado={!carga ? "cargando" : "error" in carga ? "error" : "listo"} error={carga && "error" in carga ? carga.error : undefined} alReintentar={reintentar}
+                hayElementos={propuestas.length > 0} sinResultados={filtradas.length === 0}
+                vacio={{ titulo: "Aún no has propuesto actividades", texto: "Propón un taller, un club o una charla; el personal la revisa y te responde aquí.",
+                    accion: <Link to="/proponer" className="pz-boton pz-boton--chico">Proponer una actividad</Link> }}>
+                {visibles.map((p) => {
+                    const e = estadoPropuesta[p.estadoRevision];
+                    const borrador = p.estadoRevision === "borrador";
+                    return <FilaPerfil key={p.id} icono="propuesta" tono={e.color} titulo={p.tituloPropuesta} estado={e.texto}
+                        apagada={p.estadoRevision === "cancelada"}
+                        detalle={<><span>{borrador ? `Borrador guardado el ${fechaCorta(p.creadaEn)}` : `Enviada el ${fechaCorta(p.creadaEn)}`}</span>{p.tipoPropuesta && <span className="perfil-mayuscula">{p.tipoPropuesta}</span>}</>}
+                        acciones={e.accion && <Link to={"/proponer/" + p.id} className={`pz-boton pz-boton--chico${e.color === "guinda" && e.accion !== "Ver" ? "" : " pz-boton--contorno"}`}>{e.accion}</Link>} />;
+                })}
+            </ListaPerfil>
             <NotaInfo>Proponer no aprueba ni reserva: el personal revisa cada propuesta y te avisa en tus notificaciones.</NotaInfo>
         </>
     );
@@ -182,35 +139,38 @@ export function MisEspacios() {
         return () => { vigente = false; };
     }, [intento]);
     const reintentar = () => { setCarga(null); setIntento((x) => x + 1); };
-    const [filtro, setFiltro] = useState<GrupoFiltro | "todas">("todas");
+    const [filtro, setFiltro] = useState<FiltroGrupo>("todas");
+    const [texto, setTexto] = useState("");
     const solicitudes = carga && "solicitudes" in carga ? carga.solicitudes : [];
     const cuenta = contarPorGrupo(solicitudes, (s) => estadoEspacio[s.estado].grupo);
-    const visibles = filtro === "todas" ? solicitudes : solicitudes.filter((s) => estadoEspacio[s.estado].grupo === filtro);
-    // EstadoCarga solo distingue cargando / error
-    const estadoCarga: CargaHistorial = !carga ? null : "error" in carga ? carga : { datos: { solicitudes_espacio: [], propuestas_eventos: [] } };
+    const lugar = (s: SolicitudEspacioApi) => (s.acuerdo?.espacio ?? s.espacio)?.nombre ?? "Visita";
+    const filtradas = solicitudes.filter((s) => (filtro === "todas" || estadoEspacio[s.estado].grupo === filtro)
+        && coincide(texto, s.motivo, s.folio, lugar(s), estadoEspacio[s.estado].texto));
+    const visibles = filtradas;
     return (
         <>
             <EncabezadoSeccion titulo="Mis espacios" texto="Las solicitudes de espacio que has hecho y el estado de cada una."
                 accion={<Link to="/espacios" className="perfil-boton">Solicitar un espacio</Link>} />
-            <section className="perfil-panel" aria-label="Lista de solicitudes de espacio">
-            <Filtros actual={filtro} alElegir={setFiltro} opciones={[
-                { valor: "todas", texto: `Todas (${solicitudes.length})` }, { valor: "atencion", texto: `Pendientes (${cuenta.atencion})` },
-                { valor: "observaciones", texto: `Con cambio propuesto (${cuenta.observaciones})` }, { valor: "canceladas", texto: `Canceladas (${cuenta.canceladas})` },
-            ]} />
-            <EstadoCarga carga={estadoCarga} alReintentar={reintentar} />
-            {carga && "solicitudes" in carga && (
-                <ListaSolicitudes vacio={filtro === "todas" ? "Aún no has solicitado espacios" : "No hay solicitudes en este grupo"}
-                    vacioTexto="Pide una sala o un módulo para tu actividad; el personal revisa la fecha y te responde aquí."
-                    vacioAccion={filtro === "todas" ? <Link to="/espacios" className="perfil-boton">Solicitar un espacio</Link> : undefined}
-                    filas={visibles.map((s) => ({
-                    id: s.folio, titulo: s.motivo,
-                    // Todas se pueden abrir para ver el detalle, también las canceladas
-                    estado: { ...estadoEspacio[s.estado], accion: estadoEspacio[s.estado].accion ?? "Ver" },
-                    detalle: `${s.folio} · ${(s.acuerdo?.espacio ?? s.espacio)?.nombre ?? "Visita"} · Solicitada el ${fechaCorta(s.creadaEn)} · ${s.personas} personas`,
-                    ruta: "/espacios/solicitud/" + encodeURIComponent(s.folio),
-                }))} />
-            )}
-            </section>
+            <ListaPerfil icono="espacios" conFecha titulo="Tus solicitudes" texto="Todas se pueden abrir para ver su detalle"
+                buscar={{ etiqueta: "Buscar una solicitud", placeholder: "Motivo, espacio o folio", valor: texto, alCambiar: (v) => { setTexto(v); } }}
+                filtros={[{
+                    titulo: "Estado", valor: filtro, alCambiar: (v) => { setFiltro(v as FiltroGrupo); },
+                    opciones: opcionesGrupo([["todas", "Todas"], ["atencion", "Pendientes"], ["observaciones", "Con cambio propuesto"], ["canceladas", "Canceladas"]], cuenta, solicitudes.length),
+                }]}
+                activos={filtro === "todas" ? 0 : 1} alQuitar={() => { setFiltro("todas"); }}
+                estado={!carga ? "cargando" : "error" in carga ? "error" : "listo"} error={carga && "error" in carga ? carga.error : undefined} alReintentar={reintentar}
+                hayElementos={solicitudes.length > 0} sinResultados={filtradas.length === 0}
+                vacio={{ titulo: "Aún no has solicitado espacios", texto: "Pide una sala o un módulo para tu actividad; el personal revisa la fecha y te responde aquí.",
+                    accion: <Link to="/espacios" className="pz-boton pz-boton--chico">Solicitar un espacio</Link> }}>
+                {visibles.map((s) => {
+                    const e = estadoEspacio[s.estado];
+                    return <FilaPerfil key={s.folio} fecha={diaMes(s.inicio)} tono={e.color} titulo={s.motivo} estado={e.texto}
+                        apagada={e.grupo === "canceladas"}
+                        detalle={<><span className="pz-fila__folio">{s.folio}</span><span>{lugar(s)}</span><span>{s.personas} personas</span><span>Solicitada el {fechaCorta(s.creadaEn)}</span></>}
+                        acciones={<Link to={"/espacios/solicitud/" + encodeURIComponent(s.folio)}
+                            className={`pz-boton pz-boton--chico${e.color === "guinda" ? "" : " pz-boton--contorno"}`}>{e.accion ?? "Ver"}</Link>} />;
+                })}
+            </ListaPerfil>
             <NotaInfo>Solicitar no es reservar: una solicitud se vuelve reserva hasta que el personal la aprueba, y te avisa en tus notificaciones.</NotaInfo>
         </>
     );
@@ -259,6 +219,10 @@ export function Progreso({ menor = false }: { menor?: boolean }) {
                         );
                     })}
                 </ol>
+            </TarjetaPerfil>
+            <TarjetaPerfil color="verde" icono={tarjetaEstrella} titulo="Mis insignias"
+                texto="Se ganan solas al participar: cada una dice qué la desbloquea y cuánto te falta.">
+                <GaleriaInsignias insignias={insigniasDe({ asistencias: vigente ? asistencias : 0, clubes: vigente ? 1 : 0, talleres: vigente ? 1 : 0, credencial: vigente ? 1 : 0, propuestas: 0 })} />
             </TarjetaPerfil>
             <section className="perfil-panel" aria-labelledby="titulo-recompensas">
                 <EtiquetaPerfil id="titulo-recompensas" icono={iconosSeccion.progreso}>Mis recompensas</EtiquetaPerfil>

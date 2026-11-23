@@ -109,7 +109,7 @@ function PortadaLibro({ libro }: { libro: Libro }) {
             <p className="portada-libro__autoria" aria-hidden="true">{libro.autoria}</p>
             {conFoto && (
                 <img className={`portada-libro__foto${foto === "lista" ? " portada-libro__foto--lista" : ""}`}
-                    src={libro.portadaUrl} alt={foto === "lista" ? `Portada de ${libro.titulo}` : ""} decoding="async"
+                    src={libro.portadaUrl} alt={foto === "lista" ? `Portada de ${libro.titulo}` : ""} loading="lazy" decoding="async"
                     onLoad={() => setFoto("lista")} onError={() => { marcarImagenFallida(libro.portadaUrl); setFoto("fallo"); }} />
             )}
         </div>

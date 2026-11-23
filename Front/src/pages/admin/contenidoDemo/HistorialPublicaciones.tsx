@@ -85,7 +85,7 @@ function HistorialPublicaciones() {
                         busqueda.trim() ? (
                             <EstadoVacio
                                 icono={vacioBuscar}
-                                titulo={`Sin resultados para «${busqueda.trim()}»`}
+                                titulo={`Sin resultados para ${busqueda.trim()}`}
                                 texto="Prueba con otra palabra, otro tipo o quita los filtros."
                                 accion={{ texto: "Limpiar filtros", alPresionar: () => { setBusqueda(""); elegir("todos"); } }}
                             />

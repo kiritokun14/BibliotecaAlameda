@@ -1,6 +1,7 @@
 import ImagenContenido from "../../../components/ImagenContenido";
 import { useEffect, useState } from "react";
-import { IconoFlechaIzq, IconoImagen, Migas } from "./piezas";
+import { IconoImagen, Migas } from "./piezas";
+import { Encabezado as EncabezadoPz } from "../piezasPanel";
 
 // Vista previa de una noticia: así se verá en el portal. Usa lo que está escrito
 // en el formulario; todavía no está publicado ni guardado.
@@ -45,16 +46,9 @@ function VistaPreviaNoticia({ noticia, alVolver, alEnviar, folio, tieneImagen, v
         <>
             <Migas actual="Noticia" />
 
-            <div className="contenidos-encabezado contenidos-encabezado--tarjeta">
-                <div>
-                    <button type="button" className="contenidos-volver" onClick={alVolver}>
-                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
-                        Volver a editar
-                    </button>
-                    <h1>Así se verá en el portal</h1>
-                    <p className="contenidos-encabezado__texto">Revisa el texto y la imagen. Aún no está publicado: nadie más lo ve.</p>
-                </div>
-            </div>
+            <EncabezadoPz titulo="Así se verá en el portal" texto="Revisa el texto y la imagen. Aún no está publicado: nadie más lo ve.">
+                <button type="button" className="pz-boton pz-boton--contorno" onClick={alVolver}>Seguir editando</button>
+            </EncabezadoPz>
 
             <article className="contenidos-previa" aria-label="Vista previa de la noticia">
                 <p className="contenidos-previa__franja">Vista previa · Borrador no publicado</p>

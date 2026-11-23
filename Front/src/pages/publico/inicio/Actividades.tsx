@@ -117,7 +117,7 @@ function Actividades() {
                         {visibles.map((actividad) => (
                             <article key={actividad.id} className="tarjeta-actividad">
                                 <div className="tarjeta-actividad__imagen">
-                                    <img decoding="async" src={actividad.imagen} alt="" />
+                                    <img loading="lazy" decoding="async" src={actividad.imagen} alt="" />
                                 </div>
                                 <div className="tarjeta-actividad__contenido">
                                     <Etiqueta icono={iconosTipo[actividad.tipo]} className="etiqueta-inicio--dorada">

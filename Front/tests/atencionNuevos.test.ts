@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { estadoAlPublicar, filtrarAvisos, siguienteFolio as folioAviso, validarAviso, vigencia, EJEMPLO as AVISOS, MAXIMO_MENSAJE } from "../src/pages/admin/atencion/avisos/datos";
-import { buscarCuenta, enmascararCorreo, puedeEnviar, siguienteFolio as folioRecuperacion, CUENTAS } from "../src/pages/admin/atencion/recuperacion/datos";
+import { enmascararCorreo, esDeHoy, puedeEnviar, siguienteFolio as folioRecuperacion } from "../src/pages/admin/atencion/recuperacion/datos";
 import { estadoCuenta, nombreCompleto, ocultarCorreo } from "../src/servicios/cuentasAtencion";
 
 describe("Atención · Avisos", () => {
@@ -32,18 +32,17 @@ describe("Atención · Avisos", () => {
 });
 
 describe("Atención · Recuperación asistida", () => {
-    it("busca por correo, nombre o credencial con al menos 3 letras", () => {
-        expect(buscarCuenta(CUENTAS, "persona.a")?.id).toBe("C-0214");
-        expect(buscarCuenta(CUENTAS, "bsa-0071")?.id).toBe("C-0211");
-        expect(buscarCuenta(CUENTAS, "pe")).toBeUndefined();
-        expect(buscarCuenta(CUENTAS, "nadie@otro.mx")).toBeUndefined();
+    it("reconoce los intentos de hoy", () => {
+        const hoy = new Date(2026, 10, 22, 12);
+        expect(esDeHoy(new Date(2026, 10, 22, 9).toISOString(), hoy)).toBe(true);
+        expect(esDeHoy(new Date(2026, 10, 21, 9).toISOString(), hoy)).toBe(false);
     });
 
     it("oculta el correo y exige los tres puntos obligatorios", () => {
         expect(enmascararCorreo("persona.a@correo.mx")).toBe("pe***@correo.mx");
         expect(puedeEnviar([true, true, true, false])).toBe(true);
         expect(puedeEnviar([true, true, false, true])).toBe(false);
-        expect(folioRecuperacion([{ folio: "RA-0016", cuentaId: "", persona: "", fecha: "", resultado: "enviado", atendio: "" }])).toBe("RA-0017");
+        expect(folioRecuperacion([{ folio: "RA-0016" }])).toBe("RA-0017");
     });
 });
 

@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { Campo, IconoBandera, IconoDocumento, IconoFlechaIzq, IconoLapiz, Interruptor, Migas, PanelEstado, SubirImagen } from "./piezas";
+import { Campo, IconoBandera, IconoDocumento, IconoLapiz, Interruptor, Migas, PanelEstado, SubirImagen } from "./piezas";
 import ConfirmarEnvio from "./ConfirmarEnvio";
 import { datoSiNo, datoTexto, useBorrador } from "./usarBorrador";
 import type { Contenido } from "../../../servicios/contenidos";
+import { Encabezado as EncabezadoPz } from "../piezasPanel";
 import "./Contenidos.css";
 
 // Formulario para una pieza de Memoria pública (fotografía, documento u objeto del archivo).
@@ -47,19 +47,10 @@ function RedactarMemoria({ inicial }: { inicial?: Contenido }) {
     };
 
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <Migas actual="Memoria pública" />
 
-            <div className="contenidos-encabezado contenidos-encabezado--tarjeta">
-                <div>
-                    <Link to="/admin/contenidos/editor" className="contenidos-volver">
-                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
-                        Volver a Mis contenidos
-                    </Link>
-                    <h1>Redactar pieza de Memoria pública</h1>
-                    <p className="contenidos-encabezado__texto">Fotografías y piezas del archivo de memoria de la biblioteca. Los campos con * son obligatorios.</p>
-                </div>
-            </div>
+            <EncabezadoPz titulo="Redactar pieza de Memoria pública" texto="Fotografías y piezas del archivo de memoria de la biblioteca. Los campos con * son obligatorios." />
 
             <form
                 className="contenidos-formulario"

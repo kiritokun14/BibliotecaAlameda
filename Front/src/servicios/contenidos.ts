@@ -63,6 +63,12 @@ export function enviarAAutorizacion(folio: string, nota?: string) {
         method: 'POST', body: JSON.stringify(nota?.trim() ? { nota: nota.trim() } : {}) });
 }
 
+// El Editor regresa a borrador lo que envió y aún no se decide (para editarlo o no publicarlo).
+// TODO backend: POST /contenidos/editor/{folio}/cancelar-envio (PARA_BACKEND.md, punto 9). Mientras no exista responde 404.
+export function cancelarEnvio(folio: string) {
+    return pedirEditor<Contenido>(`/${encodeURIComponent(folio)}/cancelar-envio`, { method: 'POST', body: JSON.stringify({}) });
+}
+
 // Guarda (creando el borrador si aún no tiene folio) y devuelve el contenido guardado.
 export async function guardar(folio: string | null, tipo: TipoEditable, cambios: CambiosContenido) {
     return folio ? guardarBorrador(folio, cambios) : crearBorrador(tipo, cambios);

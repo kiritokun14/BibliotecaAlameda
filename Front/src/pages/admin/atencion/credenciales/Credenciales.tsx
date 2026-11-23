@@ -43,7 +43,7 @@ function Credenciales({ vista }: { vista: "bandeja" | "todas" }) {
     const solicitudes = useSolicitudes("credenciales");
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Bandeja
                 vista={vista}
                 config={configCredenciales}

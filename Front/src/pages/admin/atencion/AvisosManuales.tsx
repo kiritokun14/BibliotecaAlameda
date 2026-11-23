@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import PanelLayout from '../PanelLayout';
 import { Chip, EncabezadoPagina, EstadoVacio, Migas, Tarjeta, type TonoChip } from '../componentes';
 import { Bloque } from '../../../components/portal/Esqueleto';
+import { LineaHistorial } from '../piezasPanel';
 import { IconoBuscar } from '../contenidos/piezas';
 import { ContextoPanel } from '../../../servicios/accesoPanel';
 import { avisosEnMemoria, buscarDestinatarios, crearAviso, listarAvisos, prepararAviso, registrarResultadoAviso, estadosSiguientes, type AvisoManual, type DestinatarioAviso, type EstadoAviso } from '../../../servicios/avisos';
@@ -22,7 +23,7 @@ const fecha = (iso: string) => new Date(iso).toLocaleString('es-MX', { dateStyle
 export default function AvisosManuales() {
     const identidad = useContext(ContextoPanel);
     // Reinicia todos los datos personales cuando cambia la cuenta autorizada.
-    return <PanelLayout titulo="Atención" tema="contenidos"><Bandeja key={identidad?.acceso.usuarioId ?? 'sin-cuenta'} /></PanelLayout>;
+    return <PanelLayout titulo="Atención" tema="contenidos paleta"><Bandeja key={identidad?.acceso.usuarioId ?? 'sin-cuenta'} /></PanelLayout>;
 }
 
 function Bandeja() {
@@ -68,9 +69,9 @@ function Bandeja() {
             {(actual?.total ?? 0) > POR_PAGINA && (
                 <div className="contenidos-lista__pie"><p>{actual?.total} avisos en total</p>
                     <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                        <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>‹ Anterior</button>
+                        <button type="button" disabled={pagina === 0} onClick={() => setPagina(x => x - 1)}>Anterior</button>
                         <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina + 1} de {paginas}</button>
-                        <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(x => x + 1)}>Siguiente ›</button>
+                        <button type="button" disabled={pagina + 1 >= paginas} onClick={() => setPagina(x => x + 1)}>Siguiente</button>
                     </div>
                 </div>
             )}
@@ -125,9 +126,9 @@ function Preparar({ alGuardar }: { alGuardar: () => void }) {
         </form>
         <div role="status" className="avisos-manuales-resultados">
             {buscando ? 'Buscando destinatarios…' : consulta && !falloBusqueda
-                ? personas.length === 0 ? `Sin coincidencias para «${consulta}». Prueba con una parte del nombre de la cuenta activa que tenga teléfono registrado.`
-                    : personas.length === 1 ? `Una coincidencia para «${consulta}». Seleccionada automáticamente.`
-                        : `${personas.length} coincidencias mostradas para «${consulta}». Elige un destinatario.`
+                ? personas.length === 0 ? `Sin coincidencias para ${consulta}. Prueba con una parte del nombre de la cuenta activa que tenga teléfono registrado.`
+                    : personas.length === 1 ? `Una coincidencia para ${consulta}. Seleccionada automáticamente.`
+                        : `${personas.length} coincidencias mostradas para ${consulta}. Elige un destinatario.`
                 : null}
         </div>
         {personas.length > 1 && <fieldset className="avisos-manuales-opciones" disabled={ocupado}><legend>Resultados de búsqueda</legend>
@@ -215,9 +216,10 @@ function Seguimiento({ aviso, alGuardar }: { aviso: AvisoManual; alGuardar: () =
         {error && <div className="at-bloque at-bloque--error" role="alert"><strong>No se guardó</strong><p>{error}</p>
             <p className="tr-acciones"><button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" onClick={alGuardar}>Recargar aviso</button></p></div>}
         <details className="avisos-historial"><summary>Historial de seguimiento ({aviso.historial.length})</summary>
-            <ol className="at-eventos">{aviso.historial.map((h, i) => <li key={i} className="at-eventos--hecho">
-                <strong>{etiquetas[h.estado]}</strong><small>{fecha(h.fecha)} · {h.actor}</small>{h.nota && <p className="tr-evento-nota">{h.nota}</p>}
-            </li>)}</ol>
+            <LineaHistorial etiqueta="Historial de seguimiento" movimientos={[...aviso.historial].reverse().map((h) => ({
+                titulo: etiquetas[h.estado], detalle: `${fecha(h.fecha)}, ${h.actor}`, nota: h.nota || undefined,
+                tono: /fall|error|no_/.test(h.estado) ? 'guinda' as const : /entreg|confirm|envi/.test(h.estado) ? 'verde' as const : 'dorado' as const,
+            }))} />
         </details>
     </article>;
 }

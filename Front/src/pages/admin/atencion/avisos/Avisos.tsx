@@ -25,7 +25,7 @@ const EstadoChip = ({ estado }: { estado: EstadoAviso }) => <Chip tono={TONO[est
 
 function Pantalla({ migas, children }: { migas: [string, string?][]; children: React.ReactNode }) {
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[["Avisos", RUTA], ...migas]} />
             {children}
         </PanelLayout>
@@ -60,7 +60,7 @@ export default function Avisos() {
     ];
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Migas pasos={[["Avisos"]]} />
             <EncabezadoPagina
                 etiqueta="Atención · Avisos"
@@ -137,9 +137,9 @@ export default function Avisos() {
                         <p>Mostrando {visibles.length} de {filtrados.length} avisos</p>
                         <span />
                         <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                            <button type="button" disabled={actual === 0} onClick={() => setPagina(actual - 1)}>‹ Anterior</button>
+                            <button type="button" disabled={actual === 0} onClick={() => setPagina(actual - 1)}>Anterior</button>
                             <button type="button" className="contenidos-paginas__actual" aria-current="page">{actual + 1} de {paginas}</button>
-                            <button type="button" disabled={actual + 1 >= paginas} onClick={() => setPagina(actual + 1)}>Siguiente ›</button>
+                            <button type="button" disabled={actual + 1 >= paginas} onClick={() => setPagina(actual + 1)}>Siguiente</button>
                         </div>
                     </div>
                 )}
@@ -259,7 +259,7 @@ export function VistaPreviaAviso() {
 
             {confirmando && (
                 <Ventana tono="verde" icono={modalCheck} angosta titulo="¿Publicar el aviso?"
-                    texto={`«${aviso.titulo}» se verá en ${aviso.donde.toLowerCase()} del ${fechaCorta(aviso.desde)} al ${fechaCorta(aviso.hasta)}.`}
+                    texto={`${aviso.titulo} se verá en ${aviso.donde.toLowerCase()} del ${fechaCorta(aviso.desde)} al ${fechaCorta(aviso.hasta)}.`}
                     textoConfirmar="Sí, publicar" alConfirmar={publicar} alCerrar={() => setConfirmando(false)} />
             )}
         </Pantalla>

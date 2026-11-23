@@ -86,7 +86,7 @@ export const ESQUEMAS: Record<TipoContenido, Esquema> = {
                 { nombre: "categoria", etiqueta: "Categoría", tipo: "select", obligatorio: true, opciones: ["Avisos", "Convocatorias", "Novedades", "Actividades"] },
                 { nombre: "fecha", etiqueta: "Fecha de la noticia", tipo: "fecha", obligatorio: true },
                 { nombre: "destacar", etiqueta: "Destacar en Inicio", tipo: "interruptor", descripcion: "Aparece en el bloque de Noticias." },
-                { nombre: "verMas", etiqueta: "Mostrar en «Ver más noticias»", tipo: "interruptor" },
+                { nombre: "verMas", etiqueta: "Mostrar en Ver más noticias", tipo: "interruptor" },
             ],
         },
         campoTitulo: "titulo",
@@ -145,11 +145,11 @@ export const ESQUEMAS: Record<TipoContenido, Esquema> = {
     },
     acerca: {
         nombre: "Acerca de la biblioteca",
-        enFrase: "el texto de «Acerca de»",
+        enFrase: "el texto de Acerca de",
         genero: "o",
         etiqueta: "ACERCA DE",
         letra: "A",
-        tituloNuevo: "Editar «Acerca de la biblioteca»",
+        tituloNuevo: "Editar Acerca de la biblioteca",
         descripcion: "Elige la sección que vas a modificar. Cada sección se autoriza por separado.",
         descripcionTipo: "Historia, misión y visión, biografía de Solón Argüello o rol de la biblioteca.",
         grupos: [
@@ -166,14 +166,14 @@ export const ESQUEMAS: Record<TipoContenido, Esquema> = {
                 campos: [
                     { nombre: "titulo", etiqueta: "Título de la sección", tipo: "texto", obligatorio: true, error: "Escribe el título de la sección." },
                     { nombre: "texto", etiqueta: "Texto", tipo: "area-grande", obligatorio: true },
-                    { nombre: "linea", etiqueta: "Datos que se muestran en la línea del tiempo", tipo: "texto", ayuda: "Si no están confirmados, se muestran como «por confirmar»." },
+                    { nombre: "linea", etiqueta: "Datos que se muestran en la línea del tiempo", tipo: "texto", ayuda: "Si no están confirmados, se muestran como por confirmar." },
                 ],
             },
         ],
         publicacion: {
             titulo: "Publicación",
             campos: [
-                { nombre: "enlaceInicio", etiqueta: "Mostrar enlace «Acerca de» en Inicio", tipo: "interruptor" },
+                { nombre: "enlaceInicio", etiqueta: "Mostrar enlace Acerca de en Inicio", tipo: "interruptor" },
                 { nombre: "ultimaVersion", etiqueta: "Última versión publicada", tipo: "fijo" },
             ],
         },

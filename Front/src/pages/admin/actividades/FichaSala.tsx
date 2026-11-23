@@ -27,7 +27,7 @@ export function FichaSala() {
     const proximos = bloqueos.filter((b) => b.sala === sala.nombre && b.fecha >= hoyISO()).sort((a, b) => a.fecha.localeCompare(b.fecha));
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", `${BASE_CALENDARIO}?vista=salas`], [quitando ? "Quitar bloqueo" : "Ficha de sala"]]} />
                 <EncabezadoTarjeta
@@ -128,7 +128,7 @@ function FormularioSala({ sala }: { sala: Sala }) {
 
     const clase = (c: string) => `cn-control ${errores[c] ? "cn-control--error" : ""}`;
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Calendario y salas", `${BASE_CALENDARIO}?vista=salas`], ["Editar sala"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a la ficha de sala", ruta: ficha }} etiqueta="Calendario y salas · Editar sala" titulo={`Editar sala: ${sala.nombre}`} texto="Actualiza capacidad, horario de uso y equipo. Los cambios se reflejan en el calendario." />

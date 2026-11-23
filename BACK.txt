@@ -1,0 +1,108 @@
+BACK.txt — Trabajo pendiente para el equipo de backend (panel de administración)
+Actualizado: 22 de noviembre de 2026 (Aldahir / frontend)
+
+El frontend del panel ya está rediseñado y espera estos servicios. Donde dice "datos de ejemplo",
+la pantalla funciona hoy con datos locales (archivo indicado, marcado con TODO backend) y solo hay
+que cambiar esa función por la llamada real. El detalle de contratos ya documentados está en
+PARA_BACKEND.md (puntos 0 a 11) y docs/pendientes-backend.md.
+
+Convenciones: rutas bajo /api, sesión con "Authorization: Bearer <token>", permisos decididos en
+la BD (capacidades de privado.permisos_de_cuenta), errores 401 / 403 / 404 / 409 / 422 / 503 con
+{"detail": "mensaje en español para mostrar"}. Fechas ISO; hora de Tepic (America/Mazatlan).
+
+=====================================================================
+A. URGENTE (lo que hoy da error en pantalla)
+=====================================================================
+1. ESTADÍSTICAS: ejecutar Supabase/estadisticas_panel.sql en Supabase (SQL Editor).
+   La API ya existe: GET /administracion/estadisticas?seccion=portal|actividades|contenidos&periodo=30dias|mes|anio
+   (Back/estadisticas.py, 7 pruebas). Sin la migración la pantalla dice "todavía no están instaladas".
+   Revisar también: la cuenta admin@biblioteca.test NO tiene 'consultar_estadisticas' (solo responsable).
+2. Back/.env: SUPABASE_SECRET_KEY vacía → imágenes de contenidos dan 503 y Alta asistida no funciona.
+   ALTA_ASISTIDA_HABILITADA=false → Alta asistida da 503.
+3. GET /v1/admin/contacto responde 500 (Contactos y sugerencias no carga).
+4. La cuenta personal@biblioteca.test no tiene 'orientar_recuperacion' (Recuperación asistida sin permiso).
+
+=====================================================================
+B. ACTIVIDADES (perfil responsable de actividades)
+=====================================================================
+5. Propuestas de actividades: YA conectada (servicios/actividades.ts). Falta:
+   - Validar en el servidor que el cupo no exceda la capacidad del espacio (el formulario ya lo valida).
+   - POST /actividades/:folio/publicar comprueba disponibilidad del espacio (ya lo dice la pantalla).
+6. Calendario y salas — datos reales de actividades ya llegan (usarCalendarioPersonal). Falta:
+   - Bloqueos de salas: GET/POST/PATCH/DELETE /bloqueos  (actividades/salas.ts, FormularioBloqueo.tsx).
+   - Datos de cada sala: GET/PATCH /espacios/:id (capacidad, horario, días, equipo, accesibilidad, habilitada).
+7. Visitas y uso de espacios — datos de ejemplo en actividades/visitas.ts:
+   - GET /visitas (solicitudes de visita de grupos: folio, grupo, personas, detallePersonas, espacio,
+     fecha, hora, estado por-confirmar|propuesta|confirmada|realizada|cancelada|rechazada, responderAntes).
+   - POST /visitas/:folio/confirmar | /propuesta | /rechazo (con motivo; avisa al contacto).
+   - Uso efectivo de salas: GET/POST/PATCH /usos-espacio (actividad, sala, asistentes reales, incidencias).
+8. Cambios y cancelaciones — datos de ejemplo en actividades/cambios.ts:
+   - GET /actividades/cambios (folio, actividad, tipo, solicitó, antes{fecha,hora,sala}, después|null,
+     inscritos, estado pendiente|aplicado|rechazado, motivo, aplicó{quien,fecha}, rechazo{motivo,fecha}, avisados).
+   - POST /actividades/cambios/:folio/aplicar (actualiza la agenda y avisa a cada inscrito; devuelve avisados)
+   - POST /actividades/cambios/:folio/rechazar (motivo obligatorio).
+9. Inscripciones y cupos: YA conectada (servicios/inscripciones.ts). Falta:
+   - GET /inscripciones/sesiones/:id/cupos para muchas sesiones a la vez (hoy se pide una por una);
+     sugerido: GET /inscripciones/cupos?sesiones=id1,id2,...
+10. Asistencia — datos de ejemplo en actividades/asistencia.ts:
+   - GET/PUT /actividades/:folio/asistencia (marcas presente|ausente y notas por persona)
+   - POST /actividades/:folio/asistencia/cerrar (las sin marcar pasan a ausente)
+   - POST /actividades/:folio/asistencia/correcciones (persona, de, a, motivo; queda en bitácora)
+   - POST /actividades/:folio/asistencia/extras (persona sin inscripción: nombre, contacto; respeta cupo)
+   - GET /actividades/asistencia/resumen?mes=AAAA-MM (promedio, asistentes, listas sin cerrar, por actividad)
+11. Evidencias privadas: YA conectada (Back/evidencias.py). Sin pendientes de contrato.
+
+=====================================================================
+C. PARTICIPANTES
+=====================================================================
+12. Progreso y recompensas — lo está programando otro desarrollador. Datos de ejemplo en
+    participantes/progreso.ts. La pantalla espera:
+   - GET /participantes/progreso (folio, nombre, credencial, meta, avances[{fecha,origen}], puntos,
+     estado de recompensa sin|por-entregar|entregada, entregada{fecha})
+   - GET/POST/PATCH /participantes/metas (nombre, necesarias, plazo, recompensa, estado activa|borrador)
+   - GET/POST/PATCH /participantes/recompensas (nombre, tipo, existencias|null, entregadas)
+   - GET /participantes/entregas y POST /participantes/:folio/entregar (quién entregó, aviso enviado)
+   - POST /participantes/:folio/ajustes (ajuste manual con motivo; queda en bitácora)
+12b. INSIGNIAS (nuevo, 22 nov 2026): logros que se ganan solos al participar (Front/src/servicios/insignias.ts tiene
+    el catálogo de 8 insignias y sus reglas: asistencias, clubes, talleres, credencial vigente, propuestas aprobadas).
+   - GET /v1/me/insignias (la persona, Mi perfil › Mi progreso) y GET /participantes/:folio/insignias (panel):
+     [{ id, obtenida, fecha, valor }]. Conviene guardar la fecha en que se ganó cada una.
+   - Para calcularlas hace falta el tipo de actividad de cada asistencia (club, taller…).
+13. Cotejo de credenciales — datos de ejemplo en participantes/cotejos.ts:
+   - GET /participantes/cotejos, GET /participantes/cotejos/:folio (consulta al sistema de la biblioteca),
+     POST .../:folio/{vincular|diferencias|vencida}.
+14. Bibliocomunidad: SE ELIMINÓ del panel (22 nov 2026, decisión de Aldahir). No hace falta backend
+    para ella; /admin/participantes/foro y /admin/atencion/bibliocomunidad llevan al Resumen.
+
+=====================================================================
+D. ATENCIÓN
+=====================================================================
+15. Solicitudes de espacios: YA conectada (GET /espacios/atencion/solicitudes). Falta:
+   - Registrar los seis espacios del mapa en la base (PARA_BACKEND punto 7).
+   - Notas internas del detalle (atencion/espacios/DetalleEspacio.tsx): hoy no se guardan.
+16. Propuestas de eventos y Solicitudes de credencial: YA conectadas (servicios/tramites.ts). Falta:
+   - Que los conteos por estado (conteosTramites) cuenten TODO, no solo las más recientes.
+   - Búsqueda en el servidor por folio, nombre o título (la pantalla ya la envía).
+17. Avisos manuales: GET /avisos, POST /avisos, PATCH /avisos/:id (atencion/avisos/datos.ts).
+18. Recuperación asistida: POST /recuperacion-asistida (quién verificó, qué puntos, resultado)
+    (atencion/recuperacion/datos.ts).
+
+=====================================================================
+E. ADMINISTRACIÓN Y GENERAL
+=====================================================================
+19. Bitácora de cambios: GET /bitacora?modulo=&tipo=&desde=&hasta=&texto= y exportación CSV
+    (administracion/datos.ts).
+20. Configuración del portal: GET/PUT /configuracion (datos de la biblioteca, horarios, días especiales,
+    reglas de actividades, modo mantenimiento) (administracion/datos.ts).
+21. Resumen del panel: un endpoint de resumen que devuelva los pendientes de todas las áreas a las que la
+    cuenta tiene permiso (folio, asunto, área, vence, ruta) y las actividades del día (resumen/datos.ts).
+22. Notificaciones del panel: GET de las notificaciones de la cuenta y PATCH para marcarlas leídas
+    (notificaciones/datos.ts).
+23. Contenidos: cancelar un envío del Editor (PARA_BACKEND punto 9) y programar la fecha de
+    publicación (revision/Revision.tsx).
+
+=====================================================================
+Cómo avisar al frontend
+=====================================================================
+Cuando un servicio esté listo, anotar aquí la ruta final y la fecha. El frontend cambia la función de
+datos de ejemplo por la llamada real; las pantallas ya tienen carga, error con "Reintentar" y vacíos.

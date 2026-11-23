@@ -10,28 +10,27 @@ import { clasesBoton } from "../contenidoDemo/utiles";
 import { espacios, fechaCorta, obtenerActividad, useActividades } from "./datos";
 import { useSalas } from "./salas";
 import { ocupacion } from "./calendario";
-import { aplicarCambio, cancelarActividad, NOMBRE_ESTADO_CAMBIO, obtenerCambio, programable, rechazarCambio, solicitarReprogramacion, useCambios, type Cambio, type Programacion } from "./cambios";
+import { aplicarCambio, cancelarActividad, NOMBRE_ESTADO_CAMBIO, obtenerCambio, programable, rechazarCambio, solicitarReprogramacion, useCambios, type Programacion } from "./cambios";
 import { BASE_CAMBIOS, TONO_CAMBIO } from "./utiles";
+import { Chip as ChipPz, Dato, Datos as DatosPz, Encabezado as EncabezadoPz, Historial, Icono as IconoPz, Tarjeta as TarjetaPz, type Movimiento, type TonoEstado } from "../piezasPanel";
 import iconoReloj from "../../../assets/admin/actividades/resultado-reloj.svg";
 import iconoCheck from "../../../assets/admin/contenidos/resultado-check.svg";
 import iconoX from "../../../assets/admin/contenidos/resultado-x.svg";
-import iconoAnterior from "../../../assets/admin/actividades/tarjeta-anterior.svg";
-import iconoSiguiente from "../../../assets/admin/actividades/tarjeta-siguiente.svg";
-import iconoAlerta from "../../../assets/admin/contenidos/tarjeta-alerta.svg";
 import iconoLapiz from "../../../assets/admin/contenidos/tarjeta-lapiz.svg";
 import iconoFlecha from "../../../assets/admin/contenidos/tarjeta-flecha.svg";
 
 const prog = (p?: Programacion) => (p ? `${fechaCorta(p.fecha)} · ${p.hora}` : "—");
-const chipDe = (c: Cambio) => <Chip tono={TONO_CAMBIO[c.estado]}>{NOMBRE_ESTADO_CAMBIO[c.estado]}</Chip>;
 
-// Cambios · detalle (Figma 569:22614), aplicar (569:23071) y rechazar (569:23611)
+// Cambios · detalle, rehecho con las piezas del panel (22 nov 2026, Aldahir: «mejora el diseño al entrar al detalle»).
+// Encabezado con el estado → el cambio (antes y después lado a lado) y sus efectos | la decisión en el lugar
+// (aplicar y avisar con el mensaje, o rechazar con motivo) y el historial debajo, como las demás fichas.
 export function DetalleCambio() {
     const { folio } = useParams();
     const navigate = useNavigate();
     useCambios();
     const actividades = useActividades();
     const { bloqueos } = useSalas();
-    const [ventana, setVentana] = useState<null | "aplicar" | "rechazar">(null);
+    const [decision, setDecision] = useState<null | "aplicar" | "rechazar">(null);
     const [mensaje, setMensaje] = useState("");
     const [motivo, setMotivo] = useState("");
     const [error, setError] = useState("");
@@ -41,84 +40,111 @@ export function DetalleCambio() {
     const a = obtenerActividad(c.actividad);
     const cancelacion = c.tipo === "Cancelación";
     const libre = c.despues ? ocupacion(c.despues.sala, c.despues.fecha, c.despues.hora, actividades.filter((x) => x.folio !== c.actividad), bloqueos).tipo === "libre" : true;
-    const banda = {
-        pendiente: { tono: "dorado" as const, icono: iconoReloj, titulo: "Pendiente de decisión", linea: `Solicitado el ${fechaCorta(c.solicitado)} · Afecta a ${c.inscritos} inscritos` },
-        aplicado: { tono: "verde" as const, icono: iconoCheck, titulo: cancelacion ? "Actividad cancelada" : "Cambio aplicado", linea: `Aplicó: ${c.aplico?.quien} · ${fechaCorta(c.aplico?.fecha ?? "")} · ${c.avisados} personas avisadas` },
-        rechazado: { tono: "guinda" as const, icono: iconoX, titulo: "Cambio rechazado", linea: `Motivo: ${c.rechazo?.motivo}` },
-    }[c.estado];
+    const solicito = c.solicito.replace(/ \(ejemplo\)$/, "");
+    const cambia = (campo: keyof Programacion) => !cancelacion && !!c.despues && c.despues[campo] !== c.antes[campo];
+
+    function elegir(d: "aplicar" | "rechazar") {
+        setError("");
+        if (d === "aplicar" && !mensaje) setMensaje(cancelacion ? "Lamentamos cancelar la actividad." : `Cambiamos ${c!.tipo === "Cambio de sala" ? "la sala" : "la fecha"} de la actividad. Si ya no puedes asistir, puedes cancelar tu inscripción.`);
+        setDecision(decision === d ? null : d);
+    }
+    function confirmar() {
+        if (decision === "aplicar") { aplicarCambio(c!.folio, mensaje); navigate(`${ruta}/aplicado`); return; }
+        if (!motivo.trim()) { setError("Escribe el motivo del rechazo."); return; }
+        rechazarCambio(c!.folio, motivo); navigate(`${ruta}/rechazado`);
+    }
+
+    const movimientos: Movimiento[] = [
+        ...(c.estado === "aplicado" ? [{ titulo: cancelacion ? "Actividad cancelada y avisada" : "Cambio aplicado y avisado", tono: "verde" as const, detalle: `${fechaCorta(c.aplico?.fecha ?? "")}, ${c.aplico?.quien ?? "Coordinación"}`, nota: `Se avisó a ${c.avisados} ${c.avisados === 1 ? "persona" : "personas"}.` }] : []),
+        ...(c.estado === "rechazado" ? [{ titulo: "Cambio rechazado", tono: "guinda" as const, detalle: fechaCorta(c.rechazo?.fecha ?? ""), nota: c.rechazo?.motivo }] : []),
+        ...(c.estado === "pendiente" ? [{ titulo: "Esperando tu decisión", tono: "dorado" as const, detalle: `Afecta a ${c.inscritos} ${c.inscritos === 1 ? "persona inscrita" : "personas inscritas"}` }] : []),
+        { titulo: `${c.tipo} solicitado`, tono: "gris" as const, icono: "contenido" as const, detalle: `${fechaCorta(c.solicitado)}, ${solicito}`, nota: c.motivo },
+    ];
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
-            <Pagina>
-                <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], [ventana === "aplicar" ? "Confirmar cambio" : ventana === "rechazar" ? "Rechazar cambio" : "Detalle"]]} />
-                <EncabezadoTarjeta volver={{ texto: "Volver a Cambios y cancelaciones", ruta: BASE_CAMBIOS }} etiqueta={`Cambio ${c.folio}`} titulo={c.nombre} texto={`${c.tipo} solicitado por ${c.solicito.replace(/ \(ejemplo\)$/, "").toLowerCase() === "personal" ? "el personal" : c.solicito}.`} />
-                <Resultado {...banda} chip={chipDe(c)} />
-                <div className="cn-columnas">
-                    <div className="cn-columnas__principal">
-                        <Tarjeta icono={iconoAnterior} titulo="Antes">
-                            <p className="ac-programacion">{prog(c.antes)}</p>
-                            <p className="cn-nota">{c.antes.sala}</p>
-                        </Tarjeta>
-                    </div>
-                    <div className="cn-columnas__principal">
-                        <section className="cn-tarjeta ac-despues" aria-labelledby="ac-despues">
-                            <div className="cn-tarjeta__cabecera">
-                                <span className="cn-mosaico" aria-hidden="true"><img src={iconoSiguiente} alt="" /></span>
-                                <div><h2 id="ac-despues">Después</h2></div>
-                            </div>
-                            <p className="ac-programacion">{cancelacion ? "Cancelada" : prog(c.despues)}</p>
-                            <p className="cn-nota">{cancelacion ? "Se libera la sala" : c.despues?.sala}</p>
-                        </section>
-                    </div>
-                </div>
-                <Tarjeta icono={iconoAlerta} titulo="Motivo y efectos">
-                    <Datos
-                        filas={[
-                            ["Motivo", c.motivo],
-                            ["Inscritos", `${c.inscritos}${a ? ` de ${a.cupo}` : ""} · ${c.estado === "aplicado" ? "avisados por correo" : "se les avisará por correo"}`],
-                            ...(cancelacion ? [] : [["Sala en la nueva fecha", libre ? "Disponible" : "Ocupada en ese horario"] as [string, string]]),
-                            ["Lista de espera", a?.espera ? `${a.espera} ${a.espera === 1 ? "persona" : "personas"}` : "Sin lista"],
-                        ]}
-                    />
-                </Tarjeta>
-                <div className="cn-acciones">
-                    {c.estado === "pendiente" && (
-                        <>
-                            <button type="button" className={clasesBoton("verde")} onClick={() => { setMensaje(cancelacion ? "Lamentamos cancelar la actividad." : `Cambiamos ${c.tipo === "Cambio de sala" ? "la sala" : "la fecha"} de la actividad. Si ya no puedes asistir, puedes cancelar tu inscripción.`); setVentana("aplicar"); }}>Aplicar cambio y avisar</button>
-                            <button type="button" className={clasesBoton("contorno-guinda")} onClick={() => setVentana("rechazar")}>Rechazar cambio</button>
-                        </>
-                    )}
-                    <Link to={`${BASE_CAMBIOS}?vista=historial`} className={clasesBoton("suave")}>Ver historial de cambios</Link>
-                </div>
-                <PieDatos />
-            </Pagina>
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
+            <div className="pz-pagina">
+                <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], [c.folio]]} />
+                <EncabezadoPz titulo={c.nombre} texto={`${c.tipo}, folio ${c.folio}. Lo solicitó ${solicito.toLowerCase() === "personal" ? "el personal" : solicito} el ${fechaCorta(c.solicitado)}.`}>
+                    <ChipPz tono={TONO_CAMBIO[c.estado] as TonoEstado}>{NOMBRE_ESTADO_CAMBIO[c.estado]}</ChipPz>
+                    <Link to={BASE_CAMBIOS} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a la bandeja</Link>
+                </EncabezadoPz>
 
-            {ventana === "aplicar" && (
-                <Ventana
-                    titulo="¿Aplicar el cambio?"
-                    texto={`Se actualizará el portal y se avisará a las ${c.inscritos} personas inscritas.`}
-                    alCerrar={() => setVentana(null)}
-                    pie={<><button type="button" className={clasesBoton("contorno")} onClick={() => setVentana(null)}>Cancelar</button><button type="button" className={clasesBoton("verde")} onClick={() => { aplicarCambio(c.folio, mensaje); navigate(`${ruta}/aplicado`); }}>Aplicar y avisar</button></>}
-                >
-                    <Datos variante="caja" filas={[["Folio", c.folio], [cancelacion ? "Cambio" : "Nueva fecha", cancelacion ? "Cancelación" : prog(c.despues)], ["Avisos", `${c.inscritos} por correo`]]} />
-                    <CampoTexto id="cb-mensaje" etiqueta="Mensaje para las personas inscritas">
-                        <textarea id="cb-mensaje" className="cn-control cn-control--area" value={mensaje} onChange={(e) => setMensaje(e.target.value)} />
-                    </CampoTexto>
-                </Ventana>
-            )}
-            {ventana === "rechazar" && (
-                <Ventana
-                    titulo="¿Rechazar el cambio?"
-                    texto="La actividad sigue como estaba. Se avisará a quien lo solicitó."
-                    alCerrar={() => setVentana(null)}
-                    pie={<><button type="button" className={clasesBoton("contorno")} onClick={() => setVentana(null)}>Cancelar</button><button type="button" className={clasesBoton("guinda")} onClick={() => { if (!motivo.trim()) return setError("Escribe el motivo."); rechazarCambio(c.folio, motivo); navigate(`${ruta}/rechazado`); }}>Rechazar cambio</button></>}
-                >
-                    <Datos variante="caja" filas={[["Folio", c.folio], ["Cambio", c.tipo], ["Solicitó", c.solicito]]} />
-                    <CampoTexto id="cb-motivo" etiqueta="Motivo" obligatorio error={error}>
-                        <textarea id="cb-motivo" className={`cn-control cn-control--area ${error ? "cn-control--error" : ""}`} placeholder="Ej.: la nueva fecha coincide con otro evento." value={motivo} onChange={(e) => { setMotivo(e.target.value); setError(""); }} aria-invalid={!!error} aria-describedby={error ? "cb-motivo-error" : undefined} />
-                    </CampoTexto>
-                </Ventana>
-            )}
+                <div className="pz-columnas pz-columnas--libre">
+                    <div className="pz-pila">
+                        <TarjetaPz icono="calendario" id="cambio-que" titulo={cancelacion ? "Qué se cancela" : "Qué cambia"} texto={cancelacion ? "La sesión deja de estar en la agenda y se libera la sala" : "Lo que cambia va resaltado en verde"}>
+                            <div className="cb-comparar">
+                                <section className="cb-lado cb-lado--antes" aria-labelledby="cb-antes">
+                                    <p id="cb-antes" className="cb-lado__titulo">Antes</p>
+                                    <dl className="cb-lado__datos">
+                                        <div><dt><IconoPz nombre="calendario" />Fecha</dt><dd>{fechaCorta(c.antes.fecha)}</dd></div>
+                                        <div><dt><IconoPz nombre="reloj" />Hora</dt><dd>{c.antes.hora} h</dd></div>
+                                        <div><dt><IconoPz nombre="espacios" />Sala</dt><dd>{c.antes.sala}</dd></div>
+                                    </dl>
+                                </section>
+                                <span className="cb-comparar__paso" aria-hidden="true">pasa a</span>
+                                {cancelacion || !c.despues ? (
+                                    <section className="cb-lado cb-lado--cancelada" aria-labelledby="cb-despues">
+                                        <p id="cb-despues" className="cb-lado__titulo">Después</p>
+                                        <p className="cb-lado__cancelada"><IconoPz nombre="alerta" />Se cancela</p>
+                                        <p className="cb-lado__nota">La sala queda libre en ese horario.</p>
+                                    </section>
+                                ) : (
+                                    <section className="cb-lado cb-lado--despues" aria-labelledby="cb-despues">
+                                        <p id="cb-despues" className="cb-lado__titulo">Después</p>
+                                        <dl className="cb-lado__datos">
+                                            <div className={cambia("fecha") ? "cb-cambia" : ""}><dt><IconoPz nombre="calendario" />Fecha</dt><dd>{fechaCorta(c.despues.fecha)}</dd></div>
+                                            <div className={cambia("hora") ? "cb-cambia" : ""}><dt><IconoPz nombre="reloj" />Hora</dt><dd>{c.despues.hora} h</dd></div>
+                                            <div className={cambia("sala") ? "cb-cambia" : ""}><dt><IconoPz nombre="espacios" />Sala</dt><dd>{c.despues.sala}</dd></div>
+                                        </dl>
+                                    </section>
+                                )}
+                            </div>
+                        </TarjetaPz>
+                        <TarjetaPz icono="alerta" id="cambio-efectos" titulo="Motivo y efectos" texto="A quién afecta y qué se revisó">
+                            <DatosPz>
+                                <Dato ancho icono="contenido" etiqueta="Motivo">{c.motivo}</Dato>
+                                <Dato icono="grupo" etiqueta="Personas inscritas">{c.inscritos}{a ? ` de ${a.cupo}` : ""}</Dato>
+                                <Dato icono="info" etiqueta="Aviso">{c.estado === "aplicado" ? `Avisadas ${c.avisados}` : "Por correo al aplicar"}</Dato>
+                                {!cancelacion && <Dato icono="espacios" etiqueta="Sala en la nueva fecha"><ChipPz tono={libre ? "verde" : "guinda"}>{libre ? "Disponible" : "Ocupada"}</ChipPz></Dato>}
+                                <Dato icono="lista" etiqueta="Lista de espera">{a?.espera ? `${a.espera} ${a.espera === 1 ? "persona" : "personas"}` : "Sin lista"}</Dato>
+                            </DatosPz>
+                            {!cancelacion && !libre && c.estado === "pendiente" && <p className="pz-acciones__nota">La sala ya está ocupada en el nuevo horario: si lo aplicas, habrá dos actividades en el mismo lugar.</p>}
+                        </TarjetaPz>
+                    </div>
+
+                    <aside className="pz-lateral" aria-label="Decisión e historial">
+                        <TarjetaPz icono="revision" id="cambio-decision" titulo={c.estado === "pendiente" ? "Qué decides" : "Decisión tomada"}
+                            texto={c.estado === "pendiente" ? "Al aplicarlo se actualiza la agenda y se avisa a cada persona" : c.estado === "aplicado" ? "Ya está en la agenda del portal" : "La actividad sigue como estaba"}>
+                            {c.estado === "pendiente" ? <>
+                                <div className="pz-acciones">
+                                    <button type="button" aria-pressed={decision === "aplicar"} className={`pz-boton${decision === "rechazar" ? " pz-boton--contorno" : ""}`} onClick={() => elegir("aplicar")}>{cancelacion ? "Cancelar y avisar" : "Aplicar cambio y avisar"}</button>
+                                    <button type="button" aria-pressed={decision === "rechazar"} className="pz-boton pz-boton--guinda pz-boton--contorno" onClick={() => elegir("rechazar")}>Rechazar cambio</button>
+                                </div>
+                                {decision && <fieldset key={decision} className="pz-decision">
+                                    {decision === "aplicar" ? (
+                                        <label className="pz-campo pz-campo--lleno"><span>Mensaje para las {c.inscritos} personas inscritas</span>
+                                            <textarea rows={4} maxLength={600} value={mensaje} onChange={(e) => setMensaje(e.target.value)} /></label>
+                                    ) : (
+                                        <label className="pz-campo pz-campo--lleno"><span>Motivo del rechazo <span className="contenidos-campo__obligatorio">*</span></span>
+                                            <textarea rows={3} maxLength={600} placeholder="Ej.: la nueva fecha coincide con otro evento." value={motivo} aria-invalid={!!error}
+                                                onChange={(e) => { setMotivo(e.target.value); setError(""); }} /></label>
+                                    )}
+                                    {error && <p className="cb-error" role="alert">{error}</p>}
+                                    <p className="pz-acciones__nota">{decision === "aplicar" ? "Se actualiza el portal y cada persona recibe el aviso por correo." : "Se avisa a quien lo solicitó; la actividad no cambia."}</p>
+                                    <button type="button" className={`pz-boton${decision === "rechazar" ? " pz-boton--guinda" : ""}`} onClick={confirmar}>{decision === "aplicar" ? "Sí, aplicar y avisar" : "Sí, rechazar"}</button>
+                                </fieldset>}
+                            </> : (
+                                <DatosPz>
+                                    <Dato ancho icono={c.estado === "aplicado" ? "check" : "alerta"} etiqueta={c.estado === "aplicado" ? "Aplicó" : "Motivo"}>{c.estado === "aplicado" ? `${c.aplico?.quien}, ${fechaCorta(c.aplico?.fecha ?? "")}` : c.rechazo?.motivo}</Dato>
+                                </DatosPz>
+                            )}
+                            <Link to={`${BASE_CAMBIOS}?vista=historial`} className="pz-boton pz-boton--contorno pz-boton--chico cb-ver-historial">Ver todos los cambios decididos</Link>
+                        </TarjetaPz>
+                        <Historial id="cambio-historial" movimientos={movimientos} />
+                    </aside>
+                </div>
+            </div>
         </PanelLayout>
     );
 }
@@ -144,7 +170,7 @@ export function CancelarActividad() {
     }
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], [confirmar ? "Confirmar cancelación" : "Cancelar actividad"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Cambios y cancelaciones", ruta: BASE_CAMBIOS }} etiqueta="Cambios y cancelaciones" titulo="Cancelar una actividad" texto="Se avisará a las personas inscritas y se liberará la sala." />
@@ -223,7 +249,7 @@ export function Reprogramar() {
     const clase = (c: string) => `cn-control ${errores[c] ? "cn-control--error" : ""}`;
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], ["Reprogramar"]]} />
                 <EncabezadoTarjeta volver={{ texto: "Volver a Cambios y cancelaciones", ruta: BASE_CAMBIOS }} etiqueta="Cambios y cancelaciones" titulo="Reprogramar una actividad" texto="Elige nueva fecha, hora o sala." />
@@ -271,7 +297,7 @@ export function ResultadoCambio({ tipo }: { tipo: "aplicado" | "rechazado" | "ca
     }[tipo];
 
     return (
-        <PanelLayout titulo="Actividades" tema="contenidos">
+        <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Actividades"], ["Cambios y cancelaciones", BASE_CAMBIOS], [datos.titulo]]} />
                 <Encabezado grande etiqueta={datos.etiqueta} titulo={datos.titulo} texto={datos.texto} />

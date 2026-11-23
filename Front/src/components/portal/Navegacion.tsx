@@ -2,6 +2,7 @@ import { tienePanel } from "../../servicios/accesoPanel";
 import { useEffect, useState } from "react";
 import { tieneCapacidad } from "../../servicios/altaAsistida";
 import { cerrarSesion, consultarMiAcceso } from "../../servicios/auth";
+import { salirConAnimacion } from "../sesion/transicion";
 import { obtenerSupabase, mensajeError } from "../../servicios/api";
 import { Link, NavLink, useNavigate } from "react-router";
 import MenuCuenta from "../../pages/publico/perfil/MenuCuenta";
@@ -25,6 +26,9 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
     const [correo, setCorreo] = useState("");
     const [altaAsistida, setAltaAsistida] = useState(false);
     const [panel, setPanel] = useState(false);
+    // Quien llegó desde el panel (misma pestaña, «Ver el portal») ve «Volver al panel» de inmediato, sin esperar a que se
+    // confirmen sus permisos, y vuelve a la última pantalla que tenía abierta (PanelLayout la guarda en la pestaña).
+    const [ultimaPanel] = useState(() => { try { return sessionStorage.getItem("panel-ultima-ruta"); } catch { return null; } });
     const [error, setError] = useState("");
     const [cerrando, setCerrando] = useState(false);
     const [menuAbierto, setMenuAbierto] = useState(false);
@@ -64,7 +68,10 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
     // Al cerrar sesión se regresa al Inicio del portal (desde cualquier página)
     async function salir() {
         setCerrando(true); setError("");
-        try { await cerrarSesion(); setPanel(false); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); navegar("/", { replace: true }); window.scrollTo(0, 0); }
+        try {
+            // Con la animación de salida (components/salida): «Cerrando tu sesión…» → «Hasta pronto» → Inicio
+            await salirConAnimacion({ tema: "portal", cerrar: cerrarSesion, ir: () => { setPanel(false); setAltaAsistida(false); setCorreo(""); alCambiarSesion?.(false); navegar("/", { replace: true }); } });
+        }
         catch (error) { setError(mensajeError(error)); }
         finally { setCerrando(false); }
     }
@@ -89,8 +96,8 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
             </div>
                 <div className="navegacion__cuenta">
                     {correo ? <>
-                        {panel && <Link to="/admin" className="navegacion__boton">Panel del personal</Link>}
-                        {altaAsistida && <Link to="/personal/alta-asistida" className="navegacion__boton">Alta asistida</Link>}
+                        {(panel || ultimaPanel) && <Link to={ultimaPanel ?? "/admin"} className="navegacion__boton navegacion__boton--panel">Volver al panel</Link>}
+                        {altaAsistida && <Link to="/admin/atencion/altas-asistidas" className="navegacion__boton">Alta asistida</Link>}
                         {/* Campana, «Mi perfil» y menú de cuenta con sesión (T4 · Actor 2, Figma 476:20760) */}
                         <MenuCuenta correo={correo} cerrando={cerrando} alCerrarSesion={salir} />
                     </> : <>

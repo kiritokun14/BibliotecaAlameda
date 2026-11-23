@@ -45,7 +45,7 @@ function Propuestas({ vista }: { vista: "bandeja" | "todas" }) {
     const propuestas = useSolicitudes("propuestas");
 
     return (
-        <PanelLayout titulo="Atención" tema="contenidos">
+        <PanelLayout titulo="Atención" tema="contenidos paleta">
             <Bandeja
                 vista={vista}
                 config={configPropuestas}

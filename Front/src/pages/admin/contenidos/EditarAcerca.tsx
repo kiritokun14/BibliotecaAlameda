@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import PanelLayout from "../PanelLayout";
-import { Campo, IconoBandera, IconoBuscar, IconoFlechaIzq, IconoLapiz, IconoLista, Interruptor, Migas, PanelEstado } from "./piezas";
+import { Campo, IconoBandera, IconoBuscar, IconoLapiz, IconoLista, Interruptor, Migas, PanelEstado } from "./piezas";
 import { SECCIONES_ACERCA, type SeccionAcerca } from "./tipos";
 import ConfirmarEnvio from "./ConfirmarEnvio";
 import { datoTexto, useBorrador } from "./usarBorrador";
 import type { Contenido } from "../../../servicios/contenidos";
+import { Encabezado as EncabezadoPz } from "../piezasPanel";
 import "./Contenidos.css";
 
 // Edición de «Acerca de la biblioteca». Cada sección es un contenido aparte y se
@@ -56,19 +56,10 @@ function EditarAcerca({ inicial }: { inicial?: Contenido }) {
     const coincidencias = termino ? valores.texto.toLowerCase().split(termino).length - 1 : 0;
 
     return (
-        <PanelLayout titulo="Contenidos" tema="contenidos">
+        <PanelLayout titulo="Contenidos" tema="contenidos paleta">
             <Migas actual="Borrador" />
 
-            <div className="contenidos-encabezado contenidos-encabezado--tarjeta">
-                <div>
-                    <Link to="/admin/contenidos/editor" className="contenidos-volver">
-                        <span className="contenidos-volver__circulo"><IconoFlechaIzq /></span>
-                        Volver a Mis contenidos
-                    </Link>
-                    <h1>Editar «Acerca de la biblioteca»</h1>
-                    <p className="contenidos-encabezado__texto">Elige la sección que vas a modificar. Cada sección se autoriza por separado.</p>
-                </div>
-            </div>
+            <EncabezadoPz titulo="Editar Acerca de la biblioteca" texto="Elige la sección que vas a modificar. Cada sección se autoriza por separado." />
 
             <form
                 className="contenidos-formulario"
@@ -124,7 +115,7 @@ function EditarAcerca({ inicial }: { inicial?: Contenido }) {
                         </Campo>
 
                         {actual.lineaTiempo && (
-                            <Campo id="acerca-linea" etiqueta="Datos que se muestran en la línea del tiempo" ayuda="Si no están confirmados, se muestran como «por confirmar».">
+                            <Campo id="acerca-linea" etiqueta="Datos que se muestran en la línea del tiempo" ayuda="Si no están confirmados, se muestran como por confirmar.">
                                 <input id="acerca-linea" type="text" placeholder="Año de fundación · por confirmar" value={valores.lineaTiempo} onChange={(e) => cambiar("lineaTiempo", e.target.value)} aria-describedby="acerca-linea-ayuda" />
                             </Campo>
                         )}
@@ -137,7 +128,7 @@ function EditarAcerca({ inicial }: { inicial?: Contenido }) {
                             <span className="contenidos-lista__icono"><IconoBandera /></span>
                             <h2 id="acerca-publicacion">Publicación</h2>
                         </div>
-                        <Interruptor id="acerca-enlace" titulo="Mostrar enlace «Acerca de» en Inicio" activo={enlaceInicio} alCambiar={setEnlaceInicio} />
+                        <Interruptor id="acerca-enlace" titulo="Mostrar enlace Acerca de en Inicio" activo={enlaceInicio} alCambiar={setEnlaceInicio} />
                         <div className="contenidos-campo">
                             <p className="contenidos-campo__etiqueta">Última versión publicada</p>
                             {/* TODO: fecha real de la última versión autorizada */}
