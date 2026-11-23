@@ -94,6 +94,8 @@ const DetalleResena = lazy(() => import("./pages/publico/lecturas/DetalleResena.
 const DetalleMemoria = lazy(() => import("./pages/publico/lecturas/DetalleMemoria.tsx"));
 const Resumen = lazy(() => import("./pages/admin/resumen/Resumen.tsx"));
 const Notificaciones = lazy(() => import("./pages/admin/notificaciones/Notificaciones.tsx"));
+// Mi cuenta del personal dentro del panel (T3, 22 nov 2026); el portal conserva su propio /mi-perfil
+const PerfilPanel = lazy(() => import("./pages/admin/perfil/PerfilPanel.tsx"));
 const BandejaRevision = lazy(() => import("./pages/admin/revision/Revision.tsx").then(m => ({ default: m.BandejaRevision })));
 const RevisarContenido = lazy(() => import("./pages/admin/revision/Revision.tsx"));
 const PedirCambios = lazy(() => import("./pages/admin/revision/Revision.tsx"));
@@ -241,6 +243,7 @@ function App() {
         <Route path="/admin/atencion/avisos/demostracion/:folio/borrador" element={<AccesoPanel><ResultadoAviso tipo="borrador" /></AccesoPanel>} />
 
         <Route path="/admin/atencion/bibliocomunidad" element={<Navigate to="/admin/resumen" replace />} />
+        <Route path="/admin/atencion/altas-asistidas" element={<AccesoPanel><AltaAsistida /></AccesoPanel>} />
         <Route path="/admin/atencion/contactos" element={<AccesoPanel><AtencionComunidad key="contactos" /></AccesoPanel>} />
         <Route path="/admin/administracion/fuentes" element={<AccesoPanel><FuentesAsistente /></AccesoPanel>} />
         {/* Administración: Cuentas y permisos, Estadísticas, Bitácora y Configuración */}
@@ -317,6 +320,10 @@ function App() {
         <Route path="/lecturas/:id" element={<DetalleResena />} />
         <Route path="/admin/resumen" element={<AccesoPanel><Resumen /></AccesoPanel>} />
         <Route path="/admin/notificaciones" element={<AccesoPanel><Notificaciones /></AccesoPanel>} />
+        <Route path="/admin/perfil" element={<AccesoPanel><PerfilPanel key="resumen" seccion="resumen" /></AccesoPanel>} />
+        <Route path="/admin/perfil/datos" element={<AccesoPanel><PerfilPanel key="datos" seccion="datos" /></AccesoPanel>} />
+        <Route path="/admin/perfil/avisos" element={<AccesoPanel><PerfilPanel key="avisos" seccion="avisos" /></AccesoPanel>} />
+        <Route path="/admin/perfil/seguridad" element={<AccesoPanel><PerfilPanel key="seguridad" seccion="seguridad" /></AccesoPanel>} />
         <Route path="/admin/contenidos/demostracion" element={<Navigate to="/admin/contenidos/editor" replace />} />
         <Route path="/admin/contenidos/demostracion/nuevo" element={<Navigate to="/admin/contenidos/editor" replace />} />
         <Route path="/admin/contenidos/demostracion/:folio" element={<Navigate to="/admin/contenidos/editor" replace />} />

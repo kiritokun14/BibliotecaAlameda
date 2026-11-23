@@ -77,7 +77,8 @@ export default function CabeceraPanel({ titulo, menuAbierto, alAbrirMenu }: { ti
 function Avisos({ abierto, boton, alAlternar, alCerrar }: {
     abierto: boolean; boton: RefObject<HTMLButtonElement | null>; alAlternar: () => void; alCerrar: () => void;
 }) {
-    const { lista, pendientes, leer, leerTodas } = useNotificaciones();
+    const identidadAvisos = useContext(ContextoPanel);
+    const { lista, pendientes, leer, leerTodas } = useNotificaciones(identidadAvisos?.acceso);
     const navegar = useNavigate();
     const id = useId();
     // Primero las sin leer; después las demás, en el orden en que llegaron
@@ -180,11 +181,11 @@ function Perfil({ abierto, boton, alAlternar }: { abierto: boolean; boton: RefOb
                         </ul>
                     )}
                     <ul className="cab-opciones">
-                        <Opcion ruta="/mi-perfil" icono="usuario" texto="Ver mi perfil" detalle="Resumen de mi cuenta" />
-                        <Opcion ruta="/mi-perfil/datos" icono="contenido" texto="Mis datos" detalle="Nombre, correo y teléfono" />
-                        <Opcion ruta="/mi-perfil/avisos" icono="aviso" texto="Avisos que recibo" detalle="Cómo y cuándo te avisamos" />
+                        <Opcion ruta="/admin/perfil" icono="usuario" texto="Mi cuenta" detalle="Mis datos y lo que puedo hacer" />
+                        <Opcion ruta="/admin/perfil/datos" icono="contenido" texto="Mis datos" detalle="Nombre y teléfono" />
+                        <Opcion ruta="/admin/perfil/avisos" icono="aviso" texto="Avisos que recibo" detalle="Cómo y cuándo te avisamos" />
                         {puedeConfigurar && <Opcion ruta="/admin/administracion/configuracion" icono="calendario" texto="Configuración del portal" detalle="Datos, horarios y mantenimiento" />}
-                        <Opcion ruta="/mi-perfil/seguridad" icono="cuentas" texto="Seguridad" detalle="Contraseña y sesión" />
+                        <Opcion ruta="/admin/perfil/seguridad" icono="cuentas" texto="Seguridad" detalle="Contraseña y sesión" />
                     </ul>
                     <div className="cab-salir">
                         {/* Única opción con ícono dentro del botón (AGENTS §2, como «Cerrar sesión» del perfil del portal) */}

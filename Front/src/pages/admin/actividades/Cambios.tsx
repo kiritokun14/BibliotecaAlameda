@@ -86,7 +86,6 @@ function Cambios() {
                             )}
                         <div className="pz-tarjeta__pie">
                             <p aria-live="polite">{filtrados.length} de {cambios.length} cambios</p>
-                            {import.meta.env.DEV && <p className="ac-solo-desarrollo">Solo en desarrollo: <Link to={`${BASE_CAMBIOS}/cancelar`}>simular una cancelación</Link>, <Link to={`${BASE_CAMBIOS}/reprogramar`}>simular una reprogramación</Link></p>}
                         </div>
                     </Tarjeta>
 
@@ -107,6 +106,18 @@ function Cambios() {
                             ) : <Vacio icono="bitacora" titulo="Nada decidido aún" texto="Lo que apliques o rechaces aparecerá aquí." />}
                             <Link to={HISTORIAL} className="pz-boton pz-boton--contorno pz-boton--chico cal-ver-dia">Ver historial completo</Link>
                         </Tarjeta>
+                        {import.meta.env.DEV && (
+                            <section className="pz-tarjeta ac-desarrollo" aria-labelledby="cambios-desarrollo">
+                                <div className="ac-desarrollo__cabecera">
+                                    <span className="ac-desarrollo__insignia" aria-hidden="true"><Icono nombre="configuracion" /></span>
+                                    <div><h3 id="cambios-desarrollo">Solo en desarrollo</h3><p>Simula un cambio para revisar las pantallas. No se ve en producción.</p></div>
+                                </div>
+                                <div className="pz-acciones pz-acciones--fila">
+                                    <Link to={`${BASE_CAMBIOS}/cancelar`} className="pz-boton pz-boton--contorno pz-boton--chico">Simular cancelación</Link>
+                                    <Link to={`${BASE_CAMBIOS}/reprogramar`} className="pz-boton pz-boton--contorno pz-boton--chico">Simular reprogramación</Link>
+                                </div>
+                            </section>
+                        )}
                         <Plegable titulo="Cómo funciona un cambio">
                             <ul>
                                 <li>Quien coordina la actividad pide el cambio desde la sesión (fecha, hora, sala o cancelación).</li>

@@ -50,7 +50,8 @@ function Asistencia() {
     const elegir = (p: Periodo) => setParams(p === "hoy" ? {} : { ver: p });
     const limpiar = () => { setBusqueda(""); setEstadoFiltro(""); elegir("hoy"); };
     const titulos: Record<Periodo, string> = { hoy: "Actividades de hoy", semana: "Actividades de esta semana", anteriores: "Actividades anteriores" };
-    const ultimas = cerradas.sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 5);
+    const ultimas = cerradas.sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 4);
+    const proximas = conLista.filter((a) => a.fecha >= hoy && a.estado !== "cancelada").sort((a, b) => (a.fecha + a.inicio).localeCompare(b.fecha + b.inicio)).slice(0, 3);
 
     return (
         <PanelLayout titulo="Actividades" tema="contenidos paleta">
@@ -110,7 +111,25 @@ function Asistencia() {
                         )}
                         <div className="pz-tarjeta__pie"><p aria-live="polite">{filas.length} {filas.length === 1 ? "actividad" : "actividades"}</p></div>
                     </Tarjeta>
-                    <aside className="pz-lateral" aria-label="Últimas listas cerradas">
+                    <aside className="pz-lateral" aria-label="Próximas y últimas listas">
+                        <Tarjeta icono="hoy" id="asistencia-proximas" titulo="Próximas listas" texto={proximas.length ? "Las siguientes actividades con inscripción" : "Nada programado"}>
+                            {proximas.length ? (
+                                <ul className="pz-actividades">
+                                    {proximas.map((a) => {
+                                        const [d, m] = partes(a.fecha);
+                                        return (
+                                            <li key={a.folio}>
+                                                <span className="pz-actividades__hora"><strong>{d}</strong><span>{m}</span></span>
+                                                <div className="pz-actividades__textos">
+                                                    <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className="pz-actividades__titulo pz-enlace-fila">{a.nombre}</Link>
+                                                    <p className="pz-actividades__detalle">{a.inicio} h, {a.espacio}. {a.inscritos} inscritos</p>
+                                                </div>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            ) : <p className="pz-acciones__nota">Cuando se programe una actividad con inscripción, su lista aparecerá aquí.</p>}
+                        </Tarjeta>
                         <Tarjeta icono="estadisticas" id="asistencia-ultimas" titulo="Últimas listas cerradas" texto={`${cerradas.length} ${cerradas.length === 1 ? "lista cerrada" : "listas cerradas"} en total`} className="pz-tarjeta--actividades">
                             {ultimas.length ? (
                                 <ol className="pz-ranking">
@@ -162,6 +181,8 @@ export function PasarLista() {
     const [nueva, setNueva] = useState<Marca>("presente");
     const [motivo, setMotivo] = useState("");
     const [errorCampo, setErrorCampo] = useState("");
+    const [verMarca, setVerMarca] = useState<"todas" | Marca>("todas");
+    const [buscarPersona, setBuscarPersona] = useState("");
     const a = obtenerActividad(folio);
     if (!a || !a.inscripcion) return <Navigate to={BASE_ASISTENCIA} replace />;
     const lista = listaDe(a.folio, listas);
@@ -173,6 +194,8 @@ export function PasarLista() {
     const total = c.presentes + c.ausentes + c.sinMarcar;
     const avance = porcentaje(c.presentes + c.ausentes, total);
     const asistencia = porcentaje(c.presentes, c.inscritos + c.sinInscripcion);
+    const textoPersona = buscarPersona.trim().toLowerCase();
+    const visibles = personas.filter((p) => (verMarca === "todas" || marcaDe(p.id, p.extra) === verMarca) && (!textoPersona || p.persona.toLowerCase().includes(textoPersona)));
 
     async function guardar() {
         setGuardado(false);
@@ -203,12 +226,27 @@ export function PasarLista() {
                 <div className="pz-columnas">
                     <Tarjeta icono="grupo" id="pasar-lista" titulo={cerrada ? "Registro de asistencia" : "Personas inscritas"} className="pz-pendientes"
                         texto={cerrada ? "Para cambiar una marca, usa «Corregir»: queda en la bitácora" : "Marca a cada persona; puedes guardar y seguir después"}
-                        accion={!cerrada && c.sinMarcar > 0 ? <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => marcarTodos("presente")}>Marcar pendientes como presentes</button> : undefined}>
-                        {personas.length === 0 ? <Vacio icono="grupo" titulo="No hay personas inscritas" texto="Puedes agregar a quien llegó sin inscripción." /> : (
+                        accion={!cerrada && c.sinMarcar > 0 ? <div className="pz-acciones pz-acciones--fila">
+                            <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => marcarTodos("presente")}>Pendientes a presentes</button>
+                            <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => marcarTodos("ausente")}>Pendientes a ausentes</button>
+                        </div> : undefined}>
+                        {personas.length > 0 && <div className="pz-herramientas">
+                            <Segmentado<"todas" | Marca> etiqueta="Ver por marca" valor={verMarca} alCambiar={setVerMarca} opciones={[
+                                { valor: "todas", texto: "Todas", cantidad: personas.length },
+                                ...(cerrada ? [] : [{ valor: "sin" as Marca, texto: "Sin marcar", cantidad: c.sinMarcar, urgente: true }]),
+                                { valor: "presente", texto: "Presentes", cantidad: c.presentes },
+                                { valor: "ausente", texto: "Ausentes", cantidad: c.ausentes },
+                            ]} />
+                            <Buscador etiqueta="Buscar persona" placeholder="Nombre de la persona" valor={buscarPersona} alCambiar={setBuscarPersona} />
+                        </div>}
+                        {personas.length === 0 ? <Vacio icono="grupo" titulo="No hay personas inscritas" texto="Puedes agregar a quien llegó sin inscripción." />
+                            : visibles.length === 0 ? <Vacio icono="buscarCuenta" titulo="Nadie con ese filtro" texto="Prueba con otra marca u otro nombre."
+                                accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setVerMarca("todas"); setBuscarPersona(""); }}>Ver a todas</button>} /> : (
                             <div className="pz-grupos" tabIndex={0} role="region" aria-label="Lista de asistencia">
                                 <ul className="pz-filas">
-                                    {personas.map((p, n) => {
+                                    {visibles.map((p) => {
                                         const m = marcaDe(p.id, p.extra);
+                                        const n = personas.indexOf(p);
                                         return (
                                             <li key={p.id}>
                                                 <article className={`pz-fila as-fila as-fila--${m}`}>
@@ -234,7 +272,7 @@ export function PasarLista() {
                                 </ul>
                             </div>
                         )}
-                        <div className="pz-tarjeta__pie"><p>{personas.length} {personas.length === 1 ? "persona" : "personas"}</p></div>
+                        <div className="pz-tarjeta__pie"><p aria-live="polite">{visibles.length} de {personas.length} {personas.length === 1 ? "persona" : "personas"}</p></div>
                     </Tarjeta>
 
                     <aside className="pz-lateral" aria-label="Avance de la lista">

@@ -880,6 +880,14 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
 .pz-ranking__lugar svg { width: 15px; height: 15px; }
 .pz-fila__plazo { margin: 4px 0 0; color: var(--pz-urgente); font-size: 12px; font-weight: 700; }
 .pz-fila__icono--vino { background: var(--pz-urgente-claro) !important; color: var(--pz-urgente) !important; }
+.vis-semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.vis-semana__dia { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px; border-radius: 12px; background: var(--pz-fondo); color: var(--pz-gris); text-align: center; animation: pz-entra 0.35s ease-out backwards; }
+.vis-semana__dia span { font-size: 11px; font-weight: 700; text-transform: capitalize; }
+.vis-semana__dia strong { color: var(--pz-texto); font-size: 16px; }
+.vis-semana__dia small { font-size: 10px; font-weight: 700; line-height: 12px; }
+.vis-semana__dia--ocupado { background: var(--pz-claro-2); color: var(--pz-primario); }
+.vis-semana__dia--hoy { box-shadow: inset 0 0 0 2px var(--pz-tono-borde); }
+.vis-plazo--holgado { color: var(--pz-tono-texto) !important; }
 .vis-proxima__grupo { margin: 0; color: var(--pz-texto); font-size: 16px; font-weight: 800; }
 .ac-solo-desarrollo { margin: 0; color: var(--pz-gris); font-size: 12px; }
 /* Cambio de programación: antes (tachado) y después */
@@ -909,6 +917,14 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
 .ins-medidor__centro { position: relative; display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
 .ins-medidor__centro strong { color: var(--pz-texto); font-size: 30px; font-weight: 800; }
 .ins-medidor__centro small { color: var(--pz-gris); font-size: 12.5px; font-weight: 700; }
+.ins-desglose__punto { width: 12px !important; height: 12px !important; margin: 0 8px; }
+.ins-desglose__punto--verde { background: var(--pz-primario) !important; }
+.ins-desglose__punto--dorado { background: #c9a24a !important; }
+.ins-desglose__punto--guinda { background: var(--pz-urgente) !important; }
+.ins-desglose__punto--gris { background: #b9b3a5 !important; }
+.as-barra--gris span { background: #b9b3a5 !important; }
+.as-barra--verde span { background: var(--pz-primario) !important; }
+.pz-tarjeta--actividades.pz-tarjeta { overflow-y: auto; scrollbar-width: thin; }
 .ins-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; }
 .ins-decision { margin: 6px 0 4px 52px; }
 /* Asistencia: número, nota en línea, presente o ausente segmentado y color por marca */
@@ -942,9 +958,28 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
 .pz-envio__lista--una { grid-template-columns: 1fr; }
 @media (prefers-reduced-motion: reduce) { :is(.ins-medidor, .ins-llenas li) { animation: none; } }
 
+/* ---------- Reglas comunes de listas (22 nov 2026, Aldahir) ----------
+   1) El mensaje de «no hay nada» (Vacio) va centrado en el alto y el ancho de su tarjeta.
+   2) Filas simétricas: el chip de estado y la acción tienen ancho fijo, así al cambiar el estado de una solicitud
+      («Por revisar» → «Aprobada») las columnas no se encogen ni se mueven, en ninguna lista. */
+.pz-tarjeta > .pz-vacio, .pz-tarjeta > .pz-grupos > .pz-vacio, .pz-pila .pz-tarjeta > .pz-vacio { flex: 1 1 auto; justify-content: center; min-height: 180px; }
+.pz-fila > .pz-chip { justify-self: end; justify-content: center; width: 138px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pz-fila > .pz-boton, .pz-fila > a.pz-boton { justify-self: end; justify-content: center; min-width: 108px; box-sizing: border-box; text-align: center; }
+.pz-fila > span[aria-hidden="true"]:empty { width: 108px; }
+.pz-fila > .pz-acciones__nota { justify-self: end; width: 108px; text-align: center; }
+
+/* Mapa «Dónde es» en el panel (MapaDonde: detalle de espacio y de propuesta), con el plano del portal en solo lectura */
+.pz-mapa { position: relative; height: 280px; overflow: hidden; border: 1px solid var(--pz-borde); border-radius: 16px; }
+.pz-mapa .esp-mapa__lienzo { position: absolute; inset: 0; background: #fbf9f4 radial-gradient(#ebe4d6 1px, transparent 1px) 0 0 / 18px 18px; }
+.pz-mapa .esp-mapa__svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.pz-mapa .esp-mapa__svg--foco .esp-mapa__fondo { filter: blur(2.5px) saturate(0.55); opacity: 0.55; }
+.pz-mapa .esp-zona--tenue, .pz-mapa .esp-etiqueta--tenue { opacity: 0.25; }
+.at-detalle .at-columna { display: flex; flex-direction: column; gap: 16px; }
+
 /* ---------- Progreso y recompensas, bandeja de Atención y Estadísticas (22 nov 2026) ---------- */
 .pr-fila { grid-template-columns: auto minmax(0, 1fr) 140px auto auto; }
 .pr-pendiente { margin: 0 !important; }
+.pr-puntos { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--pz-tono); color: var(--pz-tono-texto); font-size: 11.5px; font-weight: 800; }
 .pz-herramientas--apiladas { flex-direction: column-reverse; align-items: stretch; }
 .pz-herramientas--apiladas .pz-segmentado { align-self: flex-start; }
 /* Bandeja de Atención: título de la solicitud y sus datos en fichas */
@@ -952,11 +987,16 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
 .ba-titulo .at-celda-doble { display: flex; flex-direction: column; gap: 1px; }
 .ba-titulo .at-celda-doble span { color: var(--pz-texto); font-size: 15px; font-weight: 800; }
 .ba-titulo .at-celda-doble small { color: var(--pz-gris); font-size: 12.5px; font-weight: 600; }
-.ba-datos { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
-.ba-dato { display: inline-flex; align-items: baseline; gap: 5px; padding: 3px 9px; border-radius: 999px; background: var(--pz-fondo); color: var(--pz-texto); font-size: 12.5px; font-weight: 700; }
-.ba-dato small { color: var(--pz-gris); font-size: 11.5px; font-weight: 600; }
-.ba-dato .at-celda-doble { display: inline-flex; gap: 5px; }
-.ba-dato .at-celda-doble small { font-size: 11.5px; }
+.ba-datos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px 16px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--pz-borde); }
+.ba-dato { display: flex; flex-direction: column; gap: 2px; min-width: 0; color: var(--pz-texto); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+.ba-dato > small { color: var(--pz-gris); font-size: 11.5px; font-weight: 600; }
+.ba-dato .at-celda-doble { display: flex; flex-direction: column; gap: 1px; }
+.ba-dato .at-celda-doble small { color: var(--pz-gris); font-size: 11.5px; font-weight: 600; }
+.ba-dato .pz-fila__folio { align-self: flex-start; }
+.ba-fila { align-items: center; padding: 14px 16px; }
+.ba-datos--fila { grid-column: 1 / -1; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 4px; }
+.ba-fila > .pz-fila__plazo { grid-column: 2 / -1; margin-top: -6px !important; }
+.ba-fila > .pz-fila__icono, .ba-fila > .pz-chip, .ba-fila > .pz-boton { margin-top: 2px; }
 .ba-icono--pendiente { background: var(--pz-tono) !important; color: var(--pz-tono-texto) !important; }
 .ba-icono--observaciones { background: var(--pz-urgente-claro) !important; color: var(--pz-urgente) !important; }
 .ba-icono--aprobada { background: var(--pz-claro-2) !important; color: var(--pz-primario) !important; }
@@ -1276,3 +1316,27 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
   .pz-pagina *, .pz-pagina *::before, .pz-pagina *::after, .pz-filtros-av__panel, .pz-filtros-av__panel * { animation: none !important; transition: none !important; }
   .pz-pagina :is(.pz-acceso, .pz-cifra, .pz-boton, .pz-fila, .pz-ficha, .pz-casilla, .pz-pastilla, .pz-ranking__boton):hover { transform: none; }
 }
+
+/* ---------- Ajustes del 22 nov 2026 (T3, pedidos por Aldahir) ---------- */
+/* Fichas y formularios: las tarjetas del lateral no se encogen (con overflow: hidden se recortaban sus botones del pie);
+   si no caben, el lateral se desplaza por dentro. */
+.pz-columnas--libre > .pz-lateral > * { flex-shrink: 0; }
+/* Pie de las tablas: sin el texto «N de M …» a la vista (Aldahir); se queda para lectores de pantalla (aria-live)
+   y la paginación pasa a la derecha. Si el pie solo tenía ese texto, ya no deja línea ni espacio. */
+:is(.pz-tarjeta__pie, .contenidos-lista__pie) > p:not(.ac-solo-desarrollo) {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+:is(.pz-tarjeta__pie, .contenidos-lista__pie) { justify-content: flex-end; }
+:is(.pz-tarjeta__pie, .contenidos-lista__pie):not(:has(> :not(p:not(.ac-solo-desarrollo)))) { padding: 0; border: 0; margin: 0; min-height: 0; }
+/* Vacío dentro de una tarjeta del lateral (p. ej. «Sin citas próximas»): ocupa el alto libre y queda centrado */
+.pz-tarjeta--actividades > .pz-vacio { flex: 1 1 auto; justify-content: center; }
+/* Esqueletos de carga con la paleta del panel (T3, 22 nov 2026): los bloques venían del portal en crema y verde.
+   Dentro del panel van en azul claro y con el borde de la paleta; el brillo no cambia. */
+.panel--paleta .esqueleto__bloque, .panel--paleta .ac-cifra-cargando { background: var(--adm-celeste-100); }
+.panel--paleta :is(.esqueleto-lista__fila, .esqueleto-detalle__principal, .esqueleto-detalle__lateral, .estado-panel__esqueleto) { border-color: var(--adm-borde); }
+.panel--paleta :is(.esqueleto-panel__tarjeta, .esqueleto-panel__tabla) { background: var(--adm-celeste-100); }
+/* Apartados que son enlaces (Mi cuenta): sin subrayado, igual que los botones de Configuración */
+a.pz-apartado, a.pz-apartado:hover { color: inherit; text-decoration: none; }
+/* Etiqueta que es enlace (Mi cuenta › Lo que puedes hacer): lleva a esa pantalla; al pasar el mouse, se rellena del color principal */
+a.pz-etiqueta--enlace { color: inherit; text-decoration: none; transition: border-color 0.2s ease, background-color 0.2s ease; }
+a.pz-etiqueta--enlace:hover { background: var(--pz-primario); color: #fff; }

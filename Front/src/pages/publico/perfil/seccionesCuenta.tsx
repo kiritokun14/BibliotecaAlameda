@@ -26,6 +26,8 @@ import tarjetaCandado from "../../../assets/perfil/tarjeta-candado.svg";
 import filaCalendario from "../../../assets/perfil/fila-calendario-verde.svg";
 import progresoCirculo from "../../../assets/perfil/progreso-circulo.svg";
 
+import { GaleriaInsignias } from "../../../components/portal/Insignias";
+import { insigniasDe } from "../../../servicios/insignias"; // TODO backend: GET /v1/me/insignias
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 function NotaInfo({ children }: { children: ReactNode }) {
     return <div className="perfil-nota"><img src={notaInfo} alt="" /><p>{children}</p></div>;
@@ -259,6 +261,10 @@ export function Progreso({ menor = false }: { menor?: boolean }) {
                         );
                     })}
                 </ol>
+            </TarjetaPerfil>
+            <TarjetaPerfil color="verde" icono={tarjetaEstrella} titulo="Mis insignias"
+                texto="Se ganan solas al participar: cada una dice qué la desbloquea y cuánto te falta.">
+                <GaleriaInsignias insignias={insigniasDe({ asistencias: vigente ? asistencias : 0, clubes: vigente ? 1 : 0, talleres: vigente ? 1 : 0, credencial: vigente ? 1 : 0, propuestas: 0 })} />
             </TarjetaPerfil>
             <section className="perfil-panel" aria-labelledby="titulo-recompensas">
                 <EtiquetaPerfil id="titulo-recompensas" icono={iconosSeccion.progreso}>Mis recompensas</EtiquetaPerfil>

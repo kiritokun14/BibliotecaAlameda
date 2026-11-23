@@ -5,7 +5,6 @@ import {
     AvisoResultado,
     Chip,
     Dato,
-    EncabezadoPagina,
     Migas,
     Tarjeta,
     TarjetaHistorial,
@@ -13,6 +12,9 @@ import {
     type EventoHistorial,
 } from "../componentes";
 import { actualizarSolicitud, type Area, type Estado, type Nota, type Resolucion } from "./datos";
+import { Chip as ChipPz, Encabezado, type TonoEstado } from "../piezasPanel";
+
+const TONO_DETALLE: Record<Estado, TonoEstado> = { pendiente: "dorado", observaciones: "guinda", aprobada: "verde", rechazada: "gris" };
 
 // Lo que dice el encabezado (y el aviso de color) en cada estado
 export type TextosEstado = Record<
@@ -37,6 +39,7 @@ type DetalleSolicitudProps = {
     alGuardarNota?: (nota: Nota) => void; // si no se da, la nota se guarda en los datos de ejemplo
     flujo?: ReactNode; // etapas del trámite (Flujo.tsx), debajo del encabezado
     persona?: ReactNode; // tarjeta «Persona solicitante» (TarjetaPersona), después de la decisión
+    mapa?: ReactNode; // «Dónde es» (MapaDonde): el espacio en el mapa, arriba de la columna principal
 };
 
 // Nombre de cada área en las migas
@@ -46,25 +49,24 @@ const SECCION: Record<Area, string> = {
     propuestas: "Propuestas de eventos",
 };
 
-function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial, principal, decision, alGuardarNota, flujo, persona }: DetalleSolicitudProps) {
+function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial, principal, decision, alGuardarNota, flujo, persona, mapa }: DetalleSolicitudProps) {
     const texto = textos[solicitud.estado];
 
     return (
         <>
             <Migas pasos={[[SECCION[area], volver.ruta], [solicitud.folio]]} />
-            <EncabezadoPagina
-                volver={volver}
-                etiqueta={`${prefijo} ${solicitud.folio} · ${texto.etiqueta}`}
-                titulo={texto.titulo}
-                texto={texto.texto}
-            />
+            <div className="pz-pagina at-detalle">
+            <Encabezado titulo={texto.titulo} texto={`${texto.texto} ${prefijo === "PROPUESTA" ? "Propuesta" : "Solicitud"} ${solicitud.folio}.`}>
+                <ChipPz tono={TONO_DETALLE[solicitud.estado]}>{texto.etiqueta}</ChipPz>
+                <Link to={volver.ruta} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a la bandeja</Link>
+            </Encabezado>
 
             {flujo}
             {/* Con la barra de etapas, el aviso repetiría lo mismo que su «siguiente paso» */}
             {!flujo && texto.aviso && <AvisoResultado {...texto.aviso} />}
 
             <div className="contenidos-formulario">
-                <div className="at-columna">{principal}</div>
+                <div className="at-columna">{mapa}{principal}</div>
                 <aside className="contenidos-formulario__lateral tr-lateral tr-lateral--alto">
                     {decision}
                     {persona}
@@ -77,6 +79,7 @@ function DetalleSolicitud({ area, solicitud, textos, prefijo, volver, historial,
                     />
                     <TarjetaHistorial eventos={historial} />
                 </aside>
+            </div>
             </div>
         </>
     );

@@ -92,6 +92,7 @@ export const ACCESOS_RAPIDOS: AccesoRapido[] = [
     { titulo: "Propuestas", texto: "Revisar eventos propuestos", ruta: "/admin/atencion/propuestas", icono: "propuesta" },
     { titulo: "Mensajes", texto: "Contactos y sugerencias", ruta: "/admin/atencion/contactos", icono: "mensajes" },
     { titulo: "Recuperar acceso", texto: "Orientar a una persona", ruta: "/admin/atencion/recuperacion", icono: "recuperacion" },
+    { titulo: "Altas asistidas", texto: "Registrar a una persona", ruta: "/admin/atencion/altas-asistidas", icono: "cuentas" },
     { titulo: "Consultar cuentas", texto: "Buscar a una persona", ruta: "/admin/atencion/cuentas", icono: "buscarCuenta" },
     // Actividades
     { titulo: "Inscripciones", texto: "Cupos y lugares", ruta: "/admin/actividades/inscripciones", icono: "inscripciones" },

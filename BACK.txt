@@ -63,6 +63,11 @@ C. PARTICIPANTES
    - GET/POST/PATCH /participantes/recompensas (nombre, tipo, existencias|null, entregadas)
    - GET /participantes/entregas y POST /participantes/:folio/entregar (quién entregó, aviso enviado)
    - POST /participantes/:folio/ajustes (ajuste manual con motivo; queda en bitácora)
+12b. INSIGNIAS (nuevo, 22 nov 2026): logros que se ganan solos al participar (Front/src/servicios/insignias.ts tiene
+    el catálogo de 8 insignias y sus reglas: asistencias, clubes, talleres, credencial vigente, propuestas aprobadas).
+   - GET /v1/me/insignias (la persona, Mi perfil › Mi progreso) y GET /participantes/:folio/insignias (panel):
+     [{ id, obtenida, fecha, valor }]. Conviene guardar la fecha en que se ganó cada una.
+   - Para calcularlas hace falta el tipo de actividad de cada asistencia (club, taller…).
 13. Cotejo de credenciales — datos de ejemplo en participantes/cotejos.ts:
    - GET /participantes/cotejos, GET /participantes/cotejos/:folio (consulta al sistema de la biblioteca),
      POST .../:folio/{vincular|diferencias|vencida}.

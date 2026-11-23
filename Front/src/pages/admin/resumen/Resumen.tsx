@@ -29,10 +29,14 @@ import {
     vistaEnlace,
 } from "./datos";
 import { Icono } from "./iconos";
-import { Cabecera, Chip, Cifra, Enlace, Segmentado } from "../piezasPanel";
+import { Buscador, Cabecera, Chip, Cifra, Enlace, FiltrosAvanzados } from "../piezasPanel";
 import { consultarResumen, listarContenidos, type FilaContenidoApi, type ResumenContenidos } from "../../../servicios/contenidos";
 import { mensajeError } from "../../../servicios/api";
 import { MOVIMIENTOS, fechaHora } from "../administracion/datos";
+import { ListaServicios, TarjetaServicios } from "./servicios";
+import { cifrasServicios, estadoAccesoServicios, sinDatosServicios, textoServicios, useServicios } from "./datosServicios";
+import { ListaPrestamos, TarjetaPrestamos } from "./prestamos";
+import { cifrasPrestamos, estadoAccesoPrestamos, textoPrestamos, usePrestamos } from "./datosPrestamos";
 
 const TEMA = "paleta"; // paleta institucional (21 nov 2026), por ahora solo en el Resumen
 
@@ -53,8 +57,6 @@ export default function Resumen() {
     const identidad = useContext(ContextoPanel);
     const acceso = identidad?.acceso;
     const accesos = accesosDeLaCuenta(acceso);
-    const pendientes = ordenarPorVencimiento(pendientesDeLaCuenta(todosLosPendientes, acceso));
-    const porPlazo = contarPorPlazo(pendientes);
     // Las actividades de hoy solo para quien trabaja con actividades; quien administra ve el estado del sistema
     const veActividades = vistaEnlace("/admin/actividades/calendario", acceso) === "enlace";
     // Sin actividades, quien administra ve los últimos cambios (los mismos de la Bitácora)
@@ -62,6 +64,20 @@ export default function Resumen() {
     // Quien redacta (Editor) ve sus contenidos: cifras reales de /contenidos/editor/resumen
     const veContenidos = !veActividades && !veCambios && vistaEnlace("/admin/contenidos/editor", acceso) === "enlace";
     const editor = useContenidosEditor(veContenidos);
+    // Servicios Digitales (Contactos y Altas asistidas) ve lo real de sus servicios, no pendientes de ejemplo (22 nov 2026)
+    const veContactos = vistaEnlace("/admin/atencion/contactos", acceso) === "enlace";
+    const veAltas = vistaEnlace("/admin/atencion/altas-asistidas", acceso) === "enlace";
+    const veServicios = !veActividades && !veCambios && !veContenidos && (veContactos || veAltas);
+    const servicios = useServicios(veServicios, veContactos, veAltas);
+    const cifras = cifrasServicios(servicios);
+    // Préstamos (Solicitudes de credencial y Cotejo) ve sus solicitudes reales y los cotejos pendientes (T3, 22 nov 2026)
+    const veSolicitudes = vistaEnlace("/admin/atencion/credenciales", acceso) === "enlace";
+    const veCotejo = vistaEnlace("/admin/participantes/cotejo", acceso) === "enlace";
+    const vePrestamos = !veActividades && !veCambios && !veContenidos && !veServicios && (veSolicitudes || veCotejo);
+    const prestamos = usePrestamos(vePrestamos, veSolicitudes, veCotejo);
+    const cifrasP = cifrasPrestamos(prestamos);
+    const pendientes = veServicios || vePrestamos ? [] : ordenarPorVencimiento(pendientesDeLaCuenta(todosLosPendientes, acceso));
+    const porPlazo = contarPorPlazo(pendientes);
     const actividades = veActividades ? actividadesHoy : [];
     const momentos = momentosDelDia(actividades.map((a) => a.hora), minutosAhora());
     // La lista de actividades se coloca en la que sigue (o la que está ahora) al abrir el Resumen
@@ -98,11 +114,19 @@ export default function Resumen() {
                     <div className="pz-saludo__textos">
                         <p className="pz-saludo__fecha">{fechaDeHoy()}</p>
                         <h2>{saludo(new Date().getHours())}</h2>
-                        <p>{textoDelDia(pendientes.length, porPlazo.hoy)}</p>
+                        <p>{veServicios ? textoServicios(servicios) : vePrestamos ? textoPrestamos(prestamos) : textoDelDia(pendientes.length, porPlazo.hoy)}</p>
                     </div>
                     <div className="pz-saludo__cifras" role="group" aria-label="Tu día en cifras">
+                        {veServicios ? <>
+                            <Cifra icono="lista" valor={sinDatosServicios(servicios) ? "—" : cifras.total} texto="por atender" alPresionar={() => ir(area.current)} />
+                            <Cifra icono="alerta" valor={sinDatosServicios(servicios) ? "—" : cifras.sinAtender + cifras.altasRevision} texto="requieren acción" tono="vino" alPresionar={() => ir(area.current)} />
+                        </> : vePrestamos ? <>
+                            <Cifra icono="lista" valor={prestamos.credenciales.estado === "cargando" ? "…" : cifrasP.total} texto="por atender" alPresionar={() => ir(area.current)} />
+                            <Cifra icono="alerta" valor={prestamos.credenciales.estado === "cargando" ? "…" : cifrasP.urgentes} texto="requieren acción" tono="vino" alPresionar={() => ir(area.current)} />
+                        </> : <>
                         <Cifra icono="lista" valor={pendientes.length} texto="por atender" alPresionar={() => verPendientes(null)} />
                         <Cifra icono="alerta" valor={porPlazo.hoy} texto="vencen hoy" tono="vino" alPresionar={() => verPendientes("hoy")} />
+                        </>}
                         {veActividades && <Cifra icono="calendario" valor={actividades.length} texto="actividades hoy" alPresionar={() => ir(area.current)} />}
                     </div>
                 </header>
@@ -115,7 +139,7 @@ export default function Resumen() {
                             <p className="pz-ayuda">Cada acceso te dice cuánto tienes esperando en esa sección.</p>
                         </div>
                         <ul className="pz-accesos">
-                            {accesos.map((a) => <li key={a.ruta}><Acceso acceso={a} estado={estadoAcceso(a, pendientes, actividades)} /></li>)}
+                            {accesos.map((a) => <li key={a.ruta}><Acceso acceso={a} estado={(veServicios && estadoAccesoServicios(a.ruta, servicios)) || (vePrestamos && estadoAccesoPrestamos(a.ruta, prestamos)) || estadoAcceso(a, pendientes, actividades)} /></li>)}
                         </ul>
                     </section>
                 )}
@@ -127,10 +151,14 @@ export default function Resumen() {
                             <ListaPendientes pendientes={pendientes} plazo={plazo} alCambiarPlazo={setPlazo} />
                             <TarjetaRecientes editor={editor} />
                         </div>
-                    ) : <ListaPendientes pendientes={pendientes} plazo={plazo} alCambiarPlazo={setPlazo} />}
+                    ) : veServicios ? <ListaServicios datos={servicios} />
+                        : vePrestamos ? <ListaPrestamos datos={prestamos} />
+                        : <ListaPendientes pendientes={pendientes} plazo={plazo} alCambiarPlazo={setPlazo} />}
 
                     <aside className="pz-lateral" aria-label="Tu día">
                         {veContenidos && <TarjetaMisContenidos editor={editor} />}
+                        {veServicios && <TarjetaServicios datos={servicios} />}
+                        {vePrestamos && <TarjetaPrestamos datos={prestamos} />}
                         {veCambios && (
                             <section className="pz-tarjeta pz-tarjeta--actividades" aria-labelledby="pz-cambios">
                                 <Cabecera icono="bitacora" id="pz-cambios" titulo="Últimos cambios" texto="Lo más reciente de la bitácora" />
@@ -264,26 +292,14 @@ function ListaPendientes({ pendientes, plazo, alCambiarPlazo }: { pendientes: Pe
             <Cabecera icono="lista" id={`${id}-titulo`} titulo="Pendientes por atender" texto="Los que vencen antes van primero" />
 
             {/* Con pocos pendientes (4 o menos) y sin filtros puestos, el filtro y el buscador sobran */}
-            {(pendientes.length > 4 || hayFiltros) && <div className="pz-herramientas">
-                <Segmentado<Plazo | "todos"> etiqueta="Filtrar por vencimiento" valor={plazo ?? "todos"} alCambiar={(v) => alCambiarPlazo(v === "todos" ? null : v)}
-                    opciones={[{ valor: "todos", texto: "Todos", cantidad: porPlazo.hoy + porPlazo.manana + porPlazo.semana },
-                        ...PLAZOS.map((x) => ({ valor: x.id, texto: x.nombre, cantidad: porPlazo[x.id], urgente: x.id === "hoy" }))]} />
-                <div className="pz-herramientas__campos">
-                    {areas.length > 1 && (
-                        <label className="pz-campo">
-                            <span className="solo-lectores">Área</span>
-                            <select value={area ?? ""} onChange={(e) => setArea((e.target.value || null) as AreaPendiente | null)}>
-                                <option value="">Todas las áreas</option>
-                                {areas.map((a) => <option key={a.id} value={a.id}>{a.nombre} ({porArea[a.id]})</option>)}
-                            </select>
-                        </label>
-                    )}
-                    <label className="pz-campo pz-campo--buscar">
-                        <span className="solo-lectores">Buscar por folio o asunto</span>
-                        <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar folio o asunto" />
-                    </label>
-                </div>
-            </div>}
+            {(pendientes.length > 4 || hayFiltros) && <Buscador etiqueta="Buscar por folio o asunto" placeholder="Buscar por folio o asunto" valor={texto} alCambiar={setTexto}>
+                <FiltrosAvanzados activos={(plazo ? 1 : 0) + (area ? 1 : 0)} alQuitar={() => { alCambiarPlazo(null); setArea(null); }} grupos={[
+                    { titulo: "Vencimiento", valor: plazo ?? "", alCambiar: (v) => alCambiarPlazo((v || null) as Plazo | null),
+                        opciones: [{ valor: "", texto: "Todos", cantidad: porPlazo.hoy + porPlazo.manana + porPlazo.semana }, ...PLAZOS.map((x) => ({ valor: x.id, texto: x.nombre, cantidad: porPlazo[x.id] }))] },
+                    ...(areas.length > 1 ? [{ titulo: "Área", valor: area ?? "", alCambiar: (v: string) => setArea((v || null) as AreaPendiente | null),
+                        opciones: [{ valor: "", texto: "Todas" }, ...areas.map((a) => ({ valor: a.id, texto: a.nombre, cantidad: porArea[a.id] }))] }] : []),
+                ]} />
+            </Buscador>}
 
             <p className="solo-lectores" role="status">{filtrados.length} pendientes con estos filtros</p>
 

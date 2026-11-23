@@ -95,18 +95,16 @@ function Evidencias() {
                 <div className="pz-columnas">
                     <Tarjeta icono="evidencias" id="evidencias-lista" titulo="Evidencias guardadas" texto="Las más recientes primero" className="pz-pendientes"
                         accion={<Link className="pz-boton pz-boton--chico" to={`${BASE}/subir`}>Subir evidencia</Link>}>
-                        <div className="pz-herramientas">
-                            <Segmentado<Filtro> etiqueta="Tipo de evidencia" valor={filtro} alCambiar={setFiltro} opciones={[
-                                { valor: "todas", texto: "Todas", cantidad: evidencias.length },
-                                { valor: "Fotografía", texto: "Fotografías", cantidad: cuenta("Fotografía") },
-                                { valor: "Lista firmada", texto: "Listas firmadas", cantidad: cuenta("Lista firmada") },
-                                { valor: "Informe", texto: "Informes", cantidad: cuenta("Informe") },
+                        <Buscador etiqueta="Buscar por actividad o folio" placeholder="Buscar por actividad o folio" valor={busqueda} alCambiar={setBusqueda}>
+                            <FiltrosAvanzados activos={(filtro !== "todas" ? 1 : 0) + (accesoFiltro ? 1 : 0)} alQuitar={() => { setFiltro("todas"); setAccesoFiltro(""); }} grupos={[
+                                { titulo: "Tipo de evidencia", valor: filtro, alCambiar: (v) => setFiltro(v as Filtro), opciones: [
+                                    { valor: "todas", texto: "Todas", cantidad: evidencias.length },
+                                    ...TIPOS_EVIDENCIA.map((t) => ({ valor: t, texto: t, cantidad: cuenta(t) }))] },
+                                { titulo: "Quién puede verla", valor: accesoFiltro, alCambiar: setAccesoFiltro, opciones: [
+                                    { valor: "", texto: "Cualquier acceso" }, { valor: "personal", texto: "Personal autorizado" }, { valor: "coordinacion", texto: "Solo Coordinación" },
+                                    { valor: "restringida", texto: "Restringidas para mí", cantidad: restringidas }] },
                             ]} />
-                            <Buscador etiqueta="Buscar por actividad o folio" placeholder="Actividad o folio" valor={busqueda} alCambiar={setBusqueda}>
-                                <FiltrosAvanzados activos={accesoFiltro ? 1 : 0} alQuitar={() => setAccesoFiltro("")} grupos={[{ titulo: "Quién puede verla", valor: accesoFiltro, alCambiar: setAccesoFiltro, opciones: [
-                                    { valor: "", texto: "Cualquier acceso" }, { valor: "personal", texto: "Personal autorizado" }, { valor: "coordinacion", texto: "Solo Coordinación" }, { valor: "restringida", texto: "Restringidas para mí", cantidad: restringidas }] }]} />
-                            </Buscador>
-                        </div>
+                        </Buscador>
                         {carga.cargando ? <CargandoFilas texto="Cargando evidencias…" />
                             : carga.error && !carga.datos ? <ErrorCarga error={carga.error} reintentar={carga.reintentar} />
                             : evidencias.length === 0 ? <Vacio icono="evidencias" titulo="Aún no hay evidencias" texto="Sube la primera lista firmada, foto o informe de una actividad."

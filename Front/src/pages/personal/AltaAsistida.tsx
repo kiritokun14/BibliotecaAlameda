@@ -1,30 +1,23 @@
 // Atención › Altas asistidas (HU-09 / T-033). Conectada al backend (servicios/altaAsistida.ts).
-// Diseño: el del Editor de contenidos, dentro del panel. Misma ruta y mismo flujo de antes:
-// formulario, resultado arriba y solicitudes pendientes abajo con sus decisiones.
-import { useCallback, useEffect, useState, type ChangeEvent, type ReactNode, type SubmitEvent } from "react";
-import { Link } from "react-router";
-import AccesoLayout from "../../components/acceso/AccesoLayout";
-import Aviso from "../../components/acceso/Aviso";
+// 22 nov 2026: rehecha con las piezas del panel (piezasPanel.tsx + PanelPiezas.css) y la paleta, como el Resumen:
+// encabezado con cifras que llevan a las solicitudes; «Registrar a una persona» es un formulario en columnas libres
+// (datos | «Antes de registrar» con avance y «Cómo funciona»); «Solicitudes abiertas» es lista | detalle con la decisión.
+// Si el servidor responde 503 (ALTA_ASISTIDA_HABILITADA=false en Back/.env) se avisa sin romper la pantalla.
+import { useCallback, useContext, useEffect, useId, useState, type ChangeEvent, type ReactNode, type SubmitEvent } from "react";
+import { Navigate } from "react-router";
 import PanelLayout from "../admin/PanelLayout";
 import { Migas } from "../admin/componentes";
-import { IconoAviso, IconoLapiz, IconoLista, IconoReloj } from "../admin/contenidos/piezas";
-import "../admin/contenidos/Contenidos.css";
-import "../admin/atencion/Atencion.css";
-import "./AltaAsistida.css";
-import { mensajeError, ErrorServicio, obtenerSupabase } from "../../servicios/api";
-import { cerrarSesion, consultarMiAcceso } from "../../servicios/auth";
-import { ContextoPanel, type IdentidadPanel } from "../../servicios/accesoPanel";
 import {
-    cancelarSolicitud, listarSolicitudes, prepararAlta, puedeHacerAltaAsistida, reintentarInvitacion,
+    Aviso, Buscador, Cabecera, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Icono, Paginas, Segmentado, Tarjeta, Vacio, type NombreIcono,
+} from "../admin/piezasPanel";
+import { mensajeError, ErrorServicio } from "../../servicios/api";
+import { ContextoPanel } from "../../servicios/accesoPanel";
+import {
+    cancelarSolicitud, listarSolicitudes, prepararAlta, reintentarInvitacion,
     resolverDuplicado, type DatosAltaAsistida, type ResultadoAlta, type SolicitudAbierta,
 } from "../../servicios/altaAsistida";
 import { calcularEdad, esCorreoValido, tieneDigitos, MENSAJE_CORREO, MENSAJE_OBLIGATORIO } from "../../servicios/validaciones";
-
-const pasos = [
-    "Captura los datos con la persona",
-    "Se revisan posibles duplicados",
-    "La persona confirma su correo y elige su contraseña",
-];
+import "./AltaAsistida.css";
 
 // Mismos campos que Crear cuenta, sin contraseña: el titular la elige desde la invitación (HU-09).
 const datosIniciales = {
@@ -94,10 +87,25 @@ function armarSolicitud(datos: Datos, conTutor: boolean, mismoDomicilio: boolean
     } as DatosAltaAsistida;
 }
 
+// Dirección de la pantalla, dentro de Atención (la vieja /personal/alta-asistida redirige aquí)
+const RUTA = "/admin/atencion/altas-asistidas";
+type Vista = "nueva" | "solicitudes";
+type FiltroSolicitud = "todas" | "en_revision" | "lista";
+// Estado del servicio en el servidor: «apagado» cuando responde 503 (todavía no habilitado)
+type Servicio = { estado: "cargando" | "listo" | "apagado" | "error"; mensaje?: string };
 
-type Acceso = "comprobando" | "sin-sesion" | "sin-permiso" | "error-servicio" | "permitido";
+const POR_PAGINA = 5;
+const lleno = (v: string) => v.trim() !== "";
+const nombreDe = (s: { nombres: string; primerApellido: string; segundoApellido: string | null }) =>
+    [s.nombres, s.primerApellido, s.segundoApellido].filter(Boolean).join(" ");
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+function fechaCorta(fecha: string) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);
+    return m ? `${Number(m[3])} ${MESES[Number(m[2]) - 1]} ${m[1]}` : fecha;
+}
+const fechaHora = (iso: string) => new Date(iso).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Mazatlan" });
 
-// ---------- Campos con el diseño del Editor ----------
+// ---------- Campos con las piezas del panel ----------
 
 type CampoProps = {
     id: keyof Datos;
@@ -114,58 +122,58 @@ type CampoProps = {
     opciones?: string[]; // si viene, es una lista desplegable
 };
 
-function CampoAlta({ id, etiqueta, datos, errores, alCambiar, obligatorio, ayuda, opciones, type = "text", ...props }: CampoProps) {
+function Campo({ id, etiqueta, datos, errores, alCambiar, obligatorio, ayuda, opciones, type = "text", ...props }: CampoProps) {
     const error = errores[id];
-    const nota = error || ayuda ? `${id}-nota` : undefined;
+    const nota = error || ayuda ? `alta-${id}-nota` : undefined;
     return (
-        <div className="contenidos-campo">
-            <label htmlFor={id}>
-                {etiqueta}
-                {obligatorio && <span className="contenidos-campo__obligatorio" aria-label="obligatorio"> *</span>}
+        <div className={`pz-campo pz-campo--lleno${error ? " pz-campo--error" : ""}`}>
+            <label htmlFor={`alta-${id}`} className="alta-etiqueta">
+                {etiqueta}{obligatorio && <span className="alta-obligatorio" aria-label="obligatorio"> *</span>}
             </label>
             {opciones ? (
-                <select id={id} name={id} value={datos[id]} onChange={alCambiar} aria-invalid={!!error} aria-describedby={nota}>
+                <select id={`alta-${id}`} name={id} value={datos[id]} onChange={alCambiar} aria-invalid={!!error} aria-describedby={nota}>
                     <option value="">Elige una opción</option>
                     {opciones.map((o) => <option key={o}>{o}</option>)}
                 </select>
             ) : (
-                <input id={id} name={id} type={type} value={datos[id]} onChange={alCambiar} className={error ? "contenidos-campo--error" : undefined}
-                    aria-invalid={!!error} aria-describedby={nota} {...props} />
+                <input id={`alta-${id}`} name={id} type={type} value={datos[id]} onChange={alCambiar} aria-invalid={!!error} aria-describedby={nota} {...props} />
             )}
-            {error ? <p id={nota} className="contenidos-campo__error" role="alert">{error}</p>
-                : ayuda && <p id={nota} className="contenidos-campo__ayuda">{ayuda}</p>}
+            {error ? <p id={nota} className="pz-campo__error alta-nota" role="alert">{error}</p>
+                : ayuda && <small id={nota} className="pz-campo__ayuda">{ayuda}</small>}
         </div>
     );
 }
 
-function Panel({ id, icono, titulo, subtitulo, clase = "", children }: { id: string; icono: ReactNode; titulo: string; subtitulo?: string; clase?: string; children: ReactNode }) {
+function Casilla({ marcada, alCambiar, titulo, texto, descrita }: { marcada: boolean; alCambiar: (v: boolean) => void; titulo: string; texto?: string; descrita?: string }) {
     return (
-        <section className={`contenidos-panel ${clase}`} aria-labelledby={id}>
-            <div className="contenidos-lista__cabecera">
-                <span className="contenidos-lista__icono">{icono}</span>
-                <div className="at-cabecera__textos">
-                    <h2 id={id}>{titulo}</h2>
-                    {subtitulo && <p>{subtitulo}</p>}
-                </div>
+        <label className={`pz-casilla${marcada ? " pz-casilla--elegida" : ""}`}>
+            <input type="checkbox" checked={marcada} onChange={(e) => alCambiar(e.target.checked)} aria-describedby={descrita} />
+            <span><strong>{titulo}</strong>{texto && <small>{texto}</small>}</span>
+        </label>
+    );
+}
+
+// Paso de una línea del tiempo (Cómo funciona, ¿Qué sigue?)
+function Paso({ tono, icono, titulo, texto, actual }: { tono: "verde" | "dorado" | "guinda" | "gris"; icono: NombreIcono; titulo: string; texto: string; actual?: boolean }) {
+    return (
+        <li className={`pz-linea__paso pz-linea__paso--${tono}${actual ? " pz-linea__paso--actual" : ""}`}>
+            <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={icono} /></span>
+            <div className="pz-linea__textos">
+                <p className="pz-linea__titulo">{titulo}</p>
+                <p className="pz-linea__detalle">{texto}</p>
             </div>
-            {children}
-        </section>
+        </li>
     );
 }
 
-// Aviso con el aspecto del Editor (mensajes de error, advertencia o información)
-function AvisoPanel({ tono, titulo, children }: { tono: "error" | "advertencia" | "info" | "exito"; titulo: string; children: ReactNode }) {
-    return (
-        <div className={`alta-aviso alta-aviso--${tono}`} role={tono === "error" ? "alert" : "status"}>
-            <strong>{titulo}</strong>
-            <p>{children}</p>
-        </div>
-    );
-}
+// ---------- Pantalla ----------
 
 function AltaAsistida() {
-    const [acceso, setAcceso] = useState<Acceso>("comprobando");
-    const [identidad, setIdentidad] = useState<IdentidadPanel | null>(null);
+    const id = useId();
+    // La sesión y el permiso los comprueba AccesoPanel (como en todo el panel): el menú y la barra no desaparecen al entrar
+    const identidad = useContext(ContextoPanel);
+    const [vista, setVista] = useState<Vista>("nueva");
+    const [filtro, setFiltro] = useState<FiltroSolicitud>("todas");
     const [datos, setDatos] = useState(datosIniciales);
     const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
     const [mismoDomicilio, setMismoDomicilio] = useState(false);
@@ -174,39 +182,34 @@ function AltaAsistida() {
     const [enviando, setEnviando] = useState(false);
     const [resultado, setResultado] = useState<ResultadoAlta | null>(null);
     const [solicitudes, setSolicitudes] = useState<SolicitudAbierta[]>([]);
+    const [servicio, setServicio] = useState<Servicio>({ estado: "cargando" });
 
     const conTutor = datos.fechaNacimiento !== "" && calcularEdad(datos.fechaNacimiento) < 18;
 
     const cargarSolicitudes = useCallback(async () => {
-        try { setSolicitudes(await listarSolicitudes()); }
-        catch (error) { setErrorServidor(mensajeError(error)); }
+        try {
+            setSolicitudes(await listarSolicitudes());
+            setServicio({ estado: "listo" });
+        } catch (error) {
+            setServicio({ estado: error instanceof ErrorServicio && error.estado === 503 ? "apagado" : "error", mensaje: mensajeError(error) });
+        }
     }, []);
 
     useEffect(() => {
-        let activo = true;
-        puedeHacerAltaAsistida()
-            .then(async permitido => {
-                if (!activo) return;
-                if (permitido) {
-                    // El panel (menú lateral y cabecera) necesita saber quién entró
-                    const [cuenta, sesion] = await Promise.all([consultarMiAcceso(), (await obtenerSupabase()).auth.getSession()]);
-                    if (!activo) return;
-                    setIdentidad({ acceso: cuenta, correo: sesion.data.session?.user.email ?? "Cuenta del personal" });
-                }
-                setAcceso(permitido ? "permitido" : "sin-permiso");
-                if (permitido) setSolicitudes(await listarSolicitudes());
-            })
-            .catch(error => {
-                if (!activo) return;
-                if (error instanceof ErrorServicio && (error.estado === 401 || error.estado === 403))
-                    setAcceso(error.estado === 401 ? "sin-sesion" : "sin-permiso");
-                else { setAcceso("error-servicio"); setErrorServidor(mensajeError(error)); }
+        if (!identidad) return;
+        let vigente = true;
+        listarSolicitudes()
+            .then((lista) => { if (vigente) { setSolicitudes(lista); setServicio({ estado: "listo" }); } })
+            .catch((error) => {
+                if (vigente) setServicio({ estado: error instanceof ErrorServicio && error.estado === 503 ? "apagado" : "error", mensaje: mensajeError(error) });
             });
-        return () => { activo = false; };
-    }, []);
+        return () => { vigente = false; };
+    }, [identidad]);
 
     function cambiar(e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-        setDatos({ ...datos, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setDatos((d) => ({ ...d, [name]: value }));
+        if (errores[name as keyof Datos]) setErrores((x) => ({ ...x, [name]: undefined }));
     }
 
     function nuevaAlta() {
@@ -216,336 +219,423 @@ function AltaAsistida() {
         setErrores({});
         setErrorServidor("");
         setResultado(null);
-        window.scrollTo({ top: 0 });
+        setVista("nueva");
+    }
+
+    function verSolicitudes(nuevo: FiltroSolicitud) {
+        setFiltro(nuevo);
+        setVista("solicitudes");
     }
 
     async function enviar(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
-        const nuevosErrores = validar(datos, aceptaPrivacidad, conTutor, mismoDomicilio);
+        const nuevosErrores = Object.fromEntries(Object.entries(validar(datos, aceptaPrivacidad, conTutor, mismoDomicilio)).filter(([, v]) => v)) as Errores;
         setErrores(nuevosErrores);
         if (Object.keys(nuevosErrores).length > 0) {
-            document.getElementById("alta-avisos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            document.getElementById(`alta-${Object.keys(nuevosErrores)[0]}`)?.focus();
             return;
         }
         setEnviando(true);
         setErrorServidor("");
         try {
             setResultado(await prepararAlta(armarSolicitud(datos, conTutor, mismoDomicilio)));
-            window.scrollTo({ top: 0, behavior: "smooth" });
             await cargarSolicitudes();
-        } catch (error) { setErrorServidor(mensajeError(error)); document.getElementById("alta-avisos")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
-        finally { setEnviando(false); }
+        } catch (error) {
+            if (error instanceof ErrorServicio && error.estado === 503) setServicio({ estado: "apagado", mensaje: mensajeError(error) });
+            setErrorServidor(mensajeError(error));
+        } finally { setEnviando(false); }
     }
 
-    if (acceso === "comprobando") return <main className="confirmacion" role="status">Comprobando tu sesión…</main>;
-
-    // Sin sesión o sin permiso: los mismos avisos de antes (no se muestra el panel)
-    if (acceso !== "permitido") {
-        return (
-            <AccesoLayout titulo={<>Alta <span>asistida</span></>}>
-                <div className="tarjeta">
-                    {acceso === "error-servicio" ? (
-                        <Aviso tipo="error" titulo="No se pudo comprobar el acceso">{errorServidor}</Aviso>
-                    ) : acceso === "sin-sesion" ? (
-                        <Aviso tipo="info" titulo="Inicia sesión para continuar">
-                            Entra con una cuenta del personal que tenga el permiso de alta asistida.
-                        </Aviso>
-                    ) : (
-                        <Aviso tipo="error" titulo="Tu cuenta no tiene este permiso">
-                            Solo el personal autorizado de Servicios Digitales puede registrar cuentas de otras personas.
-                        </Aviso>
-                    )}
-                    <Link to={acceso === "error-servicio" ? "/" : "/iniciar-sesion"} className="boton-principal" onClick={() => { if (acceso !== "error-servicio") void cerrarSesion().catch(() => undefined); }}>
-                        {acceso === "error-servicio" ? "Volver al inicio" : acceso === "sin-sesion" ? "Iniciar sesión" : "Entrar con otra cuenta"}
-                    </Link>
-                </div>
-            </AccesoLayout>
-        );
-    }
+    // Fuera de AccesoPanel (la dirección vieja): a la de Atención
+    if (!identidad) return <Navigate to={RUTA} replace />;
 
     const enRevision = solicitudes.filter((s) => s.estado === "en_revision").length;
+    const pendientes = solicitudes.length - enRevision;
+    const sinDatos = servicio.estado !== "listo";
     const props = { datos, errores, alCambiar: cambiar };
 
+    // Lo que falta para registrar (tarjeta «Antes de registrar»)
+    const requisitos: { texto: string; listo: boolean }[] = [
+        { texto: "Nombre", listo: lleno(datos.nombre) && lleno(datos.primerApellido) },
+        { texto: "Nacimiento", listo: lleno(datos.fechaNacimiento) },
+        { texto: "Teléfono", listo: tieneDigitos(datos.telefono, 10) },
+        { texto: "Domicilio", listo: (["calle", "numeroExterior", "colonia", "codigoPostal", "municipio", "estado"] as const).every((c) => lleno(datos[c])) },
+        ...(conTutor ? [{ texto: "Tutor", listo: obligatoriosTutor.every((c) => lleno(datos[c])) && (mismoDomicilio || domicilioTutor.every((c) => lleno(datos[c]))) }] : []),
+        { texto: "Correo", listo: esCorreoValido(datos.correo) },
+        { texto: "Motivo", listo: lleno(datos.motivo) },
+        { texto: "Privacidad", listo: aceptaPrivacidad },
+    ];
+    const listos = requisitos.filter((r) => r.listo).length;
+    const completo = listos === requisitos.length;
+
     return (
-        <ContextoPanel.Provider value={identidad}>
-            <PanelLayout titulo="Atención" tema="contenidos">
+            <PanelLayout titulo="Atención" tema="contenidos paleta">
                 <Migas pasos={[["Altas asistidas"]]} />
+                <div className="pz-pagina">
+                    <Encabezado titulo="Altas asistidas" texto="Registra la cuenta de una persona que pide apoyo en la biblioteca. Nunca escribas ni conozcas su contraseña.">
+                        <Cifra icono="reloj" valor={sinDatos ? "—" : pendientes} texto="esperan a la persona" activa={vista === "solicitudes" && filtro === "lista"}
+                            alPresionar={() => verSolicitudes(filtro === "lista" && vista === "solicitudes" ? "todas" : "lista")} />
+                        <Cifra icono="alerta" tono="vino" valor={sinDatos ? "—" : enRevision} texto="posibles duplicados" activa={vista === "solicitudes" && filtro === "en_revision"}
+                            alPresionar={() => verSolicitudes(filtro === "en_revision" && vista === "solicitudes" ? "todas" : "en_revision")} />
+                    </Encabezado>
 
-                <div className="contenidos-encabezado">
-                    <div>
-                        <h1>Altas asistidas</h1>
-                        <p className="contenidos-encabezado__texto">Registra la cuenta de una persona que pide apoyo en la biblioteca. Nunca escribas ni conozcas su contraseña.</p>
+                    {servicio.estado === "apagado" && (
+                        <Aviso tono="espera" titulo="El servidor todavía no tiene habilitada el alta asistida."
+                            texto="Puedes revisar el formulario, pero lo que captures no se guardará." />
+                    )}
+                    {servicio.estado === "error" && (
+                        <Aviso tono="error" titulo="No se pudieron cargar las solicitudes abiertas." texto={servicio.mensaje}>
+                            <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => void cargarSolicitudes()}>Reintentar</button>
+                        </Aviso>
+                    )}
+
+                    <div className="alta-vistas">
+                        <Segmentado<Vista> etiqueta="Qué quieres hacer" valor={vista} alCambiar={setVista}
+                            opciones={[
+                                { valor: "nueva", texto: "Registrar a una persona" },
+                                { valor: "solicitudes", texto: "Solicitudes abiertas", cantidad: sinDatos ? undefined : solicitudes.length, urgente: enRevision > 0 },
+                            ]} />
                     </div>
+
+                    {vista === "solicitudes" ? (
+                        <Solicitudes solicitudes={solicitudes} servicio={servicio} filtro={filtro} alFiltrar={setFiltro} alCambiar={cargarSolicitudes} alRegistrar={nuevaAlta} />
+                    ) : resultado ? (
+                        <Resultado resultado={resultado} errorServidor={errorServidor} alNueva={nuevaAlta} alVerSolicitudes={() => verSolicitudes(resultado.estado === "en_revision" ? "en_revision" : "todas")}
+                            alReintentar={async () => {
+                                try { setResultado(await reintentarInvitacion(resultado.id)); setErrorServidor(""); await cargarSolicitudes(); }
+                                catch (error) { setErrorServidor(mensajeError(error)); }
+                            }} />
+                    ) : (
+                        <form className="pz-columnas pz-columnas--libre" onSubmit={enviar} noValidate aria-label="Registrar a una persona">
+                            <fieldset className="pz-principal alta-formulario" disabled={enviando}>
+                                {conTutor && <Aviso tono="espera" titulo="La persona es menor de 18 años." texto="Captura el contacto de su madre, padre o tutor. Esa persona no recibe acceso a la cuenta." />}
+
+                                <Tarjeta icono="usuario" id={`${id}-personales`} titulo="1. Datos personales" texto="Captúralos junto con la persona, como aparecen en su identificación">
+                                    <div className="pz-campos-fila pz-campos-fila--tres">
+                                        <Campo id="nombre" etiqueta="Nombre(s)" obligatorio {...props} />
+                                        <Campo id="primerApellido" etiqueta="Primer apellido" obligatorio {...props} />
+                                        <Campo id="segundoApellido" etiqueta="Segundo apellido" placeholder="Si lo tiene" {...props} />
+                                    </div>
+                                    <div className="pz-campos-fila">
+                                        <Campo id="fechaNacimiento" etiqueta="Fecha de nacimiento" type="date" obligatorio ayuda="También sirve para detectar cuentas repetidas." {...props} />
+                                        <Campo id="telefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos" inputMode="numeric" maxLength={10} obligatorio ayuda="Dato de contacto; no sustituye al correo." {...props} />
+                                    </div>
+                                </Tarjeta>
+
+                                <Tarjeta icono="espacios" id={`${id}-domicilio`} titulo="2. Domicilio" texto="Donde vive la persona">
+                                    <div className="pz-campos-fila pz-campos-fila--tres">
+                                        <Campo id="calle" etiqueta="Calle" obligatorio {...props} />
+                                        <Campo id="numeroExterior" etiqueta="Número exterior" placeholder="Número o «sin número»" obligatorio {...props} />
+                                        <Campo id="numeroInterior" etiqueta="Número interior" placeholder="Si existe" {...props} />
+                                    </div>
+                                    <div className="pz-campos-fila">
+                                        <Campo id="colonia" etiqueta="Colonia o localidad" obligatorio {...props} />
+                                        <Campo id="codigoPostal" etiqueta="Código postal" placeholder="5 dígitos" inputMode="numeric" maxLength={5} obligatorio {...props} />
+                                    </div>
+                                    <div className="pz-campos-fila">
+                                        <Campo id="municipio" etiqueta="Municipio" obligatorio {...props} />
+                                        <Campo id="estado" etiqueta="Estado" obligatorio {...props} />
+                                    </div>
+                                </Tarjeta>
+
+                                {conTutor && (
+                                    <Tarjeta icono="grupo" id={`${id}-tutor`} titulo="3. Madre, padre o tutor" texto="Solo es un contacto; no recibe acceso a la cuenta">
+                                        <div className="pz-campos-fila pz-campos-fila--tres">
+                                            <Campo id="tutorNombre" etiqueta="Nombre(s)" obligatorio {...props} />
+                                            <Campo id="tutorApellidos" etiqueta="Apellidos" obligatorio {...props} />
+                                            <Campo id="tutorRelacion" etiqueta="Relación con la persona" opciones={["Madre", "Padre", "Tutor o tutora"]} obligatorio {...props} />
+                                        </div>
+                                        <div className="pz-campos-fila">
+                                            <Campo id="tutorTelefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos" inputMode="numeric" maxLength={10} obligatorio {...props} />
+                                            <Campo id="tutorCorreo" etiqueta="Correo electrónico" type="email" obligatorio {...props} />
+                                        </div>
+                                        <Casilla marcada={mismoDomicilio} alCambiar={setMismoDomicilio} titulo="Vive en el mismo domicilio que la persona menor" texto="Si no, captura su domicilio." />
+                                        {!mismoDomicilio && (
+                                            <>
+                                                <div className="pz-campos-fila pz-campos-fila--tres">
+                                                    <Campo id="tutorCalle" etiqueta="Calle" obligatorio {...props} />
+                                                    <Campo id="tutorNumeroExterior" etiqueta="Número exterior" obligatorio {...props} />
+                                                    <Campo id="tutorNumeroInterior" etiqueta="Número interior" {...props} />
+                                                </div>
+                                                <div className="pz-campos-fila pz-campos-fila--tres">
+                                                    <Campo id="tutorColonia" etiqueta="Colonia o localidad" obligatorio {...props} />
+                                                    <Campo id="tutorCodigoPostal" etiqueta="Código postal" inputMode="numeric" maxLength={5} obligatorio {...props} />
+                                                    <Campo id="tutorMunicipio" etiqueta="Municipio" obligatorio {...props} />
+                                                </div>
+                                                <Campo id="tutorEstado" etiqueta="Estado" obligatorio {...props} />
+                                            </>
+                                        )}
+                                    </Tarjeta>
+                                )}
+
+                                <Tarjeta icono="mensajes" id={`${id}-correo`} titulo={`${conTutor ? 4 : 3}. Correo de la cuenta`} texto="Ahí llega la invitación para confirmar el correo y elegir la contraseña">
+                                    <div className="pz-campos-fila">
+                                        <Campo id="correo" etiqueta="Correo electrónico de la persona" type="email" placeholder="nombre@ejemplo.mx" obligatorio
+                                            ayuda="Debe ser un correo que la persona pueda abrir." {...props} />
+                                        <Campo id="motivo" etiqueta="Motivo del alta asistida" placeholder="Ej. Pidió apoyo en el módulo de Servicios Digitales" maxLength={500} obligatorio {...props} />
+                                    </div>
+                                    <Casilla marcada={aceptaPrivacidad} alCambiar={(v) => { setAceptaPrivacidad(v); setErrores((x) => ({ ...x, privacidad: undefined })); }}
+                                        titulo="La persona leyó y aceptó el aviso de privacidad" texto="Muéstraselo antes de registrar sus datos (texto por confirmar)."
+                                        descrita={errores.privacidad ? "alta-privacidad-nota" : undefined} />
+                                    {errores.privacidad && <p id="alta-privacidad-nota" className="pz-campo__error alta-nota" role="alert">{errores.privacidad}</p>}
+                                </Tarjeta>
+                            </fieldset>
+
+                            <aside className="pz-lateral" aria-label="Registrar">
+                                <section className={`pz-tarjeta pz-guardar pz-envio${completo ? " pz-envio--listo" : ""}`} aria-labelledby={`${id}-enviar`}>
+                                    <Cabecera icono={completo ? "check" : "lista"} id={`${id}-enviar`} titulo={completo ? "Lista para registrar" : "Antes de registrar"}
+                                        texto={completo ? "Se revisan duplicados y se envía la invitación" : "Completa los datos con la persona"} />
+                                    <div className="pz-identidad pz-tono-rol--usuario alta-previa" aria-label="Así quedará la cuenta">
+                                        <span className="pz-rol-avatar pz-identidad__avatar" aria-hidden="true">{(datos.nombre.trim()[0] ?? "?").toUpperCase()}{(datos.primerApellido.trim()[0] ?? "").toUpperCase()}</span>
+                                        <div className="pz-identidad__textos">
+                                            <p className="pz-identidad__nombre">{[datos.nombre, datos.primerApellido, datos.segundoApellido].map((x) => x.trim()).filter(Boolean).join(" ") || "Nombre de la persona"}</p>
+                                            <p className="pz-identidad__correo">{datos.correo.trim() || "Correo de la cuenta"}</p>
+                                            {datos.fechaNacimiento && <span><Chip tono={conTutor ? "dorado" : "verde"}>{conTutor ? `Menor de edad, ${calcularEdad(datos.fechaNacimiento)} años` : `Persona adulta, ${calcularEdad(datos.fechaNacimiento)} años`}</Chip></span>}
+                                        </div>
+                                    </div>
+                                    <div className="pz-envio__avance">
+                                        <p><strong>{listos} de {requisitos.length}</strong> datos listos</p>
+                                        <span className="pz-envio__barra" aria-hidden="true"><span style={{ width: `${(listos / requisitos.length) * 100}%` }} /></span>
+                                    </div>
+                                    <ul className="pz-envio__lista" aria-label="Datos para registrar">
+                                        {requisitos.map((r) => (
+                                            <li key={r.texto} className={r.listo ? "pz-envio__dato--listo" : undefined}>
+                                                <span className="pz-envio__marca" aria-hidden="true">{r.listo && <Icono nombre="check" />}</span>
+                                                {r.texto}<span className="solo-lectores">{r.listo ? ", listo" : ", falta"}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    {Object.keys(errores).some((k) => errores[k as keyof Errores]) && <Aviso tono="error" titulo="Revisa los datos marcados." texto="Lo escrito se conserva." />}
+                                    {errorServidor && <Aviso tono="error" titulo="No se pudo registrar." texto={errorServidor} />}
+                                    <div className="pz-acciones">
+                                        <button type="submit" className="pz-boton" disabled={enviando}>{enviando ? "Registrando…" : "Registrar y enviar invitación"}</button>
+                                    </div>
+                                    <p className="pz-acciones__nota">Nunca escribas ni conozcas la contraseña de la persona.</p>
+                                </section>
+
+                                <Tarjeta icono="info" id={`${id}-como`} titulo="Cómo funciona" texto="Lo que pasa después de registrar">
+                                    <ol className="pz-linea">
+                                        <Paso tono="verde" icono="usuario" titulo="Captura con la persona" texto="Sus datos, su correo y el motivo del alta." actual />
+                                        <Paso tono="dorado" icono="buscarCuenta" titulo="Se revisan duplicados" texto="Si se parece a otra cuenta, queda en revisión hasta que el personal decida." />
+                                        <Paso tono="gris" icono="mensajes" titulo="La persona activa su cuenta" texto="Confirma su correo y elige su contraseña desde la invitación." />
+                                    </ol>
+                                </Tarjeta>
+                            </aside>
+                        </form>
+                    )}
                 </div>
-
-                <section className="contenidos-resumen" aria-labelledby="alta-resumen-titulo">
-                    <h2 id="alta-resumen-titulo">Accesos rápidos</h2>
-                    <div className="contenidos-resumen__tarjetas">
-                        <article className="contenidos-resumen__tarjeta contenidos-resumen__tarjeta--gris">
-                            <div className="contenidos-resumen__fila"><span className="contenidos-resumen__icono"><IconoReloj /></span></div>
-                            <p className="contenidos-resumen__cifra">{solicitudes.length - enRevision}</p>
-                            <p className="contenidos-resumen__titulo">Invitación pendiente</p>
-                            <p className="contenidos-resumen__texto">Falta que la persona confirme su correo.</p>
-                        </article>
-                        <article className="contenidos-resumen__tarjeta contenidos-resumen__tarjeta--guinda">
-                            <div className="contenidos-resumen__fila"><span className="contenidos-resumen__icono"><IconoAviso /></span></div>
-                            <p className="contenidos-resumen__cifra">{enRevision}</p>
-                            <p className="contenidos-resumen__titulo">Posible duplicado</p>
-                            <p className="contenidos-resumen__texto">Esperan la decisión del personal.</p>
-                        </article>
-                        <article className="contenidos-resumen__tarjeta contenidos-resumen__tarjeta--azul">
-                            <div className="contenidos-resumen__fila"><span className="contenidos-resumen__icono"><IconoLista /></span></div>
-                            <p className="contenidos-resumen__cifra">{solicitudes.length}</p>
-                            <p className="contenidos-resumen__titulo">Solicitudes abiertas</p>
-                            <p className="contenidos-resumen__texto">Se listan abajo para atenderlas.</p>
-                        </article>
-                    </div>
-                </section>
-
-                {resultado ? (
-                    <ResultadoAltaAviso resultado={resultado} onNueva={nuevaAlta} errorServidor={errorServidor}
-                        onReintentar={async () => {
-                            try { setResultado(await reintentarInvitacion(resultado.id)); await cargarSolicitudes(); }
-                            catch (error) { setErrorServidor(mensajeError(error)); }
-                        }} />
-                ) : (
-                    <form className="contenidos-formulario" onSubmit={enviar} noValidate>
-                        <div className="at-columna">
-                            <div id="alta-avisos" className="at-columna">
-                                {errorServidor && <AvisoPanel tono="error" titulo="No se pudo registrar la solicitud">{errorServidor}</AvisoPanel>}
-                                {Object.keys(errores).length > 0 && <AvisoPanel tono="error" titulo="Revisa los datos marcados">Corrígelos y vuelve a enviar. Lo escrito se conserva.</AvisoPanel>}
-                                {conTutor && <AvisoPanel tono="info" titulo="La persona es menor de 18 años">Captura el contacto de su madre, padre o tutor. No se crea una cuenta para esa persona.</AvisoPanel>}
-                            </div>
-
-                            <Panel id="alta-personales" icono={<IconoLapiz />} titulo="Datos personales" subtitulo="Captúralos junto con la persona.">
-                                <div className="alta-fila">
-                                    <CampoAlta id="nombre" etiqueta="Nombre(s)" obligatorio {...props} />
-                                    <CampoAlta id="primerApellido" etiqueta="Primer apellido" obligatorio {...props} />
-                                </div>
-                                <div className="alta-fila">
-                                    <CampoAlta id="segundoApellido" etiqueta="Segundo apellido" placeholder="Si lo tiene" {...props} />
-                                    <CampoAlta id="fechaNacimiento" etiqueta="Fecha de nacimiento" type="date" obligatorio ayuda="También sirve para detectar cuentas repetidas." {...props} />
-                                </div>
-                                <CampoAlta id="telefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos" inputMode="numeric" maxLength={10} obligatorio ayuda="Dato de contacto; no sustituye al correo." {...props} />
-                            </Panel>
-
-                            <Panel id="alta-domicilio" icono={<IconoLista />} titulo="Domicilio">
-                                <div className="alta-fila">
-                                    <CampoAlta id="calle" etiqueta="Calle" obligatorio {...props} />
-                                    <CampoAlta id="numeroExterior" etiqueta="Número exterior" placeholder="Número o «sin número»" obligatorio {...props} />
-                                </div>
-                                <div className="alta-fila">
-                                    <CampoAlta id="numeroInterior" etiqueta="Número interior" placeholder="Si existe" {...props} />
-                                    <CampoAlta id="colonia" etiqueta="Colonia o localidad" obligatorio {...props} />
-                                </div>
-                                <div className="alta-fila">
-                                    <CampoAlta id="codigoPostal" etiqueta="Código postal" placeholder="5 dígitos" inputMode="numeric" maxLength={5} obligatorio {...props} />
-                                    <CampoAlta id="municipio" etiqueta="Municipio" obligatorio {...props} />
-                                </div>
-                                <CampoAlta id="estado" etiqueta="Estado" obligatorio {...props} />
-                            </Panel>
-
-                            {conTutor && (
-                                <Panel id="alta-tutor" icono={<IconoAviso />} titulo="Datos de la madre, padre o tutor" subtitulo="Solo es un contacto; no recibe acceso a la cuenta.">
-                                    <div className="alta-fila">
-                                        <CampoAlta id="tutorNombre" etiqueta="Nombre(s)" obligatorio {...props} />
-                                        <CampoAlta id="tutorApellidos" etiqueta="Apellidos" obligatorio {...props} />
-                                    </div>
-                                    <div className="alta-fila">
-                                        <CampoAlta id="tutorTelefono" etiqueta="Teléfono" type="tel" placeholder="10 dígitos" inputMode="numeric" maxLength={10} obligatorio {...props} />
-                                        <CampoAlta id="tutorCorreo" etiqueta="Correo electrónico" type="email" obligatorio ayuda="Solo es un contacto; no recibe acceso a la cuenta." {...props} />
-                                    </div>
-                                    <CampoAlta id="tutorRelacion" etiqueta="Relación con la persona menor" opciones={["Madre", "Padre", "Tutor o tutora"]} obligatorio {...props} />
-                                    <label className="alta-casilla">
-                                        <input type="checkbox" checked={mismoDomicilio} onChange={e => setMismoDomicilio(e.target.checked)} />
-                                        El responsable vive en el mismo domicilio que la persona menor.
-                                    </label>
-                                    {!mismoDomicilio && (
-                                        <>
-                                            <div className="alta-fila">
-                                                <CampoAlta id="tutorCalle" etiqueta="Calle" obligatorio {...props} />
-                                                <CampoAlta id="tutorNumeroExterior" etiqueta="Número exterior" obligatorio {...props} />
-                                            </div>
-                                            <div className="alta-fila">
-                                                <CampoAlta id="tutorNumeroInterior" etiqueta="Número interior" {...props} />
-                                                <CampoAlta id="tutorColonia" etiqueta="Colonia o localidad" obligatorio {...props} />
-                                            </div>
-                                            <div className="alta-fila">
-                                                <CampoAlta id="tutorCodigoPostal" etiqueta="Código postal" obligatorio {...props} />
-                                                <CampoAlta id="tutorMunicipio" etiqueta="Municipio" obligatorio {...props} />
-                                            </div>
-                                            <CampoAlta id="tutorEstado" etiqueta="Estado" obligatorio {...props} />
-                                        </>
-                                    )}
-                                </Panel>
-                            )}
-
-                            <Panel id="alta-correo" icono={<IconoLapiz />} titulo="Correo de la cuenta" subtitulo="Ahí llega la invitación para confirmar y elegir la contraseña.">
-                                <CampoAlta id="correo" etiqueta="Correo electrónico de la persona" type="email" placeholder="nombre@ejemplo.mx" obligatorio
-                                    ayuda="Debe ser un correo al que la persona tenga acceso: ahí llega la invitación." {...props} />
-                                <CampoAlta id="motivo" etiqueta="Motivo del alta asistida" placeholder="Ej. La persona pidió apoyo en el módulo de Servicios Digitales" maxLength={500} obligatorio {...props} />
-                                <div>
-                                    <label className="alta-casilla">
-                                        <input type="checkbox" checked={aceptaPrivacidad} onChange={e => setAceptaPrivacidad(e.target.checked)}
-                                            aria-describedby={errores.privacidad ? "privacidad-nota" : undefined} />
-                                        La persona leyó y aceptó el aviso de privacidad (texto por confirmar)
-                                    </label>
-                                    {errores.privacidad && <p id="privacidad-nota" className="contenidos-campo__error" role="alert">{errores.privacidad}</p>}
-                                </div>
-                            </Panel>
-                        </div>
-
-                        <aside className="contenidos-formulario__lateral">
-                            <Panel id="alta-pasos" icono={<IconoReloj />} titulo="Cómo funciona" clase="contenidos-panel--estado">
-                                <ol className="alta-pasos">
-                                    {pasos.map((paso, i) => <li key={paso}><span className="contenidos-como__numero">{i + 1}</span>{paso}</li>)}
-                                </ol>
-                                <button type="submit" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho" disabled={enviando}>
-                                    {enviando ? "Registrando…" : "Registrar y enviar invitación"}
-                                </button>
-                                <p className="contenidos-nota">Nunca escribas ni conozcas la contraseña de la persona.</p>
-                            </Panel>
-                        </aside>
-                    </form>
-                )}
-
-                <SolicitudesAbiertas solicitudes={solicitudes} onCambio={cargarSolicitudes} />
             </PanelLayout>
-        </ContextoPanel.Provider>
     );
 }
 
-function ResultadoAltaAviso({ resultado, onNueva, onReintentar, errorServidor }: {
-    resultado: ResultadoAlta; onNueva: () => void; onReintentar: () => Promise<void>; errorServidor: string;
+// ---------- Resultado del registro ----------
+
+function Resultado({ resultado, errorServidor, alNueva, alReintentar, alVerSolicitudes }: {
+    resultado: ResultadoAlta; errorServidor: string; alNueva: () => void; alReintentar: () => Promise<void>; alVerSolicitudes: () => void;
 }) {
+    const id = useId();
     const [reintentando, setReintentando] = useState(false);
     const enviada = resultado.estado === "lista" && resultado.invitacionEnviada;
     const sinCorreo = resultado.estado === "lista" && !resultado.invitacionEnviada;
     const revision = resultado.estado === "en_revision";
+    const titulo = enviada ? "Invitación enviada" : sinCorreo ? "Registrada, pero el correo no salió" : revision ? "Quedó en revisión" : "Solicitud registrada";
     return (
-        <>
-            <section className={`contenidos-enviado${enviada ? "" : revision ? " at-aviso--espera" : " at-aviso--error"}`} role="status">
-                <span className="contenidos-enviado__palomita">{enviada ? "✓" : "!"}</span>
-                <div className="contenidos-enviado__textos">
-                    <p className="contenidos-enviado__titulo">
-                        {enviada ? "Invitación enviada" : sinCorreo ? "La solicitud quedó registrada, pero el correo no salió" : revision ? "Posible cuenta repetida: quedó en revisión" : "Solicitud registrada"}
-                    </p>
-                    <p className="contenidos-enviado__detalle">
-                        {enviada && `Enviamos un correo a ${resultado.correo}. La persona debe abrirlo, confirmar su correo y elegir su contraseña.`}
-                        {sinCorreo && "Puede ser el límite de envíos del proyecto. Intenta reenviarla en unos minutos."}
-                        {revision && "Encontramos una cuenta con la misma fecha de nacimiento y el mismo teléfono o nombre. Revísala abajo antes de invitar."}
-                    </p>
-                </div>
-            </section>
-            {errorServidor && <AvisoPanel tono="error" titulo="No se pudo completar">{errorServidor}</AvisoPanel>}
-            <div className="contenidos-previa__acciones">
-                {sinCorreo && (
-                    <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={reintentando}
-                        onClick={async () => { setReintentando(true); await onReintentar(); setReintentando(false); }}>
-                        {reintentando ? "Reenviando…" : "Reenviar invitación"}
-                    </button>
+        <div className="pz-columnas pz-columnas--libre">
+            <Tarjeta icono={enviada ? "check" : revision ? "alerta" : "mensajes"} id={`${id}-resultado`} titulo={titulo} texto={resultado.correo}
+                accion={<Chip tono={enviada ? "verde" : revision ? "guinda" : "dorado"}>{enviada ? "Invitada" : revision ? "Posible duplicado" : "Correo pendiente"}</Chip>}>
+                {enviada && (
+                    <div className="pz-envio-ok" role="status">
+                        <span className="pz-envio-ok__insignia" aria-hidden="true"><Icono nombre="check" /></span>
+                        <p><strong>Enviamos la invitación a {resultado.correo}.</strong> La persona debe abrirla, confirmar su correo y elegir su contraseña.</p>
+                    </div>
                 )}
-                <button type="button" className="contenidos-boton contenidos-boton--principal" onClick={onNueva}>Registrar a otra persona</button>
-            </div>
-        </>
+                {sinCorreo && <Aviso tono="espera" titulo="La solicitud quedó registrada, pero el correo no salió." texto="Puede ser el límite de envíos del proyecto. Reenvíala en unos minutos." />}
+                {revision && <Aviso tono="espera" titulo="Encontramos una cuenta parecida." texto="Tiene la misma fecha de nacimiento y el mismo teléfono o nombre. Revísala antes de invitar." />}
+                {errorServidor && <Aviso tono="error" titulo="No se pudo completar." texto={errorServidor} />}
+                <Datos>
+                    <Dato icono="mensajes" etiqueta="Correo">{resultado.correo}</Dato>
+                    <Dato icono="lista" etiqueta="Cuentas parecidas">{resultado.candidatos.length || "Ninguna"}</Dato>
+                </Datos>
+                <div className="pz-acciones pz-acciones--fila">
+                    {sinCorreo && (
+                        <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={reintentando}
+                            onClick={async () => { setReintentando(true); await alReintentar(); setReintentando(false); }}>
+                            {reintentando ? "Reenviando…" : "Reenviar invitación"}
+                        </button>
+                    )}
+                    {revision && <button type="button" className="pz-boton pz-boton--chico" onClick={alVerSolicitudes}>Revisar el posible duplicado</button>}
+                    <button type="button" className={`pz-boton pz-boton--chico${revision ? " pz-boton--contorno" : ""}`} onClick={alNueva}>Registrar a otra persona</button>
+                </div>
+            </Tarjeta>
+            <aside className="pz-lateral" aria-label="Qué sigue">
+                <Tarjeta icono="revision" id={`${id}-sigue`} titulo="¿Qué sigue?" texto="Así avanza la solicitud">
+                    <ol className="pz-linea">
+                        <Paso tono="verde" icono="check" titulo="Datos registrados" texto="La solicitud quedó guardada con el motivo." />
+                        <Paso tono={revision ? "dorado" : "verde"} icono={revision ? "alerta" : "check"} titulo={revision ? "Decidir si es otra persona" : "Sin duplicados"}
+                            texto={revision ? "En Solicitudes abiertas: invitar o no crear la cuenta." : "No se parece a otra cuenta."} actual={revision} />
+                        <Paso tono={enviada ? "dorado" : "gris"} icono="mensajes" titulo="La persona activa su cuenta" texto="Confirma su correo y elige su contraseña." actual={enviada} />
+                    </ol>
+                </Tarjeta>
+            </aside>
+        </div>
     );
 }
 
-function SolicitudesAbiertas({ solicitudes, onCambio }: { solicitudes: SolicitudAbierta[]; onCambio: () => Promise<void> }) {
+// ---------- Solicitudes abiertas: lista | detalle con la decisión ----------
+
+function Solicitudes({ solicitudes, servicio, filtro, alFiltrar, alCambiar, alRegistrar }: {
+    solicitudes: SolicitudAbierta[]; servicio: Servicio; filtro: FiltroSolicitud; alFiltrar: (f: FiltroSolicitud) => void;
+    alCambiar: () => Promise<void>; alRegistrar: () => void;
+}) {
+    const id = useId();
+    const [texto, setTexto] = useState("");
+    const [pagina, setPagina] = useState(1);
+    const [elegidaId, setElegidaId] = useState<string | null>(null);
+    const buscado = texto.trim().toLowerCase();
+    const filtradas = solicitudes
+        .filter((s) => filtro === "todas" || s.estado === filtro)
+        .filter((s) => !buscado || [nombreDe(s), s.correo, s.telefono].some((v) => v.toLowerCase().includes(buscado)))
+        .sort((a, b) => (a.estado === b.estado ? b.solicitadoEn.localeCompare(a.solicitadoEn) : a.estado === "en_revision" ? -1 : 1));
+    const paginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA));
+    const actual = Math.min(pagina, paginas);
+    const visibles = filtradas.slice((actual - 1) * POR_PAGINA, actual * POR_PAGINA);
+    const elegida = solicitudes.find((s) => s.id === elegidaId) ?? null;
+    const enRevision = solicitudes.filter((s) => s.estado === "en_revision").length;
+
     return (
-        <section className="contenidos-lista" aria-labelledby="alta-pendientes-titulo">
-            <div className="contenidos-lista__cabecera">
-                <span className="contenidos-lista__icono"><IconoLista /></span>
-                <div>
-                    <h2 id="alta-pendientes-titulo">Solicitudes pendientes</h2>
-                    <p>Las que tienen un posible duplicado no se invitan hasta que alguien del personal decida.</p>
+        <div className="pz-columnas pz-columnas--libre">
+            <Tarjeta icono="cuentas" id={`${id}-lista`} titulo="Solicitudes abiertas" texto="Primero las que esperan una decisión; después las que esperan a la persona"
+                accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => void alCambiar()}>Actualizar</button>}>
+                <Buscador etiqueta="Buscar una solicitud" placeholder="Nombre, correo o teléfono" valor={texto} alCambiar={(v) => { setTexto(v); setPagina(1); }}>
+                    <FiltrosAvanzados activos={filtro === "todas" ? 0 : 1} alQuitar={() => { alFiltrar("todas"); setPagina(1); }} grupos={[{
+                        titulo: "Estado", valor: filtro, alCambiar: (v) => { alFiltrar(v as FiltroSolicitud); setPagina(1); },
+                        opciones: [
+                            { valor: "todas", texto: "Todas", cantidad: solicitudes.length },
+                            { valor: "en_revision", texto: "Posible duplicado", cantidad: enRevision },
+                            { valor: "lista", texto: "Esperan a la persona", cantidad: solicitudes.length - enRevision },
+                        ],
+                    }]} />
+                </Buscador>
+
+                {servicio.estado === "cargando" ? <p className="pz-ayuda" role="status">Cargando solicitudes…</p>
+                    : servicio.estado === "apagado" ? <Vacio icono="alerta" titulo="Servicio sin habilitar" texto="Cuando el servidor active el alta asistida, aquí verás las solicitudes abiertas." />
+                    : servicio.estado === "error" ? <Vacio icono="alerta" titulo="No se pudieron cargar" texto={servicio.mensaje ?? "Inténtalo de nuevo."} accion={<button type="button" className="pz-boton pz-boton--chico" onClick={() => void alCambiar()}>Reintentar</button>} />
+                    : visibles.length === 0 ? (
+                        <Vacio icono="check" titulo={solicitudes.length ? "Sin resultados" : "No hay solicitudes abiertas"}
+                            texto={solicitudes.length ? "Prueba con otro filtro u otra búsqueda." : "Cuando registres un alta, aparecerá aquí hasta que la persona active su cuenta."}
+                            accion={!solicitudes.length && <button type="button" className="pz-boton pz-boton--chico" onClick={alRegistrar}>Registrar a una persona</button>} />
+                    ) : (
+                        <ul className="pz-filas">
+                            {visibles.map((s) => {
+                                const abierta = s.id === elegidaId;
+                                const revision = s.estado === "en_revision";
+                                return (
+                                    <li key={s.id}>
+                                        <article className={`pz-fila${revision ? " pz-fila--guinda" : ""}${abierta ? " pz-fila--elegida" : ""}`}>
+                                            <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={revision ? "alerta" : "usuario"} /></span>
+                                            <div className="pz-fila__textos">
+                                                <h4 className="pz-fila__titulo">{nombreDe(s)}</h4>
+                                                <p className="pz-fila__detalle"><span>{s.correo}</span><span>Tel. {s.telefono}</span><span className="pz-fila__folio">{fechaHora(s.solicitadoEn)}</span></p>
+                                            </div>
+                                            <Chip tono={revision ? "guinda" : "dorado"}>{revision ? "Posible duplicado" : "Invitación pendiente"}</Chip>
+                                            <button type="button" className={`pz-boton pz-boton--chico${abierta ? "" : " pz-boton--contorno"}`} aria-pressed={abierta} onClick={() => setElegidaId(abierta ? null : s.id)}>
+                                                {abierta ? "Abierta" : revision ? "Decidir" : "Atender"}<span className="solo-lectores"> la solicitud de {nombreDe(s)}</span>
+                                            </button>
+                                        </article>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+
+                <div className="pz-tarjeta__pie">
+                    <p aria-live="polite">{visibles.length} de {filtradas.length} solicitudes</p>
+                    <Paginas pagina={actual} paginas={paginas} alCambiar={setPagina} />
                 </div>
-            </div>
-            {solicitudes.length === 0 ? (
-                <div className="contenidos-vacio">
-                    <span>
-                        <span className="contenidos-vacio__icono"><IconoLista /></span>
-                        <strong>No hay solicitudes pendientes</strong>
-                        <span>Cuando registres un alta, aparecerá aquí hasta que la persona active su cuenta.</span>
-                    </span>
-                </div>
-            ) : solicitudes.map(solicitud => <Pendiente key={solicitud.id} solicitud={solicitud} onCambio={onCambio} />)}
-        </section>
+            </Tarjeta>
+
+            <aside className="pz-lateral" aria-label={elegida ? "Detalle de la solicitud" : "Cómo se decide"}>
+                {elegida ? <Detalle key={elegida.id} solicitud={elegida} alCambiar={alCambiar} alCerrar={() => setElegidaId(null)} /> : (
+                    <Tarjeta icono="info" id={`${id}-como`} titulo="Cómo se decide un duplicado" texto="Elige una solicitud para atenderla">
+                        <ol className="pz-linea">
+                            <Paso tono="dorado" icono="buscarCuenta" titulo="Compara las cuentas" texto="Revisa nombre, fecha de nacimiento, teléfono y correo con la identificación." />
+                            <Paso tono="verde" icono="check" titulo="Es otra persona" texto="Se envía la invitación a su correo." />
+                            <Paso tono="guinda" icono="alerta" titulo="Es la misma persona" texto="No se crea otra cuenta: oriéntala con Recuperación asistida." />
+                        </ol>
+                    </Tarjeta>
+                )}
+            </aside>
+        </div>
     );
 }
 
-function Pendiente({ solicitud, onCambio }: { solicitud: SolicitudAbierta; onCambio: () => Promise<void> }) {
+function Detalle({ solicitud, alCambiar, alCerrar }: { solicitud: SolicitudAbierta; alCambiar: () => Promise<void>; alCerrar: () => void }) {
+    const id = useId();
     const [motivo, setMotivo] = useState("");
     const [error, setError] = useState("");
     const [aviso, setAviso] = useState("");
     const [ocupado, setOcupado] = useState(false);
-    const nombre = [solicitud.nombres, solicitud.primerApellido, solicitud.segundoApellido].filter(Boolean).join(" ");
+    const revision = solicitud.estado === "en_revision";
 
     async function ejecutar(accion: () => Promise<ResultadoAlta>, pideMotivo = true) {
         if (pideMotivo && !motivo.trim()) { setError("Escribe el motivo de la decisión."); return; }
         setOcupado(true); setError(""); setAviso("");
         try {
             const resultado = await accion();
-            if (resultado.estado === "lista" && !resultado.invitacionEnviada) setAviso("Se aprobó, pero el correo no salió. Reintenta en unos minutos.");
-            await onCambio();
+            if (resultado.estado === "lista" && !resultado.invitacionEnviada) setAviso("Se aprobó, pero el correo no salió. Reenvíala en unos minutos.");
+            else if (resultado.estado === "lista" || resultado.estado === "invitada") setAviso("Invitación enviada.");
+            await alCambiar();
         } catch (e) { setError(mensajeError(e)); }
         finally { setOcupado(false); }
     }
 
+    const acciones: ReactNode = revision ? (
+        <>
+            <button type="button" className="pz-boton" disabled={ocupado} onClick={() => ejecutar(() => resolverDuplicado(solicitud.id, "persona_distinta", motivo.trim()))}>Es otra persona: invitar</button>
+            <button type="button" className="pz-boton pz-boton--contorno" disabled={ocupado} onClick={() => ejecutar(() => resolverDuplicado(solicitud.id, "misma_persona", motivo.trim()))}>Es la misma persona: no crear</button>
+        </>
+    ) : (
+        <button type="button" className="pz-boton" disabled={ocupado} onClick={() => ejecutar(() => reintentarInvitacion(solicitud.id), false)}>Reenviar invitación</button>
+    );
+
     return (
-        <article className="alta-pendiente">
-            <div className="alta-pendiente__encabezado">
-                <div>
-                    <p className="alta-pendiente__nombre">{nombre}</p>
-                    <p className="alta-pendiente__dato">{solicitud.correo} · Tel. {solicitud.telefono} · Nac. {solicitud.fechaNacimiento}</p>
-                </div>
-                <span className={`contenidos-estado contenidos-estado--${solicitud.estado === "en_revision" ? "con_observaciones" : "por_autorizar"}`}>
-                    {solicitud.estado === "en_revision" ? "En revisión" : "Invitación pendiente"}
-                </span>
-            </div>
+        <Tarjeta icono={revision ? "alerta" : "usuario"} id={`${id}-detalle`} titulo={nombreDe(solicitud)} texto={`Solicitada el ${fechaHora(solicitud.solicitadoEn)}`}
+            accion={<Chip tono={revision ? "guinda" : "dorado"}>{revision ? "En revisión" : "Invitación pendiente"}</Chip>}>
+            <Datos>
+                <Dato icono="mensajes" etiqueta="Correo" ancho>{solicitud.correo}</Dato>
+                <Dato icono="reloj" etiqueta="Nacimiento">{fechaCorta(solicitud.fechaNacimiento)}</Dato>
+                <Dato icono="usuario" etiqueta="Teléfono">{solicitud.telefono}</Dato>
+            </Datos>
 
             {solicitud.candidatos.length > 0 && (
-                <div className="at-nota">
-                    <p className="at-nota__autor">Cuentas parecidas</p>
-                    {solicitud.candidatos.map(c => (
-                        <p key={c.id} className="alta-pendiente__dato">
-                            {[c.nombres, c.primerApellido, c.segundoApellido].filter(Boolean).join(" ")} · {c.correo} · Tel. {c.telefono} · Nac. {c.fechaNacimiento}
-                        </p>
-                    ))}
-                </div>
+                <>
+                    <p className="pz-subtitulo">Cuentas parecidas</p>
+                    <ul className="pz-filas alta-parecidas">
+                        {solicitud.candidatos.map((c) => (
+                            <li key={c.id} className="alta-parecida">
+                                <p className="alta-parecida__nombre">{nombreDe(c)}</p>
+                                <p className="pz-fila__detalle"><span>{c.correo}</span><span>Tel. {c.telefono}</span><span>Nac. {fechaCorta(c.fechaNacimiento)}</span></p>
+                            </li>
+                        ))}
+                    </ul>
+                </>
             )}
 
-            {error && <AvisoPanel tono="error" titulo="No se pudo completar">{error}</AvisoPanel>}
-            {aviso && <AvisoPanel tono="advertencia" titulo="Correo pendiente">{aviso}</AvisoPanel>}
+            {aviso && <Aviso titulo={aviso} />}
+            {error && <Aviso tono="error" titulo="No se pudo completar." texto={error} />}
 
-            <div className="contenidos-campo">
-                <label htmlFor={`motivo-${solicitud.id}`}>Motivo de la decisión <span className="contenidos-campo__obligatorio" aria-label="obligatorio">*</span></label>
-                <input id={`motivo-${solicitud.id}`} type="text" value={motivo} maxLength={500} onChange={e => setMotivo(e.target.value)} placeholder="Ej. Se verificó con identificación" />
+            <div className="pz-decision">
+                <label className="pz-campo pz-campo--lleno">
+                    <span>Motivo de la decisión{revision ? " *" : " (para cancelar)"}</span>
+                    <input type="text" value={motivo} maxLength={500} onChange={(e) => { setMotivo(e.target.value); setError(""); }} placeholder="Ej. Se verificó con identificación" />
+                </label>
+                <div className="pz-acciones">{acciones}</div>
             </div>
-            <div className="alta-pendiente__acciones">
-                {solicitud.estado === "en_revision" ? (
-                    <>
-                        <button type="button" className="contenidos-boton contenidos-boton--principal contenidos-boton--chico" disabled={ocupado}
-                            onClick={() => ejecutar(() => resolverDuplicado(solicitud.id, "persona_distinta", motivo.trim()))}>
-                            Es otra persona: invitar
-                        </button>
-                        <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" disabled={ocupado}
-                            onClick={() => ejecutar(() => resolverDuplicado(solicitud.id, "misma_persona", motivo.trim()))}>
-                            Es la misma persona: no crear
-                        </button>
-                    </>
-                ) : (
-                    <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico" disabled={ocupado}
-                        onClick={() => ejecutar(() => reintentarInvitacion(solicitud.id), false)}>
-                        Reenviar invitación
-                    </button>
-                )}
-                <button type="button" className="contenidos-boton contenidos-boton--chico at-boton--guinda" disabled={ocupado}
-                    onClick={() => ejecutar(() => cancelarSolicitud(solicitud.id, motivo.trim()))}>
-                    Cancelar solicitud
-                </button>
+            <div className="pz-acciones pz-acciones--pie">
+                <button type="button" className="pz-boton pz-boton--guinda pz-boton--contorno pz-boton--chico" disabled={ocupado} onClick={() => ejecutar(() => cancelarSolicitud(solicitud.id, motivo.trim()))}>Cancelar solicitud</button>
+                <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={alCerrar}>Cerrar</button>
             </div>
-        </article>
+        </Tarjeta>
     );
 }
 

@@ -56,6 +56,11 @@ function Visitas() {
     ].filter((g) => g.lista.length);
     const hoy = hoyISO();
     const siguiente = visitas.filter((v) => v.estado === "confirmada" && v.fecha >= hoy).sort((a, b) => cuando(a).localeCompare(cuando(b)))[0];
+    // Los próximos 7 días: cuántas visitas confirmadas o por confirmar hay cada día
+    const semana = Array.from({ length: 7 }, (_, i) => sumarDias(hoy, i)).map((dia) => ({
+        dia, lista: visitas.filter((v) => v.fecha === dia && (v.estado === "confirmada" || enFiltro(v, "por-confirmar"))),
+    }));
+    const plazoUrgente = (v: Visita) => !!v.responderAntes && v.responderAntes <= sumarDias(hoy, 1);
 
     const cabecera = (
         <Encabezado titulo="Visitas y uso de espacios" texto={vista === "uso" ? "Cómo se usó cada sala, con las actividades del calendario." : "Solicitudes de visita de grupos: confirma, da seguimiento y consulta el historial."}>
@@ -123,7 +128,7 @@ function Visitas() {
                                                                             <span className="pz-fila__folio">{v.folio}</span><span>{v.hora || "Hora por confirmar"}</span>
                                                                             <span>{v.detallePersonas || `${v.personas} personas`}</span><span>{v.espacio || "Espacio por confirmar"}</span>
                                                                         </p>
-                                                                        {v.estado === "por-confirmar" && v.responderAntes && <p className="pz-fila__plazo">Responder antes del {fechaCorta(v.responderAntes)}</p>}
+                                                                        {v.estado === "por-confirmar" && v.responderAntes && <p className={`pz-fila__plazo${plazoUrgente(v) ? "" : " vis-plazo--holgado"}`}>{plazoUrgente(v) ? "Urgente: " : ""}Responder antes del {fechaCorta(v.responderAntes)}</p>}
                                                                     </div>
                                                                     <Chip tono={TONO[v.estado]}>{NOMBRE_ESTADO_VISITA[v.estado]}</Chip>
                                                                     <Link to={DETALLE(v.folio)} className={`pz-boton pz-boton--chico${g.accion === "Revisar" ? "" : " pz-boton--contorno"}`}>{g.accion}<span className="solo-lectores"> {v.folio}</span></Link>
@@ -149,6 +154,21 @@ function Visitas() {
                                     </Datos>
                                     <Link to={DETALLE(siguiente.folio)} className="pz-boton pz-boton--contorno pz-boton--chico cal-ver-dia">Ver la visita</Link>
                                 </> : <Vacio icono="calendario" titulo="Nada en puerta" texto="Cuando confirmes una visita, aparecerá aquí." />}
+                            </Tarjeta>
+                            <Tarjeta icono="calendario" id="visitas-semana" titulo="Los próximos 7 días" texto={`${semana.reduce((n, d) => n + d.lista.length, 0)} visitas confirmadas o por confirmar`}>
+                                <ol className="vis-semana">
+                                    {semana.map(({ dia, lista }, i) => {
+                                        const [d] = partes(dia);
+                                        const nombre = new Date(`${dia}T12:00:00`).toLocaleDateString("es-MX", { weekday: "short" }).replace(".", "");
+                                        return (
+                                            <li key={dia} className={`vis-semana__dia${i === 0 ? " vis-semana__dia--hoy" : ""}${lista.length ? " vis-semana__dia--ocupado" : ""}`}
+                                                title={lista.length ? lista.map((v) => `${v.hora ?? ""} ${v.grupo}`).join(", ") : "Sin visitas"}>
+                                                <span>{i === 0 ? "Hoy" : nombre}</span><strong>{d}</strong>
+                                                <small>{lista.length ? `${lista.length} ${lista.length === 1 ? "visita" : "visitas"}` : "Libre"}</small>
+                                            </li>
+                                        );
+                                    })}
+                                </ol>
                             </Tarjeta>
                             <Plegable titulo="Cómo se atiende una visita">
                                 <ul>

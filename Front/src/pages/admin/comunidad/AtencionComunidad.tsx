@@ -1,166 +1,243 @@
-// Atención › Contactos y sugerencias / Bibliocomunidad. Conectado al backend (servicios/atencionComunidad.ts).
-// Diseño: el del Editor de contenidos. Mismo flujo de antes: lista de casos y, al elegir uno, su detalle abajo.
-import { useEffect, useRef, useState, type FormEvent } from "react";
+// Atención › Contactos y sugerencias. Conectado al backend (servicios/atencionComunidad.ts).
+// 22 nov 2026: rehecho con las piezas del panel y la paleta (plantilla «Lista» del Resumen): cifras por estado que filtran,
+// lista con filtro segmentado y buscador | al lado, el mensaje elegido con «Iniciar atención» y la respuesta final, o
+// «Cómo se atiende un mensaje» si no hay ninguno elegido. Bibliocomunidad se eliminó (Aldahir, 22 nov).
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import PanelLayout from "../PanelLayout";
 import { Migas } from "../componentes";
-import { IconoAviso, IconoLapiz, IconoLista, IconoReloj } from "../contenidos/piezas";
-import "../contenidos/Contenidos.css";
-import "../atencion/Atencion.css";
-import "./Comunidad.css";
+import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Icono, Nota, Paginas, Plegable, Tarjeta, Vacio, type TonoEstado } from "../piezasPanel";
 import { mensajeError } from "../../../servicios/api";
-import { listarCasos, atenderContacto, registrarIntento, finalizarCaso, intentosCaso, type Caso, type ListaCasos, type Intento } from "../../../servicios/atencionComunidad";
-
+import { listarCasos, atenderContacto, type Caso, type ListaCasos } from "../../../servicios/atencionComunidad";
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
-const ESTADOS: Record<string, { texto: string; clase: string }> = {
-    recibido: { texto: "Recibido", clase: "con_observaciones" },
-    en_atencion: { texto: "En atención", clase: "por_autorizar" },
-    cerrado: { texto: "Cerrado", clase: "publicado" },
-};
-const FILTROS = [{ valor: "", texto: "Todos" }, ...Object.entries(ESTADOS).map(([valor, e]) => ({ valor, texto: e.texto }))];
-const MEDIOS: Record<string, string> = { llamada: "Llamada", correo: "Correo", presencial: "Presencial" };
-const POR_PAGINA = 10;
+import "./Comunidad.css";
 
-function Estado({ estado }: { estado: string }) {
-    const e = ESTADOS[estado] ?? { texto: estado, clase: "borrador" };
-    return <span className={`contenidos-estado contenidos-estado--${e.clase}`}>{e.texto}</span>;
+type EstadoCaso = "recibido" | "en_atencion" | "cerrado";
+type Filtro = "" | EstadoCaso;
+const ESTADOS: Record<EstadoCaso, { texto: string; tono: TonoEstado }> = {
+    recibido: { texto: "Sin atender", tono: "guinda" },
+    en_atencion: { texto: "En atención", tono: "dorado" },
+    cerrado: { texto: "Cerrados", tono: "verde" },
+};
+const POR_PAGINA = 10;
+const fechaHora = (iso: string) => new Date(iso).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Mazatlan" });
+const esSugerencia = (c: Caso) => /sugerencia/i.test(c.asunto);
+// Cuándo llegó: hoy, en los últimos 7 días o en los últimos 30
+type Periodo = "" | "hoy" | "semana" | "mes";
+function enPeriodo(iso: string, periodo: Periodo, ahora = new Date()) {
+    if (!periodo) return true;
+    if (periodo === "hoy") return new Date(iso).toDateString() === ahora.toDateString();
+    return ahora.getTime() - new Date(iso).getTime() <= (periodo === "semana" ? 7 : 30) * 86400000;
 }
 
-export default function AtencionComunidad({ bibliocomunidad = false }: { bibliocomunidad?: boolean }) {
-    const [estado, setEstado] = useState("");
+function Estado({ estado }: { estado: string }) {
+    const e = ESTADOS[estado as EstadoCaso] ?? { texto: estado, tono: "gris" as TonoEstado };
+    return <Chip tono={e.tono}>{e.texto}</Chip>;
+}
+
+export default function AtencionComunidad() {
+    const id = useId();
+    const [estado, setEstado] = useState<Filtro>("");
     const [pagina, setPagina] = useState(1);
+    const [texto, setTexto] = useState("");
+    const [tipo, setTipo] = useState<"" | "contacto" | "sugerencia">("");
+    const [periodo, setPeriodo] = useState<Periodo>("");
     const [recarga, setRecarga] = useState(0);
     const [seleccion, setSeleccion] = useState<Caso | null>(null);
+    const [aviso, setAviso] = useState("");
     const [resultado, setResultado] = useState<{ clave: string; datos?: ListaCasos; error?: string }>({ clave: "" });
-    const clave = JSON.stringify([bibliocomunidad, estado, pagina, recarga]);
+    const [cuentas, setCuentas] = useState<Partial<Record<EstadoCaso, number>>>({});
+    const clave = JSON.stringify([estado, pagina, recarga]);
     const actual = resultado.clave === clave ? resultado : undefined;
 
     useEffect(() => {
         let vigente = true;
-        listarCasos(bibliocomunidad, estado, pagina)
+        listarCasos(false, estado, pagina)
             .then((datos) => { if (vigente) setResultado({ clave, datos }); })
             .catch((e) => { if (vigente) setResultado({ clave, error: mensajeError(e) }); });
         return () => { vigente = false; };
-    }, [bibliocomunidad, estado, pagina, clave]);
+    }, [estado, pagina, clave]);
 
-    // Al elegir un caso, la vista baja a su detalle
+    // Cuántos hay en cada estado (para las cifras y el filtro): solo se pide el total de cada uno
     useEffect(() => {
-        if (seleccion) document.getElementById("comunidad-detalle")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, [seleccion]);
+        let vigente = true;
+        Promise.all((Object.keys(ESTADOS) as EstadoCaso[]).map((e) => listarCasos(false, e, 1).then((r) => [e, r.total] as const)))
+            .then((pares) => { if (vigente) setCuentas(Object.fromEntries(pares)); })
+            .catch(() => { if (vigente) setCuentas({}); });
+        return () => { vigente = false; };
+    }, [recarga]);
 
-    const titulo = bibliocomunidad ? "Bibliocomunidad" : "Contactos y sugerencias";
     const datos = actual?.datos;
     const paginas = datos ? Math.max(1, Math.ceil(datos.total / POR_PAGINA)) : 1;
+    const buscado = texto.trim().toLowerCase();
+    const items = datos?.items ?? [];
+    const porTipo = (c: Caso) => !tipo || (tipo === "sugerencia") === esSugerencia(c);
+    const visibles = items.filter((c) => porTipo(c) && enPeriodo(c.creadoEn, periodo)
+        && (!buscado || [c.nombreRemitente, c.asunto, c.cuerpoMensaje, c.correoContacto ?? "", c.id].some((v) => v.toLowerCase().includes(buscado))));
+    const activos = [estado, tipo, periodo].filter(Boolean).length;
+    const cuenta = (e: EstadoCaso) => cuentas[e] ?? "—";
+    const total = (Object.values(cuentas) as number[]).reduce((s, n) => s + n, 0);
 
-    function elegirEstado(valor: string) {
+    function elegirEstado(valor: Filtro) {
         setEstado(valor);
         setPagina(1);
         setSeleccion(null);
     }
 
+    function actualizar() {
+        setRecarga((x) => x + 1);
+        setSeleccion(null);
+    }
+
     return (
         <PanelLayout titulo="Atención" tema="contenidos paleta">
-            <Migas pasos={[[titulo]]} />
+            <Migas pasos={[["Contactos y sugerencias"]]} />
+            <div className="pz-pagina">
+                <Encabezado titulo="Contactos y sugerencias" texto="Los mensajes que la gente envía desde el portal. Atiéndelos y deja la respuesta final en cada caso.">
+                    <Cifra icono="alerta" tono="vino" valor={cuenta("recibido")} texto="sin atender" activa={estado === "recibido"} alPresionar={() => elegirEstado(estado === "recibido" ? "" : "recibido")} />
+                    <Cifra icono="reloj" valor={cuenta("en_atencion")} texto="en atención" activa={estado === "en_atencion"} alPresionar={() => elegirEstado(estado === "en_atencion" ? "" : "en_atencion")} />
+                    <Cifra icono="check" valor={cuenta("cerrado")} texto="cerrados" activa={estado === "cerrado"} alPresionar={() => elegirEstado(estado === "cerrado" ? "" : "cerrado")} />
+                </Encabezado>
 
-            <div className="contenidos-encabezado">
-                <div>
-                    <h1>{titulo}</h1>
-                    <p className="contenidos-encabezado__texto">Los casos y sus cambios se guardan en la base de datos.</p>
-                </div>
-                <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => { setRecarga((x) => x + 1); setSeleccion(null); }}>
-                    Actualizar
-                </button>
-            </div>
+                {aviso && <Aviso titulo={aviso} />}
 
-            <section className="contenidos-lista" aria-labelledby="comunidad-lista-titulo">
-                <div className="contenidos-lista__cabecera">
-                    <span className="contenidos-lista__icono"><IconoLista /></span>
-                    <div>
-                        <h2 id="comunidad-lista-titulo">{bibliocomunidad ? "Solicitudes de Bibliocomunidad" : "Mensajes recibidos"}</h2>
-                        <p>Elige un caso para ver su detalle y atenderlo.</p>
-                    </div>
-                </div>
+                <div className="pz-columnas">
+                    <Tarjeta icono="mensajes" id={`${id}-lista`} titulo="Mensajes recibidos" texto="Del más reciente al más antiguo" className="pz-pendientes"
+                        accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={actualizar}>Actualizar</button>}>
+                        <Buscador etiqueta="Buscar un mensaje" placeholder="Remitente, asunto o texto del mensaje" valor={texto} alCambiar={setTexto}>
+                            <FiltrosAvanzados activos={activos} alQuitar={() => { elegirEstado(""); setTipo(""); setPeriodo(""); }} grupos={[
+                                {
+                                    titulo: "Estado", valor: estado, alCambiar: (v) => elegirEstado(v as Filtro),
+                                    opciones: [
+                                        { valor: "", texto: "Todos", cantidad: Object.keys(cuentas).length ? total : undefined },
+                                        ...(Object.entries(ESTADOS) as [EstadoCaso, { texto: string }][]).map(([valor, e]) => ({ valor, texto: e.texto, cantidad: cuentas[valor] })),
+                                    ],
+                                },
+                                {
+                                    titulo: "Tipo de mensaje", valor: tipo, alCambiar: (v) => setTipo(v as typeof tipo),
+                                    opciones: [
+                                        { valor: "", texto: "Todos" },
+                                        { valor: "contacto", texto: "Contacto", cantidad: datos ? items.filter((c) => !esSugerencia(c)).length : undefined },
+                                        { valor: "sugerencia", texto: "Sugerencia", cantidad: datos ? items.filter(esSugerencia).length : undefined },
+                                    ],
+                                },
+                                {
+                                    titulo: "Cuándo llegó", valor: periodo, alCambiar: (v) => setPeriodo(v as Periodo),
+                                    opciones: [
+                                        { valor: "", texto: "Cuando sea" },
+                                        { valor: "hoy", texto: "Hoy", cantidad: datos ? items.filter((c) => enPeriodo(c.creadoEn, "hoy")).length : undefined },
+                                        { valor: "semana", texto: "Últimos 7 días", cantidad: datos ? items.filter((c) => enPeriodo(c.creadoEn, "semana")).length : undefined },
+                                        { valor: "mes", texto: "Últimos 30 días", cantidad: datos ? items.filter((c) => enPeriodo(c.creadoEn, "mes")).length : undefined },
+                                    ],
+                                },
+                            ]} />
+                        </Buscador>
+                        {(tipo || periodo || buscado) && datos && datos.total > POR_PAGINA && <p className="pz-acciones__nota">El tipo, la fecha y la búsqueda se aplican a esta página.</p>}
 
-                <div className="contenidos-lista__herramientas">
-                    <div className="contenidos-filtros" role="group" aria-label="Filtrar por estado">
-                        {FILTROS.map((f) => (
-                            <button key={f.valor || "todos"} type="button" aria-pressed={estado === f.valor}
-                                className={`contenidos-filtro${estado === f.valor ? " contenidos-filtro--activo" : ""}`} onClick={() => elegirEstado(f.valor)}>
-                                {f.texto}
-                            </button>
+                        {!actual && <EsqueletoLista filas={4} texto="Cargando mensajes…" />}
+                        {actual?.error && (
+                            <div className="ct-centro">
+                                <Vacio icono="alerta" titulo="No pudimos cargar los mensajes" texto={actual.error}
+                                    accion={<button type="button" className="pz-boton pz-boton--chico" onClick={actualizar}>Reintentar</button>} />
+                            </div>
+                        )}
+                        {datos && (visibles.length === 0 ? (
+                            <div className="ct-centro">
+                                <Vacio icono={datos.total === 0 && !activos ? "check" : "buscarCuenta"} titulo={datos.total === 0 && !activos ? "Estás al día" : "Sin resultados"}
+                                    texto={datos.total === 0 && !activos ? "Cuando alguien escriba desde el portal, aparecerá aquí." : "No hay mensajes con estos filtros."}
+                                    accion={activos > 0 && <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { elegirEstado(""); setTipo(""); setPeriodo(""); setTexto(""); }}>Quitar filtros</button>} />
+                            </div>
+                        ) : (
+                            <div className="pz-grupos" tabIndex={0} role="region" aria-label="Mensajes recibidos">
+                                <ul className="pz-filas">
+                                    {visibles.map((c) => {
+                                        const abierta = seleccion?.id === c.id;
+                                        const sinAtender = c.estadoAtencion === "recibido";
+                                        return (
+                                            <li key={c.id}>
+                                                <article className={`pz-fila${sinAtender ? " pz-fila--guinda" : c.estadoAtencion === "en_atencion" ? " pz-fila--espera" : ""}${abierta ? " pz-fila--elegida" : ""}`}>
+                                                    <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={esSugerencia(c) ? "contenido" : "mensajes"} /></span>
+                                                    <div className="pz-fila__textos">
+                                                        <h4 className="pz-fila__titulo">{c.nombreRemitente}</h4>
+                                                        <p className="pz-fila__detalle"><span>{esSugerencia(c) ? "Sugerencia" : "Contacto"}</span><span>{fechaHora(c.creadoEn)}</span></p>
+                                                        <p className="ct-extracto">{c.cuerpoMensaje}</p>
+                                                    </div>
+                                                    <Estado estado={c.estadoAtencion} />
+                                                    <button type="button" className={`pz-boton pz-boton--chico${abierta || sinAtender ? "" : " pz-boton--contorno"}`} aria-pressed={abierta}
+                                                        onClick={() => { setAviso(""); setSeleccion(abierta ? null : c); }}>
+                                                        {abierta ? "Abierto" : c.estadoAtencion === "cerrado" ? "Ver" : "Atender"}<span className="solo-lectores"> el mensaje de {c.nombreRemitente}</span>
+                                                    </button>
+                                                </article>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
                         ))}
-                    </div>
-                </div>
 
-                <div className="contenidos-tabla comunidad-tabla" tabIndex={0} role="table" aria-label="Casos" aria-busy={!actual}>
-                    {!actual && <EsqueletoLista texto="Cargando casos…" />}
-                    <div className="contenidos-tabla__fila contenidos-tabla__fila--titulos" role="row">
-                        {["Folio", "Remitente", "Asunto", "Estado", "Acción"].map((t) => <span key={t} role="columnheader">{t}</span>)}
-                    </div>
-                    {datos?.items.map((c) => (
-                        <div key={c.id} className={`contenidos-tabla__fila${seleccion?.id === c.id ? " comunidad-fila--elegida" : ""}`} role="row">
-                            <span role="cell" className="contenidos-tabla__folio comunidad-folio" title={c.id}>{c.id}</span>
-                            <span role="cell" className="contenidos-tabla__titulo">{c.nombreRemitente}</span>
-                            <span role="cell" className="comunidad-asunto">{c.asunto}</span>
-                            <span role="cell"><Estado estado={c.estadoAtencion} /></span>
-                            <span role="cell">
-                                <button type="button" className="contenidos-tabla__accion" aria-pressed={seleccion?.id === c.id} onClick={() => setSeleccion(c)}>
-                                    Ver caso<span className="solo-lectores"> de {c.nombreRemitente}</span>
-                                </button>
-                            </span>
+                        <div className="pz-tarjeta__pie">
+                            <p aria-live="polite">{visibles.length} de {datos?.total ?? 0} mensajes</p>
+                            <Paginas pagina={pagina} paginas={paginas} bloqueada={!actual} alCambiar={(p) => { setPagina(p); setSeleccion(null); }} />
                         </div>
-                    ))}
-                    {actual?.error && <p className="contenidos-error" role="alert">{actual.error}</p>}
-                    {datos && datos.total === 0 && (
-                        <div className="contenidos-vacio" role="row">
-                            <span role="cell">
-                                <span className="contenidos-vacio__icono"><IconoLista /></span>
-                                <strong>No hay casos con este filtro</strong>
-                                <span>Prueba con otro estado.</span>
-                            </span>
-                        </div>
-                    )}
-                </div>
+                    </Tarjeta>
 
-                <div className="contenidos-lista__pie">
-                    <p aria-live="polite">Mostrando {datos?.items.length ?? 0} de {datos?.total ?? 0} casos</p>
-                    <div className="contenidos-paginas" role="group" aria-label="Páginas">
-                        <button type="button" disabled={!datos || pagina === 1} onClick={() => { setPagina((p) => p - 1); setSeleccion(null); }}>Anterior</button>
-                        <button type="button" className="contenidos-paginas__actual" aria-current="page">{pagina} de {paginas}</button>
-                        <button type="button" disabled={!datos || pagina * POR_PAGINA >= datos.total} onClick={() => { setPagina((p) => p + 1); setSeleccion(null); }}>Siguiente</button>
-                    </div>
+                    <aside className="pz-lateral" aria-label={seleccion ? "Mensaje elegido" : "Cómo se atiende"}>
+                        {seleccion ? (
+                            <Detalle key={seleccion.id} caso={seleccion} alCerrar={() => setSeleccion(null)}
+                                alGuardar={(caso, mensaje) => { setAviso(mensaje); setRecarga((x) => x + 1); setSeleccion(caso.estadoAtencion === "cerrado" ? null : caso); }} />
+                        ) : (
+                            <>
+                                <Tarjeta icono="info" id={`${id}-como`} titulo="Cómo se atiende un mensaje" texto="Elige uno de la lista para abrirlo" className="pz-tarjeta--actividades">
+                                    <ol className="pz-linea">
+                                        <Paso tono="guinda" icono="mensajes" titulo="Llega sin atender" texto="La persona lo envió desde Contacto en el portal y recibió su folio." />
+                                        <Paso tono="dorado" icono="reloj" titulo="Inicia la atención" texto="Así el equipo sabe que alguien ya lo está viendo." />
+                                        <Paso tono="verde" icono="check" titulo="Ciérralo con la respuesta" texto="La respuesta final queda en el caso y la persona la ve con su folio." />
+                                    </ol>
+                                </Tarjeta>
+                                <Plegable titulo="Reglas para responder">
+                                    <ul>
+                                        <li>Responde con lenguaje claro y sin datos de otras personas.</li>
+                                        <li>Si el mensaje es de credencial, espacios o actividades, orienta a la persona a ese trámite.</li>
+                                        <li>Un caso cerrado ya no se reabre: escribe la respuesta completa.</li>
+                                    </ul>
+                                </Plegable>
+                            </>
+                        )}
+                    </aside>
                 </div>
-            </section>
-
-            {seleccion && <Detalle key={seleccion.id} caso={seleccion} comunidad={bibliocomunidad} alGuardar={() => { setSeleccion(null); setRecarga((x) => x + 1); }} />}
+            </div>
         </PanelLayout>
     );
 }
 
-function Detalle({ caso, comunidad, alGuardar }: { caso: Caso; comunidad: boolean; alGuardar: () => void }) {
+function Paso({ tono, icono, titulo, texto, actual }: { tono: "verde" | "dorado" | "guinda" | "gris"; icono: "mensajes" | "reloj" | "check"; titulo: string; texto: string; actual?: boolean }) {
+    return (
+        <li className={`pz-linea__paso pz-linea__paso--${tono}${actual ? " pz-linea__paso--actual" : ""}`}>
+            <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={icono} /></span>
+            <div className="pz-linea__textos">
+                <p className="pz-linea__titulo">{titulo}</p>
+                <p className="pz-linea__detalle">{texto}</p>
+            </div>
+        </li>
+    );
+}
+
+function Detalle({ caso, alGuardar, alCerrar }: { caso: Caso; alGuardar: (caso: Caso, mensaje: string) => void; alCerrar: () => void }) {
+    const id = useId();
     const [error, setError] = useState("");
     const [ocupado, setOcupado] = useState(false);
-    const [intentos, setIntentos] = useState<Intento[] | null>(null);
-    const [recarga, setRecarga] = useState(0);
+    const [respuesta, setRespuesta] = useState("");
     const bloqueo = useRef(false);
+    const abierto = caso.estadoAtencion !== "cerrado";
+    const estadoActual = caso.estadoAtencion as EstadoCaso;
 
-    useEffect(() => {
-        if (!comunidad) return;
-        let vigente = true;
-        intentosCaso(caso.id)
-            .then((r) => { if (vigente) setIntentos(r.items); })
-            .catch((e) => { if (vigente) setError(mensajeError(e)); });
-        return () => { vigente = false; };
-    }, [caso.id, comunidad, recarga]);
-
-    async function ejecutar(accion: () => Promise<unknown>, terminar = true) {
+    async function ejecutar(accion: () => Promise<Caso>, mensaje: string) {
         if (bloqueo.current) return;
         bloqueo.current = true;
         setOcupado(true);
         setError("");
         try {
-            await accion();
-            if (terminar) alGuardar();
-            else { setIntentos(null); setRecarga((x) => x + 1); }
+            const nuevo = await accion();
+            alGuardar({ ...caso, ...nuevo }, mensaje);
         } catch (e) {
             setError(mensajeError(e));
         } finally {
@@ -171,143 +248,48 @@ function Detalle({ caso, comunidad, alGuardar }: { caso: Caso; comunidad: boolea
 
     function cerrar(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        const f = new FormData(e.currentTarget);
-        const texto = String(f.get("respuesta") || "").trim();
-        if (!texto) { setError("Escribe una respuesta final."); return; }
-        void ejecutar(() => (comunidad
-            ? finalizarCaso(caso.id, f.get("incorporacion") === "on", texto, f.get("resolucion") === "on")
-            : atenderContacto(caso.id, "cerrado", texto)));
+        const textoFinal = respuesta.trim();
+        if (!textoFinal) { setError("Escribe la respuesta final antes de cerrar el caso."); return; }
+        void ejecutar(() => atenderContacto(caso.id, "cerrado", textoFinal), `Cerraste el caso de ${caso.nombreRemitente}.`);
     }
-
-    function intento(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        const formulario = e.currentTarget;
-        const f = new FormData(formulario);
-        const nota = String(f.get("nota") || "").trim();
-        if (!nota) { setError("Describe el intento de contacto."); return; }
-        void ejecutar(() => registrarIntento(caso.id, String(f.get("tipo")), f.get("exitoso") === "on", nota).then(() => formulario.reset()), false);
-    }
-
-    const abierto = caso.estadoAtencion !== "cerrado";
 
     return (
-        <div className="contenidos-formulario" id="comunidad-detalle">
-            <div className="at-columna">
-                <section className="contenidos-panel" aria-labelledby="comunidad-caso-titulo">
-                    <div className="contenidos-lista__cabecera">
-                        <span className="contenidos-lista__icono"><IconoAviso /></span>
-                        <div className="at-cabecera__textos">
-                            <h2 id="comunidad-caso-titulo">{caso.asunto}</h2>
-                            <p>Folio {caso.id}</p>
-                        </div>
-                    </div>
-                    <div className="at-datos">
-                        <div className="at-dato"><p className="at-dato__etiqueta">Remitente</p><p className="at-dato__valor">{caso.nombreRemitente}</p></div>
-                        <div className="at-dato"><p className="at-dato__etiqueta">Contacto</p><p className="at-dato__valor">{caso.correoContacto || caso.telefonoContacto || "Sin contacto"}</p></div>
-                        <div className="at-dato"><p className="at-dato__etiqueta">Recibido</p><p className="at-dato__valor">{new Date(caso.creadoEn).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}</p></div>
-                    </div>
-                    <div className="at-nota">
-                        <p className="at-nota__autor">Mensaje</p>
-                        <p className="comunidad-texto">{caso.cuerpoMensaje}</p>
-                    </div>
-                    {caso.respuestaFinal && (
-                        <div className="at-nota">
-                            <p className="at-nota__autor">Respuesta final</p>
-                            <p className="comunidad-texto">{caso.respuestaFinal}</p>
-                        </div>
-                    )}
-                </section>
+        <Tarjeta icono={esSugerencia(caso) ? "contenido" : "mensajes"} id={`${id}-caso`} titulo={caso.asunto} texto={`Recibido el ${fechaHora(caso.creadoEn)}`}
+            accion={<Estado estado={caso.estadoAtencion} />} className="ct-detalle">
+            <Datos>
+                <Dato icono="usuario" etiqueta="Remitente" ancho>{caso.nombreRemitente}</Dato>
+                <Dato icono="mensajes" etiqueta="Correo" ancho>{caso.correoContacto || "No lo dejó"}</Dato>
+                {caso.telefonoContacto && <Dato icono="info" etiqueta="Teléfono" ancho>{caso.telefonoContacto}</Dato>}
+                <Dato icono="lista" etiqueta="Folio" ancho><span className="ct-folio" title={caso.id}>{caso.id}</span></Dato>
+            </Datos>
+            <Nota titulo="Mensaje"><div className="pz-nota__desplazable ct-texto">{caso.cuerpoMensaje}</div></Nota>
+            {caso.respuestaFinal && <Nota titulo="Respuesta final"><div className="ct-texto">{caso.respuestaFinal}</div></Nota>}
 
-                {comunidad && (
-                    <section className="contenidos-panel" aria-labelledby="comunidad-intentos-titulo">
-                        <div className="contenidos-lista__cabecera">
-                            <span className="contenidos-lista__icono"><IconoReloj /></span>
-                            <div className="at-cabecera__textos">
-                                <h2 id="comunidad-intentos-titulo">Intentos de contacto</h2>
-                                <p>Bitácora de llamadas, correos y visitas.</p>
-                            </div>
-                        </div>
-                        {intentos === null ? <EsqueletoLista filas={2} texto="Cargando bitácora…" />
-                            : intentos.length === 0 ? <p className="contenidos-nota">Sin intentos registrados.</p>
-                            : (
-                                <ol className="at-eventos">
-                                    {intentos.map((i) => (
-                                        <li key={i.id} className={i.exitoso ? "at-eventos--hecho" : undefined}>
-                                            <strong>{MEDIOS[i.tipoIntento] ?? i.tipoIntento} · {i.exitoso ? "Efectivo" : "Sin contacto"}</strong>
-                                            <small>{i.observaciones}</small>
-                                        </li>
-                                    ))}
-                                </ol>
-                            )}
-                        {abierto && (
-                            <form className="comunidad-formulario" onSubmit={intento}>
-                                <fieldset disabled={ocupado}>
-                                    <legend className="at-subtitulo">Registrar intento</legend>
-                                    <div className="contenidos-campo">
-                                        <label htmlFor="comunidad-medio">Medio</label>
-                                        <select id="comunidad-medio" name="tipo">
-                                            {Object.entries(MEDIOS).map(([v, t]) => <option key={v} value={v}>{t}</option>)}
-                                        </select>
-                                    </div>
-                                    <label className="comunidad-casilla"><input type="checkbox" name="exitoso" /> Se logró contactar a la persona</label>
-                                    <div className="contenidos-campo">
-                                        <label htmlFor="comunidad-nota">Observaciones</label>
-                                        <textarea id="comunidad-nota" name="nota" rows={3} required maxLength={2000} />
-                                    </div>
-                                    <button type="submit" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico at-alinear-inicio">Guardar intento</button>
-                                </fieldset>
-                            </form>
-                        )}
-                    </section>
-                )}
+            {error && <Aviso tono="error" titulo="No se pudo guardar." texto={error} />}
 
-                {abierto && (
-                    <section className="contenidos-panel" aria-labelledby="comunidad-cierre-titulo">
-                        <div className="contenidos-lista__cabecera">
-                            <span className="contenidos-lista__icono"><IconoLapiz /></span>
-                            <div className="at-cabecera__textos">
-                                <h2 id="comunidad-cierre-titulo">Cerrar caso</h2>
-                                <p>La respuesta final queda registrada en el caso.</p>
-                            </div>
-                        </div>
-                        <form className="comunidad-formulario" onSubmit={cerrar}>
-                            <fieldset disabled={ocupado}>
-                                <div className="contenidos-campo">
-                                    <label htmlFor="comunidad-respuesta">Respuesta final <span className="contenidos-campo__obligatorio" aria-label="obligatorio">*</span></label>
-                                    <textarea id="comunidad-respuesta" name="respuesta" rows={4} required maxLength={10000} />
-                                </div>
-                                {comunidad && (
-                                    <>
-                                        <label className="comunidad-casilla"><input type="checkbox" name="incorporacion" /> Confirmar incorporación (requiere contacto efectivo)</label>
-                                        <label className="comunidad-casilla"><input type="checkbox" name="resolucion" /> Resolución explícita para cerrar sin contacto efectivo</label>
-                                    </>
-                                )}
-                                <button type="submit" className="contenidos-boton contenidos-boton--principal at-alinear-inicio">{ocupado ? "Guardando…" : "Guardar cierre"}</button>
-                            </fieldset>
-                        </form>
-                    </section>
-                )}
+            {estadoActual === "recibido" && (
+                <div className="pz-acciones">
+                    <button type="button" className="pz-boton" disabled={ocupado} onClick={() => void ejecutar(() => atenderContacto(caso.id, "en_atencion", ""), "Iniciaste la atención del mensaje.")}>
+                        {ocupado ? "Guardando…" : "Iniciar atención"}
+                    </button>
+                </div>
+            )}
+            {abierto && (
+                <form className="pz-decision" onSubmit={cerrar} aria-label="Cerrar el caso">
+                    <label className="pz-campo pz-campo--lleno">
+                        <span>Respuesta final *</span>
+                        <textarea rows={4} maxLength={10000} value={respuesta} onChange={(e) => { setRespuesta(e.target.value); setError(""); }}
+                            placeholder="Lo que le respondiste o resolviste a la persona" disabled={ocupado} />
+                    </label>
+                    <div className="pz-acciones">
+                        <button type="submit" className={`pz-boton${estadoActual === "recibido" ? " pz-boton--contorno" : ""}`} disabled={ocupado}>{ocupado ? "Guardando…" : "Cerrar con esta respuesta"}</button>
+                    </div>
+                </form>
+            )}
+            {!abierto && <p className="pz-acciones__nota">Este caso ya está cerrado; la persona ve la respuesta con su folio.</p>}
+            <div className="pz-acciones pz-acciones--pie">
+                <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={alCerrar}>Cerrar</button>
             </div>
-
-            <aside className="contenidos-formulario__lateral">
-                <section className="contenidos-panel contenidos-panel--estado" aria-labelledby="comunidad-estado-titulo">
-                    <div className="contenidos-lista__cabecera">
-                        <span className="contenidos-lista__icono"><IconoReloj /></span>
-                        <h2 id="comunidad-estado-titulo">Estado</h2>
-                    </div>
-                    <p className="contenidos-estado-linea"><Estado estado={caso.estadoAtencion} /></p>
-                    {error && <p className="contenidos-error" role="alert">{error}</p>}
-                    {!comunidad && caso.estadoAtencion === "recibido" && (
-                        <button type="button" className="contenidos-boton contenidos-boton--principal contenidos-boton--ancho" disabled={ocupado}
-                            onClick={() => void ejecutar(() => atenderContacto(caso.id, "en_atencion", ""))}>
-                            Iniciar atención
-                        </button>
-                    )}
-                    <p className="contenidos-nota">
-                        {abierto ? "Al cerrar el caso, la respuesta final queda guardada en la base de datos." : "Este caso ya está cerrado."}
-                    </p>
-                </section>
-            </aside>
-        </div>
+        </Tarjeta>
     );
 }

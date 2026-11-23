@@ -1,0 +1,4 @@
+/* Resumen de Servicios Digitales (servicios.tsx): lo demás sale de las piezas del panel (PanelPiezas.css). */
+
+/* Sin filas (al día, sin conexión o cargando): el aviso se centra en todo el alto de la tarjeta */
+.rs-vacio-centro { display: flex; flex: 1 1 auto; flex-direction: column; align-items: center; justify-content: center; text-align: center; }

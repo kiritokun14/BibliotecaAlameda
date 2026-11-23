@@ -225,7 +225,7 @@ function PiePanel() {
             <nav className="panel-pie-admin__enlaces" aria-label="Enlaces del panel">
                 <Link to="/admin/resumen">Resumen</Link>
                 <Link to="/admin/notificaciones">Notificaciones</Link>
-                <Link to="/mi-perfil">Mi cuenta</Link>
+                <Link to="/admin/perfil">Mi cuenta</Link>
                 {puedeEstados && <Link to="/admin/administracion/estados">Estados del sistema</Link>}
                 <Link to="/">Ver el portal</Link>
             </nav>

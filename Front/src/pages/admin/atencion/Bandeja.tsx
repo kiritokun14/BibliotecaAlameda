@@ -4,7 +4,7 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { Migas } from "../componentes";
-import { Buscador, Chip, Cifra, Encabezado, Icono, Plegable, Segmentado, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
+import { Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, Plegable, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
 import type { Estado } from "./datos";
 
 const TONO_ESTADO: Record<Estado, TonoEstado> = { pendiente: "dorado", observaciones: "guinda", aprobada: "verde", rechazada: "gris" };
@@ -81,16 +81,15 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                         accion={vista === "bandeja"
                             ? <Link to={`${config.ruta}/todas`} className="pz-boton pz-boton--contorno pz-boton--chico">Ver todas</Link>
                             : <Link to={config.ruta} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a la bandeja</Link>}>
-                        <div className="pz-herramientas pz-herramientas--apiladas">
-                            <Segmentado<Filtro> etiqueta="Filtrar por estado" valor={filtro} alCambiar={setFiltro} opciones={[
+                        <Buscador etiqueta={`Buscar por ${config.buscarPor}`} placeholder={`Buscar por ${config.buscarPor}`} valor={busqueda} alCambiar={setBusqueda}>
+                            <FiltrosAvanzados activos={filtro !== "todas" ? 1 : 0} alQuitar={() => setFiltro("todas")} grupos={[{ titulo: "Estado", valor: filtro, alCambiar: (v) => setFiltro(v as Filtro), opciones: [
                                 { valor: "todas", texto: "Todas", cantidad: solicitudes.length },
-                                { valor: "pendiente", texto: config.estados.pendiente, cantidad: pendientes, urgente: true },
+                                { valor: "pendiente", texto: config.estados.pendiente, cantidad: pendientes },
                                 { valor: "observaciones", texto: config.filtroObservaciones, cantidad: observaciones },
                                 { valor: "aprobada", texto: "Aprobadas", cantidad: cuenta("aprobada") },
                                 { valor: "rechazada", texto: "Rechazadas", cantidad: cuenta("rechazada") },
-                            ]} />
-                            <Buscador etiqueta={`Buscar por ${config.buscarPor}`} placeholder={`Buscar por ${config.buscarPor}`} valor={busqueda} alCambiar={setBusqueda} />
-                        </div>
+                            ] }]} />
+                        </Buscador>
                         {filtradas.length === 0 ? (
                             texto || filtro !== "todas"
                                 ? <Vacio icono="buscarCuenta" titulo="Sin resultados" texto={`No hay ${config.sustantivo} con esa búsqueda o ese estado.`}
@@ -105,16 +104,16 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                                                 <span className={`pz-fila__icono ba-icono--${s.estado}`} aria-hidden="true"><Icono nombre={ICONO_ESTADO[s.estado]} /></span>
                                                 <div className="pz-fila__textos">
                                                     <div className="pz-fila__titulo ba-titulo">{principal ? principal.celda(s) : s.persona}</div>
-                                                    <div className="ba-datos">
-                                                        <span className="pz-fila__folio">{s.folio}</span>
-                                                        {demas.map((c) => <span key={c.titulo} className="ba-dato"><small>{c.titulo}</small>{c.celda(s)}</span>)}
-                                                    </div>
-                                                    {s.estado === "pendiente" && <p className="pz-fila__plazo">{esperando(s.enviada)}</p>}
                                                 </div>
                                                 <Chip tono={TONO_ESTADO[s.estado]}>{config.estados[s.estado]}</Chip>
                                                 <Link to={`${config.ruta}/${s.folio}`} className={`pz-boton pz-boton--chico${s.estado === "pendiente" ? "" : " pz-boton--contorno"}`}>
                                                     {s.estado === "pendiente" ? config.accionPendiente : "Ver"}<span className="solo-lectores"> {s.folio}</span>
                                                 </Link>
+                                                    <div className="ba-datos ba-datos--fila">
+                                                        <span className="ba-dato"><small>Folio</small><span className="pz-fila__folio">{s.folio}</span></span>
+                                                        {demas.map((c) => <span key={c.titulo} className="ba-dato"><small>{c.titulo}</small>{c.celda(s)}</span>)}
+                                                    </div>
+                                                    {s.estado === "pendiente" && <p className="pz-fila__plazo">{esperando(s.enviada)}</p>}
                                             </article>
                                         </li>
                                     ))}

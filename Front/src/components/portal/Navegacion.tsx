@@ -93,7 +93,7 @@ function Navegacion({ alCambiarSesion }: { alCambiarSesion?: (activa: boolean | 
                 <div className="navegacion__cuenta">
                     {correo ? <>
                         {(panel || ultimaPanel) && <Link to={ultimaPanel ?? "/admin"} className="navegacion__boton navegacion__boton--panel">Volver al panel</Link>}
-                        {altaAsistida && <Link to="/personal/alta-asistida" className="navegacion__boton">Alta asistida</Link>}
+                        {altaAsistida && <Link to="/admin/atencion/altas-asistidas" className="navegacion__boton">Alta asistida</Link>}
                         {/* Campana, «Mi perfil» y menú de cuenta con sesión (T4 · Actor 2, Figma 476:20760) */}
                         <MenuCuenta correo={correo} cerrando={cerrando} alCerrarSesion={salir} />
                     </> : <>

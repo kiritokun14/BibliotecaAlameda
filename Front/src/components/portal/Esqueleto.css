@@ -130,19 +130,20 @@
 }
 
 /* ---------- Armazón del panel (EsqueletoPanel) ---------- */
-.esqueleto-panel { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #f7f5f0; }
-.esqueleto-panel .esqueleto-pagina__franja { flex: none; height: 60px; }
-.esqueleto-panel__franja { display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding: 0 28px; color: #f6eeda; font-family: 'Noto Sans', system-ui, sans-serif; font-size: 13px; }
-.esqueleto-panel__franja strong { color: #e6d194; }
+/* Armazón del panel mientras se comprueba el acceso: con la paleta del panel (pizarra y azul claro, 22 nov 2026), no la del portal */
+.esqueleto-panel { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #f4f6f8; }
+.esqueleto-panel .esqueleto-pagina__franja { flex: none; height: 60px; background: linear-gradient(160deg, #1b2833, #22323f 50%, #2e4456); }
+.esqueleto-panel__franja { display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding: 0 28px; color: #dbe7ee; font-family: 'Noto Sans', system-ui, sans-serif; font-size: 13px; }
+.esqueleto-panel__franja strong { color: #aecbdb; }
 .esqueleto-panel__cuerpo { display: flex; flex: 1; min-height: 0; }
-.esqueleto-panel__menu { display: flex; flex-direction: column; gap: 22px; width: 264px; flex: none; box-sizing: border-box; padding: 28px 22px; background: #0b3b33; }
+.esqueleto-panel__menu { display: flex; flex-direction: column; gap: 22px; width: 264px; flex: none; box-sizing: border-box; padding: 28px 22px; background: #2e4456; }
 .esqueleto-panel__item { height: 18px; }
 .esqueleto-panel__contenido { flex: 1; min-width: 0; }
-.esqueleto-panel__cabecera { display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 0 32px; border-bottom: 1px solid #ece7dc; background: #fff; }
+.esqueleto-panel__cabecera { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 32px; border-bottom: 1px solid #dbe3ea; background: #fff; }
 .esqueleto-panel__pagina { display: flex; flex-direction: column; gap: 16px; padding: 32px; }
 .esqueleto-panel__tarjetas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 12px; }
-.esqueleto-panel__tarjeta { height: 150px; border-radius: 20px; background: #ece7dc; }
-.esqueleto-panel__tabla { height: 280px; border-radius: 20px; background: #ece7dc; }
+.esqueleto-panel__tarjeta { height: 150px; border-radius: 20px; background: #dce8f0; }
+.esqueleto-panel__tabla { height: 280px; border-radius: 20px; background: #dce8f0; }
 
 /* ---------- Atajos: lista y detalle (EsqueletoLista, EsqueletoDetalle) ---------- */
 .esqueleto-lista { display: flex; flex-direction: column; gap: 10px; }
@@ -162,3 +163,5 @@
 .imagen-contenido-error strong { color: #2b2a2b; font-size: 14px; }
 /* Propuesta de la persona mientras carga (Proponer) */
 .proponer-esqueleto { max-width: 1000px; margin: 0 auto; padding: 40px 24px 72px; }
+/* Bloques del contenido del armazón del panel en azul claro (los del menú siguen translúcidos) */
+.esqueleto-panel__contenido .esqueleto__bloque { background: #dce8f0; }

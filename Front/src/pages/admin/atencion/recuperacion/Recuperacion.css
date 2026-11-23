@@ -1,0 +1,6 @@
+/* Recuperación asistida (22 nov 2026): todo sale de las piezas del panel (PanelPiezas.css); aquí solo lo propio. */
+
+/* Etiqueta del campo de correo: igual que la de .pz-campo--lleno, pero como <label> */
+.rec-etiqueta { color: var(--pz-texto); font-size: 12.5px; font-weight: 700; }
+
+.rec-pregunta { margin: 0; color: var(--pz-texto); font-size: 13.5px; line-height: 20px; overflow-wrap: anywhere; }

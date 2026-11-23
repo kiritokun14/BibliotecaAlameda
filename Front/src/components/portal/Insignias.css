@@ -1,0 +1,34 @@
+/* Insignias (Insignias.tsx): medalla con los colores de la institución; las que faltan, en gris con su avance */
+.insignias { display: flex; flex-direction: column; gap: 12px; }
+.insignias__cuenta { margin: 0; color: #4d4a44; font-size: 14px; }
+.insignias__cuenta strong { color: #164f44; }
+.insignias__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.insignias--compacta .insignias__lista { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.insignia {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #e2ded5; border-radius: 16px; background: #fbfaf7;
+  animation: insignia-entra 0.4s ease-out backwards; transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.insignia--ganada { background: #fff; box-shadow: 0 6px 16px rgba(22, 79, 68, 0.08); }
+.insignia--ganada:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(22, 79, 68, 0.12); }
+.insignia__textos { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.insignia__textos strong { color: #161a1d; font-size: 14px; line-height: 18px; }
+.insignia__textos > span { color: #6b675e; font-size: 12.5px; line-height: 17px; }
+.insignia__avance { position: relative; display: block; height: 6px; margin-top: 4px; border-radius: 999px; background: #ece8df; }
+.insignia__avance > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: #c9a24a; }
+.insignia__avance small { position: absolute; right: 0; top: 7px; color: #8a8478; font-size: 11px; font-weight: 700; }
+.insignia:not(.insignia--ganada) .insignia__textos { padding-bottom: 12px; }
+
+.insignia-medalla { flex: none; --base: #1f6b5c; --claro: #e4efeb; --aro: #c9a24a; }
+.insignia-medalla--dorado { --base: #b08a35; --claro: #f6eeda; --aro: #164f44; }
+.insignia-medalla--guinda { --base: #9b2247; --claro: #f6eaee; --aro: #c9a24a; }
+.insignia-medalla--pizarra { --base: #22323f; --claro: #e3eaf0; --aro: #c9a24a; }
+.insignia-medalla__liston { fill: var(--aro); }
+.insignia-medalla__escudo { fill: var(--base); }
+.insignia-medalla__aro { fill: var(--claro); stroke: var(--aro); stroke-width: 1.5; }
+.insignia-medalla__emblema { stroke: var(--base); }
+.insignia-medalla--bloqueada { --base: #b9b3a5; --claro: #f1efea; --aro: #d6d1c6; }
+.insignia--ganada .insignia-medalla { animation: insignia-brilla 0.9s ease-out 0.3s 1; }
+
+@keyframes insignia-entra { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes insignia-brilla { 0% { filter: drop-shadow(0 0 0 rgba(201, 162, 74, 0)); } 50% { filter: drop-shadow(0 0 8px rgba(201, 162, 74, 0.7)); } 100% { filter: drop-shadow(0 0 0 rgba(201, 162, 74, 0)); } }
+@media (prefers-reduced-motion: reduce) { .insignia, .insignia--ganada .insignia-medalla { animation: none; } .insignia--ganada:hover { transform: none; } }

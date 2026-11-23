@@ -14,6 +14,7 @@ import {
 } from "../../../../servicios/espacios";
 import { aSolicitudAdmin, vigente } from "./mapeo";
 import Flujo, { type Etapa, type IconoSiguiente } from "../Flujo";
+import MapaDonde from "../MapaDonde";
 import tarjetaCalendario from "../../../../assets/admin/tarjeta-calendar.svg";
 import tarjetaCheck from "../../../../assets/admin/tarjeta-check.svg";
 import tarjetaLista from "../../../../assets/admin/bandeja-list.svg";
@@ -382,6 +383,7 @@ function DetalleEspacio() {
                 volver={{ texto: "Volver a solicitudes de espacios", ruta: RUTA }}
                 historial={historial(api)}
                 flujo={<Flujo {...flujoEspacio(api)} />}
+                mapa={<MapaDonde espacio={api.espacio?.nombre} />}
                 persona={<TarjetaPersona nombre={solicitud.persona} telefono={api.solicitante.telefono} correo={api.solicitante.correo} />}
                 principal={principal}
                 decision={decision}

@@ -3,7 +3,7 @@
 import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import PanelLayout from '../PanelLayout';
-import { Chip, EncabezadoPagina, EstadoVacio, Migas, Tarjeta, type TonoChip } from '../componentes';
+import { EstadoVacio, Migas, Tarjeta, type TonoChip } from '../componentes';
 import { Buscador, Chip as ChipPz, Cifra, Encabezado, FiltrosAvanzados, Icono, Plegable, Tarjeta as TarjetaPz, Vacio, type NombreIcono, type TonoEstado } from '../piezasPanel';
 import Flujo, { type Etapa, type IconoSiguiente } from './Flujo';
 import { partirDescripcion } from './descripcion';
@@ -13,9 +13,9 @@ import { conteosEnMemoria, conteosTramites, consultarTramite, listarTramites, re
     type ListaTramites, type SolicitudAtencion, type TipoTramite } from '../../../servicios/tramites';
 import { mensajeError } from '../../../servicios/api';
 import PublicarPropuesta from './propuestas/PublicarPropuesta';
+import MapaDonde from './MapaDonde';
 import vacioBuscar from '../../../assets/admin/vacio-search.svg';
 import tarjetaUser from '../../../assets/admin/tarjeta-user.svg';
-import tarjetaClock from '../../../assets/admin/tarjeta-clock.svg';
 import tarjetaInfo from '../../../assets/admin/tarjeta-info.svg';
 import tarjetaCheck from '../../../assets/admin/tarjeta-check.svg';
 import './AtencionTramites.css';
@@ -139,19 +139,19 @@ function Lista({ tipo, base }: { tipo: TipoTramite; base: string }) {
                                             <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={ICONO_TRAMITE[tipo]} /></span>
                                             <div className="pz-fila__textos">
                                                 <h4 className="pz-fila__titulo">{tituloSolicitud(s)}</h4>
-                                                <div className="ba-datos">
-                                                    <span className="pz-fila__folio" title={s.id}>{folioCorto(s.id)}</span>
+                                            </div>
+                                            <ChipPz tono={(TONO[estado] === 'verde-solido' ? 'verde' : TONO[estado] ?? 'gris') as TonoEstado}>{estados[estado] ?? estado}</ChipPz>
+                                            <Link to={`${base}/${s.id}`} className={`pz-boton pz-boton--chico${pendiente ? '' : ' pz-boton--contorno'}`}>
+                                                {pendiente ? 'Atender' : 'Ver'}<span className="solo-lectores"> {folioCorto(s.id)}</span>
+                                            </Link>
+                                                <div className="ba-datos ba-datos--fila">
+                                                    <span className="ba-dato"><small>Folio</small><span className="pz-fila__folio" title={s.id}>{folioCorto(s.id)}</span></span>
                                                     <span className="ba-dato"><small>Persona</small>{nombre(s)}</span>
                                                     {s.tipoPropuesta && <span className="ba-dato"><small>Tipo</small>{s.tipoPropuesta}</span>}
                                                     {s.fechaCita && <span className="ba-dato"><small>Cita</small>{fechaHora(s.fechaCita)}</span>}
                                                     <span className="ba-dato"><small>Recibida</small>{fechaCorta(s.creadaEn)}</span>
                                                 </div>
                                                 {pendiente && <p className="pz-fila__plazo">{esperando(s.creadaEn)}</p>}
-                                            </div>
-                                            <ChipPz tono={(TONO[estado] === 'verde-solido' ? 'verde' : TONO[estado] ?? 'gris') as TonoEstado}>{estados[estado] ?? estado}</ChipPz>
-                                            <Link to={`${base}/${s.id}`} className={`pz-boton pz-boton--chico${pendiente ? '' : ' pz-boton--contorno'}`}>
-                                                {pendiente ? 'Atender' : 'Ver'}<span className="solo-lectores"> {folioCorto(s.id)}</span>
-                                            </Link>
                                         </article>
                                     </li>;
                                 })}
@@ -226,10 +226,12 @@ function Detalle({ tipo, folio, base }: { tipo: TipoTramite; folio: string; base
 
     return <>
         <Migas pasos={[[textos.titulo, base], [folioCorto(folio)]]} />
-        <EncabezadoPagina volver={{ texto: `Volver a ${textos.titulo.toLowerCase()}`, ruta: base }}
-            etiqueta={`Folio ${folioCorto(folio)}`} titulo={s ? tituloSolicitud(s) : 'Solicitud'}
-            texto={s ? `Recibida el ${fechaHora(s.creadaEn)} · última actualización ${fechaHora(s.actualizadaEn ?? s.actualizadoEn)}` : 'Consultando la solicitud…'}
-            accion={s && <Chip tono={TONO[estado] ?? 'gris'}>{estados[estado] ?? estado}</Chip>} />
+        <div className="pz-pagina at-detalle">
+        <Encabezado titulo={s ? tituloSolicitud(s) : 'Solicitud'}
+            texto={s ? `Folio ${folioCorto(folio)}. Recibida el ${fechaHora(s.creadaEn)}; última actualización el ${fechaHora(s.actualizadaEn ?? s.actualizadoEn)}.` : 'Consultando la solicitud…'}>
+            {s && <ChipPz tono={(TONO[estado] === 'verde-solido' ? 'verde' : TONO[estado] ?? 'gris') as TonoEstado}>{estados[estado] ?? estado}</ChipPz>}
+            <Link to={base} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a la bandeja</Link>
+        </Encabezado>
 
         {s && <Flujo {...flujoDe(tipo, s)} />}
 
@@ -244,6 +246,7 @@ function Detalle({ tipo, folio, base }: { tipo: TipoTramite; folio: string; base
         ) : (
             <div className="contenidos-formulario">
                 <div className="at-columna">
+                    {tipo === 'propuesta' && <MapaDonde espacio={s.necesidadEspacio} texto={`Espacio que pide: ${s.necesidadEspacio}`} />}
                     <Tarjeta icono={tarjetaInfo} titulo="Datos de la solicitud" subtitulo={tipo === 'credencial' ? 'Lo que la persona registró en el portal.' : 'La propuesta tal como la envió la persona.'}>
                         <DatosSolicitud tipo={tipo} solicitud={s} />
                     </Tarjeta>
@@ -270,26 +273,33 @@ function Detalle({ tipo, folio, base }: { tipo: TipoTramite; folio: string; base
                             <div><small>Nombre</small><strong>{nombre(s)}</strong></div>
                         </div>
                         {s.perfil?.telefono
-                            ? <a className="tr-telefono" href={`tel:${s.perfil.telefono}`}><span aria-hidden="true">☎</span><span><small>Teléfono</small><strong>{s.perfil.telefono}</strong></span></a>
+                            ? <a className="tr-telefono" href={`tel:${s.perfil.telefono}`}><span><small>Teléfono</small><strong>{s.perfil.telefono}</strong></span></a>
                             : <p className="contenidos-campo__ayuda">Sin teléfono registrado.</p>}
                     </Tarjeta>
-                    <Tarjeta icono={tarjetaClock} titulo="Seguimiento" subtitulo={`${s.historial.length + 1} ${s.historial.length ? 'movimientos' : 'movimiento'} registrados.`} className="tr-seguimiento">
-                        <ol className="tr-eventos" tabIndex={0} aria-label="Historial de la solicitud">
-                            <li className="tr-eventos--hecho"><strong>Solicitud registrada</strong><small>{fechaHora(s.creadaEn)}</small></li>
-                            {s.historial.map((h, i) => (
-                                <li key={i} className={i === s.historial.length - 1 ? 'tr-eventos--ultimo' : 'tr-eventos--hecho'}>
-                                    <strong>{estados[h.estadoNuevo] ?? h.estadoNuevo}</strong>
-                                    <small>{fechaHora(h.fecha)}</small>
-                                    {h.nota && <p className="tr-evento-nota">{h.nota}</p>}
-                                    {h.acuerdoDireccion && <p className="tr-evento-nota">Acuerdo de dirección: {h.acuerdoDireccion.responsable} · {h.acuerdoDireccion.fecha} · Ref. {h.acuerdoDireccion.referencia}</p>}
+                    <TarjetaPz icono="bitacora" id="tramite-seguimiento" titulo="Seguimiento" texto={`${s.historial.length + 1} ${s.historial.length ? 'movimientos' : 'movimiento'}; lo más reciente arriba`}>
+                        <ol className="pz-linea" aria-label="Historial de la solicitud">
+                            {[...s.historial].reverse().map((h, i) => (
+                                <li key={i} className={`pz-linea__paso pz-linea__paso--${['rechazada', 'cancelada'].includes(h.estadoNuevo) ? 'guinda' : ['aprobada', 'atendida'].includes(h.estadoNuevo) ? 'verde' : 'dorado'}${i === 0 ? ' pz-linea__paso--actual' : ''}`}>
+                                    <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={['rechazada', 'cancelada'].includes(h.estadoNuevo) ? 'alerta' : ['aprobada', 'atendida'].includes(h.estadoNuevo) ? 'check' : 'revision'} /></span>
+                                    <div className="pz-linea__textos">
+                                        <p className="pz-linea__titulo">{estados[h.estadoNuevo] ?? h.estadoNuevo}</p>
+                                        <p className="pz-linea__detalle">{fechaHora(h.fecha)}</p>
+                                        {h.nota && <p className="pz-linea__nota">{h.nota}</p>}
+                                        {h.acuerdoDireccion && <p className="pz-linea__nota">Acuerdo de dirección: {h.acuerdoDireccion.responsable}, {h.acuerdoDireccion.fecha}, referencia {h.acuerdoDireccion.referencia}</p>}
+                                    </div>
                                 </li>
                             ))}
+                            <li className={`pz-linea__paso pz-linea__paso--verde${s.historial.length ? '' : ' pz-linea__paso--actual'}`}>
+                                <span className="pz-linea__icono" aria-hidden="true"><Icono nombre="check" /></span>
+                                <div className="pz-linea__textos"><p className="pz-linea__titulo">Solicitud registrada</p><p className="pz-linea__detalle">{fechaHora(s.creadaEn)}</p></div>
+                            </li>
                         </ol>
-                        {s.estadoSolicitud === 'atendida' && <p className="contenidos-campo__ayuda">Registrar la atención no emite ni valida una credencial.</p>}
-                    </Tarjeta>
+                        {s.estadoSolicitud === 'atendida' && <p className="pz-acciones__nota">Registrar la atención no emite ni valida una credencial.</p>}
+                    </TarjetaPz>
                 </aside>
             </div>
         )}
+        </div>
     </>;
 }
 

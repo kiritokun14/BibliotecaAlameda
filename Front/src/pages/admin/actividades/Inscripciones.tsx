@@ -263,7 +263,20 @@ function ListaSesion({ sesion, seleccionada, conocida }: { sesion: string; selec
                     <div className={`ins-medidor ins-medidor--${cupos ? tonoCupo(cupos) : 'verde'}`} style={{ ['--p' as string]: `${p}%` }} role="img" aria-label={cupos ? `${cupos.confirmados} de ${cupos.capacidad} lugares ocupados` : 'Calculando cupo'}>
                         <span className="ins-medidor__centro"><strong>{cupos ? cupos.confirmados : '…'}</strong><small>de {cupos ? cupos.capacidad : '…'}</small></span>
                     </div>
+                    {solicitudes.length > 0 && <ol className="pz-ranking ins-desglose" aria-label="Inscripciones por estado">
+                        {(['pendiente', 'confirmada', 'rechazada', 'cancelada'] as const).map(e => (
+                            <li key={e}>
+                                <span className={`pz-ranking__lugar ins-desglose__punto ins-desglose__punto--${TONO_INSCRIPCION[e]}`} aria-hidden="true" />
+                                <div className="pz-ranking__textos">
+                                    <button type="button" className="pz-ranking__nombre ev-tipo-boton" aria-pressed={filtro === e} onClick={() => setFiltro(filtro === e ? 'todas' : e)}>{NOMBRE_INSCRIPCION[e]}</button>
+                                    <span className={`pz-ranking__barra as-barra--${TONO_INSCRIPCION[e]}`} aria-hidden="true"><span style={{ width: `${(cuenta(e) / solicitudes.length) * 100}%` }} /></span>
+                                </div>
+                                <p className="pz-ranking__valor"><strong>{cuenta(e)}</strong></p>
+                            </li>
+                        ))}
+                    </ol>}
                     <Datos>
+                        {conocida && <Dato ancho icono="calendario" etiqueta="Sesión">{dia(conocida.sesion.inicio)}, {hora(conocida.sesion.inicio)} h</Dato>}
                         <Dato icono="check" etiqueta="Confirmadas">{cupos ? cupos.confirmados : '…'}</Dato>
                         <Dato icono="inscripciones" etiqueta="Libres">{cupos ? cupos.disponibles : '…'}</Dato>
                         {conocida?.actividad.requerimientos && <Dato ancho icono="lista" etiqueta="Requisitos">{conocida.actividad.requerimientos}</Dato>}

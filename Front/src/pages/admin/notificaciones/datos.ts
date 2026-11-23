@@ -5,6 +5,8 @@
 // TODO backend: GET de las notificaciones de la cuenta, PATCH para marcarlas como leídas y
 // DELETE para eliminar las leídas. Hoy son datos de ejemplo.
 import { useSyncExternalStore } from "react";
+import type { AccesoCuenta } from "../../../servicios/auth";
+import { capacidadPanel, permisoGlobal } from "../../../servicios/accesoPanel";
 
 export type AreaNotificacion = "contenidos" | "actividades" | "atencion" | "participantes";
 
@@ -47,6 +49,16 @@ export function filtrarNotificaciones(lista: Notificacion[], filtro: FiltroNotif
         (!buscado || normalizar(n.titulo).includes(buscado)));
 }
 
+// Solo las notificaciones de lo que la cuenta puede atender (T3, 22 nov 2026): a Préstamos no le llegan las de
+// Contenidos ni Actividades. Sin acceso conocido (pruebas) se muestran todas.
+export function deLaCuenta(lista: Notificacion[], acceso: AccesoCuenta | null | undefined) {
+    if (!acceso) return lista;
+    return lista.filter((n) => {
+        const capacidad = capacidadPanel(n.ruta);
+        return !!capacidad && permisoGlobal(acceso, capacidad);
+    });
+}
+
 export const sinLeer = (lista: Notificacion[]) => lista.filter((n) => !n.leida).length;
 export const marcarLeida = (lista: Notificacion[], id: string) => lista.map((n) => (n.id === id ? { ...n, leida: true } : n));
 export const marcarTodasLeidas = (lista: Notificacion[]) => lista.map((n) => ({ ...n, leida: true }));
@@ -79,13 +91,16 @@ function suscribir(avisar: () => void) {
 }
 
 // Cualquier componente que use este hook se redibuja cuando cambian las notificaciones
-export function useNotificaciones() {
-    const lista = useSyncExternalStore(suscribir, () => actuales);
+// Con `acceso`, la lista y el contador son solo de lo que la cuenta atiende (campana y página iguales)
+export function useNotificaciones(acceso?: AccesoCuenta | null) {
+    const todas = useSyncExternalStore(suscribir, () => actuales);
+    const lista = deLaCuenta(todas, acceso);
+    const propias = new Set(lista.map((n) => n.id));
     return {
         lista,
         pendientes: sinLeer(lista),
         leer: (id: string) => guardar(marcarLeida(actuales, id)),
-        leerTodas: () => guardar(marcarTodasLeidas(actuales)),
-        eliminarLeidas: () => guardar(eliminarLeidas(actuales)),
+        leerTodas: () => guardar(actuales.map((n) => (propias.has(n.id) ? { ...n, leida: true } : n))),
+        eliminarLeidas: () => guardar(actuales.filter((n) => !(propias.has(n.id) && n.leida))),
     };
 }
