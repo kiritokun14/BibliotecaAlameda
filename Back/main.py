@@ -19,6 +19,7 @@ from Back.contacto import router as contacto_router
 
 from Back.bibliocomunidad import router as bibliocomunidad_router
 
+from Back.asistente import router as asistente_router
 from Back.asistente_fuentes import router as asistente_fuentes_router
 
 from Back.lectura import router as lectura_router
@@ -49,6 +50,7 @@ app.include_router(espacios_router)
 app.include_router(publicacion_router)
 app.include_router(imagenes_router)
 app.include_router(lectura_router)
+app.include_router(asistente_router)
 app.include_router(asistente_fuentes_router)
 app.include_router(bibliocomunidad_router)
 app.include_router(contacto_router)

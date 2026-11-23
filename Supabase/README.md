@@ -38,6 +38,8 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 23 | `datos_prueba.sql` | **Opcional.** Datos ficticios de prueba | T-026 |
 | 24 | `espacios_mapa.sql` | Los seis espacios del mapa que se pueden pedir para un evento (Sala general, Sala Braille y de usos múltiples, Vestíbulo, Coliseo, Área infantil y Mesanim); la «Sala de lectura» pasa a ser la Sala general | T-076 |
 | 25 | `evidencias_solo_realizadas.sql` | Evidencias privadas solo de actividades que ya se realizaron (ni pendientes, ni en curso, ni canceladas) | HU-21 |
+| 26 | `asistencia_actividades.sql` | Presencia real por sesión y correcciones con historial. Requiere `agenda_actividades.sql` e `inscripciones_responsables.sql` | HU-20 / T-099 |
+| 27 | `cancelacion_inscripciones_cambio_actividad.sql` | Cancela inscripciones activas de sesiones canceladas por acuerdo institucional y registra su historial. Requiere `cambios_actividad.sql` | T-104 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
@@ -79,7 +81,7 @@ HU-20 / T-099: `asistencia_actividades.sql` registra asistencia por sesión y su
 
 T-094, complemento de solicitudes: `t094_correcciones_solicitudes.sql` agrega versiones completas, motivo obligatorio, corrección propia y control de concurrencia para propuestas y espacios. Aplicar después de las migraciones vigentes de propuestas y espacios y revisar con el equipo. `pruebas_t094_solicitudes.sql` comprueba los cuatro criterios con ROLLBACK. Ver `../T-094-INFORME.md`; la aplicación en CECANbd y la revisión de Aldahir siguen pendientes.
 
-HU-17 / T-094: `cambios_actividad.sql` agrega solicitudes por sesiones, registro del acuerdo institucional, aplicación transaccional, historial y avisos del portal con reintento. Se prepara para revisión; no se ha aplicado a CECANbd desde esta implementación. Requiere las migraciones vigentes de agenda, espacios y propuestas indicadas en `../HU-17.md`. La suite `pruebas_cambios_actividad.sql` se ejecuta después de esta migración y termina con `ROLLBACK`.
+HU-17 / T-094: `cambios_actividad.sql` agrega solicitudes por sesiones, registro del acuerdo institucional, aplicación transaccional, historial y avisos del portal con reintento. Se prepara para revisión; no se ha aplicado a CECANbd desde esta implementación. Requiere las migraciones vigentes de agenda, espacios y propuestas indicadas en `../HU-17.md`. La suite `pruebas_cambios_actividad.sql` se ejecuta después del paso 25 y termina con `ROLLBACK`.
 
 Agrega un script nuevo con nombre descriptivo, anótalo al final de la tabla de arriba y aplícalo en
 CECANbd solo después de revisarlo con el equipo.

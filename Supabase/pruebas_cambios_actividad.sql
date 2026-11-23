@@ -29,6 +29,8 @@ BEGIN
  INSERT INTO public."propuestaEvento"("tituloPropuesta",descripcion,"tipoPropuesta","publicoDirigido","necesidadEspacio","frecuenciaReunion","diasSolicitados","horarioSolicitado","propuestoPor","actividadId")
   VALUES('Propuesta propia','Prueba','Evento','General','Sala','Única','Por acordar','Por acordar',autor,actividad);
  INSERT INTO public.inscripcion("sesionId","usuarioId",status) VALUES(s1,otro,'pendiente'),(s2,otro,'pendiente');
+ INSERT INTO public.inscripcion("sesionId","usuarioId",status,"decisionPor","decisionRazon","decididoA")
+  VALUES(s2,autor,'confirmada',personal,'Confirmación de prueba',now());
  SELECT a.folio,a."actualizadoEn" INTO folio,antes FROM public.actividad a WHERE a.id=actividad;
  solicitud:=jsonb_build_object('actividad',folio,'actualizado',antes,'tipo','reprogramacion','sesiones',jsonb_build_array(s1),
   'programacion',jsonb_build_array(jsonb_build_object('sesionId',s1,'fecha','2035-06-12','inicio','12:00','fin','13:00','espacio','Sala HU17 '||sala)), 'motivo','Necesito otro horario');
@@ -119,6 +121,13 @@ BEGIN
   OR jsonb_array_length(privado.ocupacion_espacio(sala,'2035-06-13 10:00-07','2035-06-13 11:00-07',gen_random_uuid()))<>0
   THEN RAISE EXCEPTION 'CA17.2: no canceló, cerró inscripción o liberó espacio'; END IF;
  IF (SELECT estado FROM public."sesionActividad" WHERE id=s1)<>'programada' THEN RAISE EXCEPTION 'Canceló sesión no solicitada'; END IF;
+ IF EXISTS (SELECT 1 FROM public.inscripcion WHERE "sesionId"=s2 AND status IN ('pendiente','confirmada'))
+  OR NOT EXISTS (SELECT 1 FROM public.inscripcion WHERE "sesionId"=s1 AND status='pendiente')
+  THEN RAISE EXCEPTION 'La cancelación debe cerrar solo las inscripciones de la sesión afectada'; END IF;
+ IF (SELECT count(*) FROM public."historiaInscripcion" h JOIN public.inscripcion i ON i.id=h."inscripcionId"
+     WHERE i."sesionId"=s2 AND h."estadoNuevo"='cancelada' AND h."cambiadoPor"=personal
+       AND h."estadoPrevio"=CASE WHEN i."usuarioId"=autor THEN 'confirmada' ELSE 'pendiente' END)<>2
+  THEN RAISE EXCEPTION 'Falta el historial de cancelación de inscripciones'; END IF;
  DROP TRIGGER prueba_fallo_hu17 ON public."avisoNotificacion";
  SET LOCAL ROLE authenticated;
  r:=public.cambios_actividad('reintentar_avisos',jsonb_build_object('folio',r->>'folio','version',3));

@@ -82,6 +82,14 @@ Estado revisado el 6 de noviembre de 2026. API implementada y pruebas aisladas c
 
 En otra terminal, dentro de Front, ejecutar npm ci y luego npm run dev. Abrir http://localhost:5173, manteniendo FastAPI en el puerto 8000. El servidor de desarrollo de Vite reenvía /api al backend; los dos procesos deben estar encendidos. La compilación estática requiere configurar ese mismo reenvío en el servidor que la publique.
 
+### Asistente de orientación
+
+Abre `/asistente` y pregunta por los requisitos de un servicio. `POST /asistente/consultas` recupera fragmentos de `fuenteRAG` con la clave publicable de Supabase. La cita muestra el título, el tipo y la versión del documento vigente. Las guías de `Back/asistente_guia.py` enlazan las páginas del portal. Las consultas privadas o sin respaldo ofrecen acceso a Contacto con el personal.
+
+En **Administración → Fuentes**, registra el texto público del requisito con el nombre del servicio y un título que identifique el documento. Aplica el flujo de aprobación y activación de [Fuentes del asistente](Supabase/fuentes_rag.sql). Para verificar el retiro, repite la consulta después de retirar la fuente y comprueba que el asistente ya no la cite.
+
+LM Studio puede seleccionar los fragmentos recuperados mediante salida JSON estructurada. Carga Gemma antes de atender consultas y configura la URL, el modelo y el token opcional en `Back/.env` con los nombres de `Back/.env.example`. Con `ASISTENTE_LM_MODELO` vacío se usa la búsqueda textual de fuentes aprobadas. Para alojar el modelo junto al portal se requiere una conexión privada desde FastAPI. [Pruebas y evaluación de T-118](T-118-INFORME.md)
+
 El frontend obtiene únicamente URL y clave publicable desde /cuentas/configuracion. No requiere copiar claves a Front ni usar claves secretas. El registro llama a FastAPI; el acceso, reenvío y recuperación usan Supabase Auth y la sesión se comprueba contra el backend.
 
 FRONTEND_URL en Back/.env permite configurar el origen de retorno del registro; por defecto es http://localhost:5173. En Supabase Auth → URL Configuration se deben permitir las rutas /auth/retorno?flujo=confirmacion y /auth/retorno?flujo=recuperacion de ese origen. La lista permitida todavía requiere verificación en el panel. localhost funciona en la computadora de desarrollo; abrirlo desde el teléfono apunta al propio teléfono.

@@ -320,23 +320,28 @@ def crear_version_fuente(
     })
 
 
-def consultar_fuentes_rag(cliente: Client, limite: int = 20) -> list[dict]:
+def consultar_fuentes_rag(
+    cliente: Client, limite: int = 20, *, terminos: tuple[str, ...] = (),
+) -> list[dict]:
     """Recupera únicamente fuentes aprobadas explícitamente y activas."""
     if not 1 <= limite <= 100:
         raise ValueError('El límite de recuperación debe estar entre 1 y 100.')
+    if any(not termino.isalnum() for termino in terminos):
+        raise ValueError('Los términos de búsqueda deben ser palabras.')
     try:
         # Estos filtros son obligatorios: las fuentes retiradas o no aprobadas
         # no deben formar parte del contexto enviado al modelo.
-        resultado = (
+        consulta = (
             cliente.table('fuenteRAG')
             .select('id,tituloFuente,tipoFuente,contenidoReferencia,version')
             .eq('estadoFuente', 'aprobada')
             .not_.is_('aprobadaPor', 'null')
             .eq('activa', True)
-            .order('actualizadaEn', desc=True)
-            .limit(limite)
-            .execute()
         )
+        if terminos:
+            busqueda = ' OR '.join(terminos)
+            consulta = consulta.or_(f'tituloFuente.wfts(spanish).{busqueda},contenidoReferencia.wfts(spanish).{busqueda}')
+        resultado = consulta.order('actualizadaEn', desc=True).order('id').limit(limite).execute()
     except APIError as error:
         raise _error_db(error) from None
     except Exception:

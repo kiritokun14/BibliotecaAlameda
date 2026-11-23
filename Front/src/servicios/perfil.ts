@@ -3,15 +3,18 @@ export interface PerfilPropio {
  id:string;correo:string;nombres:string;primerApellido:string;segundoApellido:string|null;
  fechaNacimiento:string;telefono:string;actualizadoA:string;
 }
-async function pedir<T>(metodo:string,cambios?:unknown,ruta='/perfil'):Promise<T> {
+async function tokenPerfil() {
  const {data,error}=await (await obtenerSupabase()).auth.getSession();
  if(error||!data.session)throw new ErrorServicio('Inicia sesión para consultar tu perfil.',401);
- return pedirApi<T>(ruta,{method:metodo,headers:{Authorization:'Bearer '+data.session.access_token},
+ return data.session.access_token;
+}
+function pedir<T>(token:string,metodo:string,cambios?:unknown,ruta='/perfil'):Promise<T> {
+ return pedirApi<T>(ruta,{method:metodo,headers:{Authorization:'Bearer '+token},
   ...(cambios===undefined?{}:{body:JSON.stringify(cambios)})});
 }
-export function consultarPerfil(){return pedir<PerfilPropio>('GET');}
-export function guardarPerfil(perfil:PerfilPropio,cambios:{nombres:string;telefono:string}) {
- return pedir<PerfilPropio>('PATCH',{...cambios,actualizadoA:perfil.actualizadoA});
+export async function consultarPerfil(){return pedir<PerfilPropio>(await tokenPerfil(),'GET');}
+export async function guardarPerfil(perfil:PerfilPropio,cambios:{nombres:string;telefono:string}) {
+ return pedir<PerfilPropio>(await tokenPerfil(),'PATCH',{...cambios,actualizadoA:perfil.actualizadoA});
 }
 
 export interface PreferenciasAvisos {
@@ -21,19 +24,23 @@ export interface PreferenciasAvisos {
  actualizadoEn: string | null;
 }
 const rutaPreferencias = '/perfil/preferencias-avisos';
-// La consulta se comparte: el perfil la pide en paralelo con /perfil y la sección Avisos reusa la misma promesa.
-let preferenciasEnCurso: Promise<PreferenciasAvisos> | null = null;
-export function consultarPreferenciasAvisos() {
- if (!preferenciasEnCurso) {
-  preferenciasEnCurso = pedir<PreferenciasAvisos>('GET', undefined, rutaPreferencias);
-  const actual = preferenciasEnCurso;
-  // Solo se reutiliza mientras está en curso o unos segundos después; un error no se queda guardado
-  actual.then(() => setTimeout(() => { if (preferenciasEnCurso === actual) preferenciasEnCurso = null; }, 5000),
-   () => { if (preferenciasEnCurso === actual) preferenciasEnCurso = null; });
- }
- return preferenciasEnCurso;
+// El perfil y la sección Avisos comparten la consulta de la sesión activa.
+let preferenciasEnCurso: { token: string; consulta: Promise<PreferenciasAvisos> } | null = null;
+export async function consultarPreferenciasAvisos() {
+ const token = await tokenPerfil();
+ if (preferenciasEnCurso?.token === token) return preferenciasEnCurso.consulta;
+
+ const consulta = pedir<PreferenciasAvisos>(token, 'GET', undefined, rutaPreferencias);
+ preferenciasEnCurso = { token, consulta };
+ const liberar = () => { if (preferenciasEnCurso?.consulta === consulta) preferenciasEnCurso = null; };
+ void consulta.then(() => setTimeout(liberar, 5000), liberar);
+ return consulta;
 }
-export function guardarPreferenciasAvisos(datos: PreferenciasAvisos) {
- preferenciasEnCurso = null;
- return pedir<PreferenciasAvisos>('PATCH', datos, rutaPreferencias);
+export async function guardarPreferenciasAvisos(datos: PreferenciasAvisos) {
+ const token = await tokenPerfil();
+ try {
+  return await pedir<PreferenciasAvisos>(token, 'PATCH', datos, rutaPreferencias);
+ } finally {
+  if (preferenciasEnCurso?.token === token) preferenciasEnCurso = null;
+ }
 }

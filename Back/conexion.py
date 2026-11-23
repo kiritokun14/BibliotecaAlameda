@@ -4,10 +4,10 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from supabase import Client, create_client
+from supabase import Client, ClientOptions, create_client
 
 
-def crear_cliente() -> Client:
+def crear_cliente(opciones: ClientOptions | None = None) -> Client:
     load_dotenv(Path(__file__).with_name('.env'))
     url = os.getenv('SUPABASE_URL', '').strip()
     clave = os.getenv('SUPABASE_PUBLISHABLE_KEY', '').strip()
@@ -15,7 +15,7 @@ def crear_cliente() -> Client:
         raise RuntimeError('Falta configurar Back/.env con la URL y clave publicable de Supabase.')
     if not clave.startswith('sb_publishable_'):
         raise RuntimeError('Esta conexión requiere una clave publicable de Supabase.')
-    return create_client(url, clave)
+    return create_client(url, clave, options=opciones)
 
 
 def crear_cliente_servicio() -> Client:

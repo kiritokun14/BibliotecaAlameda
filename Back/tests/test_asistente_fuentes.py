@@ -48,6 +48,10 @@ class ConsultaFalsa:
         del args, kwargs
         return self
 
+    def or_(self, expresion):
+        self.filtros.append(('or', expresion))
+        return self
+
     def limit(self, *args):
         del args
         return self
@@ -178,12 +182,14 @@ class AsistenteFuentesTests(unittest.TestCase):
         consulta = ConsultaFalsa([self.fuente])
         self.cliente.table = Mock(return_value=consulta)
 
-        resultado = consultar_fuentes_rag(self.cliente)
+        resultado = consultar_fuentes_rag(self.cliente, terminos=('credencial', 'prestamo'))
 
         self.assertEqual(resultado, [self.fuente])
         self.assertIn(('eq', 'estadoFuente', 'aprobada'), consulta.filtros)
         self.assertIn(('not.is', 'aprobadaPor', 'null'), consulta.filtros)
         self.assertIn(('eq', 'activa', True), consulta.filtros)
+        self.assertIn(('or', 'tituloFuente.wfts(spanish).credencial OR prestamo,'
+                             'contenidoReferencia.wfts(spanish).credencial OR prestamo'), consulta.filtros)
 
 
 if __name__ == '__main__':

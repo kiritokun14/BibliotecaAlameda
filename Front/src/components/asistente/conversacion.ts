@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { consultarAsistente, enviarAlPersonal, type MensajeHistorial, type RespuestaAsistente } from "./servicio";
+import { consultarAsistente, type MensajeHistorial, type RespuestaAsistente } from "./servicio";
 
 // Qué se le pidió al asistente; se guarda para poder reintentar si falla
-export type Accion = { tipo: "pregunta"; texto: string } | { tipo: "personal" };
+export type Accion = { tipo: "pregunta"; texto: string };
 
 export type Mensaje =
     | { id: string; autor: "persona"; texto: string }
@@ -11,7 +11,6 @@ export type Mensaje =
     | { id: string; autor: "asistente"; estado: "error"; accion: Accion };
 
 export const PREGUNTAS_SUGERIDAS = ["¿Cuál es el horario?", "¿Cómo tramito mi credencial?", "¿Qué actividades hay?"];
-export const TEXTO_HABLAR_CON_PERSONAL = "Quiero hablar con el personal.";
 export const LIMITE_PREGUNTA = 500;
 
 // La conversación se guarda en esta pestaña (sessionStorage): sobrevive al cambiar de página
@@ -26,6 +25,11 @@ export function restaurar(guardado: unknown): Mensaje[] {
     if (!Array.isArray(guardado)) return [];
     return guardado
         .filter((m): m is Mensaje => typeof m === "object" && m !== null && "id" in m && "autor" in m)
+        .filter((m) => {
+            if (m.autor === "persona") return typeof m.texto === "string";
+            if (m.estado === "listo") return m.respuesta && (m.respuesta.tipo !== "enviada" || Boolean(m.respuesta.folio));
+            return m.accion?.tipo === "pregunta";
+        })
         .map((m) => (m.autor === "asistente" && m.estado === "consultando" ? { ...m, estado: "error" as const } : m));
 }
 
@@ -37,14 +41,13 @@ function leer(): Mensaje[] {
     }
 }
 
-// Texto plano de la conversación para que el backend entienda preguntas de seguimiento
+// Solo las preguntas de orientación aportan contexto al seguimiento.
 export function aHistorial(mensajes: Mensaje[]): MensajeHistorial[] {
-    return mensajes.flatMap((m): MensajeHistorial[] => {
-        if (m.autor === "persona") return [{ autor: "persona", texto: m.texto }];
-        if (m.estado === "listo" && m.respuesta.tipo === "respuesta") {
-            return [{ autor: "asistente", texto: [...m.respuesta.parrafos, m.respuesta.cierre ?? ""].join(" ").trim() }];
-        }
-        return [];
+    return mensajes.flatMap((m, i): MensajeHistorial[] => {
+        if (m.autor !== "persona") return [];
+        const respuesta = mensajes[i + 1];
+        if (respuesta?.autor === "asistente" && respuesta.estado === "listo" && respuesta.respuesta.tipo === "privada") return [];
+        return [{ autor: "persona", texto: m.texto }];
     });
 }
 
@@ -70,9 +73,7 @@ export function useConversacion() {
     const ejecutar = useCallback(async (accion: Accion, previos: Mensaje[], idEspera: string) => {
         const historial = aHistorial(previos);
         try {
-            const respuesta: RespuestaAsistente = accion.tipo === "pregunta"
-                ? await consultarAsistente(accion.texto, historial)
-                : { tipo: "enviada", ...(await enviarAlPersonal(historial)) };
+            const respuesta = await consultarAsistente(accion.texto, historial);
             if (!montado.current) return;
             setMensajes((actuales) => actuales.map((m) => (m.id === idEspera ? { id: m.id, autor: "asistente", estado: "listo", respuesta } : m)));
         } catch {
@@ -87,15 +88,13 @@ export function useConversacion() {
         const espera: Mensaje = { id: nuevoId(), autor: "asistente", estado: "consultando", accion };
         const previos = [...mensajes, persona];
         setMensajes([...previos, espera]);
-        void ejecutar(accion, previos, espera.id);
+        void ejecutar(accion, mensajes, espera.id);
     }, [ejecutar, mensajes, ocupado]);
 
     const preguntar = useCallback((texto: string) => {
         const limpio = texto.trim().slice(0, LIMITE_PREGUNTA);
         if (limpio) pedir({ tipo: "pregunta", texto: limpio }, limpio);
     }, [pedir]);
-
-    const hablarConPersonal = useCallback(() => pedir({ tipo: "personal" }, TEXTO_HABLAR_CON_PERSONAL), [pedir]);
 
     // El error se vuelve a intentar en el mismo lugar de la conversación
     const reintentar = useCallback((id: string) => {
@@ -104,19 +103,18 @@ export function useConversacion() {
         const mensaje = mensajes[indice];
         if (!mensaje || mensaje.autor !== "asistente" || mensaje.estado !== "error") return;
         setMensajes(mensajes.map((m) => (m.id === id ? { ...mensaje, estado: "consultando" } : m)));
-        void ejecutar(mensaje.accion, mensajes.slice(0, indice), id);
+        void ejecutar(mensaje.accion, mensajes.slice(0, Math.max(0, indice - 1)), id);
     }, [ejecutar, mensajes, ocupado]);
 
     const nuevaConsulta = useCallback(() => setMensajes([]), []);
 
     // Última pregunta escrita, para "Reformular mi pregunta"
-    const ultimaPregunta = [...mensajes].reverse().find((m) => m.autor === "persona" && m.texto !== TEXTO_HABLAR_CON_PERSONAL);
+    const ultimaPregunta = [...mensajes].reverse().find((m) => m.autor === "persona");
 
     return {
         mensajes,
         ocupado,
         preguntar,
-        hablarConPersonal,
         reintentar,
         nuevaConsulta,
         ultimaPregunta: ultimaPregunta?.autor === "persona" ? ultimaPregunta.texto : "",

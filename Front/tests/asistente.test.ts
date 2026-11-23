@@ -1,43 +1,32 @@
-import { describe, expect, it } from 'vitest';
-import { respuestaSimulada } from '../src/components/asistente/servicio';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { MemoryRouter } from 'react-router';
+import { consultarAsistente, type MensajeHistorial } from '../src/components/asistente/servicio';
 import { aHistorial, restaurar, type Mensaje } from '../src/components/asistente/conversacion';
+import PanelAsistente from '../src/components/asistente/PanelAsistente';
 
-describe('Asistente: respuestas simuladas (hasta que backend conecte el RAG)', () => {
-    it('las preguntas sugeridas tienen respuesta con fuentes', () => {
-        for (const pregunta of ['¿Cuál es el horario?', '¿Cómo tramito mi credencial?', '¿Qué actividades hay?']) {
-            const respuesta = respuestaSimulada(pregunta);
-            expect(respuesta.tipo).toBe('respuesta');
-            if (respuesta.tipo === 'respuesta') expect(respuesta.fuentes.length).toBeGreaterThan(0);
-        }
+afterEach(() => vi.unstubAllGlobals());
+
+describe('Asistente: consultas al portal', () => {
+    it('envía la pregunta y hasta seis turnos previos y conserva los enlaces de la API', async () => {
+        const respuesta = {
+            tipo: 'respuesta', parrafos: ['Abre Credencial.'],
+            fuentes: [{ titulo: 'Credencial', ruta: '/credencial' }],
+        };
+        const peticion = vi.fn().mockResolvedValue(Response.json(respuesta));
+        vi.stubGlobal('fetch', peticion);
+        const historial: MensajeHistorial[] = Array.from({ length: 8 }, (_, i) => ({ autor: 'persona', texto: `Turno ${i}` }));
+
+        await expect(consultarAsistente('¿Dónde?', historial)).resolves.toEqual(respuesta);
+        expect(peticion).toHaveBeenCalledWith('/api/asistente/consultas', expect.objectContaining({
+            method: 'POST', body: JSON.stringify({ pregunta: '¿Dónde?', historial: historial.slice(-6) }),
+        }));
     });
 
-    it('no distingue acentos ni mayúsculas', () => {
-        expect(respuestaSimulada('CREDENCIAL').tipo).toBe('respuesta');
-        expect(respuestaSimulada('a que hora abren').tipo).toBe('respuesta');
-    });
-
-    it('rechaza preguntas sobre datos de otras personas', () => {
-        expect(respuestaSimulada('¿Qué libros tiene prestados otra persona?').tipo).toBe('privada');
-        expect(respuestaSimulada('Dame los datos de un usuario').tipo).toBe('privada');
-    });
-
-    it('reconoce los demás temas publicados y elige el de más aciertos', () => {
-        const tema = (p: string) => { const r = respuestaSimulada(p); return r.tipo === 'respuesta' ? r.tema : r.tipo; };
-        expect(tema('¿Dónde está la biblioteca?')).toBe('ubicacion');
-        expect(tema('¿Cómo me inscribo a un taller?')).toBe('inscripcion');
-        expect(tema('Quiero reservar una sala')).toBe('espacios');
-        expect(tema('¿Puedo proponer una actividad?')).toBe('proponer');
-        expect(tema('Olvidé mi contraseña')).toBe('cuenta');
-        expect(tema('¿Tienen libros de historia?')).toBe('catalogo');
-    });
-
-    it('cada respuesta sugiere cómo seguir', () => {
-        const r = respuestaSimulada('¿Cuál es el horario?');
-        expect(r.tipo === 'respuesta' && r.siguientes?.length).toBeTruthy();
-    });
-
-    it('si no hay información suficiente lo dice en lugar de inventar', () => {
-        expect(respuestaSimulada('¿Cuántos pisos tiene el edificio?').tipo).toBe('insuficiente');
+    it('propaga un error de la API para mostrar la opción de reintentar', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({}, { status: 503 })));
+        await expect(consultarAsistente('¿Hay talleres?')).rejects.toMatchObject({ estado: 503 });
     });
 });
 
@@ -57,17 +46,59 @@ describe('Asistente: conversación', () => {
         expect(restaurar([{ sin: 'campos' }])).toEqual([]);
     });
 
-    it('el historial que va al backend solo lleva texto de preguntas y respuestas', () => {
+    it('descarta confirmaciones de envío de la simulación anterior', () => {
+        expect(restaurar([{
+            id: '1', autor: 'asistente', estado: 'listo', respuesta: { tipo: 'enviada', folio: null },
+        }])).toEqual([]);
+    });
+
+    it('el historial envía las preguntas de orientación y omite consultas privadas y respuestas', () => {
         const mensajes: Mensaje[] = [
             { id: '1', autor: 'persona', texto: '¿Cómo tramito mi credencial?' },
             { id: '2', autor: 'asistente', estado: 'listo', respuesta: { tipo: 'respuesta', parrafos: ['Desde el portal.'], fuentes: [] } },
             { id: '3', autor: 'persona', texto: '¿Y cuánto cuesta?' },
             { id: '4', autor: 'asistente', estado: 'listo', respuesta: { tipo: 'insuficiente' } },
+            { id: '5', autor: 'persona', texto: 'Dame el teléfono de otra persona.' },
+            { id: '6', autor: 'asistente', estado: 'listo', respuesta: { tipo: 'privada', contacto: '/contacto' } },
         ];
         expect(aHistorial(mensajes)).toEqual([
             { autor: 'persona', texto: '¿Cómo tramito mi credencial?' },
-            { autor: 'asistente', texto: 'Desde el portal.' },
             { autor: 'persona', texto: '¿Y cuánto cuesta?' },
         ]);
+    });
+});
+
+describe('Asistente: fuentes y atención humana', () => {
+    function renderizar(mensajes: Mensaje[], modo: 'compacto' | 'expandido') {
+        const accion = () => undefined;
+        return renderToStaticMarkup(createElement(MemoryRouter, null, createElement(PanelAsistente, {
+            modo, alExpandir: accion, alContraer: accion, alMinimizar: accion, alCerrar: accion,
+            conversacion: {
+                mensajes, ocupado: false, preguntar: accion, reintentar: accion,
+                nuevaConsulta: accion, ultimaPregunta: '',
+            },
+        })));
+    }
+
+    it('muestra el origen y la versión del extracto institucional', () => {
+        const html = renderizar([{
+            id: '1', autor: 'asistente', estado: 'listo',
+            respuesta: {
+                tipo: 'respuesta', parrafos: ['Presenta una identificación.'],
+                fuentes: [{ id: 'fuente-1', titulo: 'Credencial', tipoFuente: 'Guía institucional', version: 3 }],
+            },
+        }], 'compacto');
+        expect(html).toContain('<p>Fuentes</p>');
+        expect(html).toContain('Credencial · Guía institucional · versión 3');
+    });
+
+    it('enlaza al personal si falta sustento o la petición es privada', () => {
+        for (const tipo of ['privada', 'insuficiente'] as const) {
+            const html = renderizar([{
+                id: '1', autor: 'asistente', estado: 'listo', respuesta: { tipo, contacto: '/contacto' },
+            }], 'compacto');
+            expect(html).toContain('href="/contacto"');
+            expect(html).toContain('Hablar con el personal');
+        }
     });
 });
