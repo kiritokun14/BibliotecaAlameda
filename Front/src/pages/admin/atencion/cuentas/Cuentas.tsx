@@ -19,6 +19,8 @@ import vacioBuscar from "../../../../assets/admin/vacio-search.svg";
 import vacioCheck from "../../../../assets/admin/vacio-check.svg";
 
 import { EsqueletoDetalle, EsqueletoLista } from "../../../../components/portal/Esqueleto";
+import { LineaHistorial } from "../../piezasPanel";
+import { fechaHora } from "../comun/fechas";
 const RUTA = "/admin/atencion/cuentas";
 const POR_PAGINA = 10;
 
@@ -283,14 +285,11 @@ export function BitacoraCuenta() {
                 {bitacora.datos && (bitacora.datos.cambios.length === 0
                     ? <EstadoVacio icono={vacioCheck} titulo="Sin cambios registrados" texto="Cuando se cambie un rol o el estado de la cuenta, aparecerá aquí." />
                     : (
-                        <ol className="at-eventos">
-                            {bitacora.datos.cambios.map((cambio) => (
-                                <li key={cambio.id} className="at-eventos--hecho">
-                                    <strong>{ACCION[cambio.accion] ?? cambio.accion} {detalleCambio(cambio.anterior, cambio.posterior)}</strong>
-                                    <small>{new Date(cambio.realizadoEn).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })} · Motivo: {cambio.motivo}</small>
-                                </li>
-                            ))}
-                        </ol>
+                        <LineaHistorial etiqueta="Historial de la cuenta" movimientos={bitacora.datos.cambios.map((cambio) => ({
+                            titulo: `${ACCION[cambio.accion] ?? cambio.accion} ${detalleCambio(cambio.anterior, cambio.posterior)}`.trim(),
+                            tono: cambio.accion === "retirar_rol" ? "guinda" as const : cambio.accion === "cambiar_estado" ? "dorado" as const : "verde" as const,
+                            detalle: fechaHora(cambio.realizadoEn), nota: cambio.motivo ? `Motivo: ${cambio.motivo}` : undefined,
+                        }))} />
                     ))}
             </section>
         </Pantalla>

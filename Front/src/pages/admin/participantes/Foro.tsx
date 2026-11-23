@@ -98,7 +98,7 @@ function Cola() {
                     />
                     {filas.length === 0 ? (
                         busqueda.trim() ? (
-                            <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para «${busqueda.trim()}»`} texto="Prueba con otra palabra o el nombre de la persona." accion={{ texto: "Limpiar filtros", alPresionar: () => { setBusqueda(""); elegir("reportadas"); } }} />
+                            <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para ${busqueda.trim()}`} texto="Prueba con otra palabra o el nombre de la persona." accion={{ texto: "Limpiar filtros", alPresionar: () => { setBusqueda(""); elegir("reportadas"); } }} />
                         ) : (
                             <EstadoVacio icono={vacioCheck} titulo={filtro === "reportadas" ? "No hay publicaciones reportadas" : "No hay publicaciones en este filtro"} texto="Cuando alguien reporte una publicación, aparecerá aquí." />
                         )
@@ -106,7 +106,7 @@ function Cola() {
                         <Tabla
                             columnas={[
                                 { titulo: "Folio", ancho: 80, folio: true, celda: (p: Publicacion) => p.folio },
-                                { titulo: "Respuesta", fuerte: true, celda: (p: Publicacion) => `«${recortar(p.texto)}»` },
+                                { titulo: "Respuesta", fuerte: true, celda: (p: Publicacion) => `${recortar(p.texto)}` },
                                 { titulo: "Autor", celda: (p: Publicacion) => p.autor },
                                 { titulo: "Reportes", ancho: 80, celda: (p: Publicacion) => p.reportes },
                                 { titulo: "Motivo", ancho: 140, celda: (p: Publicacion) => p.motivo },
@@ -145,7 +145,7 @@ function Normas() {
                         <Buscador texto="Buscar norma" valor={busqueda} alCambiar={setBusqueda} />
                     </div>
                     {filas.length === 0 ? (
-                        <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para «${busqueda.trim()}»`} texto="Prueba con otra palabra." accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
+                        <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para ${busqueda.trim()}`} texto="Prueba con otra palabra." accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
                     ) : (
                         <>
                             <Tabla
@@ -206,7 +206,7 @@ function Silenciadas() {
                     </div>
                     {filas.length === 0 ? (
                         t ? (
-                            <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para «${busqueda.trim()}»`} texto="Prueba con otro nombre." accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
+                            <EstadoVacio icono={vacioBuscar} titulo={`Sin resultados para ${busqueda.trim()}`} texto="Prueba con otro nombre." accion={{ texto: "Limpiar búsqueda", alPresionar: () => setBusqueda("") }} />
                         ) : (
                             <EstadoVacio icono={vacioCheck} titulo="No hay personas silenciadas" texto="Cuando silencies a alguien, aparecerá aquí con la fecha en que termina." />
                         )

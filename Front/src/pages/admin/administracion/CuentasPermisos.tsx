@@ -13,7 +13,8 @@ import {
 } from "../../../servicios/cuentasAtencion";
 import { ErrorCarga, Pantalla } from "./comun";
 import { useCarga } from "./utiles";
-import { Aviso, Buscador, Cifra, Chip, Dato, Datos, Encabezado, FiltrosAvanzados, Icono, Paginas, Plegable, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
+import { Aviso, Buscador, Cifra, Chip, Dato, Datos, Encabezado, FiltrosAvanzados, Icono, LineaHistorial, Paginas, Plegable, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
+import { fechaHora } from "../atencion/comun/fechas";
 import modalAlerta from "../../../assets/admin/modal-alert.svg";
 import modalCheck from "../../../assets/admin/modal-check.svg";
 import modalInfo from "../../../assets/admin/modal-info.svg";
@@ -345,23 +346,16 @@ function HistorialFicha({ id }: { id: string }) {
     const historial = useCarga<HistorialCuenta>(`historial:${id}`, () => historialCuenta(id, 6));
     const cambios = historial.datos?.cambios ?? [];
     return (
-        <Tarjeta icono="bitacora" id={idTarjeta} titulo="Historial de la cuenta" texto="Los cambios más recientes de roles y estado">
+        <Tarjeta icono="bitacora" id={idTarjeta} titulo="Historial" texto={cambios.length ? `${cambios.length} ${cambios.length === 1 ? "movimiento" : "movimientos"}, lo más reciente arriba` : "Cambios de roles y estado de la cuenta"} className="pz-historial-tarjeta">
             {historial.cargando && <p className="pz-acciones__nota">Cargando el historial…</p>}
             {historial.error && <ErrorCarga titulo="No se pudo cargar el historial." texto={historial.error} alReintentar={historial.recargar} />}
             {historial.datos && (cambios.length === 0
                 ? <Vacio icono="bitacora" titulo="Sin cambios todavía" texto="Cuando se cambie un rol o el estado, aparecerá aquí con su motivo." />
                 : (
-                    <ul className="pz-actividades pz-historial">
-                        {cambios.map((cambio) => (
-                            <li key={cambio.id}>
-                                <span className="pz-historial__punto" aria-hidden="true" />
-                                <div className="pz-actividades__textos">
-                                    <p className="pz-actividades__titulo">{ACCION_HISTORIAL[cambio.accion] ?? cambio.accion}</p>
-                                    <p className="pz-actividades__detalle">{new Date(cambio.realizadoEn).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}. Motivo: {cambio.motivo}</p>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                    <LineaHistorial etiqueta="Historial de la cuenta" movimientos={cambios.map((cambio) => {
+                        const tono = cambio.accion === "retirar_rol" ? "guinda" as const : cambio.accion === "cambiar_estado" ? "dorado" as const : "verde" as const;
+                        return { titulo: ACCION_HISTORIAL[cambio.accion] ?? cambio.accion, tono, icono: /rol/.test(cambio.accion) ? "usuario" as const : undefined, detalle: fechaHora(cambio.realizadoEn), nota: cambio.motivo ? `Motivo: ${cambio.motivo}` : undefined };
+                    })} />
                 ))}
         </Tarjeta>
     );

@@ -89,6 +89,14 @@ function Espacios({ vista }: { vista: "bandeja" | "todas" }) {
                 config={configEspacios}
                 solicitudes={carga.solicitudes}
                 columnas={columnas}
+                fila={(s) => ({
+                    fecha: s.fecha, tipo: s.api.tipo === "visita" ? "Visita guiada" : "Uso de un área",
+                    datos: [
+                        { icono: "espacios", texto: s.area },
+                        { icono: "reloj", texto: s.horario || "Horario por confirmar" },
+                        { icono: "grupo", texto: `${s.personas} ${Number(s.personas) === 1 ? "persona" : "personas"}` },
+                    ],
+                })}
                 coincide={(s, texto) => s.folio.toLowerCase().includes(texto) || s.persona.toLowerCase().includes(texto)}
             />
         </PanelLayout>

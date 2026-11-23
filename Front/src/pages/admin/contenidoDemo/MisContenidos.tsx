@@ -94,7 +94,7 @@ function MisContenidos() {
                     ) : visibles.length === 0 ? (
                         <EstadoVacio
                             icono={vacioBuscar}
-                            titulo={busqueda.trim() ? `Sin resultados para «${busqueda.trim()}»` : "Sin resultados"}
+                            titulo={busqueda.trim() ? `Sin resultados para ${busqueda.trim()}` : "Sin resultados"}
                             texto="Prueba con otra palabra, otro estado o quita los filtros."
                             accion={{ texto: "Limpiar filtros", alPresionar: () => { setBusqueda(""); elegir("todos"); } }}
                         />

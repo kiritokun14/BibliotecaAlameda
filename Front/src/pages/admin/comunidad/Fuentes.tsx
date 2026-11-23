@@ -229,7 +229,7 @@ export default function Fuentes() {
 
             {confirmando && seleccion && (
                 <Ventana tono={confirmando === "retirar" || confirmando === "devolver" ? "guinda" : "verde"} icono={confirmando === "retirar" || confirmando === "devolver" ? modalAlerta : modalCheck} angosta
-                    titulo={CONFIRMACION[confirmando].titulo} texto={`«${seleccion.tituloFuente}». ${CONFIRMACION[confirmando].texto}`}
+                    titulo={CONFIRMACION[confirmando].titulo} texto={`${seleccion.tituloFuente}. ${CONFIRMACION[confirmando].texto}`}
                     textoConfirmar={CONFIRMACION[confirmando].boton} alConfirmar={confirmar} alCerrar={() => setConfirmando(null)} />
             )}
         </Pantalla>

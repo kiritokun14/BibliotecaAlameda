@@ -179,26 +179,22 @@ export default function Resumen() {
                         {veActividades && (
                         <section className="pz-tarjeta pz-tarjeta--actividades" aria-labelledby="pz-actividades">
                             <Cabecera icono="hoy" id="pz-actividades" titulo="Actividades de hoy" texto={textoActividades(momentos, actividades.length)} />
-                            <ul className="pz-actividades" ref={listaActividades}>
-                                {actividades.map((actividad, i) => (
-                                    <li key={actividad.titulo} data-momento={momentos[i]}
-                                        className={[actividad.chip.texto === "Cancelada" ? "pz-actividades__cancelada" : "", `pz-actividades--${momentos[i]}`].join(" ").trim()}>
-                                        {(momentos[i] === "ahora" || momentos[i] === "siguiente") && (
-                                            <span className="pz-actividades__momento">{momentos[i] === "ahora" ? "En este momento" : "Sigue"}</span>
-                                        )}
-                                        <span className="pz-actividades__hora"><strong>{actividad.hora}</strong><span>h</span></span>
-                                        <div className="pz-actividades__textos">
-                                            <p className="pz-actividades__titulo">{actividad.titulo}</p>
-                                            <p className="pz-actividades__detalle">{actividad.detalle}</p>
-                                            <div className="pz-actividades__pie">
-                                                <Chip tono={actividad.chip.tono}>{actividad.chip.texto}</Chip>
-                                                {actividad.pasarLista && (
-                                                    <Enlace ruta="/admin/actividades/asistencia" className="pz-boton pz-boton--chico">Pasar lista</Enlace>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))}
+                            <ul className="pz-hoy-simple" ref={listaActividades}>
+                                {actividades.map((actividad, i) => {
+                                    const cancelada = actividad.chip.texto === "Cancelada";
+                                    const momento = momentos[i];
+                                    return (
+                                        <li key={actividad.titulo} data-momento={momento}
+                                            className={`pz-hoy-simple__item pz-hoy-simple__item--${cancelada && momento === "ahora" ? "pasada" : momento}${cancelada ? " pz-hoy-simple__item--cancelada" : ""}`}>
+                                            <span className="pz-hoy-simple__hora">{actividad.hora}</span>
+                                            <span className={`pz-hoy-simple__punto pz-hoy-simple__punto--${actividad.chip.tono}`} aria-hidden="true" />
+                                            <span className="pz-hoy-simple__titulo" title={actividad.titulo}>{actividad.titulo}</span>
+                                            {cancelada ? <span className="pz-hoy-simple__estado">Cancelada</span>
+                                                : momento === "ahora" ? <span className="pz-hoy-simple__marca">Ahora</span> : null}
+                                            <span className="solo-lectores">, {actividad.chip.texto}</span>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                             <Enlace ruta="/admin/actividades/calendario" className="pz-enlace">Ver el calendario</Enlace>
                         </section>
@@ -385,7 +381,7 @@ function TarjetaRecientes({ editor }: { editor: DatosEditor }) {
                 accion={<Enlace ruta="/admin/contenidos/editor" className="pz-boton pz-boton--contorno pz-boton--chico">Ver todos</Enlace>} />
             {editor.error ? <p className="pz-acciones__nota">No se pudieron cargar: {editor.error}</p>
                 : !editor.recientes ? <p className="pz-acciones__nota">Cargando…</p>
-                    : editor.recientes.length === 0 ? <p className="pz-acciones__nota">Aún no has redactado nada. Empieza con «Nuevo contenido».</p> : (
+                    : editor.recientes.length === 0 ? <p className="pz-acciones__nota">Aún no has redactado nada. Empieza con Nuevo contenido.</p> : (
                         <div className="pz-grupos" tabIndex={0} role="region" aria-label="Lo más reciente">
                             <ul className="pz-filas">
                                 {editor.recientes.map((c) => (

@@ -101,9 +101,9 @@ function PedirCambios() {
                     lateral={
                         <Tarjeta icono={iconoFlecha} titulo="¿Qué pasa después?" tono="crema" lateral>
                             <ul className="cn-lista">
-                                <li>El estado cambia a «Con observaciones».</li>
+                                <li>El estado cambia a Con observaciones.</li>
                                 <li>El Editor recibe un aviso con tus comentarios.</li>
-                                <li>Cuando vuelva a enviar, regresa a tu bandeja como «Por autorizar».</li>
+                                <li>Cuando vuelva a enviar, regresa a tu bandeja como Por autorizar.</li>
                                 <li>Queda registro de quién pidió cambios y cuándo.</li>
                             </ul>
                         </Tarjeta>

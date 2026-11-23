@@ -103,11 +103,11 @@ function historial(s: SolicitudEspacioPersonal): EventoHistorial[] {
         const titulo = h.accion === "respuesta"
             ? (h.detalles?.acepta ? "La persona aceptó el cambio" : "La persona pidió otra opción")
             : NOMBRE_ACCION[h.accion] ?? h.accion;
-        const partes = [formatearFecha(diaLocal(h.fecha)), h.realizadoPor ? `por ${h.realizadoPor}` : "", h.nota ?? ""].filter(Boolean);
-        return { titulo, detalle: partes.join(" · "), tipo: "hecho" };
+        const partes = [formatearFecha(diaLocal(h.fecha)), h.realizadoPor ? `por ${h.realizadoPor}` : ""].filter(Boolean);
+        return { titulo, detalle: partes.join(", "), nota: h.nota || undefined, tipo: "hecho" };
     });
-    if (s.estado === "en_revision") eventos.push({ titulo: "Decisión del personal", detalle: "Pendiente", tipo: "proceso" });
-    if (s.estado === "requiere_correccion") eventos.push({ titulo: "Respuesta de la persona", detalle: "En espera", tipo: "proceso" });
+    if (s.estado === "en_revision") eventos.push({ titulo: "Esperando la decisión del personal", detalle: "En revisión", tipo: "proceso" });
+    if (s.estado === "requiere_correccion") eventos.push({ titulo: "Esperando la respuesta de la persona", detalle: "Se le pidió una corrección", tipo: "proceso" });
     return eventos;
 }
 
@@ -342,7 +342,7 @@ function DetalleEspacio() {
                 titulo="Esperando respuesta"
                 subtitulo="La persona debe aceptar o rechazar el cambio. Si ya no procede, puedes rechazar la solicitud."
                 peligro={rechazar}
-                nota="Cuando la persona responda, la solicitud vuelve a «Por revisar»."
+                nota="Cuando la persona responda, la solicitud vuelve a Por revisar."
             />
         );
     } else {

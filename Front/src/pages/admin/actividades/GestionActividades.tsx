@@ -14,7 +14,8 @@ import { actividadEnMemoria, actividadesEnMemoria, consultarActividad, consultar
 import vacioBuscar from '../../../assets/admin/vacio-search.svg';
 import '../atencion/AtencionTramites.css';
 import './Actividades.css';
-import { Aviso, Buscador, Cabecera, Chip as ChipPz, Cifra, Dato, Datos, Encabezado as EncabezadoPz, FiltrosAvanzados, Icono as IconoPz, Plegable, Tarjeta as TarjetaPz, Vacio as VacioPz, type NombreIcono, type TonoEstado } from '../piezasPanel';
+import { Aviso, Buscador, Cabecera, Chip as ChipPz, Cifra, Dato, Datos, Encabezado as EncabezadoPz, FiltrosAvanzados, Historial, Icono as IconoPz, Plegable, Tarjeta as TarjetaPz, Vacio as VacioPz, type NombreIcono, type TonoEstado } from '../piezasPanel';
+import { fechaHora } from '../atencion/comun/fechas';
 
 const BASE = '/admin/actividades/propuestas';
 const vacia: DatosActividadReal = { nombre: '', tipo: 'Taller', descripcion: '', fecha: '', inicio: '', fin: '', espacio: '',
@@ -518,26 +519,14 @@ function Detalle({ actividad: a, alRecargar, alCambiarSesion }: { actividad: Act
                         </Aviso>}
                     </TarjetaPz>
 
-                    <TarjetaPz icono="reloj" id="actividad-historial" titulo="Historial" texto={a.historial.length ? 'Lo más reciente arriba' : 'Sin decisiones registradas'}>
-                        {historial.length ? (
-                            <ol className="pz-linea" aria-label="Historial de la actividad">
-                                {historial.map((h, i) => {
-                                    const paso = PASO_HISTORIAL[h.accion] ?? { icono: 'info' as NombreIcono, tono: 'gris' as TonoEstado };
-                                    return (
-                                        <li key={`${h.accion}:${h.fecha}:${i}`} className={`pz-linea__paso pz-linea__paso--${paso.tono}${i === 0 ? ' pz-linea__paso--actual' : ''}`}>
-                                            <span className="pz-linea__icono" aria-hidden="true"><IconoPz nombre={paso.icono} /></span>
-                                            <div className="pz-linea__textos">
-                                                <p className="pz-linea__titulo">{ACCIONES_HISTORIAL[h.accion] ?? h.accion}</p>
-                                                <p className="pz-linea__detalle">{new Date(h.fecha).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                                                {h.referencia && <p className="pz-linea__nota">Referencia: {h.referencia}</p>}
-                                                {h.motivo && <p className="pz-linea__nota">{h.motivo}</p>}
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ol>
-                        ) : <p className="pz-acciones__nota">Aquí aparecerá cada envío, autorización y publicación.</p>}
-                    </TarjetaPz>
+                    <Historial id="actividad-historial" vacio="Aquí aparecerá cada envío, autorización y publicación." movimientos={historial.map((h) => {
+                        const paso = PASO_HISTORIAL[h.accion] ?? { icono: 'info' as NombreIcono, tono: 'gris' as const };
+                        return {
+                            titulo: ACCIONES_HISTORIAL[h.accion] ?? h.accion, icono: paso.icono, tono: paso.tono,
+                            detalle: fechaHora(h.fecha),
+                            nota: [h.referencia && `Referencia: ${h.referencia}`, h.motivo].filter(Boolean).join('. ') || undefined,
+                        };
+                    })} />
                 </aside>
             </div>
         </div>

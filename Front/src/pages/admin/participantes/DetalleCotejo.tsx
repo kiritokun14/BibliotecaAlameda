@@ -3,7 +3,7 @@
 // Cuentas y permisos. Las reglas no cambian (cotejos.ts): solo se vincula si todo coincide.
 import { useId, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
-import { Aviso, Chip, Dato, Datos, Encabezado, Icono, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
+import { Aviso, Chip, Dato, Datos, Encabezado, Historial, Icono, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
 import { fechaCorta } from "../actividades/datos";
 import {
     avisarRenovacion, comparar, DATOS_A_CORREGIR, iconoResultado, NOMBRE_ESTADO_COTEJO, obtenerCotejo, pedirCorreccion, rechazarVinculo, resultadoDe,
@@ -162,27 +162,13 @@ function Ficha({ c }: { c: Cotejo }) {
                     </Tarjeta>
 
 
-                    <Tarjeta icono="reloj" id={`${id}-historial`} titulo="Historial" texto="Lo más reciente arriba">
-                        <ol className="pz-linea" aria-label="Historial del cotejo">
-                            {c.resolucion && (
-                                <li className={`pz-linea__paso pz-linea__paso--${TONO_ESTADO_COTEJO[c.estado]} pz-linea__paso--actual`}>
-                                    <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={iconoResultado(c)} /></span>
-                                    <div className="pz-linea__textos">
-                                        <p className="pz-linea__titulo">{NOMBRE_ESTADO_COTEJO[c.estado]}</p>
-                                        <p className="pz-linea__detalle">{c.resolucion.quien}, {fechaCorta(c.resolucion.fecha)}</p>
-                                        <p className="pz-linea__nota">{c.resolucion.detalle}</p>
-                                    </div>
-                                </li>
-                            )}
-                            <li className={`pz-linea__paso pz-linea__paso--gris${c.resolucion ? "" : " pz-linea__paso--actual"}`}>
-                                <span className="pz-linea__icono" aria-hidden="true"><Icono nombre="credencial" /></span>
-                                <div className="pz-linea__textos">
-                                    <p className="pz-linea__titulo">Capturó su credencial en el portal</p>
-                                    <p className="pz-linea__detalle">{fechaCorta(c.registro)}</p>
-                                </div>
-                            </li>
-                        </ol>
-                    </Tarjeta>
+                    <Historial id={`${id}-historial`} movimientos={[
+                        ...(c.resolucion ? [{
+                            titulo: NOMBRE_ESTADO_COTEJO[c.estado], tono: TONO_ESTADO_COTEJO[c.estado], icono: iconoResultado(c),
+                            detalle: `${fechaCorta(c.resolucion.fecha)}, ${c.resolucion.quien}`, nota: c.resolucion.detalle,
+                        }] : []),
+                        { titulo: "Capturó su credencial en el portal", detalle: fechaCorta(c.registro), tono: "gris" as const, icono: "credencial" as const },
+                    ]} />
                 </aside>
             </div>
         </>

@@ -132,7 +132,7 @@ function RedactarNoticia({ inicial }: { inicial?: Contenido }) {
                         </Campo>
 
                         <Interruptor id="noticia-destacar" titulo="Destacar en Inicio" texto="Aparece en el bloque de Noticias." activo={destacar} alCambiar={setDestacar} />
-                        <Interruptor id="noticia-ver-mas" titulo="Mostrar en «Ver más noticias»" activo={verMas} alCambiar={setVerMas} />
+                        <Interruptor id="noticia-ver-mas" titulo="Mostrar en Ver más noticias" activo={verMas} alCambiar={setVerMas} />
                     </section>
 
                     <PanelEstado

@@ -12,6 +12,7 @@ import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 import { ContextoPanel, nombresRoles } from "../../../servicios/accesoPanel";
 import { mensajeError } from "../../../servicios/api";
 import { cerrarSesion } from "../../../servicios/auth";
+import { salirConAnimacion } from "../../../components/sesion/transicion";
 import { consultarPerfil, consultarPreferenciasAvisos, guardarPerfil, guardarPreferenciasAvisos, type PerfilPropio, type PreferenciasAvisos } from "../../../servicios/perfil";
 import { cambiarContrasena } from "../../publico/perfil/seguridad";
 import { APARTADOS, CANALES, RUTA_PERFIL, accesosPorSeccion, actualizadoEl, fechaLarga, tonoRol, validarContrasena, validarDatos, type SeccionPerfil } from "./utiles";
@@ -144,16 +145,19 @@ function Resumen({ perfil }: { perfil: PerfilPropio }) {
 
             <Tarjeta icono="check" id={`${id}-puede`} titulo="Lo que puedes hacer en el panel" texto="Toca un permiso para ir directo a su pantalla">
                 {conAcceso.length === 0 ? <p className="pz-acciones__nota">Por ahora tienes Resumen y Notificaciones, que son de todo el personal.</p> : (
-                    <ul className="pz-permisos">
+                    <ul className="pz-puede">
                         {conAcceso.map((s) => (
-                            <li key={s.id}>
-                                <span className="pz-permisos__icono" aria-hidden="true"><Icono nombre={s.icono} /></span>
-                                <div className="pz-permisos__textos">
-                                    <p className="pz-permisos__modulo">{s.texto}<span>{s.puede.length} de {s.total}</span></p>
-                                    <span className="pz-ranking__barra" aria-hidden="true"><span style={{ width: `${(s.puede.length / s.total) * 100}%` }} /></span>
-                                    <div className="pz-etiquetas">
-                                        {s.enlaces.map((e) => <Link key={e.ruta} to={e.ruta} className="pz-etiqueta pz-etiqueta--enlace">{e.texto}</Link>)}
+                            <li key={s.id} className="pz-puede__modulo">
+                                <div className="pz-puede__cabeza">
+                                    <span className="pz-puede__icono" aria-hidden="true"><Icono nombre={s.icono} /></span>
+                                    <div className="pz-puede__textos">
+                                        <p className="pz-puede__nombre">{s.texto}</p>
+                                        <p className="pz-puede__cuenta">{s.puede.length === s.total ? "Todo el módulo" : `${s.puede.length} de ${s.total} pantallas`}</p>
+                                        <span className="pz-ranking__barra" aria-hidden="true"><span style={{ width: `${(s.puede.length / s.total) * 100}%` }} /></span>
                                     </div>
+                                </div>
+                                <div className="pz-puede__enlaces">
+                                    {s.enlaces.map((e) => <Link key={e.ruta} to={e.ruta} className="pz-etiqueta pz-etiqueta--enlace">{e.texto}</Link>)}
                                 </div>
                             </li>
                         ))}
@@ -328,7 +332,7 @@ function Seguridad({ correo }: { correo: string }) {
     }
     async function salir() {
         setSaliendo(true);
-        try { await cerrarSesion(); navigate("/iniciar-sesion"); } catch (e) { setError(mensajeError(e)); setSaliendo(false); }
+        try { await salirConAnimacion({ tema: "panel", cerrar: cerrarSesion, ir: () => navigate("/iniciar-sesion") }); } catch (e) { setError(mensajeError(e)); setSaliendo(false); }
     }
 
     return (

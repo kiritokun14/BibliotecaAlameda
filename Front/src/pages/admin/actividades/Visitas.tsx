@@ -7,7 +7,7 @@ import "../contenidoDemo/Contenidos.css";
 import "./Calendario.css";
 import "../atencion/AtencionTramites.css";
 import { Migas } from "../contenidoDemo/piezas";
-import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Icono, Plegable, Segmentado, Tarjeta, Vacio, type TonoEstado } from "../piezasPanel";
+import { Aviso, Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, Plegable, Segmentado, Tarjeta, Vacio, type TonoEstado } from "../piezasPanel";
 import { fechaCorta } from "./datos";
 import { enFiltro, NOMBRE_ESTADO_VISITA, type EstadoVisita, type FiltroVisita, type Visita } from "./visitas";
 import { BASE_VISITAS } from "./utiles";
@@ -144,18 +144,30 @@ function Visitas() {
                             <div className="pz-tarjeta__pie"><p aria-live="polite">{filtradas.length} de {visitas.length} visitas</p></div>
                         </Tarjeta>
                         <aside className="pz-lateral" aria-label="La próxima visita">
-                            <Tarjeta icono="hoy" id="visitas-proxima" titulo="La próxima visita" texto={siguiente ? fechaCorta(siguiente.fecha) : "Sin visitas confirmadas"} className="pz-tarjeta--actividades">
-                                {siguiente ? <>
-                                    <p className="vis-proxima__grupo">{siguiente.grupo}</p>
-                                    <Datos>
-                                        <Dato icono="reloj" etiqueta="Hora">{siguiente.hora || "Por confirmar"}</Dato>
-                                        <Dato icono="grupo" etiqueta="Personas">{siguiente.personas}</Dato>
-                                        <Dato ancho icono="espacios" etiqueta="Espacio">{siguiente.espacio || "Por confirmar"}</Dato>
-                                    </Datos>
-                                    <Link to={DETALLE(siguiente.folio)} className="pz-boton pz-boton--contorno pz-boton--chico cal-ver-dia">Ver la visita</Link>
-                                </> : <Vacio icono="calendario" titulo="Nada en puerta" texto="Cuando confirmes una visita, aparecerá aquí." />}
+                            <Tarjeta icono="hoy" id="visitas-proxima" titulo="La próxima visita" texto={siguiente ? faltan(siguiente.fecha) : "Sin visitas confirmadas"}>
+                                {siguiente ? (() => {
+                                    const [d, m] = partes(siguiente.fecha);
+                                    return (
+                                        <div className="vis-proxima">
+                                            <div className="vis-proxima__cabeza">
+                                                <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{m}</span></span>
+                                                <div className="vis-proxima__textos">
+                                                    <p className="vis-proxima__grupo">{siguiente.grupo}</p>
+                                                    <p className="vis-proxima__folio">Folio {siguiente.folio}</p>
+                                                </div>
+                                                <Chip tono="verde">Confirmada</Chip>
+                                            </div>
+                                            <dl className="vis-proxima__datos">
+                                                <div><dt><Icono nombre="reloj" />Hora</dt><dd>{siguiente.hora || "Por confirmar"}</dd></div>
+                                                <div><dt><Icono nombre="grupo" />Personas</dt><dd>{siguiente.personas}</dd></div>
+                                                <div><dt><Icono nombre="espacios" />Espacio</dt><dd title={siguiente.espacio}>{siguiente.espacio || "Por confirmar"}</dd></div>
+                                            </dl>
+                                            <Link to={DETALLE(siguiente.folio)} className="pz-boton pz-boton--contorno pz-boton--chico vis-proxima__boton">Ver la visita</Link>
+                                        </div>
+                                    );
+                                })() : <Vacio icono="calendario" titulo="Nada en puerta" texto="Cuando confirmes una visita, aparecerá aquí." />}
                             </Tarjeta>
-                            <Tarjeta icono="calendario" id="visitas-semana" titulo="Los próximos 7 días" texto={`${semana.reduce((n, d) => n + d.lista.length, 0)} visitas confirmadas o por confirmar`}>
+                            <Tarjeta icono="calendario" id="visitas-semana" titulo="Los próximos 7 días" texto={textoSemana(semana.reduce((n, d) => n + d.lista.length, 0))}>
                                 <ol className="vis-semana">
                                     {semana.map(({ dia, lista }, i) => {
                                         const [d] = partes(dia);
@@ -164,7 +176,7 @@ function Visitas() {
                                             <li key={dia} className={`vis-semana__dia${i === 0 ? " vis-semana__dia--hoy" : ""}${lista.length ? " vis-semana__dia--ocupado" : ""}`}
                                                 title={lista.length ? lista.map((v) => `${v.hora ?? ""} ${v.grupo}`).join(", ") : "Sin visitas"}>
                                                 <span>{i === 0 ? "Hoy" : nombre}</span><strong>{d}</strong>
-                                                <small>{lista.length ? `${lista.length} ${lista.length === 1 ? "visita" : "visitas"}` : "Libre"}</small>
+                                                <small aria-label={lista.length ? `${lista.length} ${lista.length === 1 ? "visita" : "visitas"}` : "Sin visitas"}>{lista.length || ""}</small>
                                             </li>
                                         );
                                     })}
@@ -264,3 +276,13 @@ function UsoEspacios({ texto, espacio }: { texto: string; espacio: string }) {
 }
 
 export default Visitas;
+
+// «Hoy», «Mañana», «En 3 días» o «Dentro de 2 semanas», con la fecha corta
+function faltan(fecha: string) {
+    const dias = Math.round((new Date(`${fecha}T12:00:00`).getTime() - new Date(`${hoyISO()}T12:00:00`).getTime()) / 86400000);
+    const cuando = dias <= 0 ? "Hoy" : dias === 1 ? "Mañana" : dias < 14 ? `En ${dias} días` : `En ${Math.round(dias / 7)} semanas`;
+    return `${cuando}, ${fechaCorta(fecha)}`;
+}
+
+// «Sin visitas en la semana», «1 visita en la semana», «3 visitas en la semana»; el número de cada día va en su círculo
+const textoSemana = (n: number) => (n === 0 ? "Sin visitas en la semana" : `${n} ${n === 1 ? "visita" : "visitas"} en la semana`);

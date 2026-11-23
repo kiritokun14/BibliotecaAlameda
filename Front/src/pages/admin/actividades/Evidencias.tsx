@@ -7,7 +7,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
 import { Migas } from "../componentes";
 import { Ventana } from "../Ventana";
-import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Icono, Nota, Segmentado, Tarjeta, Vacio, type NombreIcono } from "../piezasPanel";
+import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, FiltrosAvanzados, Historial, Icono, Nota, Segmentado, Tarjeta, Vacio, type NombreIcono } from "../piezasPanel";
 import {
     aEvidencia, aEvidenciaCompleta, CLAVE_LISTA, CLAVE_SESIONES, claveEvidencia, fechaLocal, horaDe, NOMBRE_ACCESO, revisarArchivo, TIPO_API, TIPOS_EVIDENCIA,
     type Acceso, type Evidencia, type EvidenciaCompleta, type TipoEvidencia,
@@ -109,7 +109,7 @@ function Evidencias() {
                             : carga.error && !carga.datos ? <ErrorCarga error={carga.error} reintentar={carga.reintentar} />
                             : evidencias.length === 0 ? <Vacio icono="evidencias" titulo="Aún no hay evidencias" texto="Sube la primera lista firmada, foto o informe de una actividad."
                                 accion={<button type="button" className="pz-boton pz-boton--chico" onClick={() => navigate(`${BASE}/subir`)}>Subir evidencia</button>} />
-                            : filtradas.length === 0 ? <Vacio icono="buscarCuenta" titulo={texto ? `Sin resultados para «${busqueda.trim()}»` : "No hay evidencias con estos filtros"} texto="Prueba con otra palabra o quita los filtros."
+                            : filtradas.length === 0 ? <Vacio icono="buscarCuenta" titulo={texto ? `Sin resultados para ${busqueda.trim()}` : "No hay evidencias con estos filtros"} texto="Prueba con otra palabra o quita los filtros."
                                 accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={limpiar}>Quitar filtros</button>} />
                             : (
                                 <div className="pz-grupos" tabIndex={0} role="region" aria-label="Evidencias guardadas">
@@ -119,8 +119,8 @@ function Evidencias() {
                                                 <article className={`pz-fila${e.puedeVer ? "" : " ev-fila--restringida"}`}>
                                                     <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={e.puedeVer ? ICONO_TIPO[e.tipo] : "alerta"} /></span>
                                                     <div className="pz-fila__textos">
-                                                        <h4 className="pz-fila__titulo">{e.actividadTexto}</h4>
-                                                        <p className="pz-fila__detalle"><span className="pz-fila__folio">{e.folio}</span><span>{e.tipo}</span><span>Subió {e.subio}</span><span>{fechaLocal(e.fecha)}</span></p>
+                                                        <h4 className="pz-fila__titulo" title={e.actividadTitulo}>{e.actividadTitulo}</h4>
+                                                        <p className="pz-fila__detalle"><span className="pz-fila__folio">{e.folio}</span><span>{e.tipo}</span>{e.sesion && <span>Sesión del {e.sesion}</span>}<span>Subió {e.subio}</span></p>
                                                     </div>
                                                     {chipAcceso(e)}
                                                     <Link to={`${BASE}/${e.folio}`} className={`pz-boton pz-boton--chico${e.puedeVer ? " pz-boton--contorno" : ""}`}>{e.puedeVer ? "Abrir" : "Pedir acceso"}<span className="solo-lectores"> {e.folio}</span></Link>
@@ -133,20 +133,30 @@ function Evidencias() {
                         <div className="pz-tarjeta__pie"><p aria-live="polite">{filtradas.length} de {evidencias.length} evidencias</p></div>
                     </Tarjeta>
                     <aside className="pz-lateral" aria-label="Por tipo">
-                        <Tarjeta icono="estadisticas" id="ev-tipos" titulo="Lo que hay guardado" texto="Por tipo de evidencia" className="pz-tarjeta--actividades">
-                            <ol className="pz-ranking">
+                        <Tarjeta icono="estadisticas" id="ev-tipos" titulo="Lo que hay guardado" texto="Toca un tipo para ver solo ese">
+                            <div className="ev-tipos" role="group" aria-label="Filtrar por tipo">
                                 {TIPOS_EVIDENCIA.map((t) => (
-                                    <li key={t}>
-                                        <span className="pz-ranking__lugar" aria-hidden="true"><Icono nombre={ICONO_TIPO[t]} /></span>
-                                        <div className="pz-ranking__textos">
-                                            <button type="button" className="pz-ranking__nombre ev-tipo-boton" onClick={() => setFiltro(filtro === t ? "todas" : t)} aria-pressed={filtro === t}>{t}</button>
-                                            <span className="pz-ranking__barra" aria-hidden="true"><span style={{ width: `${evidencias.length ? (cuenta(t) / evidencias.length) * 100 : 0}%` }} /></span>
-                                        </div>
-                                        <p className="pz-ranking__valor"><strong>{cuenta(t)}</strong></p>
-                                    </li>
+                                    <button key={t} type="button" className={`ev-tipo${filtro === t ? " ev-tipo--activo" : ""}`} onClick={() => setFiltro(filtro === t ? "todas" : t)} aria-pressed={filtro === t}>
+                                        <span className="ev-tipo__icono" aria-hidden="true"><Icono nombre={ICONO_TIPO[t]} /></span>
+                                        <strong>{cuenta(t)}</strong>
+                                        <span>{t === "Lista firmada" ? "Listas firmadas" : t === "Fotografía" ? "Fotografías" : "Informes"}</span>
+                                    </button>
                                 ))}
-                            </ol>
-                            <AvisoPrivado />
+                            </div>
+                        </Tarjeta>
+                        <Tarjeta icono="usuario" id="ev-acceso" titulo="Quién puede verlas" texto="Cada consulta queda registrada">
+                            <ul className="ev-accesos">
+                                {(["personal", "coordinacion"] as const).map((x) => {
+                                    const n = evidencias.filter((e) => e.acceso === x).length;
+                                    return (
+                                        <li key={x}>
+                                            <button type="button" className={`ev-acceso${accesoFiltro === x ? " ev-acceso--activo" : ""}`} aria-pressed={accesoFiltro === x} onClick={() => setAccesoFiltro(accesoFiltro === x ? "" : x)}>
+                                                <span>{NOMBRE_ACCESO[x]}</span><strong>{n}</strong>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
                         </Tarjeta>
                     </aside>
                 </div>
@@ -337,7 +347,7 @@ export function DetalleEvidencia() {
         <PanelLayout titulo="Actividades" tema="contenidos paleta">
             <Migas raiz="Actividades" pasos={[["Evidencias privadas", BASE], [e.folio]]} />
             <div className="pz-pagina">
-                <Encabezado titulo={`${e.tipo}: ${e.actividadTexto.split(" · ")[0]}`} texto={`Subida por ${e.subio} el ${fechaLocal(e.fecha)}. Folio ${e.folio}.`}>
+                <Encabezado titulo={`${e.tipo}: ${e.actividadTitulo}`} texto={`Subida por ${e.subio} el ${fechaLocal(e.fecha)}. Folio ${e.folio}.`}>
                     {chipAcceso(e)}
                 </Encabezado>
                 <div className="pz-columnas pz-columnas--libre">
@@ -354,21 +364,8 @@ export function DetalleEvidencia() {
                             </Datos>
                             <AvisoPrivado />
                         </Tarjeta>
-                        <Tarjeta icono="bitacora" id="ev-consultas" titulo="Quién la ha consultado" texto={`${e.consultas.length} ${e.consultas.length === 1 ? "registro" : "registros"}`}>
-                            {e.consultas.length ? (
-                                <ol className="pz-linea" aria-label="Registro de consultas">
-                                    {[...e.consultas].reverse().map((c, i) => (
-                                        <li key={c.fecha + c.accion + c.persona} className={`pz-linea__paso pz-linea__paso--${i === 0 ? "dorado" : "verde"}${i === 0 ? " pz-linea__paso--actual" : ""}`}>
-                                            <span className="pz-linea__icono" aria-hidden="true"><Icono nombre="usuario" /></span>
-                                            <div className="pz-linea__textos">
-                                                <p className="pz-linea__titulo">{c.accion}</p>
-                                                <p className="pz-linea__detalle">{c.persona}, {fechaLocal(c.fecha)} a las {horaDe(c.fecha)}</p>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ol>
-                            ) : <p className="pz-acciones__nota">Nadie la ha consultado todavía.</p>}
-                        </Tarjeta>
+                        <Historial id="ev-consultas" titulo="Quién la ha consultado" vacio="Nadie la ha consultado todavía."
+                            movimientos={[...e.consultas].reverse().map((c) => ({ titulo: c.accion, tono: "verde" as const, icono: "usuario" as const, detalle: `${fechaLocal(c.fecha)}, ${horaDe(c.fecha)}, ${c.persona}` }))} />
                     </div>
                     <aside className="pz-lateral" aria-label="Acciones">
                         {!e.retirada ? (

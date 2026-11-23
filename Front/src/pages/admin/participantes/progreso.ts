@@ -51,8 +51,8 @@ const metasIniciales: Meta[] = [
 ];
 
 const recompensasIniciales: Recompensa[] = [
-    { id: "insignia-lector", nombre: "Insignia «Lector constante»", tipo: "Insignia", existencias: 12, entregadas: 31 },
-    { id: "insignia-explorador", nombre: "Insignia «Explorador»", tipo: "Insignia", existencias: 4, entregadas: 18 },
+    { id: "insignia-lector", nombre: "Insignia Lector constante", tipo: "Insignia", existencias: 12, entregadas: 31 },
+    { id: "insignia-explorador", nombre: "Insignia Explorador", tipo: "Insignia", existencias: 4, entregadas: 18 },
     { id: "constancia", nombre: "Constancia de participación", tipo: "Documento", existencias: null, entregadas: 44 },
 ];
 
@@ -205,7 +205,7 @@ export function validarRecompensa(d: DatosRecompensa) {
     if (!d.nombre.trim()) e.nombre = "Escribe el nombre de la recompensa.";
     if (!d.sinLimite) {
         const n = Number(d.existencias);
-        if (d.existencias === "") e.existencias = "Escribe cuántas hay o marca «Sin límite».";
+        if (d.existencias === "") e.existencias = "Escribe cuántas hay o marca Sin límite.";
         else if (!Number.isInteger(n) || n < 0) e.existencias = "Escribe un número entero.";
     }
     return e;

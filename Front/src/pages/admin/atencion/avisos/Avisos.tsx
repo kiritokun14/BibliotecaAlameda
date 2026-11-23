@@ -259,7 +259,7 @@ export function VistaPreviaAviso() {
 
             {confirmando && (
                 <Ventana tono="verde" icono={modalCheck} angosta titulo="¿Publicar el aviso?"
-                    texto={`«${aviso.titulo}» se verá en ${aviso.donde.toLowerCase()} del ${fechaCorta(aviso.desde)} al ${fechaCorta(aviso.hasta)}.`}
+                    texto={`${aviso.titulo} se verá en ${aviso.donde.toLowerCase()} del ${fechaCorta(aviso.desde)} al ${fechaCorta(aviso.hasta)}.`}
                     textoConfirmar="Sí, publicar" alConfirmar={publicar} alCerrar={() => setConfirmando(false)} />
             )}
         </Pantalla>

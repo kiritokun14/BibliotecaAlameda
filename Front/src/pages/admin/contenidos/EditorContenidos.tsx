@@ -164,7 +164,7 @@ function EditorContenidos() {
                         {error && <Aviso tono="error" titulo="No se pudo cargar la lista." texto={error} />}
                         {!error && lista && (visibles.length === 0 ? (
                             <Vacio icono="contenido" titulo={total === 0 ? "Todavía no tienes contenidos" : "No hay contenidos con este filtro"}
-                                texto={total === 0 ? "Cuando crees un borrador aparecerá aquí. Empieza con «Nuevo contenido»." : "Prueba con otro estado o cambia la búsqueda."}
+                                texto={total === 0 ? "Cuando crees un borrador aparecerá aquí. Empieza con Nuevo contenido." : "Prueba con otro estado o cambia la búsqueda."}
                                 accion={total === 0
                                     ? <Link to="/admin/contenidos/editor/nuevo" className="pz-boton pz-boton--chico">Nuevo contenido</Link>
                                     : <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setFiltro("todos"); setBusqueda(""); setPagina(0); }}>Ver todos</button>} />
@@ -217,7 +217,7 @@ function EditorContenidos() {
                         <Plegable titulo="Cómo se publica">
                             <ul>
                                 <li>Guardas un borrador; nadie más lo ve.</li>
-                                <li>Lo envías a autorización y queda «Por autorizar».</li>
+                                <li>Lo envías a autorización y queda Por autorizar.</li>
                                 <li>El Administrador lo publica o te deja observaciones para corregir.</li>
                                 <li>Ya publicado, aparece en el portal con su folio.</li>
                             </ul>

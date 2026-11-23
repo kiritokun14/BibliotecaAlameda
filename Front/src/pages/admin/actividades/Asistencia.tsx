@@ -6,7 +6,7 @@ import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-r
 import PanelLayout from "../PanelLayout";
 import { Migas } from "../componentes";
 import { Ventana } from "../Ventana";
-import { Aviso, Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, Plegable, Segmentado, Tarjeta, Vacio, type TonoEstado } from "../piezasPanel";
+import { Aviso, Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, LineaHistorial, Plegable, Segmentado, Tarjeta, Vacio, type TonoEstado } from "../piezasPanel";
 import { fechaCorta, obtenerActividad, useActividades, type Actividad } from "./datos";
 import { useInscripciones } from "./inscripciones";
 import { hoyISO } from "./salas";
@@ -65,21 +65,20 @@ function Asistencia() {
 
                 <div className="pz-columnas">
                     <Tarjeta icono="asistencia" id="asistencia-lista" titulo={titulos[periodo]} texto="Abre una actividad para marcar quién asistió" className="pz-pendientes">
-                        <div className="pz-herramientas">
-                            <Segmentado<Periodo> etiqueta="Periodo" valor={periodo} alCambiar={elegir} opciones={[
-                                { valor: "hoy", texto: "Hoy", cantidad: deHoy.length },
-                                { valor: "semana", texto: "Esta semana", cantidad: conLista.filter((a) => enPeriodo(a, "semana")).length },
-                                { valor: "anteriores", texto: "Anteriores", cantidad: conLista.filter((a) => enPeriodo(a, "anteriores")).length },
-                            ]} />
-                            <Buscador etiqueta="Buscar actividad" placeholder="Nombre de la actividad" valor={busqueda} alCambiar={setBusqueda}>
-                                <FiltrosAvanzados activos={estadoFiltro ? 1 : 0} alQuitar={() => setEstadoFiltro("")} grupos={[{ titulo: "Estado de la lista", valor: estadoFiltro, alCambiar: setEstadoFiltro, opciones: [
+                        <Buscador etiqueta="Buscar actividad" placeholder="Nombre de la actividad" valor={busqueda} alCambiar={setBusqueda}>
+                            <FiltrosAvanzados activos={(periodo !== "hoy" ? 1 : 0) + (estadoFiltro ? 1 : 0)} alQuitar={() => { setEstadoFiltro(""); elegir("hoy"); }} grupos={[
+                                { titulo: "Periodo", valor: periodo, alCambiar: (v) => elegir(v as Periodo), opciones: [
+                                    { valor: "hoy", texto: "Hoy", cantidad: deHoy.length },
+                                    { valor: "semana", texto: "Esta semana", cantidad: conLista.filter((a) => enPeriodo(a, "semana")).length },
+                                    { valor: "anteriores", texto: "Anteriores", cantidad: conLista.filter((a) => enPeriodo(a, "anteriores")).length }] },
+                                { titulo: "Estado de la lista", valor: estadoFiltro, alCambiar: setEstadoFiltro, opciones: [
                                     { valor: "", texto: "Todas" }, { valor: "pendiente", texto: "Por pasar lista", cantidad: porPasar.length }, { valor: "cerrada", texto: "Lista cerrada", cantidad: cerradas.length },
-                                    { valor: "futura", texto: "Aún no empieza" }, { valor: "cancelada", texto: "Cancelada" }] }]} />
-                            </Buscador>
-                        </div>
+                                    { valor: "futura", texto: "Aún no empieza" }, { valor: "cancelada", texto: "Cancelada" }] },
+                            ]} />
+                        </Buscador>
                         {filas.length === 0 ? (
                             texto || estadoFiltro
-                                ? <Vacio icono="buscarCuenta" titulo={texto ? `Sin resultados para «${busqueda.trim()}»` : "No hay actividades con este estado"} texto="Prueba con otra palabra, otro estado o cambia el periodo."
+                                ? <Vacio icono="buscarCuenta" titulo={texto ? `Sin resultados para ${busqueda.trim()}` : "No hay actividades con este estado"} texto="Prueba con otra palabra, otro estado o cambia el periodo."
                                     accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={limpiar}>Quitar filtros</button>} />
                                 : <Vacio icono="asistencia" titulo={periodo === "hoy" ? "No hay actividades hoy" : "No hay actividades en este periodo"} texto="Revisa las anteriores para pasar o corregir listas."
                                     accion={periodo !== "anteriores" ? <button type="button" className="pz-boton pz-boton--chico" onClick={() => elegir("anteriores")}>Ver anteriores</button> : undefined} />
@@ -100,7 +99,7 @@ function Asistencia() {
                                                             <span>{e.clave === "cerrada" ? `${c.presentes} de ${c.inscritos + c.sinInscripcion} asistieron` : `${a.inscritos} inscritos`}</span></p>
                                                     </div>
                                                     <Chip tono={e.tono as TonoEstado}>{e.texto}</Chip>
-                                                    {e.clave === "cancelada" ? <span className="pz-acciones__nota">Sin lista</span>
+                                                    {e.clave === "cancelada" ? <span className="as-sin-lista">Sin lista</span>
                                                         : <Link to={`${BASE_ASISTENCIA}/${a.folio}`} className={`pz-boton pz-boton--chico${e.clave === "pendiente" ? "" : " pz-boton--contorno"}`}>{e.clave === "cerrada" ? "Ver lista" : e.clave === "pendiente" ? "Pasar lista" : "Ver inscritos"}<span className="solo-lectores"> {a.nombre}</span></Link>}
                                                 </article>
                                             </li>
@@ -225,20 +224,20 @@ export function PasarLista() {
 
                 <div className="pz-columnas">
                     <Tarjeta icono="grupo" id="pasar-lista" titulo={cerrada ? "Registro de asistencia" : "Personas inscritas"} className="pz-pendientes"
-                        texto={cerrada ? "Para cambiar una marca, usa «Corregir»: queda en la bitácora" : "Marca a cada persona; puedes guardar y seguir después"}
+                        texto={cerrada ? "Para cambiar una marca, usa Corregir: queda en la bitácora" : "Marca a cada persona; puedes guardar y seguir después"}
                         accion={!cerrada && c.sinMarcar > 0 ? <div className="pz-acciones pz-acciones--fila">
                             <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => marcarTodos("presente")}>Pendientes a presentes</button>
                             <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => marcarTodos("ausente")}>Pendientes a ausentes</button>
                         </div> : undefined}>
-                        {personas.length > 0 && <div className="pz-herramientas">
-                            <Segmentado<"todas" | Marca> etiqueta="Ver por marca" valor={verMarca} alCambiar={setVerMarca} opciones={[
-                                { valor: "todas", texto: "Todas", cantidad: personas.length },
-                                ...(cerrada ? [] : [{ valor: "sin" as Marca, texto: "Sin marcar", cantidad: c.sinMarcar, urgente: true }]),
-                                { valor: "presente", texto: "Presentes", cantidad: c.presentes },
-                                { valor: "ausente", texto: "Ausentes", cantidad: c.ausentes },
+                        {personas.length > 0 && <Buscador etiqueta="Buscar persona" placeholder="Nombre de la persona" valor={buscarPersona} alCambiar={setBuscarPersona}>
+                            <FiltrosAvanzados activos={verMarca !== "todas" ? 1 : 0} alQuitar={() => setVerMarca("todas")} grupos={[
+                                { titulo: "Marca", valor: verMarca, alCambiar: (v) => setVerMarca(v as "todas" | Marca), opciones: [
+                                    { valor: "todas", texto: "Todas", cantidad: personas.length },
+                                    ...(cerrada ? [] : [{ valor: "sin", texto: "Sin marcar", cantidad: c.sinMarcar }]),
+                                    { valor: "presente", texto: "Presentes", cantidad: c.presentes },
+                                    { valor: "ausente", texto: "Ausentes", cantidad: c.ausentes }] },
                             ]} />
-                            <Buscador etiqueta="Buscar persona" placeholder="Nombre de la persona" valor={buscarPersona} alCambiar={setBuscarPersona} />
-                        </div>}
+                        </Buscador>}
                         {personas.length === 0 ? <Vacio icono="grupo" titulo="No hay personas inscritas" texto="Puedes agregar a quien llegó sin inscripción." />
                             : visibles.length === 0 ? <Vacio icono="buscarCuenta" titulo="Nadie con ese filtro" texto="Prueba con otra marca u otro nombre."
                                 accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setVerMarca("todas"); setBuscarPersona(""); }}>Ver a todas</button>} /> : (
@@ -285,18 +284,9 @@ export function PasarLista() {
                             </div>
                             {c.sinInscripcion > 0 && <p className="pz-acciones__nota">{c.sinInscripcion} {c.sinInscripcion === 1 ? "persona llegó" : "personas llegaron"} sin inscripción.</p>}
                             {cerrada ? (
-                                lista.correcciones.length > 0 && <ol className="pz-linea">
-                                    {lista.correcciones.map((x) => (
-                                        <li key={x.fecha + x.persona} className="pz-linea__paso pz-linea__paso--dorado">
-                                            <span className="pz-linea__icono" aria-hidden="true"><Icono nombre="revision" /></span>
-                                            <div className="pz-linea__textos">
-                                                <p className="pz-linea__titulo">{x.persona}: de {NOMBRE_MARCA[x.de].toLowerCase()} a {NOMBRE_MARCA[x.a].toLowerCase()}</p>
-                                                <p className="pz-linea__detalle">{x.quien}</p>
-                                                <p className="pz-linea__nota">{x.motivo}</p>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ol>
+                                lista.correcciones.length > 0 && <LineaHistorial etiqueta="Correcciones de la lista" movimientos={[...lista.correcciones].reverse().map((x) => ({
+                                    titulo: `${x.persona}: de ${NOMBRE_MARCA[x.de].toLowerCase()} a ${NOMBRE_MARCA[x.a].toLowerCase()}`, tono: "dorado" as const, icono: "revision" as const, detalle: x.quien, nota: x.motivo,
+                                }))} />
                             ) : (
                                 <div className="pz-acciones">
                                     <button type="button" className="pz-boton" onClick={() => setVentana("cerrar")}>Cerrar lista</button>

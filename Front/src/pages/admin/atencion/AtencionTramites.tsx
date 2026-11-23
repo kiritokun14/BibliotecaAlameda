@@ -4,7 +4,7 @@ import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import PanelLayout from '../PanelLayout';
 import { EstadoVacio, Migas, Tarjeta, type TonoChip } from '../componentes';
-import { Buscador, Chip as ChipPz, Cifra, Encabezado, FiltrosAvanzados, Icono, Plegable, Tarjeta as TarjetaPz, Vacio, type NombreIcono, type TonoEstado } from '../piezasPanel';
+import { Buscador, Chip as ChipPz, Cifra, Encabezado, FiltrosAvanzados, Historial, Icono, Plegable, Tarjeta as TarjetaPz, Vacio, type NombreIcono, type TonoEstado } from '../piezasPanel';
 import Flujo, { type Etapa, type IconoSiguiente } from './Flujo';
 import { partirDescripcion } from './descripcion';
 import { Bloque } from '../../../components/portal/Esqueleto';
@@ -14,6 +14,7 @@ import { conteosEnMemoria, conteosTramites, consultarTramite, listarTramites, re
 import { mensajeError } from '../../../servicios/api';
 import PublicarPropuesta from './propuestas/PublicarPropuesta';
 import MapaDonde from './MapaDonde';
+import { ListaEspera } from './Espera';
 import vacioBuscar from '../../../assets/admin/vacio-search.svg';
 import tarjetaUser from '../../../assets/admin/tarjeta-user.svg';
 import tarjetaInfo from '../../../assets/admin/tarjeta-info.svg';
@@ -111,13 +112,11 @@ function Lista({ tipo, base }: { tipo: TipoTramite; base: string }) {
 
             <div className="pz-columnas">
                 <TarjetaPz icono={ICONO_TRAMITE[tipo]} id="tramites-lista" titulo={`Bandeja de ${textos.sustantivo}`} className="pz-pendientes"
-                    texto={lista ? `${lista.total} ${lista.total === 1 ? textos.sustantivo.slice(0, -1) : textos.sustantivo}${filtro ? ` con estado «${estados[filtro]}»` : ''}` : 'Consultando la bandeja…'}>
-                    <div className="pz-herramientas">
-                        <Buscador etiqueta={`Buscar por ${textos.buscarPor}`} placeholder={`Buscar por ${textos.buscarPor}`} valor={escrito} alCambiar={setEscrito}>
+                    texto={lista ? `${lista.total} ${lista.total === 1 ? textos.sustantivo.slice(0, -1) : textos.sustantivo}${filtro ? ` con estado ${estados[filtro]}` : ''}` : 'Consultando la bandeja…'}>
+                    <Buscador etiqueta={`Buscar por ${textos.buscarPor}`} placeholder={`Buscar por ${textos.buscarPor}`} valor={escrito} alCambiar={setEscrito}>
                             <FiltrosAvanzados activos={filtro ? 1 : 0} alQuitar={() => elegir('')} grupos={[{ titulo: 'Estado', valor: filtro, alCambiar: elegir,
                                 opciones: [{ valor: '', texto: 'Todas', cantidad: conteo?.total }, ...opciones.map(([valor, texto]) => ({ valor, texto, cantidad: conteo ? conteo.porEstado[valor] ?? 0 : undefined }))] }]} />
                         </Buscador>
-                    </div>
                     {!actual ? (
                         <div className="contenidos-tabla" aria-busy="true" aria-label="Cargando solicitudes">{[0, 1, 2, 3].map(i => <Bloque key={i} clase="tr-esqueleto" />)}</div>
                     ) : actual.error ? (
@@ -135,23 +134,24 @@ function Lista({ tipo, base }: { tipo: TipoTramite; base: string }) {
                                     const estado = estadoTramite(s);
                                     const pendiente = ['recibida', 'en_revision'].includes(estado);
                                     return <li key={s.id}>
-                                        <article className={`pz-fila ba-fila${pendiente ? ' pz-fila--espera' : ''}`}>
-                                            <span className="pz-fila__icono" aria-hidden="true"><Icono nombre={ICONO_TRAMITE[tipo]} /></span>
+                                        <article className={`pz-fila ba-compacta${pendiente ? ' pz-fila--espera' : ''}`}>
+                                            <span className="pz-fecha" aria-hidden="true"><strong>{fechaCorta(s.creadaEn).split(' ')[0]}</strong><span>{fechaCorta(s.creadaEn).split(' ')[1]}</span></span>
                                             <div className="pz-fila__textos">
-                                                <h4 className="pz-fila__titulo">{tituloSolicitud(s)}</h4>
+                                                <p className="ba-compacta__cabeza">
+                                                    <span className="pz-fila__titulo" title={tituloSolicitud(s)}>{tituloSolicitud(s)}</span>
+                                                    {s.tipoPropuesta && <span className="ba-compacta__tipo">{s.tipoPropuesta}</span>}
+                                                </p>
+                                                <ul className="ba-compacta__datos">
+                                                    <li className="pz-fila__folio" title={s.id}>{folioCorto(s.id)}</li>
+                                                    <li title={nombre(s)}><Icono nombre="usuario" />{nombre(s)}</li>
+                                                    {s.fechaCita && <li><Icono nombre="calendario" />Cita {fechaHora(s.fechaCita)}</li>}
+                                                </ul>
+                                                {pendiente && <p className={`ba-compacta__espera${diasDesde(s.creadaEn) >= 7 ? ' ba-compacta__espera--larga' : ''}`}>{esperando(s.creadaEn)}</p>}
                                             </div>
                                             <ChipPz tono={(TONO[estado] === 'verde-solido' ? 'verde' : TONO[estado] ?? 'gris') as TonoEstado}>{estados[estado] ?? estado}</ChipPz>
                                             <Link to={`${base}/${s.id}`} className={`pz-boton pz-boton--chico${pendiente ? '' : ' pz-boton--contorno'}`}>
                                                 {pendiente ? 'Atender' : 'Ver'}<span className="solo-lectores"> {folioCorto(s.id)}</span>
                                             </Link>
-                                                <div className="ba-datos ba-datos--fila">
-                                                    <span className="ba-dato"><small>Folio</small><span className="pz-fila__folio" title={s.id}>{folioCorto(s.id)}</span></span>
-                                                    <span className="ba-dato"><small>Persona</small>{nombre(s)}</span>
-                                                    {s.tipoPropuesta && <span className="ba-dato"><small>Tipo</small>{s.tipoPropuesta}</span>}
-                                                    {s.fechaCita && <span className="ba-dato"><small>Cita</small>{fechaHora(s.fechaCita)}</span>}
-                                                    <span className="ba-dato"><small>Recibida</small>{fechaCorta(s.creadaEn)}</span>
-                                                </div>
-                                                {pendiente && <p className="pz-fila__plazo">{esperando(s.creadaEn)}</p>}
                                         </article>
                                     </li>;
                                 })}
@@ -169,12 +169,10 @@ function Lista({ tipo, base }: { tipo: TipoTramite; base: string }) {
                 </TarjetaPz>
                 <aside className="pz-lateral" aria-label="Lo que espera más">
                     <TarjetaPz icono="reloj" id="tramites-antiguas" titulo="Llevan más tiempo esperando" texto={tipo === 'credencial' ? 'Recibidas sin revisar' : 'En revisión'} className="pz-tarjeta--actividades">
-                        {pendientes.length ? <ul className="ins-llenas">
-                            {pendientes.map(s => <li key={s.id}>
-                                <Link to={`${base}/${s.id}`} className="pz-enlace-fila">{tipo === 'credencial' ? nombre(s) : tituloSolicitud(s)}</Link>
-                                <small>{folioCorto(s.id)}. {esperando(s.creadaEn)}</small>
-                            </li>)}
-                        </ul> : <Vacio icono="check" titulo="Nada esperando" texto="Estás al día con esta bandeja." />}
+                        {pendientes.length ? <ListaEspera items={pendientes.map(s => ({
+                            clave: s.id, ruta: `${base}/${s.id}`, titulo: tipo === 'credencial' ? nombre(s) : tituloSolicitud(s), dias: diasDesde(s.creadaEn),
+                            detalle: tipo === 'credencial' ? `Folio ${folioCorto(s.id)}` : `Folio ${folioCorto(s.id)}, de ${nombre(s)}`,
+                        }))} /> : <Vacio icono="check" titulo="Nada esperando" texto="Estás al día con esta bandeja." />}
                     </TarjetaPz>
                     <Plegable titulo={tipo === 'credencial' ? 'Cómo se atiende una credencial' : 'Cómo se revisa una propuesta'}>
                         <ul>{tipo === 'credencial' ? <>
@@ -276,26 +274,19 @@ function Detalle({ tipo, folio, base }: { tipo: TipoTramite; folio: string; base
                             ? <a className="tr-telefono" href={`tel:${s.perfil.telefono}`}><span><small>Teléfono</small><strong>{s.perfil.telefono}</strong></span></a>
                             : <p className="contenidos-campo__ayuda">Sin teléfono registrado.</p>}
                     </Tarjeta>
-                    <TarjetaPz icono="bitacora" id="tramite-seguimiento" titulo="Seguimiento" texto={`${s.historial.length + 1} ${s.historial.length ? 'movimientos' : 'movimiento'}; lo más reciente arriba`}>
-                        <ol className="pz-linea" aria-label="Historial de la solicitud">
-                            {[...s.historial].reverse().map((h, i) => (
-                                <li key={i} className={`pz-linea__paso pz-linea__paso--${['rechazada', 'cancelada'].includes(h.estadoNuevo) ? 'guinda' : ['aprobada', 'atendida'].includes(h.estadoNuevo) ? 'verde' : 'dorado'}${i === 0 ? ' pz-linea__paso--actual' : ''}`}>
-                                    <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={['rechazada', 'cancelada'].includes(h.estadoNuevo) ? 'alerta' : ['aprobada', 'atendida'].includes(h.estadoNuevo) ? 'check' : 'revision'} /></span>
-                                    <div className="pz-linea__textos">
-                                        <p className="pz-linea__titulo">{estados[h.estadoNuevo] ?? h.estadoNuevo}</p>
-                                        <p className="pz-linea__detalle">{fechaHora(h.fecha)}</p>
-                                        {h.nota && <p className="pz-linea__nota">{h.nota}</p>}
-                                        {h.acuerdoDireccion && <p className="pz-linea__nota">Acuerdo de dirección: {h.acuerdoDireccion.responsable}, {h.acuerdoDireccion.fecha}, referencia {h.acuerdoDireccion.referencia}</p>}
-                                    </div>
-                                </li>
-                            ))}
-                            <li className={`pz-linea__paso pz-linea__paso--verde${s.historial.length ? '' : ' pz-linea__paso--actual'}`}>
-                                <span className="pz-linea__icono" aria-hidden="true"><Icono nombre="check" /></span>
-                                <div className="pz-linea__textos"><p className="pz-linea__titulo">Solicitud registrada</p><p className="pz-linea__detalle">{fechaHora(s.creadaEn)}</p></div>
-                            </li>
-                        </ol>
+                    <Historial id="tramite-seguimiento" movimientos={[
+                        ...[...s.historial].reverse().map((h) => {
+                            const tono = ['rechazada', 'cancelada'].includes(h.estadoNuevo) ? 'guinda' as const : ['aprobada', 'atendida'].includes(h.estadoNuevo) ? 'verde' as const : 'dorado' as const;
+                            return {
+                                titulo: estados[h.estadoNuevo] ?? h.estadoNuevo, tono, icono: tono === 'dorado' ? 'revision' as const : undefined,
+                                detalle: fechaHora(h.fecha),
+                                nota: [h.nota, h.acuerdoDireccion && `Acuerdo de dirección: ${h.acuerdoDireccion.responsable}, ${h.acuerdoDireccion.fecha}, referencia ${h.acuerdoDireccion.referencia}`].filter(Boolean).join('. ') || undefined,
+                            };
+                        }),
+                        { titulo: 'Solicitud registrada', detalle: fechaHora(s.creadaEn), tono: 'verde' },
+                    ]}>
                         {s.estadoSolicitud === 'atendida' && <p className="pz-acciones__nota">Registrar la atención no emite ni valida una credencial.</p>}
-                    </TarjetaPz>
+                    </Historial>
                 </aside>
             </div>
         )}

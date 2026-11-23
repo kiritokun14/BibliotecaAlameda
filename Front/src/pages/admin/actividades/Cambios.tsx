@@ -77,7 +77,7 @@ function Cambios() {
                             ]} />
                         </Buscador>
                         {cambios.length === 0 ? <Vacio icono="check" titulo="Aún no hay cambios" texto="Cuando alguien pida reprogramar o cancelar una actividad, aparecerá aquí." />
-                            : filtrados.length === 0 ? <Vacio icono="buscarCuenta" titulo={texto ? `Sin resultados para «${busqueda.trim()}»` : "No hay cambios con estos filtros"} texto="Prueba con otra palabra u otro filtro."
+                            : filtrados.length === 0 ? <Vacio icono="buscarCuenta" titulo={texto ? `Sin resultados para ${busqueda.trim()}` : "No hay cambios con estos filtros"} texto="Prueba con otra palabra u otro filtro."
                                 accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={limpiar}>Quitar filtros</button>} />
                             : (
                                 <div className="pz-grupos" tabIndex={0} role="region" aria-label="Cambios solicitados">
@@ -110,11 +110,11 @@ function Cambios() {
                             <section className="pz-tarjeta ac-desarrollo" aria-labelledby="cambios-desarrollo">
                                 <div className="ac-desarrollo__cabecera">
                                     <span className="ac-desarrollo__insignia" aria-hidden="true"><Icono nombre="configuracion" /></span>
-                                    <div><h3 id="cambios-desarrollo">Solo en desarrollo</h3><p>Simula un cambio para revisar las pantallas. No se ve en producción.</p></div>
+                                    <div><h3 id="cambios-desarrollo">Solo en desarrollo</h3><p>Simula una cancelación o una reprogramación para revisar las pantallas. No se ve en producción.</p></div>
                                 </div>
                                 <div className="pz-acciones pz-acciones--fila">
-                                    <Link to={`${BASE_CAMBIOS}/cancelar`} className="pz-boton pz-boton--contorno pz-boton--chico">Simular cancelación</Link>
-                                    <Link to={`${BASE_CAMBIOS}/reprogramar`} className="pz-boton pz-boton--contorno pz-boton--chico">Simular reprogramación</Link>
+                                    <Link to={`${BASE_CAMBIOS}/cancelar`} className="pz-boton pz-boton--contorno pz-boton--chico">Cancelación</Link>
+                                    <Link to={`${BASE_CAMBIOS}/reprogramar`} className="pz-boton pz-boton--contorno pz-boton--chico">Reprogramación</Link>
                                 </div>
                             </section>
                         )}

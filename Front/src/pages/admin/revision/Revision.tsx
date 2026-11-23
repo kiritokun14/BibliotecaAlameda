@@ -11,7 +11,7 @@ import { Campo, IconoAviso, IconoLapiz, IconoReloj } from "../contenidos/piezas"
 import { ErrorServicio, mensajeError } from "../../../servicios/api";
 import { cancelarEnvio } from "../../../servicios/contenidos";
 import { EsqueletoDetalle, EsqueletoLista } from "../../../components/portal/Esqueleto";
-import { Aviso as AvisoPz, Buscador, Chip as ChipPz, Cifra, Encabezado as EncabezadoPz, FiltrosAvanzados, Icono as IconoPz, Paginas as PaginasPz, Plegable, Tarjeta as TarjetaPz, Vacio as VacioPz, type NombreIcono, type TonoEstado } from "../piezasPanel";
+import { Aviso as AvisoPz, Buscador, Chip as ChipPz, Cifra, Encabezado as EncabezadoPz, FiltrosAvanzados, Historial, Icono as IconoPz, Paginas as PaginasPz, Plegable, Tarjeta as TarjetaPz, Vacio as VacioPz, type NombreIcono, type TonoEstado } from "../piezasPanel";
 import {
     decidirContenido, listarRevision, obtenerRevision, rutaPublica,
     type ContenidoRevision, type DecisionPublicacion, type ListaRevision,
@@ -325,7 +325,7 @@ export function BandejaRevision() {
                             <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={lista.recargar}>Reintentar</button>
                         </AvisoPz>}
                         {datos && (datos.total === 0 ? (busqueda ? (
-                            <VacioPz icono="buscarCuenta" titulo={`Sin resultados para «${busqueda}»`} texto="Prueba con otra palabra, otro estado o quita los filtros."
+                            <VacioPz icono="buscarCuenta" titulo={`Sin resultados para ${busqueda}`} texto="Prueba con otra palabra, otro estado o quita los filtros."
                                 accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={limpiar}>Limpiar filtros</button>} />
                         ) : (
                             <VacioPz icono="revision" titulo={filtro === "" ? "No hay contenidos en la bandeja" : `No hay contenidos ${plural}`} texto="Cuando el Editor envíe algo, aparecerá aquí con su folio y fecha de envío." />
@@ -541,24 +541,14 @@ function Detalle({ c, propio, alRecargar }: { c: ContenidoRevision; propio: bool
                         </div>
                     </Panel>
 
-                    <Panel id="rv-historial" icono={<IconoReloj />} titulo="Historial del contenido" subtitulo="Del paso más reciente al primero">
-                        <ol className="pz-linea">
-                            {eventosDetalle(c).map((e, i) => {
-                                const paso = PASO_HISTORIAL[e.accion] ?? PASO_HISTORIAL.creado;
-                                return (
-                                    <li key={`${e.titulo}:${e.fecha}:${i}`} className={`pz-linea__paso pz-linea__paso--${paso.tono}${i === 0 ? " pz-linea__paso--actual" : ""}`}>
-                                        <span className="pz-linea__icono" aria-hidden="true"><IconoPz nombre={paso.icono} /></span>
-                                        <div className="pz-linea__textos">
-                                            <p className="pz-linea__titulo">{e.titulo}</p>
-                                            <p className="pz-linea__detalle">{fechaHora(e.fecha)}{e.responsable ? `, ${e.responsable}` : ""}</p>
-                                            {e.nota && <p className="pz-linea__nota">{e.nota}</p>}
-                                            {e.observaciones.length > 0 && <p className="pz-linea__nota">{e.observaciones.length === 1 ? "1 observación" : `${e.observaciones.length} observaciones`}</p>}
-                                        </div>
-                                    </li>
-                                );
-                            })}
-                        </ol>
-                    </Panel>
+                    <Historial id="rv-historial" movimientos={eventosDetalle(c).map((e) => {
+                        const paso = PASO_HISTORIAL[e.accion] ?? PASO_HISTORIAL.creado;
+                        return {
+                            titulo: e.titulo, tono: paso.tono, icono: paso.icono,
+                            detalle: `${fechaHora(e.fecha)}${e.responsable ? `, ${e.responsable}` : ""}`,
+                            nota: [e.nota, e.observaciones.length > 0 && (e.observaciones.length === 1 ? "1 observación" : `${e.observaciones.length} observaciones`)].filter(Boolean).join(". ") || undefined,
+                        };
+                    })} />
                 </aside>
             </div>
 
@@ -846,9 +836,9 @@ function FormularioCambios({ c, alRecargar }: { c: ContenidoRevision; alRecargar
                 <aside className="contenidos-formulario__lateral">
                     <Panel id="rv-despues" icono={<IconoFlecha />} titulo="¿Qué pasa después?" clase="contenidos-panel--estado">
                         <ul className="rv-lista">
-                            <li>El estado cambia a «Con observaciones».</li>
+                            <li>El estado cambia a Con observaciones.</li>
                             <li>El Editor recibe un aviso con tus comentarios.</li>
-                            <li>Cuando vuelva a enviar, regresa a tu bandeja como «Por autorizar».</li>
+                            <li>Cuando vuelva a enviar, regresa a tu bandeja como Por autorizar.</li>
                             <li>Queda registro de quién pidió cambios y cuándo.</li>
                         </ul>
                     </Panel>
@@ -991,7 +981,7 @@ function ObservacionesEnviadas({ c }: { c: ContenidoRevision }) {
                 detalle={`Estado: Con observaciones · Enviadas ${(o ? fechaHora(o.fecha) : fechaHora(c.actualizadoEn)).toLowerCase()}`} estado={c.estado} />
             <Pasos id="rv-sigue" titulo="¿Qué sigue?" pasos={[
                 ["El Editor corrige", "Recibe un aviso con tus observaciones."],
-                ["Vuelve a enviar", "El contenido regresa a tu bandeja como «Por autorizar»."],
+                ["Vuelve a enviar", "El contenido regresa a tu bandeja como Por autorizar."],
                 ["Decides de nuevo", "Puedes autorizar, pedir más cambios o rechazar."],
             ]} />
             <div className="contenidos-previa__acciones">
@@ -1100,7 +1090,7 @@ export function HistorialPublicaciones({ retirar }: { retirar?: string }) {
                             <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={recargar}>Reintentar</button>
                         </AvisoPz>}
                         {datos && (visibles.length === 0 ? (busqueda.trim() ? (
-                            <VacioPz icono="buscarCuenta" titulo={`Sin resultados para «${busqueda.trim()}»`} texto="Prueba con otra palabra, otro tipo o quita los filtros."
+                            <VacioPz icono="buscarCuenta" titulo={`Sin resultados para ${busqueda.trim()}`} texto="Prueba con otra palabra, otro tipo o quita los filtros."
                                 accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setBusqueda(""); elegir("todos"); }}>Limpiar filtros</button>} />
                         ) : (
                             <VacioPz icono="bitacora" titulo={filtro === "retirado" ? "No hay contenidos retirados" : "Todavía no hay publicaciones"} texto="Lo que autorices y publiques aparecerá aquí con su referencia." />
@@ -1160,7 +1150,7 @@ export function HistorialPublicaciones({ retirar }: { retirar?: string }) {
                         <Plegable titulo="Retirar un contenido">
                             <ul>
                                 <li>Retirar lo quita del portal al momento; no se borra.</li>
-                                <li>Sigue en este historial como «Retirado», con su versión y motivo.</li>
+                                <li>Sigue en este historial como Retirado, con su versión y motivo.</li>
                                 <li>Para volver a publicarlo, el Editor lo envía de nuevo a autorización.</li>
                             </ul>
                         </Plegable>

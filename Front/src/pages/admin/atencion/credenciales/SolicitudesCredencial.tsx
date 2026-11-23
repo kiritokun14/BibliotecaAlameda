@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
 import PanelLayout from "../../PanelLayout";
 import { Migas } from "../../componentes";
-import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, Enlace, FiltrosAvanzados, Icono, Nota, Paginas, Plegable, Tarjeta, Vacio } from "../../piezasPanel";
+import { Aviso, Buscador, Chip, Cifra, Dato, Datos, Encabezado, Enlace, FiltrosAvanzados, Historial, Icono, Nota, Paginas, Plegable, Tarjeta, Vacio } from "../../piezasPanel";
 import { EsqueletoDetalle, EsqueletoLista } from "../../../../components/portal/Esqueleto";
 import { mensajeError } from "../../../../servicios/api";
 import {
@@ -78,7 +78,7 @@ export default function SolicitudesCredencial() {
 
             <div className="pz-columnas">
                 <Tarjeta icono="credencial" id={`${id}-lista`} titulo="Solicitudes" className="pz-pendientes"
-                    texto={lista ? `${lista.total} ${lista.total === 1 ? "solicitud" : "solicitudes"}${filtro ? `, ${(ESTADOS_CREDENCIAL[filtro] ?? filtro).toLowerCase()}` : ""}${busqueda ? `, con «${busqueda}»` : ""}` : "Consultando la bandeja…"}>
+                    texto={lista ? `${lista.total} ${lista.total === 1 ? "solicitud" : "solicitudes"}${filtro ? `, ${(ESTADOS_CREDENCIAL[filtro] ?? filtro).toLowerCase()}` : ""}${busqueda ? `, con ${busqueda}` : ""}` : "Consultando la bandeja…"}>
                     <Buscador etiqueta="Buscar por folio o nombre" placeholder="Buscar por folio o nombre" valor={texto} alCambiar={setTexto}>
                         <FiltrosAvanzados activos={filtro ? 1 : 0} alQuitar={() => { setFiltro(""); setPagina(0); }} grupos={[
                             { titulo: "Estado", valor: filtro || "todas", alCambiar: (v) => { setFiltro(v === "todas" ? "" : v); setPagina(0); }, opciones: [
@@ -323,28 +323,15 @@ function Ficha({ s, alGuardar }: { s: SolicitudAtencion; alGuardar: () => void }
 
 
 
-                    <Tarjeta icono="reloj" id={`${id}-historial`} titulo="Historial" texto="Lo más reciente arriba">
-                        <ol className="pz-linea" aria-label="Historial de la solicitud">
-                            {historial.map((h, i) => (
-                                <li key={`${h.fecha}:${i}`} className={`pz-linea__paso pz-linea__paso--${TONO_CREDENCIAL[h.estadoNuevo] ?? "gris"}${i === 0 ? " pz-linea__paso--actual" : ""}`}>
-                                    <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={ICONO_ESTADO[h.estadoNuevo] ?? "info"} /></span>
-                                    <div className="pz-linea__textos">
-                                        <p className="pz-linea__titulo">{ESTADOS_CREDENCIAL[h.estadoNuevo] ?? h.estadoNuevo}</p>
-                                        <p className="pz-linea__detalle">{fechaHora(h.fecha)}</p>
-                                        {h.nota && <p className="pz-linea__nota">{h.nota}</p>}
-                                    </div>
-                                </li>
-                            ))}
-                            <li className={`pz-linea__paso pz-linea__paso--gris${historial.length === 0 ? " pz-linea__paso--actual" : ""}`}>
-                                <span className="pz-linea__icono" aria-hidden="true"><Icono nombre="credencial" /></span>
-                                <div className="pz-linea__textos">
-                                    <p className="pz-linea__titulo">Solicitud registrada en el portal</p>
-                                    <p className="pz-linea__detalle">{fechaHora(s.creadaEn)}</p>
-                                </div>
-                            </li>
-                        </ol>
+                    <Historial id={`${id}-historial`} movimientos={[
+                        ...historial.map((h) => ({
+                            titulo: ESTADOS_CREDENCIAL[h.estadoNuevo] ?? h.estadoNuevo, tono: TONO_CREDENCIAL[h.estadoNuevo] ?? "gris",
+                            icono: ICONO_ESTADO[h.estadoNuevo] ?? "info", detalle: fechaHora(h.fecha), nota: h.nota || undefined,
+                        })),
+                        { titulo: "Solicitud registrada en el portal", detalle: fechaHora(s.creadaEn), tono: "gris", icono: "credencial" },
+                    ]}>
                         {estado === "atendida" && <p className="pz-acciones__nota">Registrar la atención no emite ni valida una credencial.</p>}
-                    </Tarjeta>
+                    </Historial>
                 </aside>
             </div>
         </>

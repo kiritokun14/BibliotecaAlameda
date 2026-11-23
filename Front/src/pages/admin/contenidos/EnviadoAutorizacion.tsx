@@ -48,7 +48,7 @@ function EnviadoAutorizacion() {
 
                 {!envio ? (
                     <Tarjeta icono="contenido" id="enviado-sin-datos" titulo="Envío registrado">
-                        <Vacio icono="check" titulo="Ya está en revisión" texto="Consulta su estado en Mis contenidos, en el filtro «Por autorizar»."
+                        <Vacio icono="check" titulo="Ya está en revisión" texto="Consulta su estado en Mis contenidos, en el filtro Por autorizar."
                             accion={<Link to="/admin/contenidos/editor" className="pz-boton pz-boton--chico">Ir a Mis contenidos</Link>} />
                     </Tarjeta>
                 ) : (

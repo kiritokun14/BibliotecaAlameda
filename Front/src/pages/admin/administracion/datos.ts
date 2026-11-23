@@ -63,7 +63,7 @@ export const MODULOS: ModuloBitacora[] = ["Contenidos", "Actividades", "Particip
 export const MOVIMIENTOS: Movimiento[] = [
     { folio: "BT-1482", fecha: "2026-10-28T09:30", persona: "Administrador", modulo: "Administración", accion: "Descargó evidencia EV-0061", tipo: "Sensible", detalle: "Descarga de una lista firmada del Club de lectura." },
     { folio: "BT-1481", fecha: "2026-10-28T09:12", persona: "Personal", modulo: "Actividades", accion: "Cerró lista de asistencia AC-0108", tipo: "Normal", detalle: "18 presentes de 20 inscritos." },
-    { folio: "BT-1480", fecha: "2026-10-27T18:40", persona: "Administrador", modulo: "Administración", accion: "Cambió permisos del rol «Editor»", tipo: "Sensible", detalle: "Se agregó «Revisar y publicar contenidos»." },
+    { folio: "BT-1480", fecha: "2026-10-27T18:40", persona: "Administrador", modulo: "Administración", accion: "Cambió permisos del rol Editor", tipo: "Sensible", detalle: "Se agregó Revisar y publicar contenidos." },
     { folio: "BT-1479", fecha: "2026-10-27T16:05", persona: "Personal", modulo: "Contenidos", accion: "Publicó reseña CN-0030", tipo: "Normal", detalle: "Autorización: oficio por confirmar." },
     { folio: "BT-1478", fecha: "2026-10-27T11:20", persona: "Personal", modulo: "Atención", accion: "Aprobó credencial CRED-0410", tipo: "Normal", detalle: "Cotejo completo." },
     { folio: "BT-1477", fecha: "2026-10-26T13:02", persona: "Personal", modulo: "Participantes", accion: "Retiró publicación FO-0230", tipo: "Normal", detalle: "Norma 2: respeto entre participantes." },

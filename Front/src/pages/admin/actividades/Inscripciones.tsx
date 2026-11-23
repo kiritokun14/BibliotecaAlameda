@@ -15,7 +15,7 @@ const BASE = '/admin/actividades/inscripciones';
 const ZONA = 'America/Mazatlan';
 const fecha = (valor: string) => new Date(valor).toLocaleString('es-MX', { timeZone: ZONA, dateStyle: 'medium', timeStyle: 'short' });
 const dia = (valor: string) => new Date(valor).toLocaleDateString('es-MX', { timeZone: ZONA, weekday: 'long', day: 'numeric', month: 'long' });
-const hora = (valor: string) => new Date(valor).toLocaleTimeString('es-MX', { timeZone: ZONA, hour: '2-digit', minute: '2-digit' });
+const hora = (valor: string) => new Date(valor).toLocaleTimeString('es-MX', { timeZone: ZONA, hour: '2-digit', minute: '2-digit', hour12: false });
 const diaMes = (valor: string) => {
     const d = new Date(valor);
     return [d.toLocaleDateString('es-MX', { timeZone: ZONA, day: 'numeric' }), d.toLocaleDateString('es-MX', { timeZone: ZONA, month: 'short' }).replace('.', '')];
@@ -117,10 +117,12 @@ function BandejaActividades() {
                                                 <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{m}</span></span>
                                                 <div className="pz-fila__textos">
                                                     <h4 className="pz-fila__titulo">{f.actividad.titulo}</h4>
-                                                    <p className="pz-fila__detalle"><span>{hora(f.sesion.inicio)} h</span><span>{f.sesion.registroAbierto ? 'Registro abierto' : 'Registro cerrado'}</span></p>
+                                                    <p className="pz-fila__detalle"><span>{dia(f.sesion.inicio)}</span><span>{hora(f.sesion.inicio)} h</span></p>
                                                 </div>
                                                 <BarraCupo cupo={cupos[f.sesion.id]} />
-                                                {f.sesion.estado === 'programada' ? <span aria-hidden="true" /> : <Chip tono={TONO_SESION[f.sesion.estado] ?? 'gris'}>{NOMBRE_SESION[f.sesion.estado] ?? f.sesion.estado}</Chip>}
+                                                {f.sesion.estado === 'programada'
+                                                    ? <Chip tono={f.sesion.registroAbierto ? 'verde' : 'gris'}>{f.sesion.registroAbierto ? 'Abierta' : 'Cerrada'}<span className="solo-lectores"> al registro</span></Chip>
+                                                    : <Chip tono={TONO_SESION[f.sesion.estado] ?? 'gris'}>{NOMBRE_SESION[f.sesion.estado] ?? f.sesion.estado}</Chip>}
                                                 <Link to={`${BASE}/${f.sesion.id}`} className={`pz-boton pz-boton--chico${f.sesion.registroAbierto ? '' : ' pz-boton--contorno'}`}>Ver inscritos<span className="solo-lectores"> {f.actividad.titulo}</span></Link>
                                             </article>
                                         </li>;
@@ -140,16 +142,26 @@ function BandejaActividades() {
                 <aside className="pz-lateral" aria-label="Lo que se llena primero">
                     <Tarjeta icono="alerta" id="ins-llenandose" titulo="Se están llenando" texto="Registro abierto, de la más ocupada a la menos" className="pz-tarjeta--actividades">
                         {llenandose.length ? <ul className="ins-llenas">
-                            {llenandose.map(f => <li key={f.sesion.id}>
-                                <Link to={`${BASE}/${f.sesion.id}`} className="pz-enlace-fila">{f.actividad.titulo}</Link>
-                                <small>{dia(f.sesion.inicio)}, {hora(f.sesion.inicio)} h</small>
-                                <BarraCupo cupo={f.cupo} />
-                            </li>)}
+                            {llenandose.map(f => {
+                                const c = f.cupo as CuposInscripciones;
+                                const lleno = c.disponibles <= 0;
+                                return <li key={f.sesion.id}>
+                                    <Link to={`${BASE}/${f.sesion.id}`} className="ins-llena">
+                                        <span className="ins-llena__cabeza">
+                                            <span className="ins-llena__titulo" title={f.actividad.titulo}>{f.actividad.titulo}</span>
+                                            <span className={`ins-llena__pct ins-llena__pct--${tonoCupo(c)}`}>{ocupacion(c)}%</span>
+                                        </span>
+                                        <span className="ins-llena__fecha">{dia(f.sesion.inicio)}, {hora(f.sesion.inicio)} h</span>
+                                        <span className="pz-ocupacion" aria-hidden="true"><span className={`pz-ocupacion__relleno pz-ocupacion__relleno--${tonoCupo(c)}`} style={{ width: `${ocupacion(c)}%` }} /></span>
+                                        <span className="ins-llena__pie"><span><strong>{c.confirmados}</strong> de {c.capacidad} lugares</span><span>{lleno ? 'Cupo lleno' : c.disponibles === 1 ? 'Queda 1' : `Quedan ${c.disponibles}`}</span></span>
+                                    </Link>
+                                </li>;
+                            })}
                         </ul> : <Vacio icono="inscripciones" titulo="Sin registros abiertos" texto="Cuando una sesión abra su registro, verás aquí cómo se llena." />}
                     </Tarjeta>
                     <Plegable titulo="Cómo se decide una inscripción">
                         <ul>
-                            <li>La persona se inscribe desde el portal y queda «Por decidir».</li>
+                            <li>La persona se inscribe desde el portal y queda Por decidir.</li>
                             <li>Confirmar ocupa un lugar del cupo; con el cupo lleno solo se puede rechazar.</li>
                             <li>Toda decisión lleva motivo y queda en el historial de la persona.</li>
                         </ul>
@@ -232,13 +244,14 @@ function ListaSesion({ sesion, seleccionada, conocida }: { sesion: string; selec
         <div className="pz-columnas">
             <Tarjeta icono="grupo" id="inscritos-titulo" titulo="Personas inscritas" texto="Las que esperan decisión van primero" className="pz-pendientes"
                 accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => recargar(x => x + 1)}>Actualizar</button>}>
-                {solicitudes.length > 0 && <div className="pz-herramientas">
-                    <Segmentado<FiltroInscripcion> etiqueta="Estado de la inscripción" valor={filtro} alCambiar={setFiltro} opciones={[
-                        { valor: 'todas', texto: 'Todas', cantidad: cuenta('todas') }, { valor: 'pendiente', texto: 'Por decidir', cantidad: cuenta('pendiente'), urgente: true },
-                        { valor: 'confirmada', texto: 'Confirmadas', cantidad: cuenta('confirmada') }, { valor: 'rechazada', texto: 'Rechazadas', cantidad: cuenta('rechazada') },
-                        { valor: 'cancelada', texto: 'Canceladas', cantidad: cuenta('cancelada') }]} />
-                    <Buscador etiqueta="Buscar por nombre" placeholder="Nombre de la persona" valor={busqueda} alCambiar={setBusqueda} />
-                </div>}
+                {solicitudes.length > 0 && <Buscador etiqueta="Buscar por nombre" placeholder="Nombre de la persona" valor={busqueda} alCambiar={setBusqueda}>
+                    <FiltrosAvanzados activos={filtro !== 'todas' ? 1 : 0} alQuitar={() => setFiltro('todas')} grupos={[
+                        { titulo: 'Estado de la inscripción', valor: filtro, alCambiar: v => setFiltro(v as FiltroInscripcion), opciones: [
+                            { valor: 'todas', texto: 'Todas', cantidad: cuenta('todas') }, { valor: 'pendiente', texto: 'Por decidir', cantidad: cuenta('pendiente') },
+                            { valor: 'confirmada', texto: 'Confirmadas', cantidad: cuenta('confirmada') }, { valor: 'rechazada', texto: 'Rechazadas', cantidad: cuenta('rechazada') },
+                            { valor: 'cancelada', texto: 'Canceladas', cantidad: cuenta('cancelada') }] },
+                    ]} />
+                </Buscador>}
                 {!actual ? <CargandoFilas texto="Cargando inscripciones…" filas={3} />
                     : actual.error ? <Vacio icono="alerta" titulo="No pudimos cargar las inscripciones" texto={actual.error}
                         accion={<button type="button" className="pz-boton pz-boton--chico" onClick={() => recargar(x => x + 1)}>Reintentar</button>} />

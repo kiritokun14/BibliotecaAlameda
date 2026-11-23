@@ -1,4 +1,4 @@
-import { useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { ContextoPanel } from "../../servicios/accesoPanel";
 import { vistaEnlace, type TonoEstado } from "./resumen/datos";
@@ -235,5 +235,46 @@ export function FiltrosAvanzados({ grupos, extra, activos, alQuitar }: { grupos:
                 </div>
             )}
         </div>
+    );
+}
+
+// ---------- Historial (22 nov 2026, Aldahir: «todos los historiales iguales, en todos los perfiles») ----------
+// Una sola forma de mostrar el historial de algo en el panel: tarjeta «Historial» con la línea del tiempo (`pz-linea`),
+// lo más reciente arriba y marcado como actual; cada movimiento con el ícono y el color de lo que pasó,
+// su título, «fecha, quién» en gris y, si hay, una nota (motivo, comentario). Pásale los movimientos YA en ese orden.
+export type TonoMovimiento = "verde" | "dorado" | "guinda" | "gris";
+export type Movimiento = { titulo: ReactNode; detalle?: ReactNode; nota?: ReactNode; tono?: TonoMovimiento; icono?: NombreIcono };
+const ICONO_MOVIMIENTO: Record<TonoMovimiento, NombreIcono> = { verde: "check", dorado: "reloj", guinda: "alerta", gris: "info" };
+
+export function LineaHistorial({ movimientos, etiqueta = "Historial" }: { movimientos: Movimiento[]; etiqueta?: string }) {
+    return (
+        <ol className="pz-linea pz-historial-linea" aria-label={etiqueta}>
+            {movimientos.map((m, i) => {
+                const tono = m.tono ?? "gris";
+                return (
+                    <li key={i} className={`pz-linea__paso pz-linea__paso--${tono}${i === 0 ? " pz-linea__paso--actual" : ""}`}>
+                        <span className="pz-linea__icono" aria-hidden="true"><Icono nombre={m.icono ?? ICONO_MOVIMIENTO[tono]} /></span>
+                        <div className="pz-linea__textos">
+                            <p className="pz-linea__titulo">{m.titulo}</p>
+                            {m.detalle && <p className="pz-linea__detalle">{m.detalle}</p>}
+                            {m.nota && <p className="pz-linea__nota">{m.nota}</p>}
+                        </div>
+                    </li>
+                );
+            })}
+        </ol>
+    );
+}
+
+export function Historial({ movimientos, id, titulo = "Historial", vacio = "Todavía no hay movimientos.", children, className = "" }: {
+    movimientos: Movimiento[]; id?: string; titulo?: string; vacio?: string; children?: ReactNode; className?: string;
+}) {
+    const n = movimientos.length;
+    const propio = useId();
+    return (
+        <Tarjeta icono="bitacora" id={id ?? propio} titulo={titulo} texto={n ? `${n} ${n === 1 ? "movimiento" : "movimientos"}, lo más reciente arriba` : vacio} className={`pz-historial-tarjeta ${className}`.trim()}>
+            {n > 0 && <LineaHistorial movimientos={movimientos} etiqueta={titulo} />}
+            {children}
+        </Tarjeta>
     );
 }

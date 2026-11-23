@@ -87,7 +87,7 @@ export function FichaParticipante() {
                         </TarjetaPz>
                     </div>
                     <aside className="pz-lateral" aria-label="Meta y recompensa">
-                        <TarjetaPz icono="recompensa" id="ficha-meta" titulo={`Meta «${meta?.nombre ?? "sin meta"}»`} texto={estado === "entregada" ? "Recompensa entregada" : a.cumplida ? "Meta cumplida" : `Le ${faltan === 1 ? "falta 1 actividad" : `faltan ${faltan} actividades`}`}
+                        <TarjetaPz icono="recompensa" id="ficha-meta" titulo={`Meta ${meta?.nombre ?? "sin meta"}`} texto={estado === "entregada" ? "Recompensa entregada" : a.cumplida ? "Meta cumplida" : `Le ${faltan === 1 ? "falta 1 actividad" : `faltan ${faltan} actividades`}`}
                             accion={<ChipPz tono={estado === "entregada" ? "verde" : estado === "por-entregar" ? "dorado" : "gris"}>{estado === "sin" ? "En progreso" : NOMBRE_ESTADO_RECOMPENSA[estado]}</ChipPz>}>
                             <div className={`ins-medidor ins-medidor--${a.cumplida ? "verde" : "dorado"}`} style={{ ["--p" as string]: `${Math.min(100, (a.hechas / Math.max(1, a.necesarias)) * 100)}%` }} role="img" aria-label={`${a.hechas} de ${a.necesarias} actividades`}>
                                 <span className="ins-medidor__centro"><strong>{Math.min(a.hechas, a.necesarias)}</strong><small>de {a.necesarias}</small></span>
@@ -100,7 +100,7 @@ export function FichaParticipante() {
                                 <button type="button" className="pz-boton" disabled={estado !== "por-entregar"} onClick={() => { setFallo(false); setVentana("entregar"); }}>Entregar recompensa</button>
                                 {!p.entregada && <button type="button" className="pz-boton pz-boton--contorno" onClick={() => { setMotivo(""); setError(""); setCambio("1"); setVentana("ajustar"); }}>Ajustar progreso</button>}
                             </div>
-                            {estado === "sin" && <p className="pz-acciones__nota">«Entregar recompensa» se habilita cuando completa la meta.</p>}
+                            {estado === "sin" && <p className="pz-acciones__nota">Entregar recompensa se habilita cuando completa la meta.</p>}
                             <Link to={BASE_PROGRESO} className="pz-enlace">Volver a Progreso y recompensas</Link>
                         </TarjetaPz>
                     </aside>

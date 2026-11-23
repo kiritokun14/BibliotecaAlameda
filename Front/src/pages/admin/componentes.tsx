@@ -8,7 +8,7 @@ import "./contenidos/Contenidos.css";
 import "./atencion/Atencion.css";
 import "./atencion/AtencionTramites.css";
 import iconoLock from "../../assets/admin/icono-lock.svg";
-import tarjetaClock from "../../assets/admin/tarjeta-clock.svg";
+import { Historial } from "./piezasPanel";
 import tarjetaUser from "../../assets/admin/tarjeta-user.svg";
 import avisoCheck from "../../assets/admin/aviso-check.svg";
 import avisoClock from "../../assets/admin/aviso-clock.svg";
@@ -165,21 +165,14 @@ export function ListaCotejo({ puntos, marcados, alCambiar }: ListaCotejoProps) {
 // ---------- Historial (línea de tiempo) ----------
 
 // hecho = ya pasó, proceso = en curso, pendiente = todavía no
-export type EventoHistorial = { titulo: string; detalle: string; tipo: "hecho" | "proceso" | "pendiente" };
+export type EventoHistorial = { titulo: string; detalle: string; tipo: "hecho" | "proceso" | "pendiente"; nota?: string };
 
+// Usa la pieza común `Historial` (piezasPanel): lo más reciente arriba; lo que todavía no pasa no es historial y no se muestra.
 export function TarjetaHistorial({ eventos }: { eventos: EventoHistorial[] }) {
-    return (
-        <Tarjeta icono={tarjetaClock} titulo="Historial" subtitulo={`${eventos.length} ${eventos.length === 1 ? "movimiento registrado" : "movimientos registrados"}.`} className="tr-seguimiento">
-            <ol className="tr-eventos" tabIndex={0} aria-label="Historial de la solicitud">
-                {eventos.map((evento, indice) => (
-                    <li key={`${indice}-${evento.titulo}`} className={evento.tipo === "proceso" ? "tr-eventos--ultimo" : evento.tipo === "pendiente" ? "tr-eventos--pendiente" : "tr-eventos--hecho"}>
-                        <strong>{evento.titulo}</strong>
-                        <small>{evento.detalle}</small>
-                    </li>
-                ))}
-            </ol>
-        </Tarjeta>
-    );
+    const movimientos = eventos.filter((e) => e.tipo !== "pendiente").reverse().map((e) => ({
+        titulo: e.titulo, detalle: e.detalle.replace(/ · /g, ", "), nota: e.nota, tono: (e.tipo === "proceso" ? "dorado" : "verde") as "dorado" | "verde",
+    }));
+    return <Historial movimientos={movimientos} />;
 }
 
 // ---------- Aviso de resultado (bloque de «Enviado a autorización» del Editor) ----------

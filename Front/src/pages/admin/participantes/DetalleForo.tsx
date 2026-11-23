@@ -113,7 +113,7 @@ export function DetallePublicacion() {
         <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Bibliocomunidad", BASE_FORO], [miga]]} />
-                <EncabezadoTarjeta volver={{ texto: "Volver a Bibliocomunidad", ruta: BASE_FORO }} etiqueta={`Publicación ${p.folio}`} titulo={p.estado === "reportada" ? "Publicación reportada" : p.estado === "pendiente" ? "Publicación por aprobar" : "Publicación"} texto={`Hilo: «${p.hilo}» · ${fechaHora(p.fecha)}.`} />
+                <EncabezadoTarjeta volver={{ texto: "Volver a Bibliocomunidad", ruta: BASE_FORO }} etiqueta={`Publicación ${p.folio}`} titulo={p.estado === "reportada" ? "Publicación reportada" : p.estado === "pendiente" ? "Publicación por aprobar" : "Publicación"} texto={`Hilo: ${p.hilo} · ${fechaHora(p.fecha)}.`} />
                 <Resultado tono={banda.tono} icono={iconoBanderaResultado} titulo={banda.titulo} linea={banda.linea} chip={<Chip tono={TONO_PUBLICACION[p.estado]}>{NOMBRE_ESTADO_PUBLICACION[p.estado]}</Chip>} />
                 <Tarjeta icono={iconoCita} titulo="Contenido">
                     <blockquote className="cn-previa cn-parrafo" style={{ margin: 0 }}>{p.texto}</blockquote>
@@ -140,7 +140,7 @@ export function DetallePublicacion() {
                     {!silenciada && <button type="button" className={clasesBoton("guinda")} onClick={() => abrir("silenciar")}>Silenciar a la persona</button>}
                     <Link to={`${ruta}/hilo`} className={clasesBoton("suave")}>Ver hilo completo</Link>
                 </div>
-                {silenciada && <p className="cn-nota">Esta persona ya está silenciada hasta el {fechaCorta(silenciada.hasta)}. Puedes restaurarla en «Personas silenciadas».</p>}
+                {silenciada && <p className="cn-nota">Esta persona ya está silenciada hasta el {fechaCorta(silenciada.hasta)}. Puedes restaurarla en Personas silenciadas.</p>}
                 <PieDatos />
             </Pagina>
 

@@ -6,6 +6,7 @@ import { Link } from "react-router";
 import { Migas } from "../componentes";
 import { Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, Plegable, Tarjeta, Vacio, type NombreIcono, type TonoEstado } from "../piezasPanel";
 import type { Estado } from "./datos";
+import { ListaEspera } from "./Espera";
 
 const TONO_ESTADO: Record<Estado, TonoEstado> = { pendiente: "dorado", observaciones: "guinda", aprobada: "verde", rechazada: "gris" };
 const ICONO_ESTADO: Record<Estado, NombreIcono> = { pendiente: "reloj", observaciones: "alerta", aprobada: "check", rechazada: "lista" };
@@ -13,6 +14,15 @@ const ICONO_ESTADO: Record<Estado, NombreIcono> = { pendiente: "reloj", observac
 type SolicitudBase = { folio: string; persona: string; enviada: string; estado: Estado };
 
 export type Columna<T> = { titulo: string; ancho?: number; celda: (solicitud: T) => ReactNode };
+
+// Fila compacta (22 nov, Aldahir: «mejora los elementos de la tabla»): bloque con la fecha de lo que se pide,
+// nombre con su tipo, y en un renglón los datos con su ícono (folio, área, horario, personas)
+export type FilaCompacta = { fecha?: string; tipo?: string; datos: { icono: NombreIcono; texto: string }[] };
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+function bloqueFecha(fecha?: string) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha ?? "");
+    return m ? [String(Number(m[3])), MESES[Number(m[2]) - 1]] : null;
+}
 
 // Todo lo que cambia entre credenciales, espacios y propuestas
 export type ConfigArea = {
@@ -40,6 +50,7 @@ type BandejaProps<T extends SolicitudBase> = {
     solicitudes: T[];
     columnas: Columna<T>[];
     coincide: (solicitud: T, texto: string) => boolean;
+    fila?: (solicitud: T) => FilaCompacta;
 };
 
 type Filtro = "todas" | Estado;
@@ -47,7 +58,7 @@ type Filtro = "todas" | Estado;
 const diasDesde = (iso: string) => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
 const esperando = (iso: string) => { const d = diasDesde(iso); return d === 0 ? "Llegó hoy" : d === 1 ? "Espera desde ayer" : `Espera desde hace ${d} días`; };
 
-function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas, coincide }: BandejaProps<T>) {
+function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas, coincide, fila }: BandejaProps<T>) {
     const [filtro, setFiltro] = useState<Filtro>(vista === "bandeja" ? "pendiente" : "todas");
     const [busqueda, setBusqueda] = useState("");
 
@@ -98,7 +109,34 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                         ) : (
                             <div className="pz-grupos" tabIndex={0} role="region" aria-label={`Lista de ${config.sustantivo}`}>
                                 <ul className="pz-filas">
-                                    {filtradas.map((s) => (
+                                    {filtradas.map((s) => fila ? (() => {
+                                        const f = fila(s);
+                                        const dia = bloqueFecha(f.fecha);
+                                        const espera = diasDesde(s.enviada);
+                                        return (
+                                            <li key={s.folio}>
+                                                <article className={`pz-fila ba-compacta${s.estado === "pendiente" ? " pz-fila--espera" : ""}`}>
+                                                    {dia ? <span className="pz-fecha" aria-hidden="true"><strong>{dia[0]}</strong><span>{dia[1]}</span></span>
+                                                        : <span className={`pz-fila__icono ba-icono--${s.estado}`} aria-hidden="true"><Icono nombre={ICONO_ESTADO[s.estado]} /></span>}
+                                                    <div className="pz-fila__textos">
+                                                        <p className="ba-compacta__cabeza">
+                                                            <span className="pz-fila__titulo" title={s.persona}>{s.persona}</span>
+                                                            {f.tipo && <span className="ba-compacta__tipo">{f.tipo}</span>}
+                                                        </p>
+                                                        <ul className="ba-compacta__datos">
+                                                            <li className="pz-fila__folio">{s.folio}</li>
+                                                            {f.datos.map((d) => <li key={d.icono + d.texto} title={d.texto}><Icono nombre={d.icono} />{d.texto}</li>)}
+                                                        </ul>
+                                                        {s.estado === "pendiente" && <p className={`ba-compacta__espera${espera >= 7 ? " ba-compacta__espera--larga" : ""}`}>{esperando(s.enviada)}</p>}
+                                                    </div>
+                                                    <Chip tono={TONO_ESTADO[s.estado]}>{config.estados[s.estado]}</Chip>
+                                                    <Link to={`${config.ruta}/${s.folio}`} className={`pz-boton pz-boton--chico${s.estado === "pendiente" ? "" : " pz-boton--contorno"}`}>
+                                                        {s.estado === "pendiente" ? config.accionPendiente : "Ver"}<span className="solo-lectores"> {s.folio}</span>
+                                                    </Link>
+                                                </article>
+                                            </li>
+                                        );
+                                    })() : (
                                         <li key={s.folio}>
                                             <article className={`pz-fila ba-fila${s.estado === "pendiente" ? " pz-fila--espera" : ""}`}>
                                                 <span className={`pz-fila__icono ba-icono--${s.estado}`} aria-hidden="true"><Icono nombre={ICONO_ESTADO[s.estado]} /></span>
@@ -126,14 +164,10 @@ function Bandeja<T extends SolicitudBase>({ vista, config, solicitudes, columnas
                     <aside className="pz-lateral" aria-label="Lo que espera más">
                         <Tarjeta icono="reloj" id="atencion-antiguas" titulo="Llevan más tiempo esperando" texto={pendientes ? `${pendientes} ${config.estados.pendiente.toLowerCase()}` : "Estás al día"} className="pz-tarjeta--actividades">
                             {antiguas.length ? (
-                                <ul className="ins-llenas">
-                                    {antiguas.map((s) => (
-                                        <li key={s.folio}>
-                                            <Link to={`${config.ruta}/${s.folio}`} className="pz-enlace-fila">{s.persona}</Link>
-                                            <small>{s.folio}. {esperando(s.enviada)}</small>
-                                        </li>
-                                    ))}
-                                </ul>
+                                <ListaEspera items={antiguas.map((s) => ({
+                                    clave: s.folio, ruta: `${config.ruta}/${s.folio}`, titulo: s.persona, dias: diasDesde(s.enviada),
+                                    detalle: [s.folio, fila?.(s).tipo].filter(Boolean).join(", "),
+                                }))} />
                             ) : <Vacio icono="check" titulo="Nada por revisar" texto={config.textoVacio} />}
                         </Tarjeta>
                         <Plegable titulo={`Cómo se atienden las ${config.sustantivo}`}>

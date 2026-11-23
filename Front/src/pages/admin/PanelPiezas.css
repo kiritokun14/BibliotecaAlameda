@@ -204,20 +204,12 @@
 .pz-actividades__titulo { color: var(--pz-texto); font-size: 14px; line-height: 19px; font-weight: 700; overflow-wrap: anywhere; }
 .pz-actividades__detalle { color: var(--pz-gris); font-size: 12.5px; line-height: 17px; }
 .pz-actividades__pie { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-.pz-actividades__cancelada { background: #fbfaf9; }
+
 /* Momento de cada actividad: la que está ahora o la que sigue resaltadas con su etiqueta; las que ya pasaron, apagadas */
 .pz-actividades li { position: relative; }
-.pz-actividades--pasada { opacity: 0.62; }
-.pz-actividades--ahora, .pz-actividades--siguiente { border-color: var(--pz-primario) !important; background: #fff !important; box-shadow: 0 0 0 3px var(--pz-claro-2); }
-.pz-actividades--ahora .pz-actividades__hora { background: var(--pz-primario); color: #fff; }
-.pz-actividades--ahora .pz-actividades__hora span { color: #fff; }
-.pz-actividades__momento {
-  position: absolute; top: -9px; right: 12px; padding: 1px 9px; border-radius: 999px; background: var(--pz-primario); color: #fff; font-size: 11px; font-weight: 800;
-}
-.pz-actividades--siguiente .pz-actividades__momento { background: var(--pz-tono); color: var(--pz-tono-texto); box-shadow: inset 0 0 0 1px var(--pz-tono-borde); }
+
 .pz-tarjeta--actividades .pz-actividades { padding-top: 10px; }
 .pz-cambios li { padding-block: 10px; }
-.pz-actividades__cancelada :is(.pz-actividades__titulo, .pz-actividades__hora strong) { color: var(--pz-gris); text-decoration: line-through; text-decoration-thickness: 1.5px; }
 
 /* Reglas de operación: plegables (la mayoría ya las conoce) */
 .pz-reglas { flex: none; gap: 0; max-height: 60%; padding: 0; }
@@ -898,7 +890,6 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
 .pz-linea--tarjetas .pz-linea__textos { flex: 1; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: #fff; }
 .pz-linea--tarjetas .pz-linea__titulo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 /* Inscripciones: cupo en la fila, medidor circular y lista de lo que se llena */
-.ins-fila { grid-template-columns: auto minmax(0, 1fr) 130px auto auto; }
 .ins-cupo { display: flex; flex-direction: column; gap: 4px; min-width: 110px; }
 .ins-cupo__texto { display: flex; align-items: baseline; gap: 4px; color: var(--pz-gris); font-size: 12.5px; }
 .ins-cupo__texto strong { color: var(--pz-texto); font-size: 15px; }
@@ -977,7 +968,6 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
 .at-detalle .at-columna { display: flex; flex-direction: column; gap: 16px; }
 
 /* ---------- Progreso y recompensas, bandeja de Atención y Estadísticas (22 nov 2026) ---------- */
-.pr-fila { grid-template-columns: auto minmax(0, 1fr) 140px auto auto; }
 .pr-pendiente { margin: 0 !important; }
 .pr-puntos { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--pz-tono); color: var(--pz-tono-texto); font-size: 11.5px; font-weight: 800; }
 .pz-herramientas--apiladas { flex-direction: column-reverse; align-items: stretch; }
@@ -1084,18 +1074,13 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
 .panel--paleta .ac-dia--hueco { border-color: transparent; background: transparent !important; }
 .panel--paleta .ac-dia--hueco:hover { transform: none; box-shadow: none; }
 .panel--paleta .ac-dia--pasado { background: #fbfaf9; }
-.panel--paleta .ac-dia--pasado .ac-evento { opacity: 0.7; }
+
 .panel--paleta .ac-dia__numero { align-self: flex-start; display: grid; place-items: center; min-width: 24px; height: 24px; border-radius: 999px; color: var(--pz-texto); font-size: 13px; font-weight: 700; }
 .panel--paleta .ac-dia--hoy { border-color: var(--pz-tono-borde); background: #fff; }
 .panel--paleta .ac-dia--hoy .ac-dia__numero { background: var(--pz-tono); color: var(--pz-tono-texto); }
 .panel--paleta .ac-dia--elegido, .panel--paleta .ac-dia--elegido:hover { border-color: var(--pz-primario); box-shadow: 0 0 0 3px var(--pz-claro-2); animation: pz-pulso 0.25s ease-out; }
 .panel--paleta .ac-dia--elegido .ac-dia__numero { background: var(--pz-primario); color: #fff; }
-.panel--paleta .ac-evento { padding: 1px 7px; border-radius: 6px; font-size: 11px; font-weight: 600; line-height: 16px; }
-.panel--paleta .ac-evento--verde { background: var(--pz-claro-2); color: var(--pz-primario); }
-.panel--paleta .ac-evento--dorado { background: var(--pz-tono); color: var(--pz-tono-texto); }
-.panel--paleta .ac-evento--gris { background: #efeeee; color: var(--pz-gris); }
-.panel--paleta .ac-evento--guinda { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
-.panel--paleta .ac-evento--mas { padding-left: 4px; background: none; color: var(--pz-gris); }
+
 .cal-ver-dia { flex: none; align-self: flex-start; margin-top: auto; }
 .pz-tarjeta--actividades > .pz-actividades { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
 .pz-tarjeta--actividades .pz-actividades .pz-chip { align-self: flex-start; margin-top: 4px; }
@@ -1209,7 +1194,7 @@ body .panel.panel--paleta .cn-acceso[aria-pressed="true"] { border-color: var(--
 .cal-sala-detalle__proximas small { color: var(--pz-gris); font-size: 12px; font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   :is(.cal-barra, .cal-salas-dia li, .cal-sala-detalle, .ac-dia--elegido) { animation: none !important; }
-  :is(.ac-dia, .cal-sala-fila, .cal-evento):hover { transform: none !important; }
+  :is(.ac-dia, .cal-sala-fila):hover { transform: none !important; }
 }
 
 /* Resultado de una acción (cuenta suspendida, permisos guardados) */
@@ -1340,3 +1325,191 @@ a.pz-apartado, a.pz-apartado:hover { color: inherit; text-decoration: none; }
 /* Etiqueta que es enlace (Mi cuenta › Lo que puedes hacer): lleva a esa pantalla; al pasar el mouse, se rellena del color principal */
 a.pz-etiqueta--enlace { color: inherit; text-decoration: none; transition: border-color 0.2s ease, background-color 0.2s ease; }
 a.pz-etiqueta--enlace:hover { background: var(--pz-primario); color: #fff; }
+
+/* ---------- Segunda vuelta del 22 nov 2026 (Aldahir, perfil de responsable) ---------- */
+/* Visitas › La próxima visita: bloque de fecha, grupo y folio, chip; datos en un renglón de tres columnas */
+.vis-proxima { display: flex; flex-direction: column; gap: 12px; }
+.vis-proxima__cabeza { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.vis-proxima__textos { min-width: 0; }
+.vis-proxima__grupo { overflow: hidden; margin: 0; color: var(--pz-texto); font-size: 15px; font-weight: 800; line-height: 20px; text-overflow: ellipsis; white-space: nowrap; }
+.vis-proxima__folio { margin: 2px 0 0; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.vis-proxima__cabeza > .pz-chip { width: auto; }
+.vis-proxima__datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; }
+.vis-proxima__datos > div { min-width: 0; padding: 8px 10px; border-radius: 12px; background: var(--pz-fondo); }
+.vis-proxima__datos dt { display: flex; align-items: center; gap: 4px; color: var(--pz-gris); font-size: 11.5px; font-weight: 700; }
+.vis-proxima__datos dt svg { width: 13px; height: 13px; }
+.vis-proxima__datos dd { overflow: hidden; margin: 2px 0 0; color: var(--pz-texto); font-size: 14px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.vis-proxima__boton { align-self: stretch; justify-content: center; }
+/* Los próximos 7 días: día, número y, si hay visitas, su cantidad en un círculo */
+.vis-semana__dia { gap: 3px; padding: 8px 2px; }
+.vis-semana__dia small { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; font-size: 11px; line-height: 1; }
+.vis-semana__dia--ocupado small { background: var(--pz-primario); color: #fff; }
+
+/* Resumen › Actividades de hoy, simple (Aldahir, 22 nov: «es un resumen»): un renglón por actividad con la hora,
+   un punto del color de su estado y el nombre; la que está ahora se resalta, las que pasaron se apagan.
+   El detalle (sala, cupo, pasar lista) está en el Calendario y en Asistencia. */
+.pz-hoy-simple { display: flex; flex: 1 1 auto; flex-direction: column; gap: 2px; min-height: 0; margin: 0; padding: 8px 0 0; overflow-y: auto; list-style: none; scrollbar-width: thin; }
+.pz-hoy-simple__item { display: grid; grid-template-columns: 44px 8px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 12px; animation: pz-entra 0.35s ease-out backwards; }
+.pz-hoy-simple__item + .pz-hoy-simple__item { border-top: 1px solid var(--pz-borde); border-radius: 0; }
+.pz-hoy-simple__hora { color: var(--pz-gris); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pz-hoy-simple__punto { width: 8px; height: 8px; border-radius: 999px; background: var(--pz-borde); }
+.pz-hoy-simple__punto--verde { background: var(--pz-primario); }
+.pz-hoy-simple__punto--dorado { background: #c9a24a; }
+.pz-hoy-simple__punto--guinda { background: var(--pz-urgente); }
+.pz-hoy-simple__titulo { overflow: hidden; color: var(--pz-texto); font-size: 14px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.pz-hoy-simple__marca { padding: 2px 9px; border-radius: 999px; background: var(--pz-primario); color: #fff; font-size: 11.5px; font-weight: 800; }
+.pz-hoy-simple__estado { color: var(--pz-urgente); font-size: 12px; font-weight: 700; }
+.pz-hoy-simple__item--ahora { border: 0 !important; border-radius: 12px !important; background: var(--pz-claro-2); }
+.pz-hoy-simple__item--ahora .pz-hoy-simple__hora { color: var(--pz-primario); }
+.pz-hoy-simple__item--pasada { opacity: 0.55; }
+.pz-hoy-simple__item--cancelada .pz-hoy-simple__titulo { color: var(--pz-gris); text-decoration: line-through; }
+@media (prefers-reduced-motion: reduce) { .pz-hoy-simple__item { animation: none; } }
+/* Mi cuenta › Lo que puedes hacer en el panel: un renglón por módulo, todos del mismo ancho;
+   a la izquierda el módulo con su avance y a la derecha sus pantallas como enlaces */
+.pz-puede { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pz-puede__modulo { display: grid; grid-template-columns: 230px minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 14px; border: 1px solid var(--pz-borde); border-radius: 16px; background: var(--pz-fondo); animation: pz-entra 0.35s ease-out backwards; }
+.pz-puede__cabeza { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pz-puede__icono { display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 999px; background: var(--pz-claro); color: var(--pz-primario); }
+.pz-puede__icono svg { width: 18px; height: 18px; }
+.pz-puede__textos { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; }
+.pz-puede__nombre { margin: 0; color: var(--pz-texto); font-size: 14.5px; font-weight: 800; }
+.pz-puede__cuenta { margin: 0; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.pz-puede__enlaces { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 16px; border-left: 1px solid var(--pz-borde); }
+.pz-puede__modulo:nth-child(2) { animation-delay: 40ms; } .pz-puede__modulo:nth-child(3) { animation-delay: 80ms; } .pz-puede__modulo:nth-child(n + 4) { animation-delay: 120ms; }
+@media (prefers-reduced-motion: reduce) { .pz-puede__modulo { animation: none; } }
+/* Lateral de las listas: solo la tarjeta que tiene lista propia (`pz-tarjeta--actividades`) se encoge y se desplaza por dentro;
+   las demás (próxima visita, Solo en desarrollo, plegables) conservan su alto y nada queda cortado */
+.pz-columnas > .pz-lateral { overflow-y: auto; scrollbar-width: thin; }
+.pz-columnas > .pz-lateral > :not(.pz-tarjeta--actividades) { flex-shrink: 0; }
+.pz-columnas > .pz-lateral > .pz-tarjeta--actividades { min-height: 220px; }
+/* Cambios › Solo en desarrollo: tarjeta compacta con borde punteado, título chico y los dos botones en una fila */
+.ac-desarrollo { gap: 10px; padding: 14px 16px; border-style: dashed; background: var(--pz-fondo); }
+.ac-desarrollo::before { display: none; }
+.ac-desarrollo__cabecera { display: flex; align-items: flex-start; gap: 10px; }
+.ac-desarrollo__insignia { display: grid; flex: none; place-items: center; width: 30px; height: 30px; border-radius: 999px; background: var(--pz-tono); color: var(--pz-tono-texto); }
+.ac-desarrollo__insignia svg { width: 16px; height: 16px; }
+.ac-desarrollo h3 { margin: 0; color: var(--pz-texto); font-size: 14px; font-weight: 800; }
+.ac-desarrollo p { margin: 2px 0 0; color: var(--pz-gris); font-size: 12.5px; line-height: 17px; }
+.ac-desarrollo .pz-acciones--fila { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ac-desarrollo .pz-acciones--fila .pz-boton { justify-content: center; min-width: 0; padding-inline: 8px; white-space: nowrap; font-size: 12.5px; }
+/* Cambios › detalle: antes y después lado a lado; en «después» lo que cambia va en verde; la cancelación en guinda */
+.cb-comparar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 12px; }
+.cb-lado { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 1px solid var(--pz-borde); border-radius: 16px; background: var(--pz-fondo); animation: pz-entra 0.35s ease-out backwards; }
+.cb-lado--despues { border-color: var(--pz-primario); background: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); animation-delay: 80ms; }
+.cb-lado--cancelada { border-color: var(--pz-urgente); background: var(--pz-urgente-claro); animation-delay: 80ms; }
+.cb-lado__titulo { margin: 0; color: var(--pz-gris); font-size: 12.5px; font-weight: 800; }
+.cb-lado__datos { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+.cb-lado__datos > div { display: grid; grid-template-columns: 80px minmax(0, 1fr); align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; }
+.cb-lado__datos dt { display: flex; align-items: center; gap: 6px; color: var(--pz-gris); font-size: 12.5px; font-weight: 700; }
+.cb-lado__datos dt svg { width: 14px; height: 14px; }
+.cb-lado__datos dd { margin: 0; color: var(--pz-texto); font-size: 14px; font-weight: 800; }
+.cb-lado--antes .cb-lado__datos dd { color: var(--pz-gris); }
+.cb-cambia { background: var(--pz-claro-2); }
+.cb-cambia dd { color: var(--pz-primario) !important; }
+.cb-comparar__paso { align-self: center; padding: 4px 10px; border-radius: 999px; background: var(--pz-tono); color: var(--pz-tono-texto); font-size: 12px; font-weight: 800; }
+.cb-lado__cancelada { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--pz-urgente); font-size: 18px; font-weight: 800; }
+.cb-lado__cancelada svg { width: 20px; height: 20px; }
+.cb-lado__nota { margin: 0; color: var(--pz-texto); font-size: 13px; }
+.cb-error { margin: 0; color: var(--pz-urgente); font-size: 12.5px; font-weight: 700; }
+.cb-ver-historial { align-self: stretch; justify-content: center; margin-top: 10px; }
+.pz-decision textarea { width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid #b9c4cd; border-radius: 12px; background: #fff; color: var(--pz-texto); font-family: inherit; font-size: 14px; resize: vertical; }
+.pz-decision textarea:focus { border-color: var(--pz-primario); outline: none; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+@media (prefers-reduced-motion: reduce) { .cb-lado { animation: none; } }
+/* Inscripciones › bandeja: columnas fijas (fecha, actividad en dos renglones, cupo, estado, acción); toda fila lleva su
+   chip (Abierta o Cerrada al registro, Realizada, Cancelada), así las filas quedan simétricas */
+.ins-fila { grid-template-columns: 52px minmax(0, 1fr) 112px 108px 112px; }
+.ins-fila .ins-cupo { min-width: 0; }
+.ins-fila > .pz-chip { width: 108px; }
+.ins-fila > .pz-boton, .ins-fila > a.pz-boton { width: 112px; min-width: 0; }
+.ins-fila .pz-fila__titulo { display: -webkit-box; overflow: hidden; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ins-fila .pz-fila__detalle span:first-child { display: inline-block; }
+.ins-fila .pz-fila__detalle span:first-child::first-letter { text-transform: uppercase; }
+/* Se están llenando: tarjeta que se abre, con el título, el porcentaje en pastilla, la fecha y la barra con lugares */
+.ins-llenas li { padding: 0; border: 0; background: none; }
+.ins-llena { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); color: inherit; text-decoration: none; transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.ins-llena:hover { border-color: var(--pz-primario); background: #fff; box-shadow: 0 6px 14px rgba(34, 50, 63, 0.08); transform: translateY(-2px); }
+.ins-llena__cabeza { display: flex; align-items: center; gap: 8px; }
+.ins-llena__titulo { flex: 1; overflow: hidden; color: var(--pz-texto); font-size: 14px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.ins-llena__pct { flex: none; padding: 2px 8px; border-radius: 999px; background: var(--pz-claro-2); color: var(--pz-primario); font-size: 12px; font-weight: 800; }
+.ins-llena__pct--dorado { background: var(--pz-tono); color: var(--pz-tono-texto); }
+.ins-llena__pct--guinda { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+.ins-llena__fecha { display: block; color: var(--pz-gris); font-size: 12px; }
+.ins-llena__fecha::first-letter { text-transform: uppercase; }
+.ins-llena .pz-ocupacion { margin: 0; background: #fff; }
+.ins-llena__pie { display: flex; justify-content: space-between; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.ins-llena__pie strong { color: var(--pz-texto); }
+@media (prefers-reduced-motion: reduce) { .ins-llena, .ins-llena:hover { transition: none; transform: none; } }
+/* Asistencia: la actividad cancelada no tiene lista; su lugar mide lo mismo que el botón para que la fila no se descuadre */
+.pz-fila > .as-sin-lista { justify-self: end; width: 108px; color: var(--pz-gris); font-size: 12.5px; font-weight: 700; text-align: center; }
+/* Pasar lista: columnas fijas (número, persona, marca, corregir) */
+.as-fila { grid-template-columns: 40px minmax(0, 1fr) 200px 108px; }
+.as-fila > .pz-chip { justify-self: center; }
+/* Evidencias › lateral: tres mosaicos por tipo (ícono, número y nombre) que filtran la lista, y quién puede verlas */
+.ev-tipos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ev-tipo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); color: var(--pz-gris); font: inherit; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease; }
+.ev-tipo:hover { border-color: var(--pz-primario); background: #fff; transform: translateY(-2px); }
+.ev-tipo__icono { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; background: var(--pz-claro); color: var(--pz-primario); }
+.ev-tipo__icono svg { width: 17px; height: 17px; }
+.ev-tipo strong { color: var(--pz-texto); font-size: 20px; line-height: 1; }
+.ev-tipo > span:last-child { font-size: 12px; font-weight: 700; text-align: center; }
+.ev-tipo--activo { border-color: var(--pz-primario); background: var(--pz-primario); color: #fff; animation: pz-pulso 0.25s ease-out; }
+.ev-tipo--activo strong { color: #fff; }
+.ev-tipo--activo .ev-tipo__icono { background: rgba(255, 255, 255, 0.18); color: #fff; }
+.ev-accesos { display: flex; flex-direction: column; gap: 6px; margin: 0 0 10px; padding: 0; list-style: none; }
+.ev-acceso { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 12px; background: var(--pz-fondo); color: var(--pz-texto); font: inherit; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; transition: border-color 0.2s ease, transform 0.2s ease; }
+.ev-acceso:hover { border-color: var(--pz-primario); transform: translateY(-2px); }
+.ev-acceso strong { display: grid; place-items: center; min-width: 26px; height: 26px; border-radius: 999px; background: var(--pz-claro-2); color: var(--pz-primario); font-size: 13px; }
+.ev-acceso--activo { border-color: var(--pz-primario); background: #fff; box-shadow: 0 0 0 3px var(--pz-claro-2); }
+@media (prefers-reduced-motion: reduce) { .ev-tipo, .ev-tipo:hover, .ev-acceso, .ev-acceso:hover { transition: none; transform: none; animation: none; } }
+/* Progreso y recompensas: columnas fijas en todas sus vistas (ícono o avatar, texto, avance, estado, acción) */
+.pr-fila { grid-template-columns: 40px minmax(0, 1fr) 104px 120px 96px; }
+.pr-fila--meta { grid-template-columns: 40px minmax(0, 1fr) 120px 96px; }
+.pr-fila--entrega { grid-template-columns: 52px minmax(0, 1fr) 120px; }
+.pr-fila .ins-cupo { min-width: 0; }
+.pr-fila > .pz-chip { width: 120px; }
+.pr-fila > .pz-boton, .pr-fila > a.pz-boton { width: 96px; }
+/* Por entregar: una tarjeta por persona (avatar, nombre, folio y credencial), su recompensa y su meta en fichas, y el botón */
+.pr-entregar { display: flex; flex: 1 1 auto; flex-direction: column; gap: 10px; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; scrollbar-width: thin; }
+.pr-entregar__item { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--pz-borde); border-radius: 16px; background: var(--pz-fondo); animation: pz-entra 0.35s ease-out backwards; }
+.pr-entregar__persona { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pr-entregar__textos { min-width: 0; }
+.pr-entregar__nombre { overflow: hidden; margin: 0; color: var(--pz-texto); font-size: 14.5px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.pr-entregar__folio { margin: 1px 0 0; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.pr-entregar__datos { display: grid; gap: 6px; margin: 0; }
+.pr-entregar__datos > div { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: #fff; }
+.pr-entregar__datos dt { display: flex; align-items: center; gap: 6px; color: var(--pz-gris); font-size: 12px; font-weight: 700; }
+.pr-entregar__datos dt svg { width: 14px; height: 14px; }
+.pr-entregar__datos dd { overflow: hidden; margin: 0; color: var(--pz-texto); font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.pr-entregar__boton { justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .pr-entregar__item { animation: none; } }
+/* Barra de vistas + buscador: el buscador toma todo lo que queda de la fila (si baja de renglón, ocupa todo el ancho) */
+.cal-barra__fila .pz-buscador { flex: 1 1 360px; min-width: 0; }
+.cal-barra__fila > .pz-segmentado { flex: none; }
+/* Detalle de Atención (lateral pegajoso con alto máximo): sus tarjetas no se encogen, el lateral se desplaza por dentro */
+.tr-lateral > * { flex-shrink: 0; }
+/* Solicitudes de espacios: fila compacta (fecha de uso | nombre y tipo, datos con ícono, espera | estado | acción) */
+.ba-compacta { grid-template-columns: 52px minmax(0, 1fr) 124px 108px; }
+.ba-compacta__cabeza { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; }
+.ba-compacta__cabeza .pz-fila__titulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ba-compacta__tipo { flex: none; padding: 1px 8px; border-radius: 999px; background: var(--pz-claro); color: var(--pz-primario); font-size: 11.5px; font-weight: 700; }
+.ba-compacta__datos { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 3px 0 0; padding: 0; list-style: none; color: var(--pz-gris); font-size: 12.5px; }
+.ba-compacta__datos li { display: inline-flex; align-items: center; gap: 4px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ba-compacta__datos svg { flex: none; width: 13px; height: 13px; }
+.ba-compacta__espera { margin: 4px 0 0; color: var(--pz-tono-texto); font-size: 12px; font-weight: 700; }
+.ba-compacta__espera--larga { color: var(--pz-urgente); }
+.ba-compacta > .pz-chip { width: 124px; }
+/* Atención › Llevan más tiempo esperando: tarjeta que se abre con inicial, nombre, folio y los días en espera */
+.at-espera { display: flex; flex: 1 1 auto; flex-direction: column; gap: 8px; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; scrollbar-width: thin; }
+.at-espera > li { animation: pz-entra 0.35s ease-out backwards; }
+.at-espera > li:nth-child(2) { animation-delay: 40ms; } .at-espera > li:nth-child(3) { animation-delay: 80ms; } .at-espera > li:nth-child(n + 4) { animation-delay: 120ms; }
+.at-espera__item { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--pz-borde); border-radius: 14px; background: var(--pz-fondo); color: inherit; text-decoration: none; transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.at-espera__item:hover { border-color: var(--pz-primario); background: #fff; box-shadow: 0 6px 14px rgba(34, 50, 63, 0.08); transform: translateY(-2px); }
+.at-espera__inicial { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--pz-claro); color: var(--pz-primario); font-size: 15px; font-weight: 800; }
+.at-espera__textos { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.at-espera__titulo { overflow: hidden; color: var(--pz-texto); font-size: 14px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.at-espera__detalle { overflow: hidden; color: var(--pz-gris); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.at-espera__dias { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 46px; height: 42px; padding: 0 6px; border-radius: 12px; background: var(--pz-tono); color: var(--pz-tono-texto); line-height: 1; }
+.at-espera__dias strong { font-size: 16px; }
+.at-espera__dias small { margin-top: 2px; font-size: 10.5px; font-weight: 700; }
+.at-espera__dias--larga { background: var(--pz-urgente-claro); color: var(--pz-urgente); }
+@media (prefers-reduced-motion: reduce) { .at-espera > li, .at-espera__item, .at-espera__item:hover { animation: none; transition: none; transform: none; } }
