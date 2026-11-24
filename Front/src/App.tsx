@@ -404,6 +404,8 @@ function App() {
         <Route path="/admin/participantes/progreso/:folio" element={<AccesoPanel><FichaParticipante /></AccesoPanel>} />
         <Route path="/admin/participantes/progreso/:folio/entregada" element={<AccesoPanel><ResultadoParticipante tipo="entregada" /></AccesoPanel>} />
         <Route path="/admin/participantes/progreso/:folio/ajustado" element={<AccesoPanel><ResultadoParticipante tipo="ajustado" /></AccesoPanel>} />
+        <Route path="/admin/participantes/progreso/:folio/asignada" element={<AccesoPanel><ResultadoParticipante tipo="asignada" /></AccesoPanel>} />
+        <Route path="/admin/participantes/progreso/:folio/cancelada" element={<AccesoPanel><ResultadoParticipante tipo="cancelada" /></AccesoPanel>} />
         {/* Panel · Participantes: Cotejo de credenciales */}
         <Route path="/admin/participantes/cotejo" element={<AccesoPanel><Cotejo /></AccesoPanel>} />
         <Route path="/admin/participantes/cotejo/:folio" element={<AccesoPanel><DetalleCotejo /></AccesoPanel>} />

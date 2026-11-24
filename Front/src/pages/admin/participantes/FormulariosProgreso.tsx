@@ -1,15 +1,16 @@
-import { useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router";
 import PanelLayout from "../PanelLayout";
 import "../contenidos/Contenidos.css";
 import "../actividades/EditorActividades.css";
 import "../contenidoDemo/Contenidos.css";
 import { CampoTexto, Chip, Encabezado, EncabezadoTarjeta, Migas, Pagina, PieDatos, Resultado, Tarjeta } from "../contenidoDemo/piezas";
 import { clasesBoton } from "../contenidoDemo/utiles";
-import {
-    guardarMeta, guardarRecompensa, obtenerMeta, obtenerRecompensa, PLAZOS, useProgreso, validarMeta, validarRecompensa,
-    type DatosMeta, type DatosRecompensa, type Meta, type Recompensa, type TipoRecompensa,
-} from "./progreso";
+import { Aviso, Vacio } from "../piezasPanel";
+import { fechaCorta } from "../actividades/datos";
+import { mensajeError } from "../../../servicios/api";
+import { crearRecompensa, editarRecompensa, listarRecompensas, NIVELES, nombreNivel, type Recompensa } from "../../../servicios/progreso";
+import { aDatos, diaDe, validarRecompensa, type FormularioRecompensa as Formulario } from "./progreso";
 import { BASE_PROGRESO } from "./utiles";
 import iconoLapiz from "../../../assets/admin/contenidos/tarjeta-lapiz.svg";
 import iconoCheck from "../../../assets/admin/contenidos/resultado-check.svg";
@@ -17,121 +18,108 @@ import iconoCheck from "../../../assets/admin/contenidos/resultado-check.svg";
 const REGLAS = `${BASE_PROGRESO}?vista=reglas`;
 const CATALOGO = `${BASE_PROGRESO}?vista=recompensas`;
 
-// Reglas · nueva o editar meta (Figma 572:29502) y meta con campos faltantes (572:29955)
+// Las metas ahora son los niveles fijos del documento (D-11): ya no se editan.
 export function FormularioMeta() {
-    const { id } = useParams();
-    useProgreso();
-    const meta = id && id !== "nueva" ? obtenerMeta(id) : undefined;
-    if (id && id !== "nueva" && !meta) return <Navigate to={REGLAS} replace />;
-    return <FormMeta key={meta?.id ?? "nueva"} meta={meta} />;
-}
-
-function FormMeta({ meta }: { meta?: Meta }) {
-    const navigate = useNavigate();
-    const { recompensas } = useProgreso();
-    const [d, setD] = useState<DatosMeta>({
-        nombre: meta?.nombre ?? "", estado: meta?.estado ?? "borrador", necesarias: meta ? String(meta.necesarias) : "", plazo: meta?.plazo ?? "2 meses",
-        puntos: meta ? String(meta.puntos) : "30", recompensa: meta?.recompensa ?? "", descripcion: meta?.descripcion ?? "",
-    });
-    const [errores, setErrores] = useState<Record<string, string>>({});
-    const cambiar = <K extends keyof DatosMeta>(c: K, v: DatosMeta[K]) => { setD((x) => ({ ...x, [c]: v })); setErrores((e) => ({ ...e, [c]: "" })); };
-    const faltan = Object.values(errores).some(Boolean);
-
-    function guardar() {
-        const e = validarMeta(d);
-        setErrores(e);
-        if (Object.keys(e).length) return requestAnimationFrame(() => document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
-        const nuevo = guardarMeta(d, meta?.id);
-        navigate(`${BASE_PROGRESO}/metas/${nuevo}/guardada`);
-    }
-    const props = (c: keyof DatosMeta) => ({ id: `mt-${c}`, className: `cn-control ${errores[c] ? "cn-control--error" : ""}`, "aria-invalid": !!errores[c], "aria-describedby": errores[c] ? `mt-${c}-error` : undefined });
-
-    return (
-        <PanelLayout titulo="Participantes" tema="contenidos paleta">
-            <Pagina>
-                <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], [faltan ? "Meta con campos faltantes" : meta ? "Editar meta" : "Nueva meta"]]} />
-                <EncabezadoTarjeta volver={{ texto: "Volver a Reglas de progreso", ruta: REGLAS }} etiqueta="Reglas de progreso" titulo={meta ? "Editar meta" : "Nueva meta"} texto="Los cambios aplican a partir de hoy; el avance anterior se respeta." />
-                <Tarjeta icono={iconoLapiz} titulo="Datos de la meta">
-                    <div className="cn-campos">
-                        <div className="cn-campos__fila">
-                            <CampoTexto id="mt-nombre" etiqueta="Nombre de la meta" obligatorio error={errores.nombre}><input {...props("nombre")} value={d.nombre} onChange={(e) => cambiar("nombre", e.target.value)} /></CampoTexto>
-                            <CampoTexto id="mt-estado" etiqueta="Estado"><select id="mt-estado" className="cn-control" value={d.estado} onChange={(e) => cambiar("estado", e.target.value as Meta["estado"])}><option value="activa">Activa</option><option value="borrador">Borrador</option></select></CampoTexto>
-                        </div>
-                        <div className="cn-campos__fila">
-                            <CampoTexto id="mt-necesarias" etiqueta="Actividades necesarias" obligatorio error={errores.necesarias}><input inputMode="numeric" {...props("necesarias")} value={d.necesarias} onChange={(e) => cambiar("necesarias", e.target.value.replace(/\D/g, ""))} /></CampoTexto>
-                            <CampoTexto id="mt-plazo" etiqueta="Plazo" obligatorio error={errores.plazo}><select {...props("plazo")} value={d.plazo} onChange={(e) => cambiar("plazo", e.target.value)}>{PLAZOS.map((x) => <option key={x}>{x}</option>)}</select></CampoTexto>
-                        </div>
-                        <div className="cn-campos__fila">
-                            <CampoTexto id="mt-puntos" etiqueta="Puntos por actividad" obligatorio error={errores.puntos}><input inputMode="numeric" {...props("puntos")} value={d.puntos} onChange={(e) => cambiar("puntos", e.target.value.replace(/\D/g, ""))} /></CampoTexto>
-                            <CampoTexto id="mt-recompensa" etiqueta="Recompensa" obligatorio error={errores.recompensa}>
-                                <select {...props("recompensa")} value={d.recompensa} onChange={(e) => cambiar("recompensa", e.target.value)}>
-                                    <option value="">Elige una recompensa</option>
-                                    {recompensas.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-                                </select>
-                            </CampoTexto>
-                        </div>
-                        <CampoTexto id="mt-descripcion" etiqueta="Descripción para el público">
-                            <textarea id="mt-descripcion" className="cn-control cn-control--area" value={d.descripcion} onChange={(e) => cambiar("descripcion", e.target.value)} />
-                        </CampoTexto>
-                    </div>
-                </Tarjeta>
-                <div className="cn-acciones">
-                    <button type="button" className={clasesBoton("verde")} onClick={guardar}>Guardar meta</button>
-                    <Link to={REGLAS} className={clasesBoton("suave")}>Cancelar</Link>
-                </div>
-                <PieDatos />
-            </Pagina>
-        </PanelLayout>
-    );
+    return <Navigate to={REGLAS} replace />;
 }
 
 // Recompensas · nueva o editar recompensa (Figma 637:50802)
 export function FormularioRecompensa() {
     const { id } = useParams();
-    useProgreso();
-    const r = id && id !== "nueva" ? obtenerRecompensa(id) : undefined;
-    if (id && id !== "nueva" && !r) return <Navigate to={CATALOGO} replace />;
-    return <FormRecompensa key={r?.id ?? "nueva"} recompensa={r} />;
+    const nueva = !id || id === "nueva";
+    const [resultado, setResultado] = useState<{ id?: string; recompensa?: Recompensa | null; error?: string }>();
+    useEffect(() => {
+        if (nueva) return;
+        let vigente = true;
+        listarRecompensas().then((lista) => { if (vigente) setResultado({ id, recompensa: lista.find((r) => r.id === id) ?? null }); })
+            .catch((error) => { if (vigente) setResultado({ id, error: mensajeError(error) }); });
+        return () => { vigente = false; };
+    }, [id, nueva]);
+    if (nueva) return <FormRecompensa key="nueva" />;
+    const actual = resultado?.id === id ? resultado : undefined;
+    if (actual?.recompensa === null) return <Navigate to={CATALOGO} replace />;
+    if (!actual?.recompensa) {
+        return (
+            <PanelLayout titulo="Participantes" tema="contenidos paleta">
+                <Pagina>
+                    <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], ["Editar recompensa"]]} />
+                    {actual?.error ? <Vacio icono="alerta" titulo="No pudimos cargar la recompensa" texto={actual.error} accion={<Link to={CATALOGO} className="pz-boton pz-boton--chico">Volver</Link>} />
+                        : <Vacio icono="reloj" titulo="Cargando recompensa…" texto="Esto tarda unos segundos." />}
+                </Pagina>
+            </PanelLayout>
+        );
+    }
+    return <FormRecompensa key={actual.recompensa.id} recompensa={actual.recompensa} />;
 }
 
 function FormRecompensa({ recompensa }: { recompensa?: Recompensa }) {
     const navigate = useNavigate();
-    const [d, setD] = useState<DatosRecompensa>({ nombre: recompensa?.nombre ?? "", tipo: recompensa?.tipo ?? "Insignia", existencias: recompensa?.existencias == null ? "" : String(recompensa.existencias), sinLimite: recompensa ? recompensa.existencias === null : false });
+    const hoy = diaDe(new Date().toISOString());
+    const [d, setD] = useState<Formulario>({
+        nombre: recompensa?.nombre ?? "", descripcion: recompensa?.descripcion ?? "", nivelRequerido: String(recompensa?.nivelRequerido ?? 1),
+        existencias: recompensa ? String(recompensa.existencias) : "", inicio: recompensa ? diaDe(recompensa.vigenciaInicio) : hoy,
+        fin: recompensa ? diaDe(recompensa.vigenciaFin) : "", estado: recompensa ? (recompensa.estado === "agotada" ? "activa" : recompensa.estado) : "activa",
+    });
     const [errores, setErrores] = useState<Record<string, string>>({});
-    const cambiar = <K extends keyof DatosRecompensa>(c: K, v: DatosRecompensa[K]) => { setD((x) => ({ ...x, [c]: v })); setErrores((e) => ({ ...e, [c]: "" })); };
+    const [fallo, setFallo] = useState("");
+    const [ocupado, setOcupado] = useState(false);
+    const cambiar = <K extends keyof Formulario>(c: K, v: Formulario[K]) => { setD((x) => ({ ...x, [c]: v })); setErrores((e) => ({ ...e, [c]: "" })); };
+    const props = (c: keyof Formulario) => ({ id: `rc-${c}`, className: `cn-control ${errores[c] ? "cn-control--error" : ""}`, "aria-invalid": !!errores[c], "aria-describedby": errores[c] ? `rc-${c}-error` : undefined });
 
-    function guardar() {
+    async function guardar() {
         const e = validarRecompensa(d);
         setErrores(e);
-        if (Object.keys(e).length) return;
-        const nuevo = guardarRecompensa(d, recompensa?.id);
-        navigate(`${BASE_PROGRESO}/recompensas/${nuevo}/guardada`);
+        if (Object.keys(e).length) return requestAnimationFrame(() => document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
+        setOcupado(true); setFallo("");
+        try {
+            const r = recompensa ? await editarRecompensa(recompensa.id, aDatos(d), recompensa.actualizadoEn) : await crearRecompensa(aDatos(d));
+            navigate(`${BASE_PROGRESO}/recompensas/${r.id}/guardada`, { state: r });
+        } catch (error) {
+            setFallo(mensajeError(error));
+        } finally { setOcupado(false); }
     }
 
     return (
         <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
                 <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], [recompensa ? "Editar recompensa" : "Nueva recompensa"]]} />
-                <EncabezadoTarjeta volver={{ texto: "Volver a Recompensas", ruta: CATALOGO }} etiqueta="Recompensas" titulo={recompensa ? "Editar recompensa" : "Nueva recompensa"} texto="Las existencias se descuentan solas en cada entrega." />
+                <EncabezadoTarjeta volver={{ texto: "Volver a Recompensas", ruta: CATALOGO }} etiqueta="Recompensas" titulo={recompensa ? "Editar recompensa" : "Nueva recompensa"}
+                    texto="Cada asignación aparta una pieza de las existencias; cancelarla la devuelve. No se canjea sola al llegar al nivel." />
                 <Tarjeta icono={iconoLapiz} titulo="Datos de la recompensa">
-                    <div className="cn-campos">
-                        <div className="cn-campos__fila">
-                            <CampoTexto id="rc-nombre" etiqueta="Nombre" obligatorio error={errores.nombre}><input id="rc-nombre" className={`cn-control ${errores.nombre ? "cn-control--error" : ""}`} value={d.nombre} onChange={(e) => cambiar("nombre", e.target.value)} aria-invalid={!!errores.nombre} /></CampoTexto>
-                            <CampoTexto id="rc-tipo" etiqueta="Tipo" obligatorio><select id="rc-tipo" className="cn-control" value={d.tipo} onChange={(e) => cambiar("tipo", e.target.value as TipoRecompensa)}><option>Insignia</option><option>Documento</option></select></CampoTexto>
-                        </div>
-                        <div className="cn-campos__fila">
-                            <CampoTexto id="rc-existencias" etiqueta="Existencias" obligatorio={!d.sinLimite} error={errores.existencias} ayuda={recompensa ? `Entregadas hasta hoy: ${recompensa.entregadas}.` : undefined}>
-                                <input id="rc-existencias" inputMode="numeric" disabled={d.sinLimite} className={`cn-control ${errores.existencias ? "cn-control--error" : ""}`} value={d.sinLimite ? "" : d.existencias} onChange={(e) => cambiar("existencias", e.target.value.replace(/\D/g, ""))} aria-invalid={!!errores.existencias} />
+                    <fieldset disabled={ocupado} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
+                        <div className="cn-campos">
+                            <div className="cn-campos__fila">
+                                <CampoTexto id="rc-nombre" etiqueta="Nombre" obligatorio error={errores.nombre}><input {...props("nombre")} maxLength={150} value={d.nombre} onChange={(e) => cambiar("nombre", e.target.value)} /></CampoTexto>
+                                <CampoTexto id="rc-estado" etiqueta="Estado">
+                                    <select id="rc-estado" className="cn-control" value={d.estado} onChange={(e) => cambiar("estado", e.target.value as Formulario["estado"])}>
+                                        <option value="activa">Activa</option><option value="inactiva">Inactiva</option><option value="archivada">Archivada</option>
+                                    </select>
+                                </CampoTexto>
+                            </div>
+                            <div className="cn-campos__fila">
+                                <CampoTexto id="rc-nivelRequerido" etiqueta="Nivel que pide" obligatorio>
+                                    <select {...props("nivelRequerido")} value={d.nivelRequerido} onChange={(e) => cambiar("nivelRequerido", e.target.value)}>
+                                        {NIVELES.map((n) => <option key={n.nivel} value={n.nivel}>{n.nombre} ({n.desde}{n.hasta === null ? " o más" : ` a ${n.hasta}`})</option>)}
+                                    </select>
+                                </CampoTexto>
+                                <CampoTexto id="rc-existencias" etiqueta="Existencias" obligatorio error={errores.existencias}
+                                    ayuda={recompensa ? `Entregadas: ${recompensa.entregadas}. Apartadas por entregar: ${recompensa.asignadas}.` : undefined}>
+                                    <input inputMode="numeric" {...props("existencias")} value={d.existencias} onChange={(e) => cambiar("existencias", e.target.value.replace(/\D/g, ""))} />
+                                </CampoTexto>
+                            </div>
+                            <div className="cn-campos__fila">
+                                <CampoTexto id="rc-inicio" etiqueta="Se entrega desde" obligatorio error={errores.inicio}><input type="date" {...props("inicio")} value={d.inicio} onChange={(e) => cambiar("inicio", e.target.value)} /></CampoTexto>
+                                <CampoTexto id="rc-fin" etiqueta="Hasta" obligatorio error={errores.fin}><input type="date" {...props("fin")} min={d.inicio || undefined} value={d.fin} onChange={(e) => cambiar("fin", e.target.value)} /></CampoTexto>
+                            </div>
+                            <CampoTexto id="rc-descripcion" etiqueta="Descripción">
+                                <textarea id="rc-descripcion" maxLength={1000} className="cn-control cn-control--area" value={d.descripcion} onChange={(e) => cambiar("descripcion", e.target.value)} />
                             </CampoTexto>
-                            <label className="cn-interruptor-campo">
-                                <span className="cn-casilla"><input type="checkbox" checked={d.sinLimite} onChange={(e) => cambiar("sinLimite", e.target.checked)} /><span aria-hidden="true" /></span>
-                                <span><strong>Sin límite</strong><small>Para documentos que se imprimen al entregar.</small></span>
-                            </label>
                         </div>
-                    </div>
+                    </fieldset>
                 </Tarjeta>
+                {fallo && <Aviso tono="error" titulo="No se guardó la recompensa." texto={fallo} />}
                 <div className="cn-acciones">
-                    <button type="button" className={clasesBoton("verde")} onClick={guardar}>Guardar recompensa</button>
+                    <button type="button" className={clasesBoton("verde")} disabled={ocupado} onClick={() => void guardar()}>{ocupado ? "Guardando…" : "Guardar recompensa"}</button>
                     <Link to={CATALOGO} className={clasesBoton("suave")}>Cancelar</Link>
                 </div>
                 <PieDatos />
@@ -140,27 +128,21 @@ function FormRecompensa({ recompensa }: { recompensa?: Recompensa }) {
     );
 }
 
-// Meta guardada (572:30410) y recompensa guardada (637:50990)
+// Recompensa guardada (637:50990). La meta guardada (572:30410) ya no aplica: los niveles son fijos.
 export function GuardadoProgreso({ tipo }: { tipo: "meta" | "recompensa" }) {
     const { id } = useParams();
-    useProgreso();
-    const meta = tipo === "meta" ? obtenerMeta(id) : undefined;
-    const r = tipo === "recompensa" ? obtenerRecompensa(id) : undefined;
-    if (!meta && !r) return <Navigate to={tipo === "meta" ? REGLAS : CATALOGO} replace />;
+    const r = useLocation().state as Recompensa | null;
+    if (tipo === "meta" || !r || r.id !== id) return <Navigate to={tipo === "meta" ? REGLAS : CATALOGO} replace />;
     return (
         <PanelLayout titulo="Participantes" tema="contenidos paleta">
             <Pagina>
-                <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], [meta ? "Meta guardada" : "Recompensa guardada"]]} />
-                <Encabezado grande etiqueta={meta ? "Reglas de progreso" : "Recompensas"} titulo={meta ? "Meta guardada" : "Recompensa guardada"} texto={meta ? "Los cambios aplican a partir de hoy." : "El catálogo ya muestra los datos nuevos."} />
-                <Resultado
-                    tono="verde"
-                    icono={iconoCheck}
-                    titulo={meta ? meta.nombre : r!.nombre}
-                    linea={meta ? `${meta.necesarias} actividades en ${meta.plazo} · ${meta.puntos} puntos por actividad` : `${r!.tipo} · ${r!.existencias === null ? "sin límite" : `${r!.existencias} en existencia`}`}
-                    chip={<Chip tono={meta && meta.estado === "borrador" ? "gris" : "verde"}>{meta ? (meta.estado === "activa" ? "Activa" : "Borrador") : "Guardada"}</Chip>}
-                />
+                <Migas pasos={[["Participantes"], ["Progreso y recompensas", BASE_PROGRESO], ["Recompensa guardada"]]} />
+                <Encabezado grande etiqueta="Recompensas" titulo="Recompensa guardada" texto="El catálogo ya muestra los datos nuevos." />
+                <Resultado tono="verde" icono={iconoCheck} titulo={r.nombre}
+                    linea={`Desde ${nombreNivel(r.nivelRequerido)} · ${r.existencias} en existencia · hasta el ${fechaCorta(diaDe(r.vigenciaFin))}`}
+                    chip={<Chip tono={r.estado === "activa" ? "verde" : "gris"}>{{ activa: "Activa", inactiva: "Inactiva", agotada: "Agotada", archivada: "Archivada" }[r.estado]}</Chip>} />
                 <div className="cn-acciones">
-                    <Link to={meta ? REGLAS : CATALOGO} className={clasesBoton("verde")}>{meta ? "Volver a Reglas de progreso" : "Volver a Recompensas"}</Link>
+                    <Link to={CATALOGO} className={clasesBoton("verde")}>Volver a Recompensas</Link>
                 </div>
                 <PieDatos />
             </Pagina>
