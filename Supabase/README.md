@@ -41,6 +41,8 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 26 | `asistencia_actividades.sql` | Presencia real por sesión y correcciones con historial. Requiere `agenda_actividades.sql` e `inscripciones_responsables.sql` | HU-20 / T-099 |
 | 27 | `cancelacion_inscripciones_cambio_actividad.sql` | Cancela inscripciones activas de sesiones canceladas por acuerdo institucional y registra su historial. Requiere `cambios_actividad.sql` | T-104 |
 | 28 | `progreso_recompensas.sql` | Progreso por participación (una por sesión con asistencia «presente» y credencial vigente ese día), niveles Inicial / Lector activo / Lector constante, ajustes con motivo, y recompensas: asignación con autorización de la Dirección, entrega y cancelación. Requiere `asistencia_actividades.sql` | HU-28 / HU-29 |
+| 29 | `credencial_al_atender.sql` | Al marcar como «atendida» una solicitud de credencial se registra la credencial validada (emisión el día del cotejo, vigencia de 2 años); corrige las solicitudes atendidas que se quedaron sin credencial. Requiere `atencion_credenciales_propuestas.sql` | HU-14 / HU-28 |
+| 30 | `insignias_progreso.sql` | Insignias del perfil: el resumen de progreso agrega participaciones válidas en clubes y talleres (curso cuenta como taller; categoría sin importar mayúsculas) y propuestas aprobadas. Requiere `progreso_recompensas.sql` | HU-28 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.

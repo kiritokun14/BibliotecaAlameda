@@ -21,7 +21,7 @@ export type Insignia = {
 export type DatosInsignias = {
     asistencias: number;
     clubes: number; // asistencias a clubes de lectura
-    talleres: number; // asistencias a talleres
+    talleres: number; // asistencias a talleres y cursos
     credencial: number; // 1 si tiene la credencial vigente
     propuestas: number; // propuestas de actividad aprobadas
 };
@@ -29,9 +29,9 @@ export type DatosInsignias = {
 export const INSIGNIAS: Insignia[] = [
     { id: "primer-paso", nombre: "Primer paso", descripcion: "Tu primera actividad en la biblioteca.", regla: "Asiste a 1 actividad.", dibujo: "semilla", color: "verde", meta: 1, medida: "asistencias" },
     { id: "credencial", nombre: "Lector con credencial", descripcion: "Ya eres parte de la biblioteca.", regla: "Ten tu credencial vigente.", dibujo: "credencial", color: "pizarra", meta: 1, medida: "credencial" },
-    { id: "lector-constante", nombre: "Lector constante", descripcion: "Vienes seguido a las actividades.", regla: "Asiste a 3 actividades.", dibujo: "libro", color: "verde", meta: 3, medida: "asistencias" },
+    { id: "lector-constante", nombre: "Lector frecuente", descripcion: "Vienes seguido a las actividades.", regla: "Asiste a 3 actividades.", dibujo: "libro", color: "verde", meta: 3, medida: "asistencias" },
     { id: "club", nombre: "Voz del club", descripcion: "Te gusta comentar lo que lees.", regla: "Asiste a 3 sesiones de un club de lectura.", dibujo: "pluma", color: "guinda", meta: 3, medida: "clubes" },
-    { id: "taller", nombre: "Manos creativas", descripcion: "Aprendes haciendo.", regla: "Asiste a 3 talleres.", dibujo: "manos", color: "dorado", meta: 3, medida: "talleres" },
+    { id: "taller", nombre: "Manos creativas", descripcion: "Aprendes haciendo.", regla: "Asiste a 3 talleres o cursos.", dibujo: "manos", color: "dorado", meta: 3, medida: "talleres" },
     { id: "explorador", nombre: "Explorador de la Alameda", descripcion: "Conoces bien la biblioteca.", regla: "Asiste a 6 actividades.", dibujo: "brujula", color: "dorado", meta: 6, medida: "asistencias" },
     { id: "comunidad", nombre: "Voz de la comunidad", descripcion: "Propusiste algo para todos.", regla: "Logra que aprueben 1 propuesta de actividad.", dibujo: "estrella", color: "guinda", meta: 1, medida: "propuestas" },
     { id: "asiduo", nombre: "Asiduo de la Alameda", descripcion: "La biblioteca es tu segunda casa.", regla: "Asiste a 12 actividades.", dibujo: "corona", color: "dorado", meta: 12, medida: "asistencias" },

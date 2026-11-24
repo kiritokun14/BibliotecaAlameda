@@ -16,7 +16,7 @@ import { separarAreas } from "../espacios/datos";
 import { HORARIO } from "../espacios/datosSesion";
 import PedirSesion from "../sesion/PedirSesion";
 import {
-    cancelarPropuestaSimulada, estadoDePropuesta, etapasPropuesta, guardarPropuestaSimulada, pasosPropuesta, pasosRutaPropuesta,
+    cancelarPropuestaSimulada, estadoDePropuesta, etapasPropuesta, propuestaPublicada, textoPublicada, guardarPropuestaSimulada, pasosPropuesta, pasosRutaPropuesta,
     propuestaDesdeSolicitud, propuestaSimulada, propuestaVacia, publicos, puedeCancelar, puedeEditar, rutasPropuesta,
     textosPropuesta, validarPropuesta, type DatosPropuesta, type ErroresPropuesta, type TipoPropuesta,
 } from "./datos";
@@ -315,6 +315,7 @@ export function DetallePropuesta() {
         return <PaginaPublica><PedirSesion titulo="Inicia sesión para ver tu propuesta" texto="El seguimiento de tus propuestas está en tu cuenta." /></PaginaPublica>;
     }
     const estado = s ? estadoDePropuesta(s) : "en_revision";
+    const publicada = !!s && propuestaPublicada(s);
     return (
         <PaginaPublica>
             <EncabezadoPublico icono={iconosSeccion.propuestas} etiqueta="Propuestas" titulo={<>Seguimiento de tu <span>propuesta</span></>}
@@ -328,8 +329,8 @@ export function DetallePropuesta() {
                             <div className="cred-principal">
                                 <EstadoPropuesta solicitud={s} aviso={aviso} alCambiar={() => setVersion((v) => v + 1)} />
                                 <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo avanza tu propuesta"
-                                    texto={estado === "aprobada" ? "Solo falta que la biblioteca la publique." : "Te avisaremos en tus notificaciones de cada cambio."}>
-                                    <RutaCredencial pasos={pasosRutaPropuesta} etapas={etapasPropuesta(estado)} />
+                                    texto={publicada ? "Listo: ya está publicada en la agenda." : estado === "aprobada" ? "Solo falta que la biblioteca la publique." : "Te avisaremos en tus notificaciones de cada cambio."}>
+                                    <RutaCredencial pasos={pasosRutaPropuesta} etapas={etapasPropuesta(estado, publicada)} />
                                 </TarjetaPerfil>
                             </div>
                             <div className="contacto-lateral pro-lateral">
@@ -355,7 +356,7 @@ export function DetallePropuesta() {
 // El estado: insignia con el tipo, chip, qué pasa, fichas Folio · Tipo · Enviada, avisos, observaciones y lo que se puede hacer
 function EstadoPropuesta({ solicitud: s, aviso, alCambiar }: { solicitud: SolicitudAtencion; aviso: Aviso; alCambiar: () => void }) {
     const estado = estadoDePropuesta(s);
-    const t = textosPropuesta[estado];
+    const t = propuestaPublicada(s) ? textoPublicada : textosPropuesta[estado];
     const editar = puedeEditar(estado, sesionSimulada);
     const enviadaEl = s.creadaEn ? new Date(s.creadaEn).toLocaleDateString("es-MX", { timeZone: "America/Mazatlan", day: "2-digit", month: "short", year: "numeric" }).replace(".", "") : "Por confirmar";
     const botonEditar = editar && <Link to={`/proponer/${encodeURIComponent(s.id)}/editar`} className="perfil-boton perfil-boton--chico">Editar propuesta</Link>;

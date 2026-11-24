@@ -41,6 +41,8 @@ export interface ResumenProgreso {
     asignadas: number;
     entregadas: number;
     ultimaParticipacion: string | null;
+    // Para las insignias del perfil: participaciones válidas en clubes y talleres, y propuestas aprobadas (paso 30).
+    insignias?: { clubes: number; talleres: number; propuestas: number };
 }
 
 export interface Participacion { sesionId: string; actividad: string; folio?: string; inicio: string; cuenta: boolean; razon: RazonParticipacion }

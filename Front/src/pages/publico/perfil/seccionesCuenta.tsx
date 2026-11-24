@@ -24,7 +24,7 @@ import tarjetaCandado from "../../../assets/perfil/tarjeta-candado.svg";
 import progresoCirculo from "../../../assets/perfil/progreso-circulo.svg";
 
 import { GaleriaInsignias } from "../../../components/portal/Insignias";
-import { insigniasDe } from "../../../servicios/insignias"; // TODO backend: GET /v1/me/insignias
+import { insigniasDe } from "../../../servicios/insignias";
 import { FilaPerfil, ListaPerfil } from "./ListaPerfil";
 import { coincide, diaMes } from "./utilesLista";
 function NotaInfo({ children }: { children: ReactNode }) {
@@ -179,7 +179,7 @@ export function MisEspacios() {
 // HU-28 / HU-29 (servicios/progreso.ts). Cuenta una participación por sesión con asistencia registrada por el
 // personal y credencial vigente ese día. Niveles del documento (D-11). Con ?simular=sesion se ve un ejemplo.
 const progresoEjemplo: MiProgreso = {
-    resumen: { usuarioId: "ejemplo", nombre: "", validas: 3, ajustes: 0, total: 3, nivel: 1, noContadas: 0, credencial: { estado: "validada", vence: "2028-09-26", vigente: true }, asignadas: 0, entregadas: 0, ultimaParticipacion: null },
+    resumen: { usuarioId: "ejemplo", nombre: "", validas: 3, ajustes: 0, total: 3, nivel: 1, noContadas: 0, credencial: { estado: "validada", vence: "2028-09-26", vigente: true }, asignadas: 0, entregadas: 0, ultimaParticipacion: null, insignias: { clubes: 2, talleres: 1, propuestas: 1 } },
     participaciones: [], recompensas: [{ id: "ejemplo", nombre: "Separador conmemorativo", descripcion: "", nivelRequerido: 1, disponible: true, vigenciaFin: "2027-01-24T23:59:59-07:00" }], entregas: [],
 };
 
@@ -251,7 +251,7 @@ export function Progreso({ menor = false }: { menor?: boolean }) {
             </TarjetaPerfil>
             <TarjetaPerfil color="verde" icono={tarjetaEstrella} titulo="Mis insignias"
                 texto="Se ganan solas al participar: cada una dice qué la desbloquea y cuánto te falta.">
-                <GaleriaInsignias insignias={insigniasDe({ asistencias: r.validas, clubes: 0, talleres: 0, credencial: vigente ? 1 : 0, propuestas: 0 })} />
+                <GaleriaInsignias insignias={insigniasDe({ asistencias: r.validas, clubes: r.insignias?.clubes ?? 0, talleres: r.insignias?.talleres ?? 0, credencial: vigente ? 1 : 0, propuestas: r.insignias?.propuestas ?? 0 })} />
             </TarjetaPerfil>
             <section className="perfil-panel" aria-labelledby="titulo-recompensas">
                 <EtiquetaPerfil id="titulo-recompensas" icono={iconosSeccion.progreso}>Mis recompensas</EtiquetaPerfil>
