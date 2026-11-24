@@ -40,6 +40,7 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 25 | `evidencias_solo_realizadas.sql` | Evidencias privadas solo de actividades que ya se realizaron (ni pendientes, ni en curso, ni canceladas) | HU-21 |
 | 26 | `asistencia_actividades.sql` | Presencia real por sesión y correcciones con historial. Requiere `agenda_actividades.sql` e `inscripciones_responsables.sql` | HU-20 / T-099 |
 | 27 | `cancelacion_inscripciones_cambio_actividad.sql` | Cancela inscripciones activas de sesiones canceladas por acuerdo institucional y registra su historial. Requiere `cambios_actividad.sql` | T-104 |
+| 28 | `progreso_recompensas.sql` | Progreso por participación (una por sesión con asistencia «presente» y credencial vigente ese día), niveles Inicial / Lector activo / Lector constante, ajustes con motivo, y recompensas: asignación con autorización de la Dirección, entrega y cancelación. Requiere `asistencia_actividades.sql` | HU-28 / HU-29 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
@@ -78,6 +79,8 @@ En CECANbd ya se aplicaron los pasos 18 a 20; no hace falta repetirlos para ejec
 ## Cambios nuevos a la base
 
 HU-20 / T-099: `asistencia_actividades.sql` registra asistencia por sesión y sus correcciones con historial; requiere agenda e inscripciones. `pruebas_asistencia_actividades.sql` verifica permisos, sesiones, cierre y correcciones con `ROLLBACK` en una copia de pruebas. Revisa su aplicación antes de utilizar esta función en la base compartida.
+
+HU-28 / HU-29: `progreso_recompensas.sql` calcula el progreso desde la asistencia y registra asignación, entrega y cancelación de recompensas. `pruebas_progreso_recompensas.sql` (con `ROLLBACK`) comprueba niveles, sesiones sin credencial, correcciones, ajustes, existencias, doble asignación y permisos, después del paso 28.
 
 T-094, complemento de solicitudes: `t094_correcciones_solicitudes.sql` agrega versiones completas, motivo obligatorio, corrección propia y control de concurrencia para propuestas y espacios. Aplicar después de las migraciones vigentes de propuestas y espacios y revisar con el equipo. `pruebas_t094_solicitudes.sql` comprueba los cuatro criterios con ROLLBACK. Ver `../T-094-INFORME.md`; la aplicación en CECANbd y la revisión de Aldahir siguen pendientes.
 

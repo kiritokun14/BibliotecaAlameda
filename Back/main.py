@@ -39,6 +39,7 @@ from Back.estadisticas import router as estadisticas_router
 
 from Back.inscripciones import router as inscripciones_router
 from Back.asistencia import router as asistencia_router
+from Back.recompensas import router as recompensas_router
 from Back.correo_actividad import iniciar_procesador
 
 @asynccontextmanager
@@ -79,6 +80,7 @@ app.include_router(foro_router)
 app.include_router(participacion_foro_router)
 app.include_router(inscripciones_router)
 app.include_router(asistencia_router)
+app.include_router(recompensas_router)
 app.include_router(evidencias_router)
 app.include_router(estadisticas_router)
 

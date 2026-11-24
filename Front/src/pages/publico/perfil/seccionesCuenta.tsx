@@ -5,10 +5,8 @@ import { mensajeError } from "../../../servicios/api";
 import { EncabezadoSeccion, EtiquetaPerfil, TarjetaPerfil } from "./piezas";
 import { iconosSeccion } from "./iconos";
 import { sesionSimulada } from "./usarSesion";
-import {
-    estadoNivel,
-    nivelesEjemplo, nombreCompleto, porcentajeProgreso, siguienteMeta, validarCambioContrasena,
-} from "./datos";
+import { nombreCompleto, validarCambioContrasena } from "./datos";
+import { avanceNivel, consultarMiProgreso, NIVELES, nombreNivel, siguienteNivel, type MiProgreso } from "../../../servicios/progreso";
 import {
     consultarMisSolicitudes, contarPorGrupo, estadoEspacio, estadoPropuesta, fechaCorta, historialEjemplo,
     type GrupoFiltro, type HistorialSolicitudes,
@@ -178,44 +176,74 @@ export function MisEspacios() {
 }
 
 // ---------- Progreso y recompensas ----------
+// HU-28 / HU-29 (servicios/progreso.ts). Cuenta una participación por sesión con asistencia registrada por el
+// personal y credencial vigente ese día. Niveles del documento (D-11). Con ?simular=sesion se ve un ejemplo.
+const progresoEjemplo: MiProgreso = {
+    resumen: { usuarioId: "ejemplo", nombre: "", validas: 3, ajustes: 0, total: 3, nivel: 1, noContadas: 0, credencial: { estado: "validada", vence: "2028-09-26", vigente: true }, asignadas: 0, entregadas: 0, ultimaParticipacion: null },
+    participaciones: [], recompensas: [{ id: "ejemplo", nombre: "Separador conmemorativo", descripcion: "", nivelRequerido: 1, disponible: true, vigenciaFin: "2027-01-24T23:59:59-07:00" }], entregas: [],
+};
+
 export function Progreso({ menor = false }: { menor?: boolean }) {
-    const vigente = useTramite().estado === "vigente"; // sin credencial vigente, el progreso está bloqueado
-    const asistencias = 3; // TODO backend: ver datos.ts
-    const meta = siguienteMeta(asistencias);
+    const [estado, setEstado] = useState<{ datos?: MiProgreso; error?: string }>(sesionSimulada ? { datos: progresoEjemplo } : {});
+    const [intento, setIntento] = useState(0);
+    useEffect(() => {
+        if (sesionSimulada) return;
+        let vigente = true;
+        consultarMiProgreso().then((datos) => { if (vigente) setEstado({ datos }); })
+            .catch((error) => { if (vigente) setEstado({ error: mensajeError(error) }); });
+        return () => { vigente = false; };
+    }, [intento]);
     const textoNivel = { alcanzado: "Alcanzado", "en-progreso": "En progreso", pendiente: "Pendiente" };
     const colorNivel = { alcanzado: "verde", "en-progreso": "dorado", pendiente: "gris" } as const;
+    const datos = estado.datos;
+    if (!datos) {
+        return (
+            <>
+                <EncabezadoSeccion titulo="Mi progreso y recompensas" texto={estado.error ? "No pudimos cargar tu progreso." : "Cargando tu progreso…"} />
+                {estado.error && <TarjetaPerfil color="rosa" icono={tarjetaCandado} titulo="Intenta de nuevo" texto={estado.error}>
+                    <div className="perfil-acciones"><button type="button" className="perfil-boton perfil-boton--guinda" onClick={() => { setEstado({}); setIntento((i) => i + 1); }}>Reintentar</button></div>
+                </TarjetaPerfil>}
+            </>
+        );
+    }
+    const r = datos.resumen;
+    const vigente = !!r.credencial?.vigente; // sin credencial vigente, las asistencias nuevas no suman
+    const s = siguienteNivel(r.total);
+    const estadoDe = (desde: number) => (r.total >= desde ? "alcanzado" : s?.desde === desde ? "en-progreso" : "pendiente");
     return (
         <>
             <EncabezadoSeccion titulo="Mi progreso y recompensas"
-                texto={vigente ? (menor ? "Cada asistencia verificada acerca al siguiente nivel." : "Cada asistencia verificada te acerca al siguiente nivel.") : "Tu progreso se activa con una credencial validada y vigente."}
+                texto={vigente ? (menor ? "Cada asistencia verificada acerca al siguiente nivel." : "Cada asistencia verificada te acerca al siguiente nivel.") : "Tu progreso suma con una credencial validada y vigente."}
                 accion={<Link to="/eventos" className="perfil-boton perfil-boton--contorno">Ver actividades</Link>} />
-            {vigente ? (
-                <section className="perfil-progreso" aria-labelledby="titulo-asistencias">
-                    <img className="perfil-progreso__circulo" src={progresoCirculo} alt="" />
-                    <EtiquetaPerfil id="titulo-asistencias" icono={iconosSeccion.progreso} claro>Asistencias verificadas</EtiquetaPerfil>
-                    <p className="perfil-progreso__cifra perfil-progreso__cifra--grande"><strong>{asistencias}</strong> de {meta} para el siguiente nivel</p>
-                    <div className="perfil-progreso__barra" role="progressbar" aria-valuemin={0} aria-valuemax={meta} aria-valuenow={asistencias}
-                        aria-label="Asistencias para el siguiente nivel"><span style={{ width: `${porcentajeProgreso(asistencias, meta)}%` }} /></div>
-                    <p className="perfil-progreso__texto">
-                        Cada asistencia verificada cuenta una sola vez. Inscribirte o confirmar tu lugar no suma hasta que el personal registre tu asistencia.
-                    </p>
-                </section>
-            ) : (
-                <TarjetaPerfil color="rosa" icono={tarjetaCandado} titulo="Tu progreso se activa con tu credencial"
-                    texto="Puedes participar sin credencial, pero las asistencias anteriores a la validación no se acumulan.">
+            <section className="perfil-progreso" aria-labelledby="titulo-asistencias">
+                <img className="perfil-progreso__circulo" src={progresoCirculo} alt="" />
+                <EtiquetaPerfil id="titulo-asistencias" icono={iconosSeccion.progreso} claro>{`Nivel ${nombreNivel(r.nivel)}`}</EtiquetaPerfil>
+                <p className="perfil-progreso__cifra perfil-progreso__cifra--grande">
+                    {s ? <><strong>{r.total}</strong> de {s.desde} para {s.nombre}</> : <><strong>{r.total}</strong> participaciones, nivel más alto</>}
+                </p>
+                <div className="perfil-progreso__barra" role="progressbar" aria-valuemin={0} aria-valuemax={s?.desde ?? r.total} aria-valuenow={r.total}
+                    aria-label="Participaciones para el siguiente nivel"><span style={{ width: `${avanceNivel(r.total)}%` }} /></div>
+                <p className="perfil-progreso__texto">
+                    Cada sesión con asistencia registrada por el personal cuenta una sola vez. Inscribirte, comentar o enviar propuestas no suma.
+                    {r.noContadas > 0 && ` ${r.noContadas === 1 ? "Una asistencia no contó" : `${r.noContadas} asistencias no contaron`} porque ese día no había credencial vigente.`}
+                </p>
+            </section>
+            {!vigente && (
+                <TarjetaPerfil color="rosa" icono={tarjetaCandado} titulo="Tu progreso está en pausa"
+                    texto="Lo que ya acumulaste se conserva. Las asistencias nuevas suman cuando tu credencial esté validada y vigente; no se cuentan hacia atrás.">
                     <div className="perfil-acciones"><Link to="/mi-perfil/credencial" className="perfil-boton perfil-boton--guinda">Ver mi trámite de credencial</Link></div>
                 </TarjetaPerfil>
             )}
             <TarjetaPerfil color="dorada" icono={tarjetaEstrella} titulo="Niveles" texto="Cada nivel se alcanza con asistencias verificadas por el personal.">
                 <ol className="perfil-niveles perfil-niveles--ruta">
-                    {nivelesEjemplo.map((n, i) => {
-                        const estado = vigente ? estadoNivel(n, asistencias) : "pendiente";
+                    {NIVELES.map((n, i) => {
+                        const e = estadoDe(n.desde);
                         return (
-                            <li key={n} className={`perfil-nivel perfil-nivel--${vigente ? colorNivel[estado] : "bloqueado"}`}>
+                            <li key={n.nivel} className={`perfil-nivel perfil-nivel--${colorNivel[e]}`}>
                                 <span className="perfil-nivel__numero" aria-hidden="true">{i + 1}</span>
-                                <p>Nivel {i + 1}</p>
-                                <strong>{n} asistencias</strong>
-                                {vigente ? <Chip color={colorNivel[estado]}>{textoNivel[estado]}</Chip> : <Chip color="gris">Bloqueado</Chip>}
+                                <p>{n.nombre}</p>
+                                <strong>{n.hasta === null ? `${n.desde} o más` : `${n.desde} a ${n.hasta}`} asistencias</strong>
+                                <Chip color={colorNivel[e]}>{textoNivel[e]}</Chip>
                             </li>
                         );
                     })}
@@ -223,28 +251,42 @@ export function Progreso({ menor = false }: { menor?: boolean }) {
             </TarjetaPerfil>
             <TarjetaPerfil color="verde" icono={tarjetaEstrella} titulo="Mis insignias"
                 texto="Se ganan solas al participar: cada una dice qué la desbloquea y cuánto te falta.">
-                <GaleriaInsignias insignias={insigniasDe({ asistencias: vigente ? asistencias : 0, clubes: vigente ? 1 : 0, talleres: vigente ? 1 : 0, credencial: vigente ? 1 : 0, propuestas: 0 })} />
+                <GaleriaInsignias insignias={insigniasDe({ asistencias: r.validas, clubes: 0, talleres: 0, credencial: vigente ? 1 : 0, propuestas: 0 })} />
             </TarjetaPerfil>
             <section className="perfil-panel" aria-labelledby="titulo-recompensas">
                 <EtiquetaPerfil id="titulo-recompensas" icono={iconosSeccion.progreso}>Mis recompensas</EtiquetaPerfil>
-                <ul className="perfil-solicitudes">
-                    {nivelesEjemplo.map((n, i) => {
-                        const disponible = vigente && asistencias >= n;
-                        return (
-                            <li key={n} className={`perfil-solicitud perfil-solicitud--${disponible ? "verde" : "gris"}`}>
+                {datos.recompensas.length === 0 && datos.entregas.length === 0 ? (
+                    <p className="perfil-progreso__texto">Por ahora la biblioteca no tiene recompensas vigentes.</p>
+                ) : (
+                    <ul className="perfil-solicitudes">
+                        {datos.entregas.map((e) => (
+                            <li key={e.id} className={`perfil-solicitud perfil-solicitud--${e.estado === "entregada" ? "verde" : "dorado"}`}>
                                 <span className="perfil-lista__icono"><img src={iconosSeccion.progreso} alt="" /></span>
                                 <div className="perfil-solicitud__textos">
-                                    <strong>{i === 0 ? "Reconocimiento de participación · Nivel 1" : `Recompensa · Nivel ${i + 1}`}</strong>
-                                    <span>{disponible ? "Alcanzado. Entrega por confirmar con la biblioteca." : `Se habilita al llegar a ${n} asistencias verificadas.`}</span>
+                                    <strong>{e.recompensa}</strong>
+                                    <span>{e.estado === "entregada" ? "Ya la recibiste." : "La biblioteca te la asignó. Pasa a recogerla."}</span>
                                 </div>
-                                <Chip color={disponible ? "verde" : "gris"}>{disponible ? "Disponible" : "Bloqueada"}</Chip>
+                                <Chip color={e.estado === "entregada" ? "verde" : "dorado"}>{e.estado === "entregada" ? "Entregada" : "Por recoger"}</Chip>
                             </li>
-                        );
-                    })}
-                </ul>
+                        ))}
+                        {datos.recompensas.filter((x) => !datos.entregas.some((e) => e.recompensaId === x.id)).map((x) => {
+                            const alcanzado = r.nivel >= x.nivelRequerido;
+                            return (
+                                <li key={x.id} className={`perfil-solicitud perfil-solicitud--${alcanzado ? "verde" : "gris"}`}>
+                                    <span className="perfil-lista__icono"><img src={iconosSeccion.progreso} alt="" /></span>
+                                    <div className="perfil-solicitud__textos">
+                                        <strong>{x.nombre} · {nombreNivel(x.nivelRequerido)}</strong>
+                                        <span>{alcanzado ? (x.disponible ? "Ya tienes el nivel. La entrega la autoriza la biblioteca." : "Ya tienes el nivel, pero por ahora no hay existencias.") : `Se habilita al llegar a ${nombreNivel(x.nivelRequerido)}.`}</span>
+                                    </div>
+                                    <Chip color={alcanzado ? "verde" : "gris"}>{alcanzado ? "Nivel alcanzado" : "Bloqueada"}</Chip>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
             </section>
             <NotaInfo>
-                Las recompensas dependen de su disponibilidad y de que tu credencial siga vigente. El personal registra la entrega; no se garantiza un premio. Niveles y metas de ejemplo; la biblioteca los definirá.
+                Las recompensas dependen de su disponibilidad, de la autorización de la Dirección y de que tu credencial siga vigente. El personal registra la entrega; llegar a un nivel no garantiza un premio.
             </NotaInfo>
         </>
     );

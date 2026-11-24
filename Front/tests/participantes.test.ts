@@ -1,57 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-    ajustarProgreso, avanceDe, disponibilidad, entregarRecompensa, estadoRecompensa, guardarMeta, guardarRecompensa,
-    obtenerMeta, obtenerParticipante, obtenerRecompensa, porEntregarDe, reiniciarProgreso, validarMeta, validarRecompensa,
-} from '../src/pages/admin/participantes/progreso';
-import {
     advertirPersona, aprobarPublicacion, buscarPublicacion, enFiltroForo, fechaHasta, hiloDe, historialDe, normaProbable,
     obtenerPublicacion, QUIEN_MODERA, reiniciarForo, restaurarParticipacion, retirarPublicacion, silenciarPersona, silencioDe,
     ultimaDecision, validarDecision, leerForo as foroActual,
 } from '../src/pages/admin/participantes/moderacion';
 import { capacidadPanel } from '../src/servicios/accesoPanel';
 
-describe('Progreso y recompensas', () => {
-    beforeEach(() => reiniciarProgreso());
-
-    it('calcula el avance y el estado de la recompensa', () => {
-        expect(avanceDe(obtenerParticipante('P-0112')!)).toMatchObject({ hechas: 4, necesarias: 5, puntos: 120, cumplida: false });
-        expect(estadoRecompensa(obtenerParticipante('P-0112')!)).toBe('sin');
-        expect(estadoRecompensa(obtenerParticipante('P-0111')!)).toBe('entregada');
-        expect(estadoRecompensa(obtenerParticipante('P-0108')!)).toBe('por-entregar');
-        expect(porEntregarDe('insignia-lector')).toBe(1);
-    });
-
-    it('ajustar exige motivo y puede completar la meta', () => {
-        expect(() => ajustarProgreso('P-0112', 1, ' ')).toThrow();
-        ajustarProgreso('P-0112', 1, 'Asistió y no se marcó');
-        expect(estadoRecompensa(obtenerParticipante('P-0112')!)).toBe('por-entregar');
-        expect(() => ajustarProgreso('P-0111', 1, 'x')).toThrow(/ya se entregó/);
-    });
-
-    it('entregar solo con la meta cumplida y descuenta existencias', async () => {
-        await expect(entregarRecompensa('P-0110')).rejects.toThrow();
-        await entregarRecompensa('P-0108');
-        expect(estadoRecompensa(obtenerParticipante('P-0108')!)).toBe('entregada');
-        expect(obtenerRecompensa('insignia-lector')?.existencias).toBe(11);
-        expect(obtenerRecompensa('insignia-lector')?.entregadas).toBe(32);
-    });
-
-    it('disponibilidad: pocas con 5 o menos, documentos sin límite', () => {
-        expect(disponibilidad(obtenerRecompensa('insignia-explorador')!).texto).toBe('Pocas');
-        expect(disponibilidad(obtenerRecompensa('constancia')!).texto).toBe('Disponible');
-        expect(disponibilidad({ id: 'x', nombre: 'x', tipo: 'Insignia', existencias: 0, entregadas: 0 }).texto).toBe('Agotada');
-    });
-
-    it('valida y guarda metas y recompensas', () => {
-        const meta = { nombre: '', estado: 'activa' as const, necesarias: '0', plazo: '1 mes', puntos: '', recompensa: '', descripcion: '' };
-        expect(Object.keys(validarMeta(meta))).toEqual(expect.arrayContaining(['nombre', 'necesarias', 'puntos', 'recompensa']));
-        const id = guardarMeta({ ...meta, nombre: 'Lectura de verano', necesarias: '4', puntos: '20', recompensa: 'constancia' });
-        expect(obtenerMeta(id)?.necesarias).toBe(4);
-        expect(validarRecompensa({ nombre: 'x', tipo: 'Insignia', existencias: '', sinLimite: false }).existencias).toBeDefined();
-        const r = guardarRecompensa({ nombre: 'Separador', tipo: 'Documento', existencias: '', sinLimite: true });
-        expect(obtenerRecompensa(r)?.existencias).toBeNull();
-    });
-
+describe('Participantes', () => {
     it('permisos de Participantes', () => {
         expect(capacidadPanel('/admin/participantes/progreso')).toBe('registrar_recompensas');
         expect(capacidadPanel('/admin/participantes/cotejos')).toBe('validar_credenciales');
