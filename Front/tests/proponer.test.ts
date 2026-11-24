@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { propuestaDesdeSolicitud, propuestaVacia, puedeCancelar, puedeEditar, validarPropuesta } from '../src/pages/publico/proponer/datos';
+import { etapasPropuesta, propuestaDesdeSolicitud, propuestaPublicada, propuestaVacia, puedeCancelar, puedeEditar, validarPropuesta } from '../src/pages/publico/proponer/datos';
 
 import { adaptarPropuesta, fechaHoyTepic } from '../src/servicios/propuestasUsuario';
 
@@ -47,5 +47,19 @@ describe('Editar y cancelar una propuesta', () => {
         expect(puedeEditar('aprobada', true)).toBe(false);
         expect(puedeCancelar('en_revision')).toBe(true);
         expect(puedeCancelar('rechazada')).toBe(false);
+    });
+});
+
+describe("propuesta publicada en la agenda", () => {
+    const base = { id: "p1", creadaEn: "2026-11-23T10:00:00Z", estadoRevision: "aprobada" };
+    it("aprobada sin actividad: el paso 4 sigue en curso", () => {
+        expect(propuestaPublicada(base)).toBe(false);
+        expect(etapasPropuesta("aprobada").map((e) => e.estado)).toEqual(["hecho", "hecho", "hecho", "actual"]);
+    });
+    it("aprobada con actividad ligada: los cuatro pasos quedan hechos", () => {
+        const s = { ...base, actividadId: "a1" };
+        expect(propuestaPublicada(s)).toBe(true);
+        expect(etapasPropuesta("aprobada", true).map((e) => e.estado)).toEqual(["hecho", "hecho", "hecho", "hecho"]);
+        expect(propuestaPublicada({ ...s, estadoRevision: "rechazada" })).toBe(false);
     });
 });

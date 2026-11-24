@@ -82,6 +82,10 @@ export const textosPropuesta: Record<EstadoPropuesta, { chip: string; color: "do
     rechazada: { chip: "No aprobada", color: "guinda", titulo: "Tu propuesta no fue aprobada", texto: "Lee el motivo del personal. Puedes proponer otra actividad cuando quieras." },
     cancelada: { chip: "Cancelada", color: "gris", titulo: "Cancelaste esta propuesta", texto: "El personal ya no la revisará. Puedes proponer otra actividad cuando quieras." },
 };
+// Aprobada y con actividad ligada (publicar_propuesta llena «actividadId» al publicarla): ya está en la agenda.
+export const propuestaPublicada = (s: SolicitudAtencion) => s.estadoRevision === "aprobada" && !!s.actividadId;
+export const textoPublicada = { chip: "En la agenda", color: "verde" as const, titulo: "Tu propuesta ya está en la agenda",
+    texto: "La biblioteca la programó y la publicó. Búscala en Actividades para inscribirte o compartirla." };
 export const estadoDePropuesta = (s: SolicitudAtencion): EstadoPropuesta => {
     const e = s.estadoRevision ?? "en_revision";
     return (e in textosPropuesta ? e : "en_revision") as EstadoPropuesta;
@@ -100,7 +104,8 @@ export const pasosRutaPropuesta: PasoRuta[] = [
     { titulo: "Decisión", texto: "La aprueba, pide cambios o no la aprueba.", quien: "Biblioteca" },
     { titulo: "En la agenda", texto: "La biblioteca la programa y la publica.", quien: "Biblioteca" },
 ];
-export function etapasPropuesta(estado: EstadoPropuesta): Etapa[] {
+export function etapasPropuesta(estado: EstadoPropuesta, publicada = false): Etapa[] {
+    if (publicada) return pasosRutaPropuesta.map((p) => ({ titulo: p.titulo, texto: p.texto, estado: "hecho" }));
     const actual = { borrador: 0, en_revision: 1, requiere_correccion: 2, aprobada: 3, rechazada: 3, cancelada: 1 }[estado];
     return pasosRutaPropuesta.map((p, i) => ({
         titulo: p.titulo, texto: p.texto,
