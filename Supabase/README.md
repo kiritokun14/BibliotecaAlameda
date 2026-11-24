@@ -46,6 +46,8 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 31 | `perfil_seguimiento_hu08.sql` | Amplía el perfil propio con domicilio y contacto del responsable. Requiere `perfil_propio.sql` y `registro_usuarios.sql`. | HU-08 / CU-08 |
 | 32 | `hu08_seguimiento_personal.sql` | Añade la marca propia de asistencia a Mis eventos cuando la lista se cierra. Requiere `inscripcion_propia.sql` y `asistencia_actividades.sql`. | HU-08 / CU-08 |
 
+| 33 | `reacciones_contenido.sql` | Reacciones y conteo de compartidos en contenidos publicados. Requiere `publicacion_contenidos.sql` | Lecturas y reacciones |
+
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
 

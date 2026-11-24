@@ -1,48 +1,103 @@
-"""T-056: compatibilidad de consultas de lecturas con la publicación vigente.
+"""T-056: consulta de reseñas y memoria mediante la proyección pública autorizada."""
+from collections.abc import Iterator
+from datetime import datetime
+from heapq import merge
+from itertools import islice
+from typing import Annotated, Any
 
-Reutiliza la proyección autorizada; no amplía permisos de tablas ni firma evidencias.
-Los adjuntos y evidencias conservan su modelo de acceso existente.
-"""
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Path, Query
+
 from Back.publicacion import consultar_publicados
-router=APIRouter(prefix='/public',tags=['Lecturas públicas'])
 
-def _listar(autor,tema,tipo,busqueda,page,limit):
-    if tipo not in (None,'contenido','resena','memoria'):
-        raise HTTPException(400,'tipoRecurso debe ser contenido, resena o memoria.')
-    if (page-1)*limit+limit>1000:
-        raise HTTPException(400,'La ventana de consulta no puede superar 1000 elementos.')
-    filas=[]
-    # Proyección segura compartida con Inicio, Noticias y Lecturas; sin acceder a columnas privadas.
-    for desplazamiento in range(0,1000,50):
-        lote=consultar_publicados('memoria' if tipo=='memoria' else 'resena' if tipo=='resena' else None,
-                                  limite=50,desplazamiento=desplazamiento)
-        filas.extend(c for c in lote if c['tipo'] in ('resena','memoria'))
-        if len(lote)<50: break
-    def coincide(c):
-        datos=c.get('datos') or {}
-        return (not autor or autor.casefold() in str(datos.get('autoria','')).casefold()) and (
-            not tema or tema.casefold() in str(datos.get('tema',datos.get('genero',''))).casefold()) and (
-            not busqueda or busqueda.casefold() in (c['titulo']+' '+c.get('resumen','')+' '+c.get('cuerpo','')).casefold())
-    filas=[c for c in filas if coincide(c)]
-    filas.sort(key=lambda c:(c['publicadoEn'],c['folio']),reverse=True)
-    inicio=(page-1)*limit
-    return {'items':filas[inicio:inicio+limit],'page':page,'limit':limit}
+router = APIRouter(prefix='/public', tags=['Lecturas públicas'])
+
+TIPOS_LECTURA = ('resena', 'memoria')
+TAMANO_LOTE = 50
+LIMITE_VENTANA = 1000
+
+FiltroTexto = Annotated[str | None, Query(max_length=100)]
+Pagina = Annotated[int, Query(ge=1)]
+Limite = Annotated[int, Query(ge=1, le=100)]
+Lectura = dict[str, Any]
+
+
+def _coincidencias(tipo: str, autor: str, tema: str, busqueda: str) -> Iterator[Lectura]:
+    for desplazamiento in range(0, LIMITE_VENTANA, TAMANO_LOTE):
+        lote = consultar_publicados(tipo, limite=TAMANO_LOTE, desplazamiento=desplazamiento)
+        for lectura in lote:
+            if lectura['tipo'] != tipo:
+                continue
+            datos = lectura.get('datos') or {}
+            if autor and autor not in str(datos.get('autoria') or '').casefold():
+                continue
+            if tema and tema not in str(datos.get('tema') or datos.get('genero') or '').casefold():
+                continue
+            if busqueda:
+                texto = ' '.join(lectura.get(campo) or '' for campo in ('titulo', 'resumen', 'cuerpo'))
+                if busqueda not in texto.casefold():
+                    continue
+            yield lectura
+        if len(lote) < TAMANO_LOTE:
+            break
+
+
+def _orden_publicacion(lectura: Lectura) -> tuple[float, str]:
+    # Reproduce el orden de la base: fecha descendente y folio ascendente.
+    fecha = datetime.fromisoformat(lectura['publicadoEn'].replace('Z', '+00:00'))
+    return -fecha.timestamp(), lectura['folio']
+
+
+def _listar(
+    autor: str | None,
+    tema: str | None,
+    tipo: str | None,
+    busqueda: str | None,
+    page: int,
+    limit: int,
+):
+    if tipo not in (None, 'contenido', *TIPOS_LECTURA):
+        raise HTTPException(400, 'tipoRecurso debe ser contenido, resena o memoria.')
+    inicio = (page - 1) * limit
+    fin = inicio + limit
+    if fin > LIMITE_VENTANA:
+        raise HTTPException(400, 'La ventana de consulta no puede superar 1000 elementos.')
+
+    filtros = tuple((valor or '').strip().casefold() for valor in (autor, tema, busqueda))
+    if tipo in TIPOS_LECTURA:
+        lecturas = _coincidencias(tipo, *filtros)
+    else:
+        lecturas = merge(
+            *(_coincidencias(categoria, *filtros) for categoria in TIPOS_LECTURA),
+            key=_orden_publicacion,
+        )
+    return {'items': list(islice(lecturas, inicio, fin)), 'page': page, 'limit': limit}
+
 
 @router.get('/lecturas-y-resenas')
-def listar_lecturas_resenas_memoria(autor:str|None=Query(None,max_length=100),
-    tema:str|None=Query(None,max_length=100),tipo_recurso:str|None=Query(None,alias='tipoRecurso'),
-    busqueda:str|None=Query(None,max_length=100),page:int=Query(1,ge=1),limit:int=Query(20,ge=1,le=100)):
-    return _listar(autor,tema,tipo_recurso,busqueda,page,limit)
+def listar_lecturas_resenas_memoria(
+    autor: FiltroTexto = None,
+    tema: FiltroTexto = None,
+    tipo_recurso: Annotated[str | None, Query(alias='tipoRecurso')] = None,
+    busqueda: FiltroTexto = None,
+    page: Pagina = 1,
+    limit: Limite = 20,
+):
+    return _listar(autor, tema, tipo_recurso, busqueda, page, limit)
+
 
 @router.get('/lecturas/{slug}')
-def obtener_lectura_publica(slug:str):
-    filas=consultar_publicados(None,slug)
-    if not filas or filas[0]['tipo'] not in ('resena','memoria'):
-        raise HTTPException(404,'La lectura no existe o no está publicada.')
-    return filas[0]
+def obtener_lectura_publica(slug: Annotated[str, Path(pattern=r'^[a-zA-Z0-9_-]{1,150}$')]):
+    for lectura in consultar_publicados(None, slug):
+        if lectura['tipo'] in TIPOS_LECTURA:
+            return lectura
+    raise HTTPException(404, 'La lectura no existe o no está publicada.')
+
 
 @router.get('/memoria-publica')
-def listar_memoria_publica(tema:str|None=Query(None,max_length=100),
-    busqueda:str|None=Query(None,max_length=100),page:int=Query(1,ge=1),limit:int=Query(20,ge=1,le=100)):
-    return _listar(None,tema,'memoria',busqueda,page,limit)
+def listar_memoria_publica(
+    tema: FiltroTexto = None,
+    busqueda: FiltroTexto = None,
+    page: Pagina = 1,
+    limit: Limite = 20,
+):
+    return _listar(None, tema, 'memoria', busqueda, page, limit)

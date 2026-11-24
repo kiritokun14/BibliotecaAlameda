@@ -1,12 +1,13 @@
 """T-055: revisión institucional y lectura de contenidos publicados."""
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.security import HTTPAuthorizationCredentials
 from postgrest.exceptions import APIError
 from pydantic import Field, StringConstraints, AwareDatetime
 
 from Back.conexion import crear_cliente
-from Back.contenidos import Cliente, Folio
+from Back.contenidos import Cliente, Folio, seguridad, sesion_editor
 from Back.registro import DatosBase
 
 router = APIRouter(tags=['Publicación de contenidos (T-055)'])
@@ -116,3 +117,48 @@ def publico(identificador: Annotated[str, StringConstraints(pattern=r'^[a-zA-Z0-
     if not filas:
         raise HTTPException(404, 'Contenido no disponible.')
     return filas[0]
+
+
+CredencialesReacciones = Annotated[HTTPAuthorizationCredentials | None, Depends(seguridad)]
+TipoReaccion = Literal['me_gusta', 'me_sirvio']
+
+
+def ejecutar_reacciones(folio: str, operacion: str, credenciales: HTTPAuthorizationCredentials | None,
+                       tipo: TipoReaccion | None = None):
+    try:
+        cliente = sesion_editor(credenciales) if credenciales or tipo else crear_cliente()
+        return cliente.rpc('gestionar_reacciones_contenido', {
+            'folio_contenido': folio, 'operacion': operacion, 'tipo_reaccion': tipo,
+        }).execute().data
+    except HTTPException:
+        raise
+    except APIError as error:
+        estados = {
+            'P0002': (404, 'Contenido no disponible.'),
+            '42501': (403, 'No tienes permiso para registrar la reacción.'),
+            '22023': (422, 'Revisa los datos de la reacción.'),
+        }
+        codigo, mensaje = estados.get(error.code, (503, 'No fue posible consultar o guardar las reacciones.'))
+        raise HTTPException(codigo, mensaje) from None
+    except Exception:
+        raise HTTPException(503, 'No fue posible consultar o guardar las reacciones.') from None
+
+
+@router.get('/contenidos/publicos/{folio}/reacciones')
+def consultar_reacciones(folio: Folio, credenciales: CredencialesReacciones):
+    return ejecutar_reacciones(folio, 'consultar', credenciales)
+
+
+@router.put('/contenidos/publicos/{folio}/reacciones/{tipo}')
+def marcar_reaccion(folio: Folio, tipo: TipoReaccion, credenciales: CredencialesReacciones):
+    return ejecutar_reacciones(folio, 'marcar', credenciales, tipo)
+
+
+@router.delete('/contenidos/publicos/{folio}/reacciones/{tipo}')
+def quitar_reaccion(folio: Folio, tipo: TipoReaccion, credenciales: CredencialesReacciones):
+    return ejecutar_reacciones(folio, 'quitar', credenciales, tipo)
+
+
+@router.post('/contenidos/publicos/{folio}/compartidos')
+def registrar_compartido(folio: Folio, credenciales: CredencialesReacciones):
+    return ejecutar_reacciones(folio, 'compartir', credenciales)
