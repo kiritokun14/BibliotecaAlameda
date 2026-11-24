@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { guardarPerfil, type PerfilPropio } from "../../../servicios/perfil";
 import { ErrorServicio, mensajeError } from "../../../servicios/api";
@@ -10,12 +10,13 @@ import iconoTelefono from "../../../assets/inicio/contacto-telefono.svg";
 // Íconos de cada dato (los mismos en «Mis datos» y en «Editar mis datos»)
 const ic = { persona: iconosSeccion.datos, fecha: iconosSeccion.eventos, correo: iconosSeccion.mensajes, lugar: iconosSeccion.espacios, telefono: iconoTelefono };
 import {
-    cancelarCambioCorreo, consultarCorreoPendiente, consultarDomicilio, formatearFecha, guardarDomicilio,
-    nombreCompleto, porcentajeProgreso, resumenCredencial, resumenEjemplo, consultarResponsable, guardarResponsable, validarResponsable, solicitarCambioCorreo, validarCorreo, validarDatos,
+    cambiosDePerfil, domicilioDePerfil, formatearFecha, nombreCompleto, resumenCredencial, validarDatos,
     type Domicilio, type ErroresDatos,
 } from "./datos";
 import { sinLeer, useNotificaciones } from "../notificaciones/datos";
-import { useTramite } from "../credencial/datos";
+import { useSeguimientoTramite } from "../credencial/datos";
+import { avanceNivel, consultarMiProgreso, siguienteNivel } from "../../../servicios/progreso";
+import { sesionSimulada } from "./usarSesion";
 import iconoArchivo from "../../../assets/perfil/acceso-archivo.svg";
 import iconoBuscar from "../../../assets/perfil/acceso-buscar.svg";
 import iconoSala from "../../../assets/perfil/acceso-sala.svg";
@@ -26,11 +27,9 @@ import filaArchivo from "../../../assets/perfil/fila-archivo.svg";
 import filaPin from "../../../assets/perfil/fila-pin.svg";
 import tarjetaUsuario from "../../../assets/perfil/tarjeta-usuario.svg";
 import tarjetaPin from "../../../assets/perfil/tarjeta-pin.svg";
-import tarjetaCorreo from "../../../assets/perfil/tarjeta-correo.svg";
 import notaCandado from "../../../assets/perfil/nota-candado.svg";
 import notaInfoDorada from "../../../assets/perfil/nota-info-dorada.svg";
 import tarjetaUsuarios from "../../../assets/perfil/tarjeta-usuarios.svg";
-import puntoDorado from "../../../assets/comun/iconos/punto-dorado.svg";
 
 // ---------- Resumen ----------
 // Resumen: lo primero que se ve al entrar al perfil. Bienvenida con lo pendiente, tres accesos principales,
@@ -39,22 +38,42 @@ function saludo(hora = new Date().getHours()) {
     return hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
 }
 
-export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombre?: string }) {
-    const r = resumenEjemplo; // TODO backend: ver datos.ts
-    const tramite = useTramite();
+export function Resumen({ menor = false, perfil }: { menor?: boolean; perfil: PerfilPropio }) {
+    const { tramite, listo, error } = useSeguimientoTramite();
     const avisos = sinLeer(useNotificaciones());
+    const [progreso, setProgreso] = useState<{ usuario: string; total?: number; validas?: number }>();
+    useEffect(() => {
+        if (sesionSimulada) return;
+        let vigente = true;
+        consultarMiProgreso().then(({ resumen }) => {
+            if (vigente && resumen.usuarioId === perfil.id) {
+                setProgreso({ usuario: perfil.id, total: resumen.total, validas: resumen.validas });
+            }
+        }).catch(() => { if (vigente) setProgreso({ usuario: perfil.id }); });
+        return () => { vigente = false; };
+    }, [perfil.id]);
+    const avancePropio = sesionSimulada ? { total: 3, validas: 3 } : progreso?.usuario === perfil.id ? progreso : undefined;
+    const total = avancePropio?.total;
+    const meta = total !== undefined ? siguienteNivel(total) : null;
+    const avance = total !== undefined ? avanceNivel(total) : 0;
+    const estadoCredencial = listo ? resumenCredencial(tramite.estado) : {
+        titulo: "Mi credencial", texto: error ? "Abre el seguimiento para volver a consultar su estado." : "Consultando el estado de tu credencial…",
+    };
     const accesos = [
-        { ...resumenCredencial(tramite.estado), icono: iconoArchivo, color: "dorado", ruta: "/mi-perfil/credencial" },
-        { ...r.actividades, icono: iconoBuscar, color: "verde", ruta: "/mi-perfil/eventos" },
-        { ...r.asistencias, icono: iconoSala, color: "rosa", ruta: "/mi-perfil/progreso" },
+        { ...estadoCredencial, icono: iconoArchivo, color: "dorado", ruta: "/mi-perfil/credencial" },
+        { titulo: "Mis eventos", texto: "Consulta tus inscripciones y asistencias.", icono: iconoBuscar, color: "verde", ruta: "/mi-perfil/eventos" },
+        { titulo: "Asistencias verificadas", texto: avancePropio?.validas === undefined ? "Consulta el detalle de tu participación."
+            : `${avancePropio.validas} ${avancePropio.validas === 1 ? "asistencia cuenta" : "asistencias cuentan"} para tu progreso.`, icono: iconoSala, color: "rosa", ruta: "/mi-perfil/progreso" },
     ];
     // Lo que conviene atender primero, según el estado de la cuenta
     // Tarjeta «Credencial» de la bienvenida: siempre aparece, con lo que conviene hacer según el estado
-    const credencial = {
+    const credencial = !listo ? { titulo: estadoCredencial.titulo, texto: estadoCredencial.texto, accion: "Ver mi credencial", ruta: "/mi-perfil/credencial", atender: false } : {
         "sin-solicitud": { titulo: "Aún no tienes credencial", texto: "Solicítala en línea en pocos minutos.", accion: "Solicitar credencial", ruta: "/credencial", atender: true },
         correccion: { titulo: "Corrección solicitada", texto: "La biblioteca pidió corregir un dato de tu solicitud.", accion: "Revisar corrección", ruta: "/credencial/seguimiento", atender: true },
         vencida: { titulo: "Tu credencial venció", texto: "Puedes renovarla en línea.", accion: "Renovar credencial", ruta: "/credencial/solicitud?tipo=renovacion", atender: true },
         "en-revision": { titulo: "Credencial en revisión", texto: "El personal está revisando tu solicitud.", accion: "Ver seguimiento", ruta: "/credencial/seguimiento", atender: false },
+        atendida: { titulo: "Solicitud atendida", texto: "Consulta aquí la validación de tu credencial.", accion: "Ver seguimiento", ruta: "/credencial/seguimiento", atender: false },
+        "validacion-rechazada": { titulo: "Validación rechazada", texto: "Consulta el estado de tu credencial.", accion: "Ver seguimiento", ruta: "/credencial/seguimiento", atender: true },
         vigente: { titulo: "Credencial vigente", texto: "Tu credencial está validada.", accion: "Ver mi credencial", ruta: "/mi-perfil/credencial", atender: false },
     }[tramite.estado];
     const rapidos = [
@@ -65,8 +84,7 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
         ]),
         { texto: "Escribir a la biblioteca", icono: filaCampana, ruta: "/contacto" },
     ];
-    const avance = porcentajeProgreso(r.progreso.actuales, r.progreso.meta);
-    const primerNombre = nombre.trim().split(/\s+/)[0];
+    const primerNombre = perfil.nombres.trim().split(/\s+/)[0];
     return (
         <>
             <section className="perfil-bienvenida" aria-labelledby="titulo-bienvenida">
@@ -116,18 +134,19 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
                 <div className="perfil-progreso__cabecera">
                     <div>
                         <EtiquetaPerfil id="titulo-mi-progreso" icono={iconosSeccion.progreso} claro>Mi progreso</EtiquetaPerfil>
-                        <p className="perfil-progreso__cifra"><strong>{r.progreso.actuales}</strong> de {r.progreso.meta} asistencias para el siguiente nivel</p>
+                        <p className="perfil-progreso__cifra">{meta && total !== undefined ? <><strong>{total}</strong> de {meta.desde} participaciones para el siguiente nivel</>
+                            : total !== undefined ? "Alcanzaste el nivel más alto" : avancePropio ? "No pudimos consultar tu avance" : "Consultando tu avance…"}</p>
                     </div>
                     <Link to="/mi-perfil/progreso" className="perfil-boton perfil-boton--dorado">
                         Ver mi progreso
                     </Link>
                 </div>
-                <div className="perfil-progreso__barra" role="progressbar" aria-valuemin={0} aria-valuemax={r.progreso.meta}
-                    aria-valuenow={r.progreso.actuales} aria-label="Asistencias para el siguiente nivel">
+                {meta && total !== undefined && <div className="perfil-progreso__barra" role="progressbar" aria-valuemin={0} aria-valuemax={meta.desde}
+                    aria-valuenow={Math.max(0, total)} aria-label="Participaciones para el siguiente nivel">
                     <span style={{ width: `${avance}%` }} />
-                </div>
+                </div>}
             </section>
-            {menor && <TarjetaResponsable compacta />}
+            {menor && <TarjetaResponsable responsable={perfil.responsable ?? null} compacta />}
             <section className="perfil-rapidos" aria-labelledby="titulo-rapidos">
                 <EtiquetaPerfil id="titulo-rapidos" icono={iconoAccesos}>Accesos rápidos</EtiquetaPerfil>
                 <ul>
@@ -147,8 +166,7 @@ export function Resumen({ menor = false, nombre = "" }: { menor?: boolean; nombr
 
 // ---------- Mis datos (solo lectura) ----------
 export function MisDatos({ perfil, menor = false }: { perfil: PerfilPropio; menor?: boolean }) {
-    const domicilio = consultarDomicilio();
-    const pendiente = consultarCorreoPendiente();
+    const domicilio = domicilioDePerfil(perfil.domicilio);
     const guardado = (useLocation().state as { guardado?: boolean } | null)?.guardado;
     return (
         <>
@@ -156,12 +174,6 @@ export function MisDatos({ perfil, menor = false }: { perfil: PerfilPropio; meno
                 texto={menor ? "Consulta los datos de la cuenta y de la persona responsable." : "Consulta tus datos personales y de contacto."}
                 accion={<Link to="/mi-perfil/datos/editar" className="perfil-boton">Editar mis datos</Link>} />
             {guardado && <p className="perfil-exito" role="status">Tus datos se guardaron correctamente.</p>}
-            {pendiente && (
-                <p className="perfil-aviso" role="status">
-                    <img src={puntoDorado} alt="" />Falta confirmar {pendiente}.{" "}
-                    <Link to="/mi-perfil/datos/correo-pendiente">Ver cambio de correo</Link>
-                </p>
-            )}
             {menor ? <>
                 <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="Datos de la persona usuaria">
                     <dl className="perfil-datos">
@@ -170,7 +182,7 @@ export function MisDatos({ perfil, menor = false }: { perfil: PerfilPropio; meno
                         <Dato etiqueta="Correo de la cuenta" valor={perfil.correo} icono={ic.correo} ancho={4} />
                     </dl>
                 </TarjetaPerfil>
-                <TarjetaResponsable />
+                <TarjetaResponsable responsable={perfil.responsable ?? null} />
                 <NotaConsentimiento />
             </> : <>
                 <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="Datos personales">
@@ -235,31 +247,27 @@ export function Campo({ id, etiqueta, valor, alCambiar, error, obligatorio = tru
 export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
     perfil: PerfilPropio; menor?: boolean; alGuardar: (actualizado: PerfilPropio) => void; alRecargar: () => void;
 }) {
-    const [responsable, setResponsable] = useState(consultarResponsable);
     const navegar = useNavigate();
     const [nombres, setNombres] = useState(perfil.nombres);
-    const [telefono, setTelefono] = useState(perfil.telefono);
-    const [domicilio, setDomicilio] = useState<Domicilio>(consultarDomicilio);
-    const [inicial] = useState(() => ({ domicilio: consultarDomicilio(), responsable: consultarResponsable() }));
-    const [correo, setCorreo] = useState(perfil.correo);
-    const [errores, setErrores] = useState<ErroresDatos & Record<string, string | undefined>>({});
+    const [telefono, setTelefono] = useState(perfil.telefono ?? "");
+    const [domicilio, setDomicilio] = useState(() => domicilioDePerfil(perfil.domicilio));
+    const [telefonoResponsable, setTelefonoResponsable] = useState(perfil.responsable?.telefono ?? "");
+    const [correoResponsable, setCorreoResponsable] = useState(perfil.responsable?.correo ?? "");
+    const [errores, setErrores] = useState<ErroresDatos>({});
     const [error, setError] = useState("");
     const [conflicto, setConflicto] = useState(false);
     const [guardando, setGuardando] = useState(false);
     const bloqueo = useRef(false);
     const cambiarDomicilio = (campo: keyof Domicilio) => (v: string) => setDomicilio((d) => ({ ...d, [campo]: v }));
 
-    const hayCambios = nombres !== perfil.nombres || (!menor && (telefono !== perfil.telefono || correo !== perfil.correo))
-        || JSON.stringify(menor ? responsable : domicilio) !== JSON.stringify(menor ? inicial.responsable : inicial.domicilio);
+    const cambios = cambiosDePerfil(perfil, { nombres, telefono, domicilio, telefonoResponsable, correoResponsable }, menor);
+    const hayCambios = Object.keys(cambios).length > 0;
 
     async function guardar(e: FormEvent) {
         e.preventDefault();
-        if (bloqueo.current) return;
+        if (bloqueo.current || !hayCambios || conflicto) return;
         setError("");
-        const encontrados: Record<string, string | undefined> = menor
-            ? { ...validarResponsable(responsable), nombres: validarDatos({ nombres, telefono: perfil.telefono }, domicilio).nombres }
-            : validarDatos({ nombres, telefono }, domicilio);
-        for (const k of Object.keys(encontrados)) if (!encontrados[k]) delete encontrados[k];
+        const encontrados = validarDatos(cambios, cambios.domicilio ? domicilio : undefined);
         setErrores(encontrados);
         if (Object.keys(encontrados).length) {
             document.getElementById(Object.keys(encontrados)[0])?.focus();
@@ -267,24 +275,18 @@ export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
         }
         bloqueo.current = true; setGuardando(true);
         try {
-            const cambio = nombres.trim() !== perfil.nombres || (!menor && telefono.trim() !== perfil.telefono);
-            const actualizado = cambio ? await guardarPerfil(perfil, { nombres: nombres.trim(), telefono: menor ? perfil.telefono : telefono.trim() }) : perfil;
-            if (menor) guardarResponsable({ nombre: responsable.nombre.trim(), telefono: responsable.telefono.trim(), relacion: responsable.relacion.trim() });
-            else guardarDomicilio({ ...domicilio, numeroInterior: domicilio.numeroInterior.trim() });
+            const { responsable, ...propios } = cambios;
+            const actualizado = perfil.id === "simulado" ? {
+                ...perfil,
+                ...propios,
+                responsable: perfil.responsable ? { ...perfil.responsable, ...responsable } : null,
+            } : await guardarPerfil(perfil, cambios);
             alGuardar(actualizado);
             navegar("/mi-perfil/datos", { state: { guardado: true } });
         } catch (e) {
             setError(mensajeError(e));
             if (e instanceof ErrorServicio && e.estado === 409) setConflicto(true);
         } finally { bloqueo.current = false; setGuardando(false); }
-    }
-
-    function cambiarCorreo() {
-        const problema = validarCorreo(correo, perfil.correo);
-        setErrores((x) => ({ ...x, correo: problema || undefined }));
-        if (problema) { document.getElementById("correo")?.focus(); return; }
-        solicitarCambioCorreo(correo);
-        navegar("/mi-perfil/datos/correo-pendiente");
     }
 
     return (
@@ -296,10 +298,10 @@ export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
                 <span className="perfil-editar-intro__avatar" aria-hidden="true">{iniciales(perfil)}</span>
                 <div className="perfil-editar-intro__textos">
                     <strong>Estás editando los datos de {nombreCompleto(perfil)}</strong>
-                    <p>Los cambios se guardan hasta que presionas «Guardar cambios». Puedes cancelar en cualquier momento.</p>
+                    <p>Presiona «Guardar cambios» para actualizar tu cuenta.</p>
                     <ul>
-                        <li className="perfil-editar-intro__si">Puedes cambiar: {menor ? "nombre y datos de la persona responsable" : "nombre, teléfono, domicilio y correo"}</li>
-                        <li className="perfil-editar-intro__no">Con el personal: apellidos y fecha de nacimiento</li>
+                        <li className="perfil-editar-intro__si">{menor ? "Puedes actualizar tu nombre y los contactos de tu responsable." : "Puedes actualizar tu nombre, teléfono y domicilio."}</li>
+                        <li className="perfil-editar-intro__no">Para corregir tus apellidos, fecha de nacimiento o correo de acceso, pide apoyo al personal.</li>
                     </ul>
                 </div>
             </section>
@@ -313,19 +315,20 @@ export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
                                 obligatorio={false} deshabilitado ayuda="Para cambiarla, acude con el personal." />
                         </div>
                     </TarjetaPerfil>
-                    <TarjetaPerfil color="rosa" icono={tarjetaUsuarios} titulo="Persona responsable">
-                        <div className="perfil-fila perfil-fila--tres">
-                            <Campo id="responsableNombre" icono={ic.persona} etiqueta="Nombre del responsable" valor={responsable.nombre}
-                                alCambiar={(v) => setResponsable((r) => ({ ...r, nombre: v }))} error={errores.responsableNombre}
-                                marcador="Ejemplo: Ana López" maximo={200} />
-                            <Campo id="responsableTelefono" icono={ic.telefono} etiqueta="Teléfono del responsable" valor={responsable.telefono}
-                                alCambiar={(v) => setResponsable((r) => ({ ...r, telefono: v.replace(/\D/g, "") }))} error={errores.responsableTelefono}
-                                marcador="10 dígitos" tipo="tel" maximo={10} modoTeclado="numeric" ayuda="Obligatorio para menores." />
-                            <Campo id="responsableRelacion" icono={ic.persona} etiqueta="Parentesco o relación" valor={responsable.relacion}
-                                alCambiar={(v) => setResponsable((r) => ({ ...r, relacion: v }))} error={errores.responsableRelacion}
-                                marcador="Madre, padre, tutor…" maximo={60} />
+                    {perfil.responsable ? <TarjetaPerfil color="rosa" icono={tarjetaUsuarios} titulo="Persona responsable">
+                        <dl className="perfil-datos">
+                            <Dato etiqueta="Nombre" valor={perfil.responsable.nombre} icono={ic.persona} ancho={2} />
+                            <Dato etiqueta="Parentesco o relación" valor={parentesco[perfil.responsable.relacion]} icono={ic.persona} ancho={2} />
+                        </dl>
+                        <div className="perfil-fila">
+                            <Campo id="responsableTelefono" icono={ic.telefono} etiqueta="Teléfono de la persona responsable" valor={telefonoResponsable}
+                                alCambiar={(v) => setTelefonoResponsable(v.replace(/\D/g, ""))} error={errores.responsableTelefono}
+                                marcador="10 dígitos" tipo="tel" maximo={10} modoTeclado="numeric" />
+                            <Campo id="responsableCorreo" icono={ic.correo} etiqueta="Correo de la persona responsable" valor={correoResponsable}
+                                alCambiar={setCorreoResponsable} error={errores.responsableCorreo}
+                                tipo="email" maximo={254} modoTeclado="email" />
                         </div>
-                    </TarjetaPerfil>
+                    </TarjetaPerfil> : <TarjetaResponsable responsable={null} />}
                     <NotaConsentimiento />
                 </> : <>
                     <TarjetaPerfil color="verde" icono={tarjetaUsuario} titulo="Datos personales">
@@ -364,14 +367,6 @@ export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
                                 error={errores.estado} marcador="Nayarit" maximo={100} />
                         </div>
                     </TarjetaPerfil>
-                    <TarjetaPerfil color="blanca" icono={tarjetaCorreo} titulo="Correo de la cuenta"
-                        texto="Si lo cambias, te enviaremos un enlace para verificar el nuevo correo.">
-                        <div className="perfil-fila perfil-fila--boton">
-                            <Campo id="correo" icono={ic.correo} etiqueta="Correo electrónico" valor={correo} alCambiar={setCorreo} error={errores.correo}
-                                tipo="email" marcador="nombre@ejemplo.mx" maximo={254} autocompletar="email" modoTeclado="email" />
-                            <button type="button" className="perfil-boton perfil-boton--contorno" onClick={cambiarCorreo}>Cambiar correo</button>
-                        </div>
-                    </TarjetaPerfil>
                 </>}
             </fieldset>
             {error && <p className="perfil-error" role="alert">{error}</p>}
@@ -385,57 +380,26 @@ export function EditarDatos({ perfil, menor = false, alGuardar, alRecargar }: {
                     <Link to="/mi-perfil/datos" className="perfil-boton perfil-boton--contorno">Cancelar</Link>
                     {conflicto
                         ? <button type="button" className="perfil-boton perfil-boton--guardar" onClick={alRecargar}>Volver a cargar mis datos</button>
-                        : <button type="submit" className="perfil-boton perfil-boton--guardar" disabled={guardando}>{guardando ? "Guardando…" : "Guardar cambios"}</button>}
+                        : <button type="submit" className="perfil-boton perfil-boton--guardar" disabled={guardando || !hayCambios}>{guardando ? "Guardando…" : "Guardar cambios"}</button>}
                 </div>
             </div>
         </form>
     );
 }
 
-// ---------- Cambio de correo pendiente ----------
-export function CorreoPendiente() {
-    const navegar = useNavigate();
-    const pendiente = consultarCorreoPendiente();
-    if (!pendiente) {
-        return (
-            <>
-                <EncabezadoSeccion sobretitulo="MIS DATOS" titulo="Sin cambios de correo" texto="No tienes un cambio de correo pendiente." />
-                <div className="perfil-acciones"><Link to="/mi-perfil/datos" className="perfil-boton">Volver a mis datos</Link></div>
-            </>
-        );
-    }
-    return (
-        <>
-            <EncabezadoSeccion sobretitulo="MIS DATOS" titulo="Verifica tu nuevo correo" texto="Tu correo actual sigue activo mientras no confirmes." />
-            <TarjetaPerfil color="dorada" icono={tarjetaCorreo} titulo="Verifica tu nuevo correo" texto="Tu correo actual sigue activo mientras no confirmes.">
-                <p className="perfil-chip-pendiente"><img src={puntoDorado} alt="" />Falta confirmar {pendiente}</p>
-                <p className="perfil-tarjeta__texto">Abre el enlace que te enviamos. Hasta entonces seguirás entrando con tu correo actual.</p>
-            </TarjetaPerfil>
-            <div className="perfil-acciones">
-                <button type="button" className="perfil-boton perfil-boton--contorno"
-                    onClick={() => { cancelarCambioCorreo(); navegar("/mi-perfil/datos"); }}>Cancelar cambio</button>
-                <Link to="/mi-perfil/datos" className="perfil-boton">Volver a mis datos</Link>
-            </div>
-        </>
-    );
-}
-
 // ---------- Persona responsable (cuenta de persona menor de edad) ----------
-function TarjetaResponsable({ compacta = false }: { compacta?: boolean }) {
-    const r = consultarResponsable(); // TODO backend: ver datos.ts
+const parentesco = { madre: "Madre", padre: "Padre", tutor: "Tutor o tutora" };
+
+function TarjetaResponsable({ responsable, compacta = false }: { responsable: PerfilPropio["responsable"]; compacta?: boolean }) {
     return (
         <TarjetaPerfil color="rosa" icono={tarjetaUsuarios} titulo="Persona responsable"
-            texto={compacta ? "Algunos trámites los realiza ella o él." : "Se requiere para menores de edad."}>
-            <dl className="perfil-datos">
-                <Dato etiqueta={compacta ? "NOMBRE" : "Nombre del responsable"} valor={r.nombre} />
-                {compacta ? <>
-                    <Dato etiqueta="Parentesco" valor={r.relacion} />
-                    <Dato etiqueta="Teléfono" valor={r.telefono} />
-                </> : <>
-                    <Dato etiqueta="Teléfono del responsable" valor={r.telefono} />
-                    <Dato etiqueta="Parentesco o relación" valor={r.relacion} />
-                </>}
-            </dl>
+            texto="Se requiere para menores de edad.">
+            {responsable ? <dl className="perfil-datos">
+                <Dato etiqueta="Nombre" valor={responsable.nombre} icono={ic.persona} ancho={2} />
+                <Dato etiqueta="Parentesco o relación" valor={parentesco[responsable.relacion]} icono={ic.persona} ancho={2} />
+                <Dato etiqueta="Teléfono" valor={responsable.telefono} icono={ic.telefono} ancho={2} />
+                {!compacta && <Dato etiqueta="Correo" valor={responsable.correo} icono={ic.correo} ancho={2} />}
+            </dl> : <p className="perfil-tarjeta__texto">Si faltan los datos de tu responsable, pide apoyo al personal de la biblioteca.</p>}
         </TarjetaPerfil>
     );
 }

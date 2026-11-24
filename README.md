@@ -100,7 +100,7 @@ Pruebas: npm test, npm run build y npm run lint dentro de Front; python -m unitt
 
 Los scripts de Supabase incluidos son el historial de cambios ya aplicados en CECANbd, no una exportación completa de la base ni un instalador para ejecutar sin revisión. Requieren el esquema inicial de la base compartida. El orden histórico fue registro_usuarios.sql, administracion_cuentas.sql, endurecimiento_administracion.sql, corregir_roles_y_capacidades.sql y alinear_actores_documentados.sql. El último define el catálogo vigente; los anteriores contienen modelos provisionales ya sustituidos. No volver a ejecutar los scripts antiguos sobre CECANbd. Las suites pruebas_registro.sql y pruebas_administracion.sql usan ROLLBACK y no dejan sus registros ficticios.
 
-T-034, adaptada del trabajo de Stephanie: GET /mis-solicitudes requiere un Bearer token válido y devuelve solicitudes de espacios, credenciales y propuestas de eventos del titular. limite y desplazamiento se aplican por categoría; los totales incluyen todos los registros propios. No exige rol Administrador. Devuelve estados actuales, no una bitácora de transiciones. La pantalla de seguimiento todavía no está implementada.
+`GET /mis-solicitudes` requiere una sesión válida y devuelve los estados actuales de las solicitudes de espacios, credenciales y propuestas de la cuenta. Los parámetros `limite` y `desplazamiento` se aplican por categoría. Los totales incluyen todas las solicitudes propias. El recorrido desde Mi cuenta y la integración de perfil, credencial, actividades y progreso se describen en [HU-08.md](HU-08.md).
 
 ### Recuperación de contraseña adaptada de BOBA
 

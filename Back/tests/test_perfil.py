@@ -35,6 +35,13 @@ class PerfilPropioTests(unittest.TestCase):
   self.assertEqual(r.headers['cache-control'],'no-store')
   self.cliente.postgrest.auth.assert_called_once_with('token-propio')
   self.cliente.rpc.assert_called_once_with('mi_perfil',{'operacion':'consultar','datos':{}})
+ def test_rechaza_identificador_ajeno_en_consulta_y_edicion(self):
+  ruta = '/perfil?id=00000000-0000-4000-8000-000000000001'
+  self.assertEqual(self.http.get(ruta, headers=self.headers).status_code, 422)
+  respuesta = self.http.patch(ruta, headers=self.headers, json={'nombres': 'Ana', 'actualizadoA': VERSION})
+  self.assertEqual(respuesta.status_code, 422)
+  self.assertEqual(respuesta.headers['cache-control'], 'no-store')
+  self.cliente.rpc.assert_not_called()
  def test_edicion_envia_solo_campos_declarados_y_version(self):
   r=self.http.patch('/perfil',headers=self.headers,json={'nombres':' Ana ','telefono':'3111234567','actualizadoA':VERSION})
   self.assertEqual(r.status_code,200)
@@ -45,6 +52,44 @@ class PerfilPropioTests(unittest.TestCase):
   for campo,valor in [('id','otra-cuenta'),('rol','administrador'),('estatus','activo'),('credencial','válida'),('correo','otro@example.com'),('primerApellido','Otro')]:
    r=self.http.patch('/perfil',headers=self.headers,json={'nombres':'Ana','actualizadoA':VERSION,campo:valor})
    self.assertEqual(r.status_code,422)
+  self.cliente.rpc.assert_not_called()
+ def test_reenvia_contactos_de_responsable_con_version(self):
+  cambios = {'responsable': {'telefono': '3115551234', 'correo': 'responsable@example.com'},
+             'actualizadoA': VERSION}
+  self.cliente.rpc.return_value.execute.return_value.data = {
+      'esMenor': True, 'domicilio': None,
+      'responsable': {**cambios['responsable'], 'nombre': 'Persona responsable', 'relacion': 'madre'},
+  }
+  respuesta = self.http.patch('/perfil', headers=self.headers, json=cambios)
+  self.assertEqual(respuesta.status_code, 200)
+  self.assertEqual(respuesta.json()['responsable']['correo'], 'responsable@example.com')
+  self.cliente.rpc.assert_called_once_with('mi_perfil', {'operacion': 'guardar', 'datos': cambios})
+ def test_no_acepta_reemplazar_responsable_ni_contactos_invalidos(self):
+  contactos_invalidos = [None, {}, {'telefono': None}, {'telefono': '123'}, {'correo': 'sin-arroba'},
+                         {'telefono': '3111111111', 'nombre': 'Otra persona'},
+                         {'telefono': '3111111111', 'usuarioId': 'otra-cuenta'},
+                         {'correo': 'responsable@example.com', 'relacion': 'tutor'}]
+  for responsable in contactos_invalidos:
+   with self.subTest(responsable=responsable):
+    respuesta = self.http.patch('/perfil', headers=self.headers,
+                                json={'responsable': responsable, 'actualizadoA': VERSION})
+    self.assertEqual(respuesta.status_code, 422)
+  self.cliente.rpc.assert_not_called()
+ def test_edicion_domicilio_propio_completo(self):
+  domicilio = {'calle': ' Alameda ', 'numeroExterior': '52', 'numeroInterior': None,
+               'coloniaLocalidad': 'Centro', 'codigoPostal': '63000',
+               'municipio': 'Tepic', 'estadoProvincia': 'Nayarit'}
+  respuesta = self.http.patch('/perfil', headers=self.headers,
+                              json={'actualizadoA': VERSION, 'domicilio': domicilio})
+  self.assertEqual(respuesta.status_code, 200)
+  self.cliente.rpc.assert_called_once_with('mi_perfil', {'operacion': 'guardar', 'datos': {
+      'actualizadoA': VERSION, 'domicilio': {**domicilio, 'calle': 'Alameda'},
+  }})
+  self.cliente.rpc.reset_mock()
+  for invalido in [{**domicilio, 'codigoPostal': 'abcd'}, {**domicilio, 'usuarioId': 'otra-cuenta'}]:
+   respuesta = self.http.patch('/perfil', headers=self.headers,
+                               json={'actualizadoA': VERSION, 'domicilio': invalido})
+   self.assertEqual(respuesta.status_code, 422)
   self.cliente.rpc.assert_not_called()
  def test_no_acepta_campos_vacios_null_telefono_invalido_ni_version_ausente(self):
   for datos in [{'actualizadoA':VERSION},{'nombres':' ','actualizadoA':VERSION},{'nombres':None,'actualizadoA':VERSION},

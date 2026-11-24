@@ -2,12 +2,13 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Query, Response
-from pydantic import AwareDatetime, StringConstraints, model_validator
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from pydantic import AwareDatetime, Field, StringConstraints, model_validator
 
 from Back.atencion_solicitudes import ejecutar_atencion
 from Back.contenidos import Cliente
 from Back.registro import DatosBase
+from Back.solicitudes import sesion_solicitudes
 
 router = APIRouter(prefix='/credenciales/solicitudes', tags=['Solicitudes de credencial (T-072)'])
 EstadoCredencial = Literal['recibida', 'en_atencion', 'cita_programada', 'atendida', 'rechazada', 'cancelada']
@@ -34,6 +35,11 @@ class SolicitudCredencialUpdate(DatosBase):
         return self
 
 
+class ConsultaCredencialPropia(DatosBase):
+    limite: int = Field(default=20, ge=1, le=50)
+    desplazamiento: int = Field(default=0, ge=0, le=100000)
+
+
 def llamar(cliente, operacion, datos, respuesta):
     respuesta.headers['Cache-Control'] = 'private, no-store'
     return ejecutar_atencion(cliente, 'credencial', operacion, datos)
@@ -45,8 +51,19 @@ def crear(datos: SolicitudCredencialCreate, cliente: Cliente, response: Response
 
 
 @router.get('/me')
-def propias(cliente: Cliente, response: Response, limite: int = Query(20, ge=1, le=50), desplazamiento: int = Query(0, ge=0, le=100000)):
-    return llamar(cliente, 'mias', {'limite': limite, 'desplazamiento': desplazamiento}, response)
+def propias(sesion: Annotated[tuple, Depends(sesion_solicitudes)], response: Response,
+            consulta: Annotated[ConsultaCredencialPropia, Query()]):
+    cliente, usuario_id = sesion
+    solicitudes = llamar(cliente, 'mias', consulta.model_dump(), response)
+    campos = ('estadoValidacion', 'fechaEmision', 'fechaVencimiento')
+    try:
+        filas = (cliente.table('credencialBibliotecaria').select(','.join(campos))
+                 .eq('usuarioId', usuario_id).limit(1).execute().data)
+        credencial = {campo: filas[0][campo] for campo in campos} if filas else None
+    except Exception:
+        raise HTTPException(503, 'No fue posible consultar el estado de tu credencial.',
+                            headers={'Cache-Control': 'private, no-store'}) from None
+    return {**solicitudes, 'credencial': credencial}
 
 
 @router.get('')

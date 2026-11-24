@@ -4,7 +4,7 @@ import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/Pag
 import type { PerfilPropio } from "../../../servicios/perfil";
 import { ErrorServicio, mensajeError } from "../../../servicios/api";
 import { sesionSimulada, useSesion, usePerfil } from "../perfil/usarSesion";
-import { consultarDomicilio, formatearFecha, nombreCompleto } from "../perfil/datos";
+import { domicilioDePerfil, formatearFecha, nombreCompleto } from "../perfil/datos";
 import { Dato, TarjetaPerfil } from "../perfil/piezas";
 import { Campo } from "../perfil/secciones";
 import { iconosSeccion } from "../perfil/iconos";
@@ -12,7 +12,7 @@ import { AyudaTramite, EstadoCredencial, PasosTramite, RutaCredencial, SelectorE
 import {
     cancelarSolicitud, enviarCorreccion, enviarSolicitud, estadosCredencial, etapasCredencial, fechaCorta, horariosCotejo, pasoDelEstado,
     puedeCancelar, puedeSolicitar,
-    useTramite, useTramiteListo, validarCorreccion, validarSolicitud, verEjemplo, type ErroresSolicitud, type TipoTramite, type TramiteCredencial,
+    useSeguimientoTramite, validarCorreccion, validarSolicitud, verEjemplo, type ErroresSolicitud, type TipoTramite, type TramiteCredencial,
 } from "./datos";
 import "../contacto/Contacto.css";
 import "../perfil/Perfil.css";
@@ -39,8 +39,7 @@ const ic = { persona: iconosSeccion.datos, fecha: iconosSeccion.eventos, correo:
 export default function Tramite({ vista }: { vista: Vista }) {
     const usuario = useSesion();
     const carga = usePerfil(usuario);
-    const tramite = useTramite();
-    const listo = useTramiteListo();
+    const { tramite, listo, error, reintentar } = useSeguimientoTramite();
     // Al llegar desde otra pantalla del trámite (tras enviar), la página entra sin esperas: no parpadea.
     const sigue = (useLocation().state as { enviada?: boolean } | null)?.enviada === true;
 
@@ -51,7 +50,7 @@ export default function Tramite({ vista }: { vista: Vista }) {
             </PaginaPublica>
         );
     }
-    if (!carga || "error" in carga || (!listo && vista !== "solicitud")) {
+    if (!carga || "error" in carga || !listo) {
         return (
             <PaginaPublica>
                 <div className="cred-estado">
@@ -61,6 +60,10 @@ export default function Tramite({ vista }: { vista: Vista }) {
                         <Link className="perfil-boton" to={carga.ingresar ? "/iniciar-sesion" : "/credencial"}>
                             {carga.ingresar ? "Iniciar sesión" : "Volver a información"}
                         </Link>
+                    </> : error ? <>
+                        <h1>No pudimos cargar tu solicitud</h1>
+                        <p role="alert">{error}</p>
+                        <button type="button" className="perfil-boton" onClick={reintentar}>Reintentar</button>
                     </> : <EsqueletoDetalle texto="Cargando tu solicitud…" />}
                 </div>
             </PaginaPublica>
@@ -81,7 +84,7 @@ export default function Tramite({ vista }: { vista: Vista }) {
     const encabezado = textosEncabezado(vista, estado);
 
     const contenido = vista === "solicitud"
-        ? <Solicitud perfil={perfil} />
+        ? <Solicitud key={perfil.id} perfil={perfil} />
         : <Seguimiento tramite={{ ...tramite, estado }} titular={nombreCompleto(perfil)} />;
 
     return (
@@ -130,7 +133,7 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
     const [enviando, setEnviando] = useState(false);
     const [errorEnvio, setErrorEnvio] = useState("");
     const bloqueo = useRef(false);
-    const domicilio = consultarDomicilio(); // TODO backend: ver perfil/datos.ts
+    const domicilio = domicilioDePerfil(perfil.domicilio);
 
     function enviar(e: FormEvent) {
         e.preventDefault();
@@ -177,8 +180,8 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
                         <Dato etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} icono={ic.fecha} />
                         <Dato etiqueta="Teléfono" valor={perfil.telefono} icono={ic.telefono} />
                         <Dato etiqueta="Correo electrónico" valor={perfil.correo} icono={ic.correo} ancho={2} />
-                        <Dato etiqueta="Domicilio" icono={ic.lugar} ancho={2}
-                            valor={[[domicilio.calle, domicilio.numeroExterior].filter(Boolean).join(" "), domicilio.colonia, domicilio.codigoPostal && `C. P. ${domicilio.codigoPostal}`].filter(Boolean).join(", ")} />
+                        {perfil.domicilio && <Dato etiqueta="Domicilio" icono={ic.lugar} ancho={2}
+                            valor={[[domicilio.calle, domicilio.numeroExterior].filter(Boolean).join(" "), domicilio.colonia, domicilio.codigoPostal && `C. P. ${domicilio.codigoPostal}`].filter(Boolean).join(", ")} />}
                     </dl>
                     <div className="perfil-nota">
                         <img src={notaInfo} alt="" />
@@ -271,11 +274,14 @@ function Seguimiento({ tramite, titular }: { tramite: TramiteCredencial; titular
                             <Link to="/credencial/solicitud?tipo=renovacion" className="perfil-boton">Solicitar renovación</Link>
                         </div>
                     )}
+                    {(tramite.estado === "validacion-rechazada" || tramite.estado === "correccion" && !sesionSimulada) && (
+                        <div className="perfil-acciones"><Link to="/contacto" className="perfil-boton perfil-boton--contorno">Contactar a la biblioteca</Link></div>
+                    )}
                     {puedeCancelar(tramite.estado) && <CancelarSolicitud folio={folioCorto(tramite.folio)} />}
                 </EstadoCredencial>
-                {tramite.estado === "correccion" ? <Correccion /> : (
+                {tramite.estado === "correccion" && sesionSimulada ? <Correccion /> : (
                     <TarjetaPerfil color="blanca" icono={tarjetaLista} titulo="Cómo avanza tu trámite"
-                        texto={emitida ? "Terminaste los cuatro pasos." : "Te avisaremos en tus notificaciones cuando debas acudir al cotejo."}>
+                        texto={emitida ? "Terminaste los cuatro pasos." : undefined}>
                         <RutaCredencial etapas={etapasCredencial(datos.paso)} />
                     </TarjetaPerfil>
                 )}

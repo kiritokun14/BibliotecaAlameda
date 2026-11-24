@@ -5,7 +5,7 @@ vi.mock('../src/servicios/api',()=>({pedirApi:api.pedir,obtenerSupabase:async()=
 import { consultarPerfil, consultarPreferenciasAvisos, guardarPerfil, type PerfilPropio } from '../src/servicios/perfil';
 const perfil:PerfilPropio={id:'usuario',correo:'ana@example.com',nombres:'Ana',primerApellido:'Pérez',segundoApellido:null,fechaNacimiento:'2000-01-01',telefono:'3110000000',actualizadoA:'2026-11-02T12:00:00Z'};
 describe('Perfil propio conectado',()=>{
- beforeEach(()=>{vi.clearAllMocks();api.sesion.mockResolvedValue({data:{session:{access_token:'token'}},error:null});api.pedir.mockResolvedValue(perfil);});
+ beforeEach(()=>{vi.clearAllMocks();api.sesion.mockResolvedValue({data:{session:{access_token:'token',user:{id:perfil.id}}},error:null});api.pedir.mockResolvedValue(perfil);});
  it('consulta con sesión y sin recibir identidad del formulario',async()=>{
   await consultarPerfil();expect(api.pedir).toHaveBeenCalledWith('/perfil',{method:'GET',headers:{Authorization:'Bearer token'}});
  });
@@ -16,6 +16,18 @@ describe('Perfil propio conectado',()=>{
   await guardarPerfil(perfil,{nombres:'Ana María',telefono:'3111234567'});
   const [,o]=api.pedir.mock.calls[0];expect(o.method).toBe('PATCH');
   expect(JSON.parse(o.body)).toEqual({nombres:'Ana María',telefono:'3111234567',actualizadoA:perfil.actualizadoA});
+ });
+ it('envía el contacto del responsable a través del mismo perfil propio', async () => {
+  await guardarPerfil(perfil, { responsable: { telefono: '3111234567', correo: 'tutor@ejemplo.mx' } });
+  const [ruta, opciones] = api.pedir.mock.calls[0];
+  expect(ruta).toBe('/perfil');
+  expect(JSON.parse(opciones.body)).toEqual({ responsable: { telefono: '3111234567', correo: 'tutor@ejemplo.mx' }, actualizadoA: perfil.actualizadoA });
+ });
+ it('impide consultar o guardar un formulario de otra cuenta con la sesión activa', async () => {
+  api.sesion.mockResolvedValue({ data: { session: { access_token: 'token-otra', user: { id: 'otra-cuenta' } } }, error: null });
+  await expect(consultarPerfil(perfil.id)).rejects.toMatchObject({ estado: 409 });
+  await expect(guardarPerfil(perfil, { nombres: 'Ana María' })).rejects.toMatchObject({ estado: 409 });
+  expect(api.pedir).not.toHaveBeenCalled();
  });
  it('un conflicto no se presenta como guardado exitoso',async()=>{
   api.pedir.mockRejectedValue(new Error('El perfil cambió'));await expect(guardarPerfil(perfil,{nombres:'Ana',telefono:'3111234567'})).rejects.toThrow('El perfil cambió');

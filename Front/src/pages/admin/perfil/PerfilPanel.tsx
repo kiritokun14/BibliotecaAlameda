@@ -10,7 +10,7 @@ import { Aviso, Chip, Cifra, Dato, Datos, Encabezado, Icono, Tarjeta } from "../
 import { useNotificaciones } from "../notificaciones/datos";
 import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 import { ContextoPanel, nombresRoles } from "../../../servicios/accesoPanel";
-import { mensajeError } from "../../../servicios/api";
+import { ErrorServicio, mensajeError } from "../../../servicios/api";
 import { cerrarSesion } from "../../../servicios/auth";
 import { salirConAnimacion } from "../../../components/sesion/transicion";
 import { consultarPerfil, consultarPreferenciasAvisos, guardarPerfil, guardarPreferenciasAvisos, type PerfilPropio, type PreferenciasAvisos } from "../../../servicios/perfil";
@@ -23,16 +23,18 @@ const nombreCompleto = (p: PerfilPropio) => [p.nombres, p.primerApellido, p.segu
 
 export default function PerfilPanel({ seccion }: { seccion: SeccionPerfil }) {
     const identidad = useContext(ContextoPanel);
+    const usuarioId = identidad?.acceso.usuarioId;
     const [intento, setIntento] = useState(0);
-    const [estado, setEstado] = useState<{ intento: number; perfil?: PerfilPropio; error?: string }>();
+    const [estado, setEstado] = useState<{ usuarioId: string; intento: number; perfil?: PerfilPropio; error?: string }>();
     useEffect(() => {
+        if (!usuarioId) return;
         let vigente = true;
-        consultarPerfil()
-            .then((perfil) => { if (vigente) setEstado({ intento, perfil }); })
-            .catch((e) => { if (vigente) setEstado({ intento, error: mensajeError(e) }); });
+        consultarPerfil(usuarioId)
+            .then((perfil) => { if (vigente && perfil.id === usuarioId) setEstado({ usuarioId, intento, perfil }); })
+            .catch((e) => { if (vigente) setEstado({ usuarioId, intento, error: mensajeError(e) }); });
         return () => { vigente = false; };
-    }, [intento]);
-    const actual = estado?.intento === intento ? estado : undefined;
+    }, [usuarioId, intento]);
+    const actual = estado?.usuarioId === usuarioId && estado?.intento === intento ? estado : undefined;
     const navigate = useNavigate();
     const { pendientes } = useNotificaciones(identidad?.acceso);
     const conAcceso = accesosPorSeccion(identidad?.acceso).filter((s) => s.puede.length).length;
@@ -53,9 +55,11 @@ export default function PerfilPanel({ seccion }: { seccion: SeccionPerfil }) {
                         <Aviso tono="error" titulo="No se pudo cargar tu cuenta." texto={actual.error}>
                             <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => setIntento((x) => x + 1)}>Reintentar</button>
                         </Aviso>
-                    ) : seccion === "datos" ? <MisDatos perfil={perfil} alGuardar={(p) => setEstado({ intento, perfil: p })} />
-                        : seccion === "avisos" ? <Avisos />
-                            : seccion === "seguridad" ? <Seguridad correo={perfil.correo || identidad?.correo || ""} />
+                    ) : seccion === "datos" ? <MisDatos key={perfil.id} perfil={perfil}
+                        alGuardar={(p) => setEstado((previa) => previa?.usuarioId === p.id && previa.intento === intento ? { usuarioId: p.id, intento, perfil: p } : previa)}
+                        alRecargar={() => setIntento((x) => x + 1)} />
+                        : seccion === "avisos" ? <Avisos key={perfil.id} />
+                            : seccion === "seguridad" ? <Seguridad key={perfil.id} correo={perfil.correo || identidad?.correo || ""} />
                                 : <Resumen perfil={perfil} />}
             </div>
         </PanelLayout>
@@ -83,13 +87,15 @@ function Columnas({ actual, children, lateral }: { actual: SeccionPerfil; childr
 }
 
 // Tarjeta de guardar (como en Configuración): dice si hay cambios, con «Guardar» primero
-function Guardar({ cambios, guardando, alGuardar, alDeshacer, aviso, error }: { cambios: boolean; guardando: boolean; alGuardar: () => void; alDeshacer: () => void; aviso: string; error: string }) {
+function Guardar({ cambios, guardando, alGuardar, alDeshacer, alRecargar, aviso, error }: { cambios: boolean; guardando: boolean; alGuardar: () => void; alDeshacer: () => void; alRecargar?: () => void; aviso: string; error: string }) {
     return (
         <section className={`pz-tarjeta pz-guardar${cambios ? " pz-guardar--cambios" : ""}`} aria-label="Guardar cambios">
             <p className="pz-guardar__estado" role="status"><span className="pz-guardar__punto" aria-hidden="true" />{cambios ? "Tienes cambios sin guardar" : "Sin cambios por ahora"}</p>
             <div className="pz-acciones">
-                <button type="button" className="pz-boton" disabled={!cambios || guardando} onClick={alGuardar}>{guardando ? "Guardando…" : "Guardar"}</button>
-                <button type="button" className="pz-boton pz-boton--contorno" disabled={!cambios || guardando} onClick={alDeshacer}>Deshacer cambios</button>
+                {alRecargar ? <button type="button" className="pz-boton" onClick={alRecargar}>Volver a cargar mis datos</button> : <>
+                    <button type="button" className="pz-boton" disabled={!cambios || guardando} onClick={alGuardar}>{guardando ? "Guardando…" : "Guardar"}</button>
+                    <button type="button" className="pz-boton pz-boton--contorno" disabled={!cambios || guardando} onClick={alDeshacer}>Deshacer cambios</button>
+                </>}
             </div>
             {aviso && <Aviso titulo={aviso} />}
             {error && <Aviso tono="error" titulo="No se guardó." texto={error} />}
@@ -118,6 +124,7 @@ function Resumen({ perfil }: { perfil: PerfilPropio }) {
             </div>
             <div className="pz-acciones">
                 <Link to={`${RUTA_PERFIL}/datos`} className="pz-boton">Editar mis datos</Link>
+                <Link to="/mi-perfil" className="pz-boton pz-boton--contorno">Ver mis gestiones</Link>
                 <Link to={`${RUTA_PERFIL}/seguridad`} className="pz-boton pz-boton--contorno">Cambiar contraseña</Link>
                 <Link to="/admin/notificaciones" className="pz-boton pz-boton--contorno">{pendientes ? (pendientes === 1 ? "Ver 1 aviso sin leer" : `Ver ${pendientes} avisos sin leer`) : "Ver notificaciones"}</Link>
             </div>
@@ -173,7 +180,7 @@ function Resumen({ perfil }: { perfil: PerfilPropio }) {
 const listaConY = (l: string[]) => (l.length < 2 ? l.join("") : `${l.slice(0, -1).join(", ")} y ${l[l.length - 1]}`);
 
 // ---------- Mis datos ----------
-function MisDatos({ perfil, alGuardar }: { perfil: PerfilPropio; alGuardar: (p: PerfilPropio) => void }) {
+function MisDatos({ perfil, alGuardar, alRecargar }: { perfil: PerfilPropio; alGuardar: (p: PerfilPropio) => void; alRecargar: () => void }) {
     const id = useId();
     const [nombres, setNombres] = useState(perfil.nombres);
     const [telefono, setTelefono] = useState(perfil.telefono ?? "");
@@ -181,37 +188,48 @@ function MisDatos({ perfil, alGuardar }: { perfil: PerfilPropio; alGuardar: (p: 
     const [guardando, setGuardando] = useState(false);
     const [aviso, setAviso] = useState("");
     const [error, setError] = useState("");
-    const cambios = nombres.trim() !== perfil.nombres || telefono.trim() !== (perfil.telefono ?? "");
+    const [conflicto, setConflicto] = useState(false);
+    const cambiaNombre = nombres.trim() !== perfil.nombres;
+    const cambiaTelefono = telefono.trim() !== (perfil.telefono ?? "");
+    const cambios = cambiaNombre || cambiaTelefono;
 
     async function guardar() {
-        const e = validarDatos(nombres, telefono);
+        if (!cambios || conflicto || guardando) return;
+        const revisados = validarDatos(nombres, telefono);
+        const e = { nombres: cambiaNombre ? revisados.nombres : undefined, telefono: cambiaTelefono ? revisados.telefono : undefined };
         setErrores(e); setAviso(""); setError("");
         if (e.nombres || e.telefono) return;
         setGuardando(true);
         try {
-            const actualizado = await guardarPerfil(perfil, { nombres: nombres.trim(), telefono: telefono.trim() });
+            const actualizado = await guardarPerfil(perfil, {
+                ...(cambiaNombre ? { nombres: nombres.trim() } : {}),
+                ...(cambiaTelefono ? { telefono: telefono.trim() } : {}),
+            });
             alGuardar(actualizado);
             setNombres(actualizado.nombres); setTelefono(actualizado.telefono ?? "");
             setAviso("Tus datos se guardaron.");
         } catch (e) {
             setError(mensajeError(e));
+            if (e instanceof ErrorServicio && e.estado === 409) setConflicto(true);
         } finally {
             setGuardando(false);
         }
     }
 
     return (
-        <Columnas actual="datos" lateral={<Guardar cambios={cambios} guardando={guardando} alGuardar={() => void guardar()} alDeshacer={() => { setNombres(perfil.nombres); setTelefono(perfil.telefono ?? ""); setErrores({}); }} aviso={aviso} error={error} />}>
+        <Columnas actual="datos" lateral={<Guardar cambios={cambios} guardando={guardando} alGuardar={() => void guardar()}
+            alDeshacer={() => { setNombres(perfil.nombres); setTelefono(perfil.telefono ?? ""); setErrores({}); }}
+            alRecargar={conflicto ? alRecargar : undefined} aviso={aviso} error={error} />}>
             <Tarjeta icono="contenido" id={`${id}-editar`} titulo="Lo que puedes cambiar" texto="Se guarda en tu cuenta y lo ve el personal que te atiende">
                 <div className="pz-campos-fila">
                     <label className={`pz-campo pz-campo--lleno${errores.nombres ? " pz-campo--error" : ""}`}>
                         <span>Nombre(s) <span className="contenidos-campo__obligatorio">*</span></span>
-                        <input type="text" maxLength={150} autoComplete="given-name" value={nombres} aria-invalid={!!errores.nombres} onChange={(e) => { setNombres(e.target.value); setAviso(""); }} />
+                        <input type="text" maxLength={150} autoComplete="given-name" value={nombres} disabled={guardando || conflicto} aria-invalid={!!errores.nombres} onChange={(e) => { setNombres(e.target.value); setAviso(""); }} />
                         {errores.nombres && <small className="pz-campo__error" role="alert">{errores.nombres}</small>}
                     </label>
                     <label className={`pz-campo pz-campo--lleno${errores.telefono ? " pz-campo--error" : ""}`}>
                         <span>Teléfono <span className="contenidos-campo__obligatorio">*</span></span>
-                        <input type="tel" inputMode="numeric" maxLength={10} autoComplete="tel" value={telefono} aria-invalid={!!errores.telefono} onChange={(e) => { setTelefono(e.target.value.replace(/\D/g, "")); setAviso(""); }} />
+                        <input type="tel" inputMode="numeric" maxLength={10} autoComplete="tel" value={telefono} disabled={guardando || conflicto} aria-invalid={!!errores.telefono} onChange={(e) => { setTelefono(e.target.value.replace(/\D/g, "")); setAviso(""); }} />
                         {errores.telefono ? <small className="pz-campo__error" role="alert">{errores.telefono}</small> : <small className="pz-campo__ayuda">10 dígitos, sin espacios</small>}
                     </label>
                 </div>

@@ -13,7 +13,7 @@ import {
 } from "./solicitudes";
 import { cambiarContrasena } from "./seguridad";
 import { listarMisSolicitudes, type SolicitudEspacioApi } from "../../../servicios/espacios";
-import { estadosCredencial, etapasCredencial, useTramite, verEjemplo } from "../credencial/datos";
+import { estadosCredencial, etapasCredencial, useSeguimientoTramite, verEjemplo } from "../credencial/datos";
 import { Chip, EstadoCredencial, EtapasTramite, SelectorEstados } from "../credencial/piezas";
 import "../credencial/CredencialSesion.css";
 import notaInfo from "../../../assets/perfil/nota-info.svg";
@@ -27,6 +27,7 @@ import { GaleriaInsignias } from "../../../components/portal/Insignias";
 import { insigniasDe } from "../../../servicios/insignias"; // TODO backend: GET /v1/me/insignias
 import { FilaPerfil, ListaPerfil } from "./ListaPerfil";
 import { coincide, diaMes } from "./utilesLista";
+import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 function NotaInfo({ children }: { children: ReactNode }) {
     return <div className="perfil-nota"><img src={notaInfo} alt="" /><p>{children}</p></div>;
 }
@@ -35,12 +36,18 @@ function NotaInfo({ children }: { children: ReactNode }) {
 // Un bloque por estado: a la izquierda la credencial (o su lugar mientras no existe) y a la derecha qué pasa y qué hacer.
 // Abajo, los cuatro pasos del trámite con el paso actual marcado. Con ?simular=sesion se pueden ver todos los estados.
 export function MiCredencialPerfil({ perfil, menor = false }: { perfil: PerfilPropio; menor?: boolean }) {
-    const tramite = useTramite(); // GET /mis-solicitudes
+    const { tramite, listo, error, reintentar } = useSeguimientoTramite();
     const datos = estadosCredencial[tramite.estado];
     return (
         <>
             <EncabezadoSeccion titulo="Mi credencial"
-                texto={menor ? "Consulta el estado de la credencial y da seguimiento a la solicitud." : "Consulta el estado de tu credencial y da seguimiento a tu solicitud."} />
+                texto={menor ? "Consulta el estado de la credencial y da seguimiento a la solicitud." : "Consulta el estado de tu credencial y da seguimiento a tu solicitud."}
+                accion={!sesionSimulada ? <Link to="/mis-tramites/credencial" className="perfil-boton perfil-boton--contorno">Ver historial de solicitudes</Link> : undefined} />
+            {error ? <div className="perfil-vacio perfil-vacio--eventos" role="alert">
+                <span className="perfil-vacio__insignia" aria-hidden="true" />
+                <p><strong>No pudimos cargar tu credencial</strong>{error}</p>
+                <button type="button" className="perfil-boton" onClick={reintentar}>Reintentar</button>
+            </div> : !listo ? <EsqueletoDetalle texto="Cargando tu credencial…" /> : <>
             {sesionSimulada && <SelectorEstados actual={tramite.estado} alElegir={verEjemplo} />}
             <EstadoCredencial datos={datos} titular={nombreCompleto(perfil)} tramite={tramite}>
                 <div className="perfil-acciones">
@@ -60,6 +67,7 @@ export function MiCredencialPerfil({ perfil, menor = false }: { perfil: PerfilPr
                     <p><strong>Consentimiento de la persona responsable</strong>La credencial de menores requiere el consentimiento de una persona responsable.</p>
                 </div>
             )}
+            </>}
         </>
     );
 }
@@ -183,16 +191,20 @@ const progresoEjemplo: MiProgreso = {
     participaciones: [], recompensas: [{ id: "ejemplo", nombre: "Separador conmemorativo", descripcion: "", nivelRequerido: 1, disponible: true, vigenciaFin: "2027-01-24T23:59:59-07:00" }], entregas: [],
 };
 
-export function Progreso({ menor = false }: { menor?: boolean }) {
+export function Progreso({ menor = false, usuario }: { menor?: boolean; usuario: string }) {
     const [estado, setEstado] = useState<{ datos?: MiProgreso; error?: string }>(sesionSimulada ? { datos: progresoEjemplo } : {});
     const [intento, setIntento] = useState(0);
     useEffect(() => {
         if (sesionSimulada) return;
         let vigente = true;
-        consultarMiProgreso().then((datos) => { if (vigente) setEstado({ datos }); })
+        consultarMiProgreso().then((datos) => {
+            if (!vigente) return;
+            if (datos.resumen.usuarioId === usuario) setEstado({ datos });
+            else setEstado({ error: "La cuenta cambió. Vuelve a consultar tu progreso." });
+        })
             .catch((error) => { if (vigente) setEstado({ error: mensajeError(error) }); });
         return () => { vigente = false; };
-    }, [intento]);
+    }, [intento, usuario]);
     const textoNivel = { alcanzado: "Alcanzado", "en-progreso": "En progreso", pendiente: "Pendiente" };
     const colorNivel = { alcanzado: "verde", "en-progreso": "dorado", pendiente: "gris" } as const;
     const datos = estado.datos;

@@ -4,7 +4,7 @@ import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/Pag
 import { EsqueletoDetalle } from "../../../components/portal/Esqueleto";
 import { ErrorServicio, mensajeError } from "../../../servicios/api";
 import { editarPropuestaUsuario, fechaHoyTepic, registrarPropuestaUsuario } from "../../../servicios/propuestasUsuario";
-import { cancelarPropuesta, consultarTramite, type SolicitudAtencion } from "../../../servicios/tramites";
+import { cancelarPropuesta, consultarTramitePropio, type SolicitudAtencion } from "../../../servicios/tramites";
 import { useCuentaTramites } from "../../../servicios/useCuentaTramites";
 import { sesionSimulada, useSesion, usePerfil } from "../perfil/usarSesion";
 import { nombreCompleto } from "../perfil/datos";
@@ -276,7 +276,7 @@ function usePropuestaReal(id?: string, version = 0) {
     useEffect(() => {
         if (sesionSimulada || !usuario || !id) return;
         let vigente = true;
-        consultarTramite("propuesta", id).then((solicitud) => { if (vigente) setResultado({ clave, solicitud }); })
+        consultarTramitePropio("propuesta", id, usuario).then((solicitud) => { if (vigente) setResultado({ clave, solicitud }); })
             .catch((error) => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
         return () => { vigente = false; };
     }, [usuario, id, clave]);

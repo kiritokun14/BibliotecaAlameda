@@ -6,7 +6,7 @@ import { iconosSeccion } from "../perfil/iconos";
 import { nombreCompleto } from "../perfil/datos";
 import { sesionSimulada, usePerfil, useSesion } from "../perfil/usarSesion";
 import { EstadoCredencial, PasosTramite, RutaCredencial, SelectorEstados } from "./piezas";
-import { datosTramite, estadosCredencial, etapasCredencial, pasoDelEstado, puedeSolicitar, useTramite, useTramiteListo, verEjemplo, type DatosEstado } from "./datos";
+import { datosTramite, estadosCredencial, etapasCredencial, pasoDelEstado, puedeSolicitar, useSeguimientoTramite, verEjemplo, type DatosEstado } from "./datos";
 import "../contacto/Contacto.css";
 import "../perfil/Perfil.css";
 import "./CredencialSesion.css";
@@ -51,10 +51,10 @@ const revisando: DatosEstado = {
 function Credencial() {
     const sesion = useSesion(); // undefined mientras se sabe si hay sesión
     const carga = usePerfil(sesion);
-    const tramite = useTramite();
+    const { tramite, listo, error, reintentar } = useSeguimientoTramite();
     const titular = carga && "perfil" in carga ? nombreCompleto(carga.perfil) : "Tu nombre";
-    const listo = useTramiteListo(); // mientras no llega el estado real: «Revisando…», sin pasos ni redirección
-    const datos = sesion === null ? sinCuenta : sesion === undefined || !listo ? revisando : estadosCredencial[tramite.estado];
+    const datos = sesion === null ? sinCuenta : error ? { ...revisando, chip: "No disponible", titulo: "No pudimos cargar tu trámite", texto: error }
+        : sesion === undefined || !listo ? revisando : estadosCredencial[tramite.estado];
     const etapas = sesion ? etapasCredencial(datos.paso) : null;
     // Al cancelar desde el seguimiento se vuelve aquí con el aviso (solo si de verdad ya no hay solicitud)
     const cancelada = (useLocation().state as { cancelada?: boolean } | null)?.cancelada === true && tramite.estado === "sin-solicitud";
@@ -75,14 +75,14 @@ function Credencial() {
 
             <section className={`contacto-seccion contacto-seccion--crema cred-pagina${cancelada ? " cred-pagina--sigue" : ""}`}>
                 <div className="contacto-pila">
-                    <PasosTramite actual={sesion ? pasoDelEstado("informacion", tramite.estado) : 1} pagina={1}
-                        solicitar={!!sesion && puedeSolicitar(tramite.estado)} />
+                    <PasosTramite actual={sesion && listo ? pasoDelEstado("informacion", tramite.estado) : 1} pagina={1}
+                        solicitar={!!sesion && listo && puedeSolicitar(tramite.estado)} />
                     {sesionSimulada && <SelectorEstados actual={tramite.estado} alElegir={verEjemplo} />}
                     <TarjetaDatos datos={datosFila} titulo="Datos del trámite" />
                     <div className="contacto-columnas contacto-columnas--nuevo">
                         <div className="cred-principal">
                             <EstadoCredencial datos={datos} titular={titular} tramite={sesion ? tramite : undefined} nivel={2}>
-                                {cancelada && (
+                                {cancelada && listo && (
                                     <p className="perfil-nota cred-aviso" role="status">
                                         <img src={notaInfo} alt="" />
                                         <span><strong>Cancelaste tu solicitud.</strong> Si la necesitas, puedes solicitarla de nuevo cuando quieras.</span>
@@ -92,10 +92,11 @@ function Credencial() {
                                     {sesion === null ? <>
                                         <Link to="/iniciar-sesion" className="perfil-boton">Iniciar sesión</Link>
                                         <Link to="/crear-cuenta" className="perfil-boton perfil-boton--contorno">Crear cuenta</Link>
-                                    </> : sesion && tramite.estado === "sin-solicitud" ? <>
+                                    </> : error ? <button type="button" className="perfil-boton" onClick={reintentar}>Reintentar</button>
+                                    : sesion && listo && tramite.estado === "sin-solicitud" ? <>
                                         <Link to="/credencial/solicitud" className="perfil-boton">Solicitar credencial</Link>
                                         <Link to="/credencial/solicitud?tipo=renovacion" className="perfil-boton perfil-boton--contorno">Renovar credencial</Link>
-                                    </> : sesion && (
+                                    </> : sesion && listo && (
                                         <Link to="/credencial/solicitud?tipo=renovacion" className="perfil-boton">Solicitar renovación</Link>
                                     )}
                                 </div>

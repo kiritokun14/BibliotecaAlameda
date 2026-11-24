@@ -90,7 +90,7 @@ export function DatoCred({ etiqueta, valor }: { etiqueta: string; valor: string 
 export function EstadoCredencial({ datos, titular, tramite, nivel = 3, children }: {
     datos: DatosEstado; titular: string; tramite?: TramiteCredencial; nivel?: 2 | 3; children?: ReactNode;
 }) {
-    const emitida = tramite?.estado === "vigente" || tramite?.estado === "vencida";
+    const emitida = tramite?.estado === "vigente" || tramite?.estado === "vencida" || tramite?.credencialVigente;
     const Titulo = nivel === 2 ? "h2" : "h3";
     return (
         <section className={`perfil-credencial-estado perfil-credencial-estado--${datos.color}`} aria-labelledby="titulo-estado-credencial">
@@ -109,6 +109,7 @@ export function EstadoCredencial({ datos, titular, tramite, nivel = 3, children 
                 <Chip color={datos.color}>{datos.chip}</Chip>
                 <Titulo id="titulo-estado-credencial">{datos.titulo}</Titulo>
                 <p>{datos.texto}</p>
+                {tramite?.credencialVigente && tramite.estado !== "vigente" && <p><strong>Tu credencial actual sigue vigente.</strong></p>}
                 {tramite?.estado === "correccion" && tramite.motivoCorreccion && (
                     <div className="perfil-nota perfil-nota--guinda"><p><strong>Observación del personal</strong>{tramite.motivoCorreccion}</p></div>
                 )}

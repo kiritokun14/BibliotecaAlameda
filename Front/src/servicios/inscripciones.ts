@@ -34,6 +34,7 @@ export interface InscripcionPropia {
 export interface EventoPropio {
     id: string; status: EstadoPropio; folio: string; titulo: string;
     inicio: string; sesionId: string; publicada: boolean;
+    asistencia?: 'presente' | 'ausente' | null;
 }
 export const estadoInscripcionPropia: Record<EstadoPropio, string> = {
     pendiente: 'Pendiente de confirmación', confirmada: 'Confirmada', rechazada: 'Rechazada', cancelada: 'Cancelada',

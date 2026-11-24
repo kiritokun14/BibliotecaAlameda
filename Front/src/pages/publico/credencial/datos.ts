@@ -1,7 +1,11 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { consultarMisSolicitudes, type SolicitudCredencialBack } from "../perfil/solicitudes";
 import { sesionSimulada } from "../perfil/usarSesion";
-import { cancelarSolicitudCredencial, listarTramites, solicitarCredencial } from "../../../servicios/tramites";
+import { ErrorServicio, mensajeError } from "../../../servicios/api";
+import { registrarAlSalir } from "../../../servicios/consultas";
+import { useCuentaTramites } from "../../../servicios/useCuentaTramites";
+import { cancelarSolicitudCredencial, listarTramites, solicitarCredencial, type CredencialPropia } from "../../../servicios/tramites";
+import { ahoraTepic } from "../../../servicios/vigenciaActividades";
 // Credencial · trámite de la persona con sesión iniciada (Figma A-02, 476:9983).
 // El estado se lee del backend real con GET /mis-solicitudes (solicitudes_credencial, la más reciente) cuando hay sesión.
 // Enviar la solicitud usa el servicio real POST /credenciales/solicitudes (servicios/tramites.ts), así que al recargar
@@ -9,7 +13,7 @@ import { cancelarSolicitudCredencial, listarTramites, solicitarCredencial } from
 // TODO backend: todavía no hay servicio para enviar la corrección:
 //   - POST /credenciales/solicitudes/{folio}/correccion → { nombreIdentificacion, numeroIdentificacion }
 
-export type EstadoCredencial = "sin-solicitud" | "en-revision" | "correccion" | "vigente" | "vencida";
+export type EstadoCredencial = "sin-solicitud" | "en-revision" | "correccion" | "atendida" | "validacion-rechazada" | "vigente" | "vencida";
 export type TipoTramite = "primera-vez" | "renovacion";
 
 export type TramiteCredencial = {
@@ -20,6 +24,7 @@ export type TramiteCredencial = {
     vencimiento: string | null;
     motivoCorreccion: string | null;
     solicitadaEl?: string | null; // fecha en que se envió (ISO)
+    credencialVigente?: boolean;
 };
 
 export const textoTipo: Record<TipoTramite, string> = {
@@ -54,76 +59,113 @@ const ejemplos: Record<EstadoCredencial, TramiteCredencial> = {
         ...vacio, estado: "correccion",
         motivoCorreccion: "Los datos de tu solicitud no coinciden con tu identificación.",
     },
+    atendida: { ...vacio, estado: "atendida" },
+    "validacion-rechazada": { ...vacio, estado: "validacion-rechazada" },
     vigente: { ...vacio, estado: "vigente" },
     vencida: { ...vacio, estado: "vencida", vencimiento: "2026-10-02" },
 };
 
-let tramite: TramiteCredencial = vacio;
+const sinConsultar = { tramite: vacio, listo: false, error: null as string | null };
+let seguimiento = { ...sinConsultar, listo: sesionSimulada };
+let cuenta: string | null | undefined;
+let revision = 0;
+let lectura: Promise<void> | undefined;
+let folioReciente: string | null = null;
 const oyentes = new Set<() => void>();
-function establecer(t: TramiteCredencial) { tramite = t; oyentes.forEach((o) => o()); }
-
-export function consultarTramite(): TramiteCredencial { return { ...tramite }; }
-export function verEjemplo(estado: EstadoCredencial) { establecer({ ...ejemplos[estado] }); }
-
-// ---------- Estado real desde GET /mis-solicitudes ----------
-// Regla (revisar con backend): recibida, en_atencion y cita_programada → en revisión; atendida → vigente (vencida si pasaron 2 años);
-// rechazada → corrección solicitada (con las observaciones del personal); cancelada o sin solicitudes → sin solicitud.
-export function mapearCredencial(s: SolicitudCredencialBack | undefined, hoy = new Date()): TramiteCredencial {
-    if (!s || s.estadoSolicitud === "cancelada") return vacio;
-    const tipo: TipoTramite = s.tipoSolicitud === "renovacion" ? "renovacion" : "primera-vez";
-    const base = { ...vacio, tipo, folio: s.id ?? null, solicitadaEl: s.creadaEn ?? null };
-    if (s.estadoSolicitud === "rechazada") return { ...base, estado: "correccion", motivoCorreccion: s.observaciones ?? "Revisa los datos de tu solicitud." };
-    if (s.estadoSolicitud !== "atendida") return { ...base, estado: "en-revision" };
-    const emision = (s.fechaCita ?? s.creadaEn).slice(0, 10);
-    const [a, m, d] = emision.split("-").map(Number);
-    const vence = new Date(a + 2, m - 1, d);
-    const vencimiento = `${a + 2}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    return { ...base, estado: vence < hoy ? "vencida" : "vigente", emision, vencimiento };
+function establecer(tramite: TramiteCredencial, listo = true, error: string | null = null) {
+    seguimiento = { tramite, listo, error };
+    oyentes.forEach((o) => o());
 }
 
-// Bug del 20 nov (Aldahir: «no se queda en la fase 3, se regresa a la fase 1»), corregido así:
-// 1. El estado se lee con GET /credenciales/solicitudes/me, la misma función de la base con la que se crea la solicitud
-//    (`/mis-solicitudes` lee la tabla directo y podía no traerla); si falla, se intenta `/mis-solicitudes`.
-// 2. Mientras no llega la respuesta, `listo` es falso y ninguna pantalla redirige ni muestra el paso 1 (antes, en ese
-//    instante el trámite parecía «sin solicitud» y el seguimiento mandaba a la información).
-// 3. Si el servidor todavía no refleja una solicitud recién enviada en esta pestaña, se conserva la que ya conocemos.
-let sincronizado = false;
-let listo = sesionSimulada;
-async function ultimaSolicitud(): Promise<SolicitudCredencialBack | undefined> {
+function invalidarLectura() {
+    revision += 1;
+    lectura = undefined;
+}
+
+function seleccionarCuenta(usuario: string | null) {
+    if (cuenta === usuario) return;
+    cuenta = usuario;
+    folioReciente = null;
+    invalidarLectura();
+    establecer(vacio, usuario === null);
+}
+registrarAlSalir(() => { if (!sesionSimulada) seleccionarCuenta(null); });
+
+export function consultarTramite(): TramiteCredencial { return { ...seguimiento.tramite }; }
+export function verEjemplo(estado: EstadoCredencial) { establecer({ ...ejemplos[estado] }); folioReciente = null; }
+
+// La vigencia se determina con la credencial emitida; la solicitud solo informa del trámite.
+export function mapearCredencial(s: SolicitudCredencialBack | undefined, hoy = new Date(), credencial?: CredencialPropia | null): TramiteCredencial {
+    const fecha = ahoraTepic(hoy).fecha;
+    const validada = credencial?.estadoValidacion === "validada" && credencial.fechaEmision <= fecha;
+    const credencialVigente = validada && credencial.fechaVencimiento >= fecha;
+    const activa = s && !["atendida", "cancelada"].includes(s.estadoSolicitud);
+    const tipo: TipoTramite = s?.tipoSolicitud === "renovacion" ? "renovacion" : "primera-vez";
+    const base = { ...vacio, tipo, folio: s?.id ?? null, solicitadaEl: s?.creadaEn ?? null,
+        ...(credencialVigente && { credencialVigente, emision: credencial.fechaEmision, vencimiento: credencial.fechaVencimiento }) };
+    if (activa && s.estadoSolicitud === "rechazada") return { ...base, estado: "correccion", motivoCorreccion: s.observaciones ?? "Revisa los datos de tu solicitud." };
+    if (activa) return { ...base, estado: "en-revision" };
+    if (credencial && (validada || credencial.estadoValidacion === "vencida")) {
+        return { ...base, estado: credencialVigente ? "vigente" : "vencida",
+            emision: credencial.fechaEmision, vencimiento: credencial.fechaVencimiento };
+    }
+    if (credencial?.estadoValidacion === "rechazada") return { ...base, estado: "validacion-rechazada" };
+    if (s?.estadoSolicitud === "atendida" || credencial?.estadoValidacion === "pendiente") return { ...base, estado: "atendida" };
+    return vacio;
+}
+
+async function consultarSeguimiento(usuario?: string): Promise<TramiteCredencial> {
     try {
-        const r = await listarTramites("credencial", true);
+        const r = await listarTramites("credencial", true, 0, "", "", usuario);
         const s = r.solicitudes[0];
-        return s && {
+        const solicitud: SolicitudCredencialBack | undefined = s && {
             id: s.id, tipoSolicitud: s.tipoSolicitud === "renovacion" ? "renovacion" : "obtencion",
             estadoSolicitud: s.estadoSolicitud as SolicitudCredencialBack["estadoSolicitud"],
             fechaCita: s.fechaCita ?? null, observaciones: s.observaciones ?? null, creadaEn: s.creadaEn,
         };
-    } catch {
-        return (await consultarMisSolicitudes()).solicitudes_credencial?.[0];
+        return mapearCredencial(solicitud, undefined, r.credencial);
+    } catch (error) {
+        if (!(error instanceof ErrorServicio) || error.estado !== 404) throw error;
+        return mapearCredencial((await consultarMisSolicitudes(usuario)).solicitudes_credencial?.[0]);
     }
 }
-export async function sincronizarTramite() {
-    if (sesionSimulada || sincronizado) return;
-    sincronizado = true;
-    try {
-        const ultima = await ultimaSolicitud();
-        const nuevo = mapearCredencial(ultima);
-        const conocida = tramite.folio && tramite.estado !== "sin-solicitud" && ultima?.id !== tramite.folio;
-        establecer(nuevo.estado === "sin-solicitud" && conocida ? tramite : nuevo);
-    } catch { sincronizado = false; } // sin sesión o sin servicio: se queda como está y se intenta en la siguiente pantalla
-    listo = true;
-    oyentes.forEach((o) => o());
+
+export async function sincronizarTramite(usuario?: string | null) {
+    if (sesionSimulada) return;
+    if (usuario !== undefined) seleccionarCuenta(usuario);
+    if (usuario === null) return;
+    if (lectura) return lectura;
+    const turno = revision;
+    lectura = consultarSeguimiento(usuario ?? undefined).then((nueva) => {
+        if (revision !== turno) return;
+        if (nueva.folio === folioReciente) folioReciente = null;
+        const recienEnviada = folioReciente && nueva.estado === "sin-solicitud";
+        establecer(recienEnviada ? seguimiento.tramite : nueva);
+    }).catch((error) => {
+        if (revision === turno) establecer(seguimiento.tramite, false, mensajeError(error));
+    }).finally(() => { if (revision === turno) lectura = undefined; });
+    return lectura;
 }
 
 function suscribir(o: () => void) { oyentes.add(o); return () => { oyentes.delete(o); }; }
-// Estado del trámite para cualquier pantalla (se pide al backend la primera vez que se usa con sesión).
-export function useTramite(): TramiteCredencial {
-    useEffect(() => { void sincronizarTramite(); }, []);
-    return useSyncExternalStore(suscribir, () => tramite, () => tramite);
+const leerSeguimiento = () => seguimiento;
+
+export function useSeguimientoTramite() {
+    const usuario = useCuentaTramites();
+    const actual = useSyncExternalStore(suscribir, leerSeguimiento, leerSeguimiento);
+    useEffect(() => { if (usuario !== undefined) void sincronizarTramite(usuario); }, [usuario]);
+    return {
+        ...(sesionSimulada || usuario === cuenta ? actual : sinConsultar),
+        reintentar: () => {
+            if (!usuario || sesionSimulada) return;
+            establecer(seguimiento.tramite, false);
+            void sincronizarTramite(usuario);
+        },
+    };
 }
-// ¿Ya se sabe el estado real? Hasta entonces las pantallas muestran «Revisando…» y no redirigen.
-export function useTramiteListo(): boolean {
-    return useSyncExternalStore(suscribir, () => listo, () => listo);
+
+export function useTramite(): TramiteCredencial {
+    return useSeguimientoTramite().tramite;
 }
 
 export type SolicitudCredencial = {
@@ -143,10 +185,13 @@ export function validarSolicitud(s: SolicitudCredencial): ErroresSolicitud {
 // Envía la solicitud al servidor. Con la sesión de ejemplo (?simular=sesion) solo cambia la vista.
 export async function enviarSolicitud(s: SolicitudCredencial): Promise<TramiteCredencial> {
     if (sesionSimulada) { establecer({ ...vacio, estado: "en-revision", tipo: s.tipo }); return consultarTramite(); }
+    const turno = revision;
     const observaciones = [s.horario && `Horario preferido para el cotejo: ${s.horario}`, s.comentarios].filter(Boolean).join("\n");
-    const creada = await solicitarCredencial(s.tipo === "renovacion" ? "renovacion" : "obtencion", observaciones);
+    const creada = await solicitarCredencial(s.tipo === "renovacion" ? "renovacion" : "obtencion", observaciones, cuenta ?? undefined);
+    if (revision !== turno) throw new ErrorServicio("La cuenta cambió. Vuelve a consultar tu trámite.", 401);
+    invalidarLectura();
+    folioReciente = creada.id;
     establecer({ ...vacio, estado: "en-revision", tipo: s.tipo, folio: creada.id, solicitadaEl: creada.creadaEn ?? new Date().toISOString() });
-    sincronizado = false; // la próxima pantalla vuelve a leer el estado real
     return consultarTramite();
 }
 
@@ -158,7 +203,7 @@ export function validarCorreccion(c: Correccion): Partial<Record<keyof Correccio
     return errores;
 }
 export function enviarCorreccion(): TramiteCredencial {
-    establecer({ ...tramite, estado: "en-revision", motivoCorreccion: null });
+    establecer({ ...seguimiento.tramite, estado: "en-revision", motivoCorreccion: null });
     return consultarTramite();
 }
 
@@ -180,7 +225,7 @@ export function fechaCorta(fecha: string) {
 // no solo la pantalla: con una solicitud en proceso, las tres pantallas marcan 1 y 2 hechos y 3 en curso (19 nov).
 // Sin solicitud (o vencida, que empieza una renovación): información = 1 y solicitud = 2.
 export function pasoDelEstado(vista: "informacion" | "solicitud" | "seguimiento", estado: EstadoCredencial) {
-    if (estado === "en-revision" || estado === "correccion") return 3;
+    if (estado === "en-revision" || estado === "correccion" || estado === "atendida" || estado === "validacion-rechazada") return 3;
     if (estado === "vigente") return 4;
     if (vista === "solicitud") return 2;
     return vista === "seguimiento" ? 3 : 1;
@@ -194,11 +239,15 @@ export function puedeSolicitar(estado: EstadoCredencial) { return estado === "si
 // 404/405 y la pantalla pide hacerlo con el personal.
 export function puedeCancelar(estado: EstadoCredencial) { return estado === "en-revision" || estado === "correccion"; }
 export async function cancelarSolicitud(): Promise<TramiteCredencial> {
+    const { tramite } = seguimiento;
     if (!puedeCancelar(tramite.estado)) throw new Error("Esta solicitud ya no se puede cancelar.");
     if (!sesionSimulada) {
         if (!tramite.folio) throw new Error("Tu solicitud todavía no tiene folio; intenta en un momento.");
-        await cancelarSolicitudCredencial(tramite.folio);
-        sincronizado = false;
+        const turno = revision;
+        await cancelarSolicitudCredencial(tramite.folio, cuenta ?? undefined);
+        if (revision !== turno) throw new ErrorServicio("La cuenta cambió. Vuelve a consultar tu trámite.", 401);
+        invalidarLectura();
+        folioReciente = null;
     }
     establecer({ ...vacio });
     return consultarTramite();
@@ -230,6 +279,12 @@ export const estadosCredencial: Record<EstadoCredencial, DatosEstado> = {
     "en-revision": { chip: "En revisión", color: "dorado", titulo: "Tu solicitud está en revisión",
         texto: "El personal revisa tus datos. Te avisaremos en tus notificaciones cuando puedas acudir al cotejo presencial.",
         accion: { texto: "Ver seguimiento", ruta: "/credencial/seguimiento" }, paso: 1 },
+    atendida: { chip: "Atendida", color: "dorado", titulo: "Tu solicitud fue atendida",
+        texto: "Consulta aquí la vigencia cuando el personal valide y registre tu credencial.",
+        accion: { texto: "Ver seguimiento", ruta: "/credencial/seguimiento" }, paso: 3 },
+    "validacion-rechazada": { chip: "Validación rechazada", color: "guinda", titulo: "Se rechazó la validación de tu credencial",
+        texto: "Contacta a la biblioteca para conocer cómo continuar el trámite.",
+        accion: { texto: "Contactar a la biblioteca", ruta: "/contacto" }, paso: 3 },
     correccion: { chip: "Corrección solicitada", color: "guinda", titulo: "Corrige un dato de tu solicitud",
         texto: "El personal pidió un ajuste antes de continuar. Revisa la observación y envía la corrección.",
         accion: { texto: "Corregir mi solicitud", ruta: "/credencial/seguimiento" }, paso: 1 },

@@ -71,11 +71,23 @@ class SolicitudesTests(unittest.TestCase):
 
     def test_no_se_puede_consultar_otro_usuario_por_parametro(self):
         ajeno = str(uuid4())
-        r = self.get('?usuarioId=' + ajeno)
-        self.assertEqual(r.status_code, 200)
+        for parametro in ('id', 'usuarioId', 'propietario'):
+            with self.subTest(parametro=parametro):
+                self.assertEqual(self.get(f'?{parametro}={ajeno}').status_code, 422)
+        self.cliente.table.assert_not_called()
+
+    def test_dos_titulares_consecutivos_consultan_solo_sus_gestiones(self):
+        otra_persona = str(uuid4())
+        for titular in (self.usuario, otra_persona):
+            self.cliente.auth.get_user.return_value.user.id = titular
+            self.cliente.rpc.return_value.execute.return_value.data['usuarioId'] = titular
+            self.assertEqual(self.get().status_code, 200)
         for tabla, campo in (('solicitudEspacio', 'solicitadoPor'),
                              ('solicitudCredencial', 'usuarioId'), ('propuestaEvento', 'propuestoPor')):
-            self.consultas[tabla].eq.assert_called_once_with(campo, self.usuario)
+            self.assertEqual(
+                [llamada.args for llamada in self.consultas[tabla].eq.call_args_list],
+                [(campo, self.usuario), (campo, otra_persona)],
+            )
 
     def test_identidades_discrepantes_se_rechazan(self):
         self.cliente.rpc.return_value.execute.return_value.data['usuarioId'] = str(uuid4())

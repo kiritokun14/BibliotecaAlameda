@@ -24,9 +24,10 @@ export interface HistorialSolicitudes {
     solicitudes_credencial?: SolicitudCredencialBack[];
 }
 
-export async function consultarMisSolicitudes(): Promise<HistorialSolicitudes> {
+export async function consultarMisSolicitudes(usuario?: string): Promise<HistorialSolicitudes> {
     const { data, error } = await (await obtenerSupabase()).auth.getSession();
     if (error || !data.session) throw new ErrorServicio("Inicia sesión para consultar tus solicitudes.", 401);
+    if (usuario && data.session.user.id !== usuario) throw new ErrorServicio("La cuenta cambió. Vuelve a consultar tus solicitudes.", 401);
     return pedirApi<HistorialSolicitudes>("/mis-solicitudes?limite=50", {
         headers: { Authorization: `Bearer ${data.session.access_token}` },
     });

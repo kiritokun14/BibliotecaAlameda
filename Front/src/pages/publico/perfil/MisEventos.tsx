@@ -14,6 +14,7 @@ import { coincide, diaMes } from './utilesLista';
 // buscador con «Filtros», filas con bloque de fecha; 4 a la vista y las demás con scroll.
 const TONO = { pendiente: 'dorado', confirmada: 'verde', rechazada: 'gris', cancelada: 'guinda' } as const;
 const NOMBRE = { pendiente: 'Por confirmar', confirmada: 'Confirmada', rechazada: 'Rechazada', cancelada: 'Cancelada' } as const;
+const ASISTENCIA = { presente: 'Asistencia verificada', ausente: 'Ausencia registrada' } as const;
 const FECHA = new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mazatlan', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 const fecha = (iso: string) => { const t = FECHA.format(new Date(iso)); return t.charAt(0).toUpperCase() + t.slice(1); };
 type Filtro = 'todas' | 'activas' | 'anteriores';
@@ -24,7 +25,7 @@ const enDias = (dias: number, hora: number) => { const d = new Date(); d.setDate
 const eventosEjemplo: EventoPropio[] = [
     { id: 'e1', status: 'confirmada', folio: 'ejemplo-1', titulo: 'Taller de escritura creativa (ejemplo)', inicio: enDias(3, 10), sesionId: 's1', publicada: false },
     { id: 'e2', status: 'pendiente', folio: 'ejemplo-2', titulo: 'Club de lectura mensual (ejemplo)', inicio: enDias(9, 17), sesionId: 's2', publicada: false },
-    { id: 'e3', status: 'confirmada', folio: 'ejemplo-3', titulo: 'Visita guiada a la biblioteca (ejemplo)', inicio: enDias(-6, 11), sesionId: 's3', publicada: false },
+    { id: 'e3', status: 'confirmada', folio: 'ejemplo-3', titulo: 'Visita guiada a la biblioteca (ejemplo)', inicio: enDias(-6, 11), sesionId: 's3', publicada: false, asistencia: 'presente' },
     { id: 'e4', status: 'cancelada', folio: 'ejemplo-4', titulo: 'Presentación de libro (ejemplo)', inicio: enDias(-14, 18), sesionId: 's4', publicada: false },
 ];
 
@@ -51,12 +52,12 @@ export default function MisEventos() {
     const ahora = new Date().toISOString();
     const activa = (e: EventoPropio) => ['pendiente', 'confirmada'].includes(e.status) && e.inicio >= ahora;
     const enFiltro = (e: EventoPropio, f: Filtro) => f === 'todas' || (f === 'activas' ? activa(e) : !activa(e));
-    const filtrados = eventos.filter(e => enFiltro(e, filtro) && coincide(texto, e.titulo, fecha(e.inicio), NOMBRE[e.status]));
+    const filtrados = eventos.filter(e => enFiltro(e, filtro) && coincide(texto, e.titulo, fecha(e.inicio), NOMBRE[e.status], e.asistencia ? ASISTENCIA[e.asistencia] : ''));
     const visibles = filtrados;
     const cambiar = <T,>(fijar: (v: T) => void) => (v: T) => { fijar(v); setSeleccion(undefined); };
 
     return <>
-        <EncabezadoSeccion titulo="Mis eventos" texto="Tus inscripciones a talleres, clubes y visitas. El personal confirma cada una según el cupo."
+        <EncabezadoSeccion titulo="Mis eventos" texto="Consulta tus inscripciones y la asistencia registrada al cerrar la lista."
             accion={<Link to="/eventos" className="perfil-boton">Explorar actividades</Link>} />
 
         <ListaPerfil icono="calendario" conFecha titulo="Tus inscripciones" texto="Gestionar abre tu lugar sin salir de aquí"
@@ -79,11 +80,11 @@ export default function MisEventos() {
                 <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={!hayMas || servidor >= 5000} onClick={() => irAlServidor(servidor + 1)}>Inscripciones más antiguas</button>
             </>}>
             {visibles.map(e => {
-                const gestionable = ['pendiente', 'confirmada'].includes(e.status);
+                const gestionable = activa(e);
                 const abierta = seleccion === e.id;
                 return <FilaPerfil key={e.id} fecha={diaMes(e.inicio)} tono={TONO[e.status]} titulo={e.titulo}
-                    detalle={<span>{fecha(e.inicio)} · hora de Tepic</span>}
-                    estado={NOMBRE[e.status] ?? estadoInscripcionPropia[e.status]} apagada={!gestionable}
+                    detalle={<><span>{fecha(e.inicio)} · hora de Tepic</span>{e.asistencia && <span>{ASISTENCIA[e.asistencia]}</span>}</>}
+                    estado={NOMBRE[e.status] ?? estadoInscripcionPropia[e.status]} apagada={e.status === 'cancelada' || e.status === 'rechazada'}
                     acciones={<>
                         {e.publicada && <Link to={`/eventos/${e.folio}`} className="pz-boton pz-boton--contorno pz-boton--chico">Ver actividad</Link>}
                         {gestionable && <button type="button" className={`pz-boton pz-boton--chico${abierta ? ' pz-boton--contorno' : ''}`} aria-expanded={abierta}

@@ -1,20 +1,48 @@
 import { ErrorServicio, obtenerSupabase, pedirApi } from './api';
+import type { Domicilio } from './auth';
+
+export type DomicilioPerfil = Omit<Domicilio, 'numeroInterior'> & { numeroInterior?: string | null };
+export interface ResponsablePerfil {
+ nombre: string;
+ telefono: string;
+ correo: string;
+ relacion: 'madre' | 'padre' | 'tutor';
+}
 export interface PerfilPropio {
  id:string;correo:string;nombres:string;primerApellido:string;segundoApellido:string|null;
  fechaNacimiento:string;telefono:string;actualizadoA:string;
+ esMenor?: boolean;
+ domicilio?: DomicilioPerfil | null;
+ responsable?: ResponsablePerfil | null;
 }
-async function tokenPerfil() {
+export interface CambiosPerfil {
+ nombres?: string;
+ telefono?: string;
+ domicilio?: DomicilioPerfil;
+ responsable?: Partial<Pick<ResponsablePerfil, 'telefono' | 'correo'>>;
+}
+async function sesionPerfil(usuarioId?: string) {
  const {data,error}=await (await obtenerSupabase()).auth.getSession();
  if(error||!data.session)throw new ErrorServicio('Inicia sesión para consultar tu perfil.',401);
- return data.session.access_token;
+ if (usuarioId !== undefined && data.session.user.id !== usuarioId) {
+  throw new ErrorServicio('La cuenta activa cambió. Vuelve a cargar tus datos.', 409);
+ }
+ return data.session;
+}
+async function tokenPerfil() {
+ return (await sesionPerfil()).access_token;
 }
 function pedir<T>(token:string,metodo:string,cambios?:unknown,ruta='/perfil'):Promise<T> {
  return pedirApi<T>(ruta,{method:metodo,headers:{Authorization:'Bearer '+token},
   ...(cambios===undefined?{}:{body:JSON.stringify(cambios)})});
 }
-export async function consultarPerfil(){return pedir<PerfilPropio>(await tokenPerfil(),'GET');}
-export async function guardarPerfil(perfil:PerfilPropio,cambios:{nombres:string;telefono:string}) {
- return pedir<PerfilPropio>(await tokenPerfil(),'PATCH',{...cambios,actualizadoA:perfil.actualizadoA});
+export async function consultarPerfil(usuarioId?: string) {
+ const sesion = await sesionPerfil(usuarioId);
+ return pedir<PerfilPropio>(sesion.access_token, 'GET');
+}
+export async function guardarPerfil(perfil: PerfilPropio, cambios: CambiosPerfil) {
+ const sesion = await sesionPerfil(perfil.id);
+ return pedir<PerfilPropio>(sesion.access_token, 'PATCH', { ...cambios, actualizadoA: perfil.actualizadoA });
 }
 
 export interface PreferenciasAvisos {
