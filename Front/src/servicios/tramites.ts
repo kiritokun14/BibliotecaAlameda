@@ -21,12 +21,18 @@ export interface SolicitudAtencion {
     perfil?: { nombres: string; primerApellido: string; segundoApellido?: string; telefono: string; municipio?: string };
     historial: { accion: string; estadoAnterior: string | null; estadoNuevo: string; nota: string | null; fecha: string; registradoPor?: string; acuerdoDireccion?: AcuerdoDireccion | null }[];
 }
-export interface ListaTramites { total: number; solicitudes: SolicitudAtencion[] }
+export interface CredencialPropia {
+    estadoValidacion: 'pendiente' | 'validada' | 'rechazada' | 'vencida';
+    fechaEmision: string;
+    fechaVencimiento: string;
+}
+export interface ListaTramites { total: number; solicitudes: SolicitudAtencion[]; credencial?: CredencialPropia | null }
 export function estadoTramite(s: SolicitudAtencion) { return s.estadoSolicitud ?? s.estadoRevision ?? ''; }
 export function rutaTramite(tipo: TipoTramite) { return tipo === 'credencial' ? '/credenciales/solicitudes' : '/propuestas'; }
-async function pedir<T>(tipo: TipoTramite, ruta = '', opciones: RequestInit = {}): Promise<T> {
+async function pedir<T>(tipo: TipoTramite, ruta = '', opciones: RequestInit = {}, usuario?: string): Promise<T> {
     const { data, error } = await (await obtenerSupabase()).auth.getSession();
     if (error || !data.session) throw new ErrorServicio('Inicia sesión para consultar tus trámites.', 401);
+    if (usuario && data.session.user.id !== usuario) throw new ErrorServicio('La cuenta cambió. Vuelve a consultar tus trámites.', 401);
     const token = data.session.access_token;
     const ejecutar = () => pedirApi<T>(`${rutaTramite(tipo)}${ruta}`, { ...opciones, headers: { Authorization: `Bearer ${token}` } });
     if (!opciones.method) return consultasEditor.obtener(`tramites:${token}:${tipo}:${ruta}`, ejecutar);
@@ -37,18 +43,22 @@ const claveLista = (tipo: TipoTramite, propios: boolean, pagina: number, estado:
 // Lo último que se recibió para esa lista (o esa solicitud), para mostrarlo al instante mientras se actualiza
 export const tramitesEnMemoria = (tipo: TipoTramite, pagina = 0, estado = '', busqueda = '') => enMemoria<ListaTramites>(claveLista(tipo, false, pagina, estado, busqueda));
 export const tramiteEnMemoria = (tipo: TipoTramite, id: string) => enMemoria<SolicitudAtencion>(`tramite:${tipo}:${id}`);
-export function listarTramites(tipo: TipoTramite, propios: boolean, pagina = 0, estado = '', busqueda = '') {
+export function listarTramites(tipo: TipoTramite, propios: boolean, pagina = 0, estado = '', busqueda = '', usuario?: string) {
     const parametros = new URLSearchParams({ limite: '20', desplazamiento: String(pagina * 20) });
-    if (estado && !propios) parametros.set(tipo === 'credencial' ? 'estadoSolicitud' : 'estadoRevision', estado);
-    if (busqueda.trim() && !propios) parametros.set('busqueda', busqueda.trim());
-    return consultarConMemoria(claveLista(tipo, propios, pagina, estado, busqueda), () => pedir<ListaTramites>(tipo, `${propios ? '/me' : ''}?${parametros}`));
+    if (propios) return pedir<ListaTramites>(tipo, `/me?${parametros}`, {}, usuario);
+    if (estado) parametros.set(tipo === 'credencial' ? 'estadoSolicitud' : 'estadoRevision', estado);
+    if (busqueda.trim()) parametros.set('busqueda', busqueda.trim());
+    return consultarConMemoria(claveLista(tipo, false, pagina, estado, busqueda), () => pedir<ListaTramites>(tipo, `?${parametros}`));
 }
 export function consultarTramite(tipo: TipoTramite, id: string) { return consultarConMemoria(`tramite:${tipo}:${id}`, () => pedir<SolicitudAtencion>(tipo, `/${encodeURIComponent(id)}`)); }
-export function solicitarCredencial(tipoSolicitud: string, observaciones: string) {
-    return pedir<SolicitudAtencion>('credencial', '', { method: 'POST', body: JSON.stringify({ tipoSolicitud, observaciones: observaciones.trim() || null }) });
+export function consultarTramitePropio(tipo: TipoTramite, id: string, usuario: string) {
+    return pedir<SolicitudAtencion>(tipo, `/${encodeURIComponent(id)}`, {}, usuario);
 }
-export function cancelarSolicitudCredencial(id: string) {
-    return pedir<SolicitudAtencion>('credencial', `/${encodeURIComponent(id)}/cancelar`, { method: 'POST' });
+export function solicitarCredencial(tipoSolicitud: string, observaciones: string, usuario?: string) {
+    return pedir<SolicitudAtencion>('credencial', '', { method: 'POST', body: JSON.stringify({ tipoSolicitud, observaciones: observaciones.trim() || null }) }, usuario);
+}
+export function cancelarSolicitudCredencial(id: string, usuario?: string) {
+    return pedir<SolicitudAtencion>('credencial', `/${encodeURIComponent(id)}/cancelar`, { method: 'POST' }, usuario);
 }
 export const puedeCorregirPropuesta = (s: SolicitudAtencion) => !s.actividadId && ['borrador', 'en_revision', 'requiere_correccion', 'aprobada'].includes(s.estadoRevision ?? '');
 export const puedeCancelarPropuesta = (s: SolicitudAtencion) => !s.actividadId && ['borrador', 'en_revision', 'requiere_correccion'].includes(s.estadoRevision ?? '');

@@ -1,7 +1,5 @@
 // Perfil · lógica y datos de la persona con sesión iniciada (Actor 2, Figma 476:22959 y 476:26155).
-// Lo que ya da el backend viene de servicios/perfil.ts (GET/PATCH /perfil): nombre, apellidos,
-// fecha de nacimiento, teléfono y correo. Lo demás está aquí como ejemplo, marcado con TODO backend.
-import type { PerfilPropio } from "../../../servicios/perfil";
+import type { CambiosPerfil, DomicilioPerfil, PerfilPropio } from "../../../servicios/perfil";
 
 // ---------- Secciones del menú lateral ----------
 export type ClaveSeccion =
@@ -52,8 +50,14 @@ export function esMenorDeEdad(fechaNacimiento: string, hoy = new Date()) {
     return edad < 18;
 }
 
-export function tipoDeCuenta(fechaNacimiento: string, hoy = new Date()) {
-    return esMenorDeEdad(fechaNacimiento, hoy) ? "Cuenta de persona menor de edad" : "Cuenta de persona adulta";
+type DatosEdad = Pick<PerfilPropio, "fechaNacimiento" | "esMenor">;
+export function esPerfilMenor(perfil: DatosEdad, hoy = new Date()) {
+    return perfil.esMenor ?? esMenorDeEdad(perfil.fechaNacimiento, hoy);
+}
+
+export function tipoDeCuenta(perfil: DatosEdad | string, hoy = new Date()) {
+    const menor = esPerfilMenor(typeof perfil === "string" ? { fechaNacimiento: perfil } : perfil, hoy);
+    return menor ? "Cuenta de persona menor de edad" : "Cuenta de persona adulta";
 }
 
 // ---------- Validaciones del formulario «Editar mis datos» ----------
@@ -62,14 +66,18 @@ export type Domicilio = {
     calle: string; numeroExterior: string; numeroInterior: string;
     colonia: string; codigoPostal: string; municipio: string; estado: string;
 };
-export type ErroresDatos = Partial<Record<keyof DatosEditables | keyof Domicilio | "correo", string>>;
+export type ErroresDatos = Partial<Record<keyof DatosEditables | keyof Domicilio | "responsableTelefono" | "responsableCorreo", string>>;
 
-export function validarDatos(datos: DatosEditables, domicilio: Domicilio): ErroresDatos {
+export function validarDatos(datos: Pick<CambiosPerfil, "nombres" | "telefono" | "responsable">, domicilio?: Domicilio): ErroresDatos {
     const errores: ErroresDatos = {};
-    const nombres = datos.nombres.trim();
-    if (!nombres) errores.nombres = "Escribe tu nombre.";
-    else if (nombres.length > 150) errores.nombres = "Usa 150 caracteres o menos.";
-    if (!/^\d{10}$/.test(datos.telefono.trim())) errores.telefono = "Escribe un teléfono de 10 dígitos.";
+    const nombres = datos.nombres?.trim();
+    if (nombres === "") errores.nombres = "Escribe tu nombre.";
+    if (nombres && nombres.length > 150) errores.nombres = "Usa 150 caracteres o menos.";
+    if (datos.telefono !== undefined && !/^\d{10}$/.test(datos.telefono.trim())) errores.telefono = "Escribe un teléfono de 10 dígitos.";
+    const responsable = datos.responsable;
+    if (responsable?.telefono !== undefined && !/^\d{10}$/.test(responsable.telefono.trim())) errores.responsableTelefono = "Escribe un teléfono de 10 dígitos.";
+    if (responsable?.correo !== undefined && !correoValido(responsable.correo.trim())) errores.responsableCorreo = "Escribe un correo válido.";
+    if (!domicilio) return errores;
     if (!domicilio.calle.trim()) errores.calle = "Escribe la calle.";
     if (!domicilio.numeroExterior.trim()) errores.numeroExterior = "Escribe el número o «sin número».";
     if (!domicilio.colonia.trim()) errores.colonia = "Escribe la colonia o localidad.";
@@ -79,60 +87,79 @@ export function validarDatos(datos: DatosEditables, domicilio: Domicilio): Error
     return errores;
 }
 
-export function validarCorreo(correo: string, actual: string) {
-    const limpio = correo.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(limpio)) return "Escribe un correo válido.";
-    if (limpio === actual.trim().toLowerCase()) return "Escribe un correo distinto al actual.";
-    return "";
+const correoValido = (correo: string) => correo.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+
+export function domicilioDePerfil(domicilio: PerfilPropio["domicilio"]): Domicilio {
+    return {
+        calle: domicilio?.calle ?? "", numeroExterior: domicilio?.numeroExterior ?? "", numeroInterior: domicilio?.numeroInterior ?? "",
+        colonia: domicilio?.coloniaLocalidad ?? "", codigoPostal: domicilio?.codigoPostal ?? "",
+        municipio: domicilio?.municipio ?? "", estado: domicilio?.estadoProvincia ?? "",
+    };
 }
 
-// ---------- Datos de ejemplo (todavía no los da el backend) ----------
+function domicilioParaGuardar(domicilio: Domicilio): DomicilioPerfil {
+    return {
+        calle: domicilio.calle.trim(), numeroExterior: domicilio.numeroExterior.trim(), numeroInterior: domicilio.numeroInterior.trim() || null,
+        coloniaLocalidad: domicilio.colonia.trim(), codigoPostal: domicilio.codigoPostal.trim(),
+        municipio: domicilio.municipio.trim(), estadoProvincia: domicilio.estado.trim(),
+    };
+}
+
+type EdicionPerfil = DatosEditables & { domicilio: Domicilio; telefonoResponsable: string; correoResponsable: string };
+
+export function cambiosDePerfil(perfil: PerfilPropio, edicion: EdicionPerfil, menor: boolean): CambiosPerfil {
+    const cambios: CambiosPerfil = {};
+    const nombres = edicion.nombres.trim();
+    if (nombres !== perfil.nombres.trim()) cambios.nombres = nombres;
+
+    if (menor) {
+        if (!perfil.responsable) return cambios;
+        const telefono = edicion.telefonoResponsable.trim();
+        const correo = edicion.correoResponsable.trim().toLowerCase();
+        const contacto: NonNullable<CambiosPerfil["responsable"]> = {};
+        if (telefono !== perfil.responsable.telefono) contacto.telefono = telefono;
+        if (correo !== perfil.responsable.correo.toLowerCase()) contacto.correo = correo;
+        if (Object.keys(contacto).length) cambios.responsable = contacto;
+        return cambios;
+    }
+
+    const telefono = edicion.telefono.trim();
+    if (telefono !== (perfil.telefono ?? "")) cambios.telefono = telefono;
+    const domicilio = domicilioParaGuardar(edicion.domicilio);
+    const anterior = domicilioParaGuardar(domicilioDePerfil(perfil.domicilio));
+    if (Object.entries(domicilio).some(([campo, valor]) => valor !== anterior[campo as keyof DomicilioPerfil])) cambios.domicilio = domicilio;
+    return cambios;
+}
+
+// ---------- Datos de ejemplo ----------
 // Solo para revisar la pantalla en desarrollo sin cuenta: /mi-perfil?simular=sesion
 // (o ?simular=sesion-menor para la cuenta de persona menor de edad).
 export function perfilSimulado(menor: boolean): PerfilPropio {
     return {
         id: "simulado", correo: "nombre@ejemplo.mx", nombres: "Ana", primerApellido: "López", segundoApellido: "García",
         fechaNacimiento: menor ? "2014-03-15" : "1994-03-15", telefono: "3110000000", actualizadoA: "2026-11-03T12:00:00Z",
+        esMenor: menor,
+        domicilio: { calle: "Av. Allende", numeroExterior: "110", numeroInterior: null, coloniaLocalidad: "Centro", codigoPostal: "63000", municipio: "Tepic", estadoProvincia: "Nayarit" },
+        responsable: menor ? { nombre: "Ana López García", telefono: "3111234567", correo: "responsable@ejemplo.mx", relacion: "madre" } : null,
     };
 }
 
-// TODO backend: GET /perfil debe incluir el domicilio (calle, número exterior e interior, colonia,
-// código postal, municipio y estado) y PATCH /perfil debe aceptarlo. Mientras, se guarda solo en esta pestaña.
-let domicilioEjemplo: Domicilio = {
-    calle: "Av. Allende", numeroExterior: "110", numeroInterior: "",
-    colonia: "Centro", codigoPostal: "63000", municipio: "Tepic", estado: "Nayarit",
-};
-export function consultarDomicilio(): Domicilio { return { ...domicilioEjemplo }; }
-export function guardarDomicilio(domicilio: Domicilio) { domicilioEjemplo = { ...domicilio }; }
-
-// TODO backend: cambio de correo con verificación (enviar enlace al nuevo correo, consultar si hay uno
-// pendiente y cancelarlo). Mientras, el pendiente vive solo en esta pestaña.
-let correoPendiente: string | null = null;
-export function consultarCorreoPendiente() { return correoPendiente; }
-export function solicitarCambioCorreo(nuevo: string) { correoPendiente = nuevo.trim().toLowerCase(); }
-export function cancelarCambioCorreo() { correoPendiente = null; }
-
-// TODO backend: inscripciones y progreso de la cuenta (la credencial sale de credencial/datos.ts; los avisos, de notificaciones/datos.ts).
-export const resumenEjemplo = {
-    actividades: { titulo: "Próximas actividades", texto: "2 inscripciones: Taller de escritura creativa y 1 más." },
-    asistencias: { titulo: "Asistencias verificadas", texto: "3 de 6 para el siguiente nivel." },
-    progreso: { actuales: 3, meta: 6 },
-};
-
 // Tarjeta «Credencial» del resumen y etiqueta del encabezado según el estado del trámite.
-type EstadoCred = "sin-solicitud" | "en-revision" | "correccion" | "vigente" | "vencida";
+type EstadoCred = "sin-solicitud" | "en-revision" | "correccion" | "atendida" | "validacion-rechazada" | "vigente" | "vencida";
 export function resumenCredencial(estado: EstadoCred) {
     return {
-        vigente: { titulo: "Credencial vigente", texto: "Validada · 2 años desde la emisión." },
+        vigente: { titulo: "Credencial vigente", texto: "Consulta su fecha de vencimiento." },
         "en-revision": { titulo: "Credencial en revisión", texto: "El personal está revisando tu solicitud." },
+        atendida: { titulo: "Solicitud atendida", texto: "Consulta aquí la validación de tu credencial." },
+        "validacion-rechazada": { titulo: "Validación rechazada", texto: "Consulta el seguimiento de tu credencial." },
         correccion: { titulo: "Corrección solicitada", texto: "Revisa lo que pidió el personal para continuar." },
         vencida: { titulo: "Credencial vencida", texto: "Solicita la renovación en línea." },
         "sin-solicitud": { titulo: "Sin credencial", texto: "Solicítala desde el portal." },
     }[estado];
 }
 export function chipCredencial(estado: EstadoCred) {
-    return { vigente: "Credencial validada y vigente", "en-revision": "Credencial en revisión", correccion: "Credencial con corrección solicitada",
-        vencida: "Credencial vencida", "sin-solicitud": null }[estado];
+    return { vigente: "Credencial validada y vigente", "en-revision": "Credencial en revisión", atendida: "Solicitud de credencial atendida", correccion: "Credencial con corrección solicitada",
+        "validacion-rechazada": "Validación de credencial rechazada", vencida: "Credencial vencida", "sin-solicitud": null }[estado];
 }
 
 export function porcentajeProgreso(actuales: number, meta: number) {
@@ -214,21 +241,5 @@ export function validarCambioContrasena(actual: string, nueva: string) {
     if (!actual) errores.actual = "Escribe tu contraseña actual.";
     if (nueva.length < 8 || nueva.length > 128) errores.nueva = "Usa entre 8 y 128 caracteres.";
     else if (nueva === actual) errores.nueva = "Usa una contraseña diferente a la actual.";
-    return errores;
-}
-
-// ---------- Persona responsable (cuentas de persona menor de edad) ----------
-// TODO backend: GET /perfil debe incluir la persona responsable que se registró al crear la cuenta
-// (nombre, teléfono y relación) y PATCH /perfil debe aceptarla. Mientras, vive solo en esta pestaña.
-export type Responsable = { nombre: string; telefono: string; relacion: string };
-let responsableEjemplo: Responsable = { nombre: "Ana López García", telefono: "3111234567", relacion: "Madre" };
-export function consultarResponsable(): Responsable { return { ...responsableEjemplo }; }
-export function guardarResponsable(r: Responsable) { responsableEjemplo = { ...r }; }
-
-export function validarResponsable(r: Responsable) {
-    const errores: Partial<Record<"responsableNombre" | "responsableTelefono" | "responsableRelacion", string>> = {};
-    if (!r.nombre.trim()) errores.responsableNombre = "Escribe el nombre de la persona responsable.";
-    if (!/^\d{10}$/.test(r.telefono.trim())) errores.responsableTelefono = "Escribe un teléfono de 10 dígitos.";
-    if (!r.relacion.trim()) errores.responsableRelacion = "Escribe el parentesco o la relación.";
     return errores;
 }

@@ -10,7 +10,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from postgrest.exceptions import APIError
 from supabase_auth.errors import AuthApiError
 
@@ -97,6 +97,13 @@ class HistorialSolicitudesResponse(BaseModel):
     desplazamiento_por_tipo: int
 
 
+class FiltrosSolicitudes(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
+    limite: int = Field(25, ge=1, le=100, description='Máximo de registros por categoría.')
+    desplazamiento: int = Field(0, ge=0, le=100000, description='Registros omitidos por categoría.')
+
+
 # Proyecciones explícitas: no devolver columnas personales o internas nuevas
 # cuando se amplíen las tablas. El propietario procede de la sesión, nunca del navegador.
 CONSULTAS = (
@@ -118,10 +125,11 @@ CONSULTAS = (
 def obtener_historial_solicitudes_propias(
     respuesta: Response,
     sesion: Annotated[tuple, Depends(sesion_solicitudes)],
-    limite: int = Query(25, ge=1, le=100, description='Máximo de registros por categoría.'),
-    desplazamiento: int = Query(0, ge=0, le=100000, description='Registros omitidos por categoría.'),
+    filtros: Annotated[FiltrosSolicitudes, Query()],
 ):
     cliente, usuario_id = sesion
+    limite = filtros.limite
+    desplazamiento = filtros.desplazamiento
     respuesta.headers['Cache-Control'] = 'private, no-store'
     resultados = {}
     totales = {}

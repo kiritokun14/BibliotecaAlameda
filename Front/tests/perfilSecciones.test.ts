@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     alternar, canalesEjemplo, estadoNivel, filtrarInscripciones, inscripcionesEjemplo, seccionDeRuta, seccionesDe,
-    siguienteMeta, validarCambioContrasena, validarResponsable,
+    siguienteMeta, validarCambioContrasena, validarDatos,
 } from '../src/pages/publico/perfil/datos';
 import { contarPorGrupo, estadoEspacio, estadoPropuesta, fechaCorta, historialEjemplo } from '../src/pages/publico/perfil/solicitudes';
 
@@ -16,10 +16,11 @@ describe('Perfil · cuenta de persona menor de edad', () => {
         expect(seccionDeRuta('espacios', true)).toBeNull();
         expect(seccionDeRuta('espacios', false)).toBe('espacios');
     });
-    it('pide nombre, teléfono de 10 dígitos y relación de la persona responsable', () => {
-        expect(validarResponsable({ nombre: 'Ana', telefono: '3111234567', relacion: 'Madre' })).toEqual({});
-        expect(Object.keys(validarResponsable({ nombre: ' ', telefono: '311', relacion: '' })).sort())
-            .toEqual(['responsableNombre', 'responsableRelacion', 'responsableTelefono']);
+    it('valida teléfono y correo de la persona responsable cuando se cambian', () => {
+        expect(validarDatos({ responsable: { correo: 'tutor@ejemplo.mx' } })).toEqual({});
+        expect(validarDatos({ responsable: { telefono: '3111234567' } })).toEqual({});
+        expect(Object.keys(validarDatos({ responsable: { telefono: '311', correo: 'incorrecto' } })).sort())
+            .toEqual(['responsableCorreo', 'responsableTelefono']);
     });
 });
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-    esMenorDeEdad, formatearFecha, nombreCompleto, porcentajeProgreso, seccionDeRuta, tipoDeCuenta,
-    validarCorreo, validarDatos, type Domicilio,
+    cambiosDePerfil, domicilioDePerfil, esMenorDeEdad, esPerfilMenor, formatearFecha, nombreCompleto, perfilSimulado,
+    porcentajeProgreso, seccionDeRuta, tipoDeCuenta, validarDatos, type Domicilio,
 } from '../src/pages/publico/perfil/datos';
 
 const domicilio: Domicilio = {
@@ -24,6 +24,9 @@ describe('Perfil · datos de la persona', () => {
         expect(esMenorDeEdad('2008-11-04', hoy)).toBe(true);  // cumple 18 mañana
         expect(tipoDeCuenta('2015-05-01', hoy)).toBe('Cuenta de persona menor de edad');
         expect(tipoDeCuenta('1990-05-01', hoy)).toBe('Cuenta de persona adulta');
+        const perfil = { fechaNacimiento: '2008-11-03', esMenor: false };
+        expect(esPerfilMenor(perfil, new Date(2026, 10, 2))).toBe(false);
+        expect(tipoDeCuenta(perfil, new Date(2026, 10, 2))).toBe('Cuenta de persona adulta');
     });
     it('reconoce las secciones del menú y rechaza las que no existen', () => {
         expect(seccionDeRuta(undefined)).toBe('resumen');
@@ -48,9 +51,25 @@ describe('Perfil · validaciones de «Editar mis datos»', () => {
     it('el número interior es opcional', () => {
         expect(validarDatos({ nombres: 'Ana', telefono: '3110000000' }, { ...domicilio, numeroInterior: '' }).numeroInterior).toBeUndefined();
     });
-    it('pide un correo válido y distinto al actual', () => {
-        expect(validarCorreo('ana', 'ana@ejemplo.mx')).toBe('Escribe un correo válido.');
-        expect(validarCorreo(' ANA@ejemplo.mx ', 'ana@ejemplo.mx')).toBe('Escribe un correo distinto al actual.');
-        expect(validarCorreo('nuevo@ejemplo.mx', 'ana@ejemplo.mx')).toBe('');
+    it('acepta cambiar el nombre de un perfil que todavía no tiene domicilio', () => {
+        expect(validarDatos({ nombres: 'Ana María' })).toEqual({});
+        expect(domicilioDePerfil(null)).not.toEqual(domicilio);
+        expect(domicilioDePerfil(null).calle).toBe('');
+    });
+    it('manda solo los campos editables que cambiaron y usa el contrato real del domicilio', () => {
+        const perfil = perfilSimulado(false);
+        const datos = { nombres: perfil.nombres, telefono: perfil.telefono, domicilio: domicilioDePerfil(perfil.domicilio),
+            telefonoResponsable: '3110000001', correoResponsable: 'otro@ejemplo.mx' };
+        expect(cambiosDePerfil(perfil, datos, false)).toEqual({});
+        expect(cambiosDePerfil(perfil, { ...datos, domicilio: { ...datos.domicilio, colonia: ' Nueva ' } }, false)).toEqual({
+            domicilio: { ...perfil.domicilio, coloniaLocalidad: 'Nueva' },
+        });
+    });
+    it('prepara únicamente los contactos autorizados de la persona responsable cuando es menor', () => {
+        const perfil = perfilSimulado(true);
+        const datos = { nombres: perfil.nombres, telefono: '3110000001', domicilio: { ...domicilio, calle: 'Otra' },
+            telefonoResponsable: perfil.responsable!.telefono, correoResponsable: ' TUTOR@EJEMPLO.MX ' };
+        expect(cambiosDePerfil(perfil, datos, true)).toEqual({ responsable: { correo: 'tutor@ejemplo.mx' } });
+        expect(cambiosDePerfil({ ...perfil, responsable: null }, datos, true)).toEqual({});
     });
 });

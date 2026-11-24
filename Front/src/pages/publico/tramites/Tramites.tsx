@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import PaginaPublica, { EncabezadoPublico } from '../../../components/portal/PaginaPublica';
 import { NavLink } from 'react-router';
-import { consultarTramite, listarTramites, solicitarCredencial, estadoTramite,
+import { consultarTramitePropio, listarTramites, solicitarCredencial, estadoTramite,
     type ListaTramites, type SolicitudAtencion, type TipoTramite } from '../../../servicios/tramites';
 import { mensajeError } from '../../../servicios/api';
 import { AccesoTramites, AccionesPropuesta, ChipTramite, FichaTramite, FormularioPropuesta } from './piezas';
@@ -21,7 +21,8 @@ export default function Tramites() {
     useEffect(() => {
         if (!usuario || nueva) return;
         let vigente = true;
-        const consulta = id ? consultarTramite(tipo, id).then(solicitud => ({ solicitud })) : listarTramites(tipo, true, pagina).then(lista => ({ lista }));
+        const consulta = id ? consultarTramitePropio(tipo, id, usuario).then(solicitud => ({ solicitud }))
+            : listarTramites(tipo, true, pagina, '', '', usuario).then(lista => ({ lista }));
         consulta.then(datos => { if (vigente) setResultado({ clave, ...datos }); }).catch(error => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
         return () => { vigente = false; };
     }, [usuario, nueva, clave, id, tipo, pagina]);

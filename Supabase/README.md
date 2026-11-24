@@ -43,6 +43,8 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 28 | `progreso_recompensas.sql` | Progreso por participación (una por sesión con asistencia «presente» y credencial vigente ese día), niveles Inicial / Lector activo / Lector constante, ajustes con motivo, y recompensas: asignación con autorización de la Dirección, entrega y cancelación. Requiere `asistencia_actividades.sql` | HU-28 / HU-29 |
 | 29 | `credencial_al_atender.sql` | Al marcar como «atendida» una solicitud de credencial se registra la credencial validada (emisión el día del cotejo, vigencia de 2 años); corrige las solicitudes atendidas que se quedaron sin credencial. Requiere `atencion_credenciales_propuestas.sql` | HU-14 / HU-28 |
 | 30 | `insignias_progreso.sql` | Insignias del perfil: el resumen de progreso agrega participaciones válidas en clubes y talleres (curso cuenta como taller; categoría sin importar mayúsculas) y propuestas aprobadas. Requiere `progreso_recompensas.sql` | HU-28 |
+| 31 | `perfil_seguimiento_hu08.sql` | Amplía el perfil propio con domicilio y contacto del responsable. Requiere `perfil_propio.sql` y `registro_usuarios.sql`. | HU-08 / CU-08 |
+| 32 | `hu08_seguimiento_personal.sql` | Añade la marca propia de asistencia a Mis eventos cuando la lista se cierra. Requiere `inscripcion_propia.sql` y `asistencia_actividades.sql`. | HU-08 / CU-08 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
@@ -83,6 +85,8 @@ En CECANbd ya se aplicaron los pasos 18 a 20; no hace falta repetirlos para ejec
 HU-20 / T-099: `asistencia_actividades.sql` registra asistencia por sesión y sus correcciones con historial; requiere agenda e inscripciones. `pruebas_asistencia_actividades.sql` verifica permisos, sesiones, cierre y correcciones con `ROLLBACK` en una copia de pruebas. Revisa su aplicación antes de utilizar esta función en la base compartida.
 
 HU-28 / HU-29: `progreso_recompensas.sql` calcula el progreso desde la asistencia y registra asignación, entrega y cancelación de recompensas. `pruebas_progreso_recompensas.sql` (con `ROLLBACK`) comprueba niveles, sesiones sin credencial, correcciones, ajustes, existencias, doble asignación y permisos, después del paso 28.
+
+HU-08 / CU-08: en una copia de pruebas, ejecuta `pruebas_perfil_propio.sql`, `pruebas_perfil_seguimiento_hu08.sql` y `pruebas_hu08_seguimiento_personal.sql` después de las migraciones correspondientes. Las pruebas terminan con `ROLLBACK`. El recorrido de la pantalla se describe en [HU-08.md](../HU-08.md).
 
 T-094, complemento de solicitudes: `t094_correcciones_solicitudes.sql` agrega versiones completas, motivo obligatorio, corrección propia y control de concurrencia para propuestas y espacios. Aplicar después de las migraciones vigentes de propuestas y espacios y revisar con el equipo. `pruebas_t094_solicitudes.sql` comprueba los cuatro criterios con ROLLBACK. Ver `../T-094-INFORME.md`; la aplicación en CECANbd y la revisión de Aldahir siguen pendientes.
 

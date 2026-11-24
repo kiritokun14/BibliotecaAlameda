@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { consultarPerfil, type PerfilPropio } from "../../../servicios/perfil";
-import { esMenorDeEdad, nombreCompleto, tipoDeCuenta } from "./datos";
+import { esPerfilMenor, nombreCompleto, tipoDeCuenta } from "./datos";
 import { sinLeer as contarSinLeer, useNotificaciones } from "../notificaciones/datos";
 import PanelNotificaciones from "../notificaciones/PanelNotificaciones";
 import "./MenuCuenta.css";
@@ -46,7 +46,8 @@ export default function MenuCuenta({ correo, cerrando = false, alCerrarSesion }:
         window.clearTimeout(salida.current); setSaliendo(false); setAbiertoEn(que);
     };
     useEffect(() => () => window.clearTimeout(salida.current), []);
-    const [perfil, setPerfil] = useState<PerfilPropio | null>(null);
+    const [perfilConsultado, setPerfil] = useState<PerfilPropio | null>(null);
+    const perfil = perfilConsultado?.correo === correo ? perfilConsultado : null;
     const contenedor = useRef<HTMLDivElement>(null);
     const boton = useRef<HTMLButtonElement>(null);
     const campana = useRef<HTMLButtonElement>(null);
@@ -59,13 +60,13 @@ export default function MenuCuenta({ correo, cerrando = false, alCerrarSesion }:
     const [rutaAnterior, setRutaAnterior] = useState(ruta);
     if (ruta !== rutaAnterior) { setRutaAnterior(ruta); setAbiertoEn(null); }
 
-    // Nombre y tipo de cuenta: se piden la primera vez que se abre el menú.
+    // El nombre y tipo de cuenta se vuelven a consultar al abrir el menú.
     useEffect(() => {
-        if (abierto !== "cuenta" || perfil) return;
+        if (abierto !== "cuenta") return;
         let vigente = true;
         consultarPerfil().then((p) => { if (vigente) setPerfil(p); }).catch(() => {});
         return () => { vigente = false; };
-    }, [abierto, perfil]);
+    }, [abierto, correo]);
 
     // Escape o un clic fuera lo cierran.
     useEffect(() => {
@@ -110,10 +111,10 @@ export default function MenuCuenta({ correo, cerrando = false, alCerrarSesion }:
                             <span>{perfil?.correo ?? correo}</span>
                         </span>
                     </div>
-                    {perfil && <span className="menu-cuenta__tipo">{tipoDeCuenta(perfil.fechaNacimiento)}</span>}
+                    {perfil && <span className="menu-cuenta__tipo">{tipoDeCuenta(perfil)}</span>}
                     <hr />
                     <ul>
-                        {opciones.filter((o) => !(perfil && esMenorDeEdad(perfil.fechaNacimiento) && /propuestas|espacios/.test(o.ruta))).map((o) => (
+                        {opciones.filter((o) => !(perfil && esPerfilMenor(perfil) && /propuestas|espacios/.test(o.ruta))).map((o) => (
                             <li key={o.ruta}>
                                 <Link to={o.ruta} className="menu-cuenta__opcion">
                                     <img src={o.icono} alt="" />

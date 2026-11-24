@@ -36,8 +36,8 @@ export function usePerfil(usuario: string | null | undefined, intento = 0): Carg
     useEffect(() => {
         if (!usuario || sesionSimulada) return;
         let vigente = true;
-        consultarPerfil()
-            .then((perfil) => { if (vigente) setCarga({ usuario, intento, valor: { perfil } }); })
+        consultarPerfil(usuario)
+            .then((perfil) => { if (vigente && perfil.id === usuario) setCarga({ usuario, intento, valor: { perfil } }); })
             .catch((e) => { if (vigente) setCarga({ usuario, intento, valor: { error: mensajeError(e), ingresar: e instanceof ErrorServicio && e.estado === 401 } }); });
         return () => { vigente = false; };
     }, [usuario, intento]);

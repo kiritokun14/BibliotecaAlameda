@@ -36,6 +36,34 @@ class AtencionTramitesTests(unittest.TestCase):
         self.assertEqual(self.http.post('/propuestas', json=PROPUESTA).status_code, 401)
         self.crear.assert_not_called()
 
+    def test_credencial_propia_informa_vigencia_canonica_de_la_sesion(self):
+        self.cliente.auth.get_user.return_value = Mock(user=Mock(id=self.id))
+        self.cliente.rpc.return_value.execute.side_effect = [
+            Mock(data={'usuarioId': self.id}), Mock(data={'solicitudes': [], 'total': 0}),
+        ]
+        lectura = self.cliente.table.return_value.select.return_value
+        lectura.eq.return_value.limit.return_value.execute.return_value.data = [{
+            'estadoValidacion': 'validada', 'fechaEmision': '2026-11-01', 'fechaVencimiento': '2028-11-01',
+            'numeroCredencial': 'no exponer', 'validadaPor': 'no exponer',
+        }]
+        with patch('Back.solicitudes.crear_cliente', return_value=self.cliente):
+            r = self.http.get('/credenciales/solicitudes/me', headers=self.headers)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(r.headers['Cache-Control'], 'private, no-store')
+        self.cliente.table.assert_called_once_with('credencialBibliotecaria')
+        lectura.eq.assert_called_once_with('usuarioId', self.id)
+        self.assertEqual(r.json()['credencial'], {
+            'estadoValidacion': 'validada', 'fechaEmision': '2026-11-01', 'fechaVencimiento': '2028-11-01',
+        })
+
+    def test_credencial_propia_rechaza_identificador_de_otra_cuenta(self):
+        self.cliente.auth.get_user.return_value = Mock(user=Mock(id=self.id))
+        self.cliente.rpc.return_value.execute.return_value.data = {'usuarioId': self.id}
+        with patch('Back.solicitudes.crear_cliente', return_value=self.cliente):
+            r = self.http.get('/credenciales/solicitudes/me', params={'usuarioId': str(uuid4())}, headers=self.headers)
+        self.assertEqual(r.status_code, 422)
+        self.cliente.table.assert_not_called()
+
     def test_crea_credencial_sin_modificar_titular_ni_emitir_credencial(self):
         r = self.http.post('/credenciales/solicitudes', headers=self.headers, json={'tipoSolicitud': 'obtencion'})
         self.assertEqual(r.status_code, 201)
