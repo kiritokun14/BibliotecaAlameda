@@ -1,6 +1,4 @@
-node_modules/
-dist/
-.env.*
+Front/
 .venv/
 .env
 __pycache__/

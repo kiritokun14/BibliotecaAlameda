@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="130" height="240" viewBox="0 0 130 240" fill="none">
-  <!-- Ramito de lavanda en tonos guinda y rosa que crece desde abajo (Contacto, abajo izquierda). -->
-  <defs><ellipse id="bot" rx="4" ry="6"/></defs>
-  <g stroke="#3f7f6e" stroke-width="2" stroke-linecap="round"><path d="M64 240 C 60 180, 44 120, 30 50"/><path d="M66 240 C 68 180, 72 110, 70 30"/><path d="M68 240 C 76 180, 92 120, 106 60"/></g>
-  <g fill="#c75b7a"><use href="#bot" x="30" y="50"/><use href="#bot" x="26" y="62"/><use href="#bot" x="34" y="64"/><use href="#bot" x="30" y="76"/><use href="#bot" x="38" y="78"/><use href="#bot" x="34" y="90"/></g>
-  <g fill="#9b2247"><use href="#bot" x="70" y="30"/><use href="#bot" x="66" y="42"/><use href="#bot" x="74" y="44"/><use href="#bot" x="68" y="56"/><use href="#bot" x="76" y="58"/><use href="#bot" x="70" y="70"/><use href="#bot" x="72" y="82"/></g>
-  <g fill="#e8a3b8"><use href="#bot" x="106" y="60"/><use href="#bot" x="100" y="72"/><use href="#bot" x="108" y="74"/><use href="#bot" x="98" y="86"/><use href="#bot" x="104" y="88"/></g>
-  <g fill="#5f9887"><path d="M62 200 C 42 194, 30 180, 28 164 C 46 170, 58 182, 62 200 Z"/><path d="M68 190 C 88 184, 100 170, 104 154 C 86 160, 72 172, 68 190 Z"/></g>
-</svg>

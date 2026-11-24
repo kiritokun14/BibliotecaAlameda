@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="140" height="230" viewBox="0 0 140 230" fill="none">
-  <!-- Enredadera de hojas en forma de corazón que cuelga (Contacto, arriba izquierda). -->
-  <defs><path id="cor" d="M0 0 C -10 -8, -18 -18, -12 -26 C -6 -32, 0 -26, 0 -20 C 0 -26, 6 -32, 12 -26 C 18 -18, 10 -8, 0 0 Z"/></defs>
-  <path d="M10 0 C 30 50, 24 100, 44 150 C 54 176, 60 200, 70 228" stroke="#1f6b5c" stroke-width="2.4" stroke-linecap="round"/>
-  <g fill="#2a7d6b"><use href="#cor" transform="translate(18 34) rotate(-110)"/><use href="#cor" transform="translate(30 92) rotate(-100)"/><use href="#cor" transform="translate(50 162) rotate(-110)"/></g>
-  <g fill="#1f6b5c"><use href="#cor" transform="translate(26 62) rotate(80)"/><use href="#cor" transform="translate(38 126) rotate(70)"/><use href="#cor" transform="translate(60 196) rotate(80) scale(.85)"/></g>
-  <g fill="#c75b7a"><use href="#cor" transform="translate(70 228) rotate(180) scale(.6)"/></g>
-  <g fill="#c9a24a"><circle cx="34" cy="80" r="3"/><circle cx="48" cy="148" r="2.6"/></g>
-</svg>

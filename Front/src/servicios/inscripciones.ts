@@ -17,22 +17,3 @@ export const listarActividadesInscripciones = (pagina: number) => consultar<Acti
 export const listarSolicitudesInscripcion = (sesion: string, pagina: number) => consultar<SolicitudInscripcion[]>(`/sesiones/${encodeURIComponent(sesion)}/inscripciones?limite=20&desplazamiento=${pagina * 20}`);
 export const consultarCuposInscripciones = (sesion: string) => consultar<CuposInscripciones>(`/sesiones/${encodeURIComponent(sesion)}/cupos`);
 export const confirmarSolicitudInscripcion = (id: string, motivo: string) => consultar<{ id: string; status: 'confirmada' }>(`/inscripciones/${encodeURIComponent(id)}/confirmar`, { method: 'PATCH', body: JSON.stringify({ motivo: motivo.trim() }) });
-
-type EstadoPropio = SolicitudInscripcion['status'];
-export interface InscripcionPropia {
-    id: string | null; estado: EstadoPropio | null; actualizadoA: string | null;
-    registroAbierto: boolean; hayCupo: boolean; puedeCancelar: boolean;
-}
-export interface EventoPropio {
-    id: string; status: EstadoPropio; folio: string; titulo: string;
-    inicio: string; sesionId: string; publicada: boolean;
-}
-export const estadoInscripcionPropia: Record<EstadoPropio, string> = {
-    pendiente: 'Pendiente de confirmación', confirmada: 'Confirmada', rechazada: 'Rechazada', cancelada: 'Cancelada',
-};
-const rutaPropia = (sesion: string) => `/sesiones/${encodeURIComponent(sesion)}/mi-inscripcion`;
-export const consultarInscripcionPropia = (sesion: string) => consultar<InscripcionPropia>(rutaPropia(sesion));
-export const solicitarInscripcionPropia = (sesion: string) => consultar<InscripcionPropia>(rutaPropia(sesion), { method: 'POST' });
-export const cancelarInscripcionPropia = (sesion: string, actualizadoA: string) =>
-    consultar<InscripcionPropia>(rutaPropia(sesion) + '/cancelar', { method: 'PATCH', body: JSON.stringify({ actualizadoA }) });
-export const listarInscripcionesPropias = (pagina: number) => consultar<EventoPropio[]>(`/mis-inscripciones?pagina=${pagina}`);
