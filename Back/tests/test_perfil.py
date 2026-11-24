@@ -1,9 +1,12 @@
 import unittest
-from unittest.mock import Mock,patch
+from unittest.mock import Mock, call, patch
 from fastapi.testclient import TestClient
 from postgrest.exceptions import APIError
 from Back.main import app
 VERSION='2026-11-02T12:00:00.123456Z'
+DOMICILIO = {'calle': 'Alameda', 'numeroExterior': '52', 'numeroInterior': None,
+             'coloniaLocalidad': 'Centro', 'codigoPostal': '63000',
+             'municipio': 'Tepic', 'estadoProvincia': 'Nayarit'}
 class PerfilPropioTests(unittest.TestCase):
  def test_preferencias_usan_sesion_y_version_sin_aceptar_otro_titular(self):
   ruta='/perfil/preferencias-avisos'
@@ -76,14 +79,12 @@ class PerfilPropioTests(unittest.TestCase):
     self.assertEqual(respuesta.status_code, 422)
   self.cliente.rpc.assert_not_called()
  def test_edicion_domicilio_propio_completo(self):
-  domicilio = {'calle': ' Alameda ', 'numeroExterior': '52', 'numeroInterior': None,
-               'coloniaLocalidad': 'Centro', 'codigoPostal': '63000',
-               'municipio': 'Tepic', 'estadoProvincia': 'Nayarit'}
+  domicilio = {**DOMICILIO, 'calle': ' Alameda '}
   respuesta = self.http.patch('/perfil', headers=self.headers,
                               json={'actualizadoA': VERSION, 'domicilio': domicilio})
   self.assertEqual(respuesta.status_code, 200)
   self.cliente.rpc.assert_called_once_with('mi_perfil', {'operacion': 'guardar', 'datos': {
-      'actualizadoA': VERSION, 'domicilio': {**domicilio, 'calle': 'Alameda'},
+      'actualizadoA': VERSION, 'domicilio': DOMICILIO,
   }})
   self.cliente.rpc.reset_mock()
   for invalido in [{**domicilio, 'codigoPostal': 'abcd'}, {**domicilio, 'usuarioId': 'otra-cuenta'}]:
@@ -91,6 +92,45 @@ class PerfilPropioTests(unittest.TestCase):
                                json={'actualizadoA': VERSION, 'domicilio': invalido})
    self.assertEqual(respuesta.status_code, 422)
   self.cliente.rpc.assert_not_called()
+ def test_identifica_migracion_faltante_en_ediciones_ampliadas(self):
+  perfil_legado = {'id': 'id-propio', 'actualizadoA': VERSION}
+  for cambios in ({'domicilio': DOMICILIO}, {'responsable': {'telefono': '3115551234'}}):
+   with self.subTest(cambios=cambios):
+    self.cliente.rpc.reset_mock()
+    self.cliente.rpc.return_value.execute.side_effect = [
+        APIError({'code': '22023', 'message': 'Campos no editables o cambios vacíos.'}), Mock(data=perfil_legado),
+    ]
+    datos = {**cambios, 'actualizadoA': VERSION}
+    respuesta = self.http.patch('/perfil', headers=self.headers, json=datos)
+    self.assertEqual(respuesta.status_code, 503)
+    self.assertIn('actualización de perfil HU-08', respuesta.json()['detail'])
+    self.assertEqual(respuesta.headers['cache-control'], 'no-store')
+    self.assertEqual(self.cliente.rpc.call_args_list, [
+        call('mi_perfil', {'operacion': 'guardar', 'datos': datos}),
+        call('mi_perfil', {'operacion': 'consultar', 'datos': {}}),
+    ])
+ def test_conserva_error_de_validacion_si_no_se_confirma_version_legada(self):
+  perfil_actual = {'id': 'id-propio', 'actualizadoA': VERSION, 'esMenor': False,
+                   'domicilio': DOMICILIO, 'responsable': None}
+  for consulta in (Mock(data=perfil_actual), Mock(data=None), APIError({'code': '42501', 'message': 'Sesión no válida'})):
+   with self.subTest(consulta=consulta):
+    self.cliente.rpc.reset_mock()
+    self.cliente.rpc.return_value.execute.side_effect = [
+        APIError({'code': '22023', 'message': 'Campo interno inválido.'}), consulta,
+    ]
+    respuesta = self.http.patch('/perfil', headers=self.headers,
+                                json={'domicilio': DOMICILIO, 'actualizadoA': VERSION})
+    self.assertEqual(respuesta.status_code, 422)
+    self.assertNotIn('Campo interno', respuesta.text)
+    self.assertEqual(self.cliente.rpc.call_count, 2)
+ def test_omite_diagnostico_en_ediciones_basicas_y_otros_errores(self):
+  for codigo, cambios in (('22023', {'nombres': 'Ana'}), ('23514', {'domicilio': DOMICILIO})):
+   self.cliente.rpc.reset_mock()
+   self.cliente.rpc.return_value.execute.side_effect = APIError({'code': codigo, 'message': 'Validación interna.'})
+   datos = {**cambios, 'actualizadoA': VERSION}
+   respuesta = self.http.patch('/perfil', headers=self.headers, json=datos)
+   self.assertEqual(respuesta.status_code, 422)
+   self.cliente.rpc.assert_called_once_with('mi_perfil', {'operacion': 'guardar', 'datos': datos})
  def test_no_acepta_campos_vacios_null_telefono_invalido_ni_version_ausente(self):
   for datos in [{'actualizadoA':VERSION},{'nombres':' ','actualizadoA':VERSION},{'nombres':None,'actualizadoA':VERSION},
    {'telefono':'123','actualizadoA':VERSION},{'nombres':'Ana'},{'nombres':'Ana','actualizadoA':'2026-11-02T12:00:00'}]:

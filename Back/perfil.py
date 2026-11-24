@@ -39,11 +39,24 @@ def comprobar_parametros_perfil(peticion: Request):
                             headers={'Cache-Control': 'no-store'})
 
 
+def falta_migracion_perfil(cliente):
+    try:
+        perfil = cliente.rpc('mi_perfil', {'operacion': 'consultar', 'datos': {}}).execute().data
+    except Exception:
+        return False
+    return (isinstance(perfil, dict) and {'id', 'actualizadoA'} <= perfil.keys()
+            and not ({'esMenor', 'domicilio', 'responsable'} & perfil.keys()))
+
+
 def ejecutar_perfil(cliente, operacion, datos=None):
     cabeceras = {'Cache-Control': 'no-store'}
     try:
         return cliente.rpc('mi_perfil', {'operacion': operacion, 'datos': datos or {}}).execute().data
     except APIError as error:
+        if (error.code == '22023' and operacion == 'guardar' and datos
+                and {'domicilio', 'responsable'} & datos.keys() and falta_migracion_perfil(cliente)):
+            raise HTTPException(503, 'Este entorno necesita la actualización de perfil HU-08 para guardar este cambio.',
+                                headers=cabeceras) from None
         if error.code in ('22023', '22007', '22P02', '23514'):
             raise HTTPException(422, 'Revisa los datos de contacto y los demás campos que editaste.',
                                 headers=cabeceras) from None
