@@ -4073,3 +4073,33 @@
   .pagina-publica .esp-pagina .contacto-columnas--nuevo > .contacto-lateral { align-self: flex-start; position: sticky; top: 96px; height: auto; contain: none; }
   .pagina-publica .esp-pagina .contacto-columnas--nuevo > .contacto-lateral > * { flex: none; height: auto; }
 }
+
+/* ---------- Inicio en escritorio: Noticias y Cultura Nayarit del mismo alto que los demás bloques (23 nov) ----------
+   Medían 721 y 774 px contra 643 de los demás, sin los 32 px de separación arriba y abajo, y el scroll no los centraba.
+   Se quita aire y se acortan textos para que quepan en el mismo alto (sin tocar el diseño). */
+@media (min-width: 1025px) {
+  /* Noticias: resumen de las otras en 1 renglón y menos espacio entre ellas */
+  .pagina-publica .otras-noticias { gap: 10px; }
+  .pagina-publica .otras-noticias .noticia-mini { padding-block: 10px; }
+  .pagina-publica .otras-noticias .noticia-mini__resumen { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+  .pagina-publica .bloque:has(.noticia-destacada) .actividades-pie { margin-top: 0; }
+
+  /* Cultura Nayarit: foto 16/10, texto en 4 renglones, menos aire entre el encabezado y las tarjetas */
+  .pagina-publica .noticias-culturales { gap: 12px; }
+  .pagina-publica .noticias-culturales .nota-ejemplo { margin: 0; }
+  .pagina-publica .noticias-culturales__tarjetas { padding-block: 12px; }
+  .pagina-publica .noticia-cultural__imagen { aspect-ratio: 16 / 10; }
+  .pagina-publica .noticia-cultural__contenido { gap: 12px; padding: 18px 20px 20px; }
+  .pagina-publica .noticia-cultural__contenido > p { -webkit-line-clamp: 4; min-height: 6em; }
+  .pagina-publica .noticias-culturales__controles { margin-top: 0; }
+}
+@media (min-width: 1025px) and (max-height: 900px) {
+  /* Cultura Nayarit va dibujado al 84 % (tiene carrusel): su alto mínimo compensa esa escala (0.756 = 0.9 × 0.84) */
+  .pagina-publica .seccion-inicio:has(.noticias-culturales) > .bloque { min-height: calc((100vh - 125px) / 0.756); }
+}
+@media (min-width: 1025px) and (max-height: 760px) {
+  /* Pantallas bajas (1280 × 720): las otras noticias solo con título; Cultura con foto 16/9 y texto en 3 renglones */
+  .pagina-publica .otras-noticias .noticia-mini__resumen { display: none; }
+  .pagina-publica .noticia-cultural__imagen { aspect-ratio: 16 / 9; }
+  .pagina-publica .noticia-cultural__contenido > p { -webkit-line-clamp: 3; min-height: 4.5em; }
+}
