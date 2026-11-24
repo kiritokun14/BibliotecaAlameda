@@ -1,5 +1,7 @@
 import { useLecturasPublicadas } from "./publicados";
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
+import PaginasNumeradas from "../../../components/portal/PaginasNumeradas";
+import { useResponsivo } from "../../../components/portal/responsivo";
 import { useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
 import BarraFiltros from "../../../components/portal/BarraFiltros";
@@ -32,6 +34,17 @@ function Lecturas() {
     const [parametros, setParametros] = useSearchParams();
     const filtros = filtrosDesdeParametros(parametros);
     const resultado = filtrarResenas(resenas, filtros);
+    // Tableta y teléfono: 10 reseñas por página con números (en escritorio, todas como antes). La página vuelve a 1
+    // cuando cambian la búsqueda o los filtros.
+    const responsivo = useResponsivo();
+    const claveFiltros = parametros.toString();
+    const [paginaEn, setPaginaEn] = useState({ clave: claveFiltros, pagina: 1 });
+    const pagina = paginaEn.clave === claveFiltros ? paginaEn.pagina : 1;
+    const porPagina = responsivo ? 10 : 12; // escritorio: 12 (rejilla de 3 o 4)
+    const totalPaginas = Math.max(1, Math.ceil(resultado.length / porPagina));
+    const visibles = resultado.slice((pagina - 1) * porPagina, pagina * porPagina);
+    const inicioLista = useRef<HTMLParagraphElement>(null);
+    const irAPagina = (p: number) => { setPaginaEn({ clave: claveFiltros, pagina: p }); inicioLista.current?.scrollIntoView({ behavior: "smooth", block: "start" }); };
     const cuantas = (genero: Genero | "") => (datos ? filtrarResenas(resenas, { ...filtros, genero }).length : undefined);
     const opcionesGenero = [
         { valor: "", texto: "Todos los géneros", cuenta: cuantas("") },
@@ -73,16 +86,19 @@ function Lecturas() {
                     ) : (
                         <>
                             {/* El conteo solo para lectores de pantalla (plantilla C) */}
-                            <p className="solo-lectores" role="status">
+                            <p className="solo-lectores" role="status" ref={inicioLista}>
                                 {resultado.length} {resultado.length === 1 ? "reseña" : "reseñas"} de la biblioteca
                             </p>
                             <EtiquetaPerfil icono={iconoLibro}>Reseñas de la biblioteca</EtiquetaPerfil>
                             {resultado.length === 0 ? (
                                 <EstadoLecturas tipo="sin-resultados" alLimpiar={() => aplicar(FILTROS_VACIOS)} />
                             ) : (
-                                <ul className="rejilla-resenas">
-                                    {resultado.map((r) => <TarjetaResena key={r.id} resena={r} />)}
-                                </ul>
+                                <>
+                                    <ul className="rejilla-resenas pagina-nueva" key={pagina}>
+                                        {visibles.map((r) => <TarjetaResena key={r.id} resena={r} />)}
+                                    </ul>
+                                    <PaginasNumeradas pagina={pagina} total={totalPaginas} alCambiar={irAPagina} etiqueta="Páginas de reseñas" />
+                                </>
                             )}
                         </>
                     )}

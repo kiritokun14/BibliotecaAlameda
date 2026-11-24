@@ -121,7 +121,7 @@ function Lecturas() {
     const libros: Libro[] = resenas.slice(0, 8).map(c => ({ id: c.id, titulo: c.libro, autoria: c.autoria, genero: c.genero, portadaUrl: c.imagen, estilo: "narrativa" }));
     const { refPista, pagina, totalPaginas, alDesplazar, irAnterior, irSiguiente, irAPagina } = useCarrusel();
 
-    if (!libros.length) return <section className="seccion-inicio"><h2>Lecturas y reseñas</h2>{!error && !datos ? <EsqueletoTarjetas libro cantidad={4} texto="Cargando lecturas…" /> : <p role={error ? "alert" : "status"}>{error ?? "Todavía no hay reseñas publicadas."}</p>}</section>;
+    if (!libros.length) return <section className="seccion-inicio"><div className="seccion-carga"><h2>Lecturas y reseñas</h2>{!error && !datos ? <EsqueletoTarjetas libro cantidad={4} texto="Cargando lecturas…" /> : <p className="seccion-carga__mensaje" role={error ? "alert" : "status"}>{error ?? "Todavía no hay reseñas publicadas."}</p>}</div></section>;
     return (
         <section className="seccion-inicio seccion-inicio--verde-claro">
             <Bloque tema="verde" circulos={[circulo1, circulo2]} textura={{ src: textura, ancho: 420, alto: 200 }}>

@@ -1,8 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import BarraFiltros from "../../../components/portal/BarraFiltros";
 import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
+import PaginasNumeradas from "../../../components/portal/PaginasNumeradas";
+import { useResponsivo } from "../../../components/portal/responsivo";
 import { useAgendaPublica } from "../../../servicios/usarAgendaPublica";
 import { fechaHoyTepic } from "../../../servicios/propuestasUsuario";
 import { EncabezadoNoticias } from "../noticias/piezas";
@@ -39,7 +41,17 @@ export default function TodasActividades() {
     const { actividades, cargando, error, reintentar } = useAgendaPublica();
 
     const resultados = useMemo(() => filtrarTodas(actividades, filtros, hoy, new Set()), [actividades, filtros, hoy]);
-    const grupos = agruparPorMes(resultados, hoy);
+    // Tableta y teléfono: 6 sesiones por página con números (en escritorio, todas como antes); vuelve a la 1 al filtrar
+    const responsivo = useResponsivo();
+    const claveFiltros = JSON.stringify(filtros);
+    const [paginaEn, setPaginaEn] = useState({ clave: claveFiltros, pagina: 1 });
+    const pagina = paginaEn.clave === claveFiltros ? paginaEn.pagina : 1;
+    const porPagina = responsivo ? 6 : 12; // escritorio: 12 sesiones
+    const totalPaginas = Math.max(1, Math.ceil(resultados.length / porPagina));
+    const enPagina = resultados.slice((pagina - 1) * porPagina, pagina * porPagina);
+    const grupos = agruparPorMes(enPagina, hoy);
+    const inicioLista = useRef<HTMLDivElement>(null);
+    const irAPagina = (p: number) => { setPaginaEn({ clave: claveFiltros, pagina: p }); inicioLista.current?.scrollIntoView({ behavior: "smooth", block: "start" }); };
     const buscar = useCallback((texto: string) => setFiltros((f) => ({ ...f, texto })), []);
     const limpiarTodo = () => setFiltros(filtrosVacios);
 
@@ -69,7 +81,7 @@ export default function TodasActividades() {
                         alLimpiar={limpiarTodo}
                     />
 
-                    <div className="noticias-titulo noticias-titulo--archivo">
+                    <div className="noticias-titulo noticias-titulo--archivo" ref={inicioLista}>
                         <EtiquetaPerfil icono={iconosSeccion.eventos}>Actividades</EtiquetaPerfil>
                         <div className="noticias-titulo__resumen">
                             <p aria-live="polite" className="solo-lectores">{resultados.length} {resultados.length === 1 ? "sesión" : "sesiones"}</p>
@@ -103,6 +115,7 @@ export default function TodasActividades() {
                                 </ul>
                             </section>
                         ))}
+                    {!cargando && !error && <PaginasNumeradas pagina={pagina} total={totalPaginas} alCambiar={irAPagina} etiqueta="Páginas de actividades" />}
                 </div>
             </section>
         </PaginaPublica>

@@ -1,0 +1,53 @@
+/* Mis actividades › Cambios y cancelaciones (MisCambiosActividad.tsx), 23 nov 2026: piezas del panel (PanelPiezas.css)
+   con los colores del portal (variables de .perfil-listas en perfil/ListasPerfil.css). Aquí solo el marco y lo propio. */
+.pagina-publica .mc-pagina { display: flex; justify-content: center; padding: 36px 24px 64px; background: #f7f5f0; }
+.pagina-publica .mc-contenedor { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 1060px; }
+.pagina-publica .mc-acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+.pagina-publica .mc-volver { align-self: flex-start; color: #164f44; font-size: 14px; font-weight: 700; text-decoration: underline 2px transparent; text-underline-offset: 4px; }
+.pagina-publica .mc-volver:hover { text-decoration-color: #c9a24a; }
+.pagina-publica .mc-nota { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 14px 18px; border: 1px solid #e2ded5; border-left: 4px solid #c9a24a; border-radius: 16px; background: #fff; color: #4d4d4d; font-size: 14px; line-height: 21px; }
+.pagina-publica .mc-nota svg { flex: none; width: 18px; height: 18px; margin-top: 2px; fill: none; stroke: #164f44; stroke-width: 1.8; }
+
+/* Formulario y ficha: principal | lateral de 340 px */
+.pagina-publica .mc-columnas { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+.pagina-publica .mc-principal { display: flex; flex-direction: column; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.pagina-publica .mc-lateral { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.pagina-publica .mc-contenedor .pz-campo textarea { min-height: 110px; padding: 12px 14px; box-sizing: border-box; border: 1px solid #b9c4cd; border-radius: 12px; font: inherit; font-size: 14px; resize: vertical; }
+.pagina-publica .mc-contenedor .pz-campo { display: flex; flex-direction: column; gap: 6px; }
+.pagina-publica .mc-contenedor .pz-campo > span { color: var(--pz-texto); font-size: 12.5px; font-weight: 700; }
+
+/* Sesiones con casilla; al marcarla, la nueva programación debajo */
+.pagina-publica .mc-sesiones { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .mc-sesion { padding: 12px 14px; border: 1px solid var(--pz-borde); border-radius: 16px; background: #fff; transition: border-color 0.2s ease, background-color 0.2s ease; }
+.pagina-publica .mc-sesion--elegida { border-color: var(--pz-primario); background: var(--pz-claro); }
+.pagina-publica .mc-sesion__casilla { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.pagina-publica .mc-sesion__casilla input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--pz-primario); }
+.pagina-publica .mc-sesion__casilla strong { display: block; color: var(--pz-texto); font-size: 14px; }
+.pagina-publica .mc-sesion__casilla small { color: var(--pz-gris); font-size: 12.5px; }
+.pagina-publica .mc-sesion__nueva { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--pz-borde); }
+.pagina-publica .mc-sesion__sala { grid-column: 1 / -1; }
+
+/* «Antes de enviar» */
+.pagina-publica .mc-lista { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pagina-publica .mc-lista li { display: flex; align-items: center; gap: 10px; color: var(--pz-gris); font-size: 13.5px; }
+.pagina-publica .mc-lista li::before { content: ""; flex: none; width: 18px; height: 18px; box-sizing: border-box; border: 2px solid var(--pz-borde); border-radius: 50%; }
+.pagina-publica .mc-lista li.mc-lista--listo { color: var(--pz-texto); font-weight: 700; }
+.pagina-publica .mc-lista li.mc-lista--listo::before { border-color: var(--pz-primario); background: var(--pz-primario) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12.5 4 4 8-9'/%3E%3C/svg%3E") center / 12px no-repeat; }
+
+/* Ficha: antes y después de cada sesión */
+.pagina-publica .mc-antes-despues { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+/* Tableta y teléfono: una columna; en teléfono las acciones a lo ancho y la nueva programación en dos columnas */
+@media (max-width: 1024px) {
+  .pagina-publica .mc-columnas { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .mc-lateral { position: static; }
+}
+@media (max-width: 600px) {
+  .pagina-publica .mc-pagina { padding: 18px 14px 40px; }
+  .pagina-publica .mc-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .pagina-publica .mc-acciones > .pz-boton { width: auto; min-width: 0; padding: 6px 10px; height: auto; min-height: 44px; font-size: 13.5px; line-height: 17px; white-space: normal; text-align: center; }
+  .pagina-publica .mc-acciones > .pz-boton:first-child { grid-column: 1 / -1; }
+  .pagina-publica .mc-sesion__nueva { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pagina-publica .mc-sesion__nueva > :first-child { grid-column: 1 / -1; }
+  .pagina-publica .mc-contenedor .cb-mini { flex-wrap: wrap; }
+}

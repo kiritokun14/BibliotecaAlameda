@@ -32,6 +32,20 @@ export default function MenuCuenta({ correo, cerrando = false, alCerrarSesion }:
 }) {
     // Solo uno abierto a la vez: el menú de cuenta o el panel de la campana.
     const [abierto, setAbiertoEn] = useState<"cuenta" | "notificaciones" | null>(null);
+    // Al cerrar, el desplegable sale con su animación (0.22 s) y después se quita
+    const [saliendo, setSaliendo] = useState(false);
+    const salida = useRef<number>(0);
+    const cerrar = () => {
+        if (!abierto || saliendo) return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setAbiertoEn(null); return; }
+        setSaliendo(true);
+        salida.current = window.setTimeout(() => { setAbiertoEn(null); setSaliendo(false); }, 220);
+    };
+    const alternar = (que: "cuenta" | "notificaciones") => {
+        if (abierto === que) { cerrar(); return; }
+        window.clearTimeout(salida.current); setSaliendo(false); setAbiertoEn(que);
+    };
+    useEffect(() => () => window.clearTimeout(salida.current), []);
     const [perfil, setPerfil] = useState<PerfilPropio | null>(null);
     const contenedor = useRef<HTMLDivElement>(null);
     const boton = useRef<HTMLButtonElement>(null);
@@ -59,30 +73,36 @@ export default function MenuCuenta({ correo, cerrando = false, alCerrarSesion }:
         const tecla = (e: KeyboardEvent) => {
             if (e.key !== "Escape") return;
             (abierto === "cuenta" ? boton : campana).current?.focus();
-            setAbiertoEn(null);
+            cerrar();
         };
-        const clic = (e: MouseEvent) => { if (!contenedor.current?.contains(e.target as Node)) setAbiertoEn(null); };
+        const clic = (e: MouseEvent) => { if (!contenedor.current?.contains(e.target as Node)) cerrar(); };
         document.addEventListener("keydown", tecla);
         document.addEventListener("mousedown", clic);
         return () => { document.removeEventListener("keydown", tecla); document.removeEventListener("mousedown", clic); };
-    }, [abierto]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [abierto, saliendo]);
 
     return (
         <div className="menu-cuenta" ref={contenedor}>
             <button ref={campana} type="button" className="menu-cuenta__campana" aria-expanded={abierto === "notificaciones"}
                 aria-controls={idPanel} aria-label={sinLeer ? `Notificaciones, ${sinLeer} sin leer` : "Notificaciones"}
-                onClick={() => setAbiertoEn((x) => (x === "notificaciones" ? null : "notificaciones"))}>
+                onClick={() => alternar("notificaciones")}>
                 <img src={iconoCampana} alt="" />
                 {sinLeer > 0 && <span className="menu-cuenta__insignia" aria-hidden="true">{sinLeer > 9 ? "9+" : sinLeer}</span>}
             </button>
-            {abierto === "notificaciones" && <PanelNotificaciones id={idPanel} alCerrar={() => setAbiertoEn(null)} />}
+            {/* Velo detrás del desplegable (en teléfono, oscurece la página): tocarlo lo cierra */}
+            {abierto && <div className={`menu-cuenta__velo${saliendo ? " menu-desplegable--saliendo" : ""}`} aria-hidden="true" onClick={cerrar} />}
+            {abierto === "notificaciones" && <PanelNotificaciones id={idPanel} saliendo={saliendo} alCerrar={cerrar} />}
             <button ref={boton} type="button" className="menu-cuenta__boton" aria-expanded={abierto === "cuenta"} aria-controls={idMenu}
-                onClick={() => setAbiertoEn((x) => (x === "cuenta" ? null : "cuenta"))}>
+                onClick={() => alternar("cuenta")}>
                 <img src={avatarBoton} alt="" />
                 <span><strong>Mi perfil</strong><small>Sesión activa</small></span>
             </button>
             {abierto === "cuenta" && (
-                <div id={idMenu} className="menu-cuenta__panel">
+                <div id={idMenu} className={`menu-cuenta__panel${saliendo ? " menu-desplegable--saliendo" : ""}`}>
+                    <button type="button" className="menu-desplegable__cerrar" aria-label="Cerrar el menú de la cuenta" onClick={() => { cerrar(); boton.current?.focus(); }}>
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /></svg>
+                    </button>
                     <div className="menu-cuenta__persona">
                         <span className="menu-cuenta__avatar"><img src={avatarMenu} alt="" /></span>
                         <span className="menu-cuenta__textos">

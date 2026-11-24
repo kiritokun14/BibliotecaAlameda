@@ -70,6 +70,10 @@ function Login() {
             titulo={<>Inicia <span>sesión</span></>}
         >
             <form className="tarjeta" onSubmit={enviar} noValidate>
+                {/* Cerrar: quien solo visita regresa al portal sin iniciar sesión */}
+                <Link to="/" className="tarjeta__cerrar" aria-label="Cerrar y volver al portal" title="Volver al portal">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /></svg>
+                </Link>
                 <div className="tarjeta__encabezado">
                     <span className="acceso__insignia" aria-hidden="true"><IconoLibro /></span>
                     <h2>Iniciar sesión</h2>

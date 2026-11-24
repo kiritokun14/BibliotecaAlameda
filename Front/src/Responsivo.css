@@ -331,7 +331,7 @@
 /* ---------- Eventos en teléfono: barra «Tipo» y «Ver como» (23 nov 2026) ----------
    Los dos grupos iban en una fila y se encimaban (la página medía 653 px): ahora uno debajo del otro, cada uno en una
    fila que se desliza, con su etiqueta a la izquierda. */
-@media (max-width: 600px) {
+@media (max-width: 1024px) {
   html body .pagina-publica .evento-herramientas { display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
   html body .pagina-publica .evento-herramientas::before, html body .pagina-publica .evento-herramientas::after { display: none; }
   html body .pagina-publica .evento-herramientas__grupo { min-width: 0; max-width: 100%; gap: 10px; padding: 0; }
@@ -342,4 +342,581 @@
   }
   html body .pagina-publica .evento-herramientas__grupo > :not(.evento-herramientas__etiqueta)::-webkit-scrollbar { display: none; }
   html body .pagina-publica .evento-herramientas__grupo :is(.perfil-filtro, .evento-vista__opcion) { flex: none; }
+}
+
+/* ---------- Eventos en tableta y teléfono (23 nov 2026) ----------
+   Agenda: la destacada y «Participa con tu cuenta» iban lado a lado y se encimaban; Calendario: el mes y el día
+   elegido igual. Todo pasa a una columna. En teléfono: «Participa» en horizontal se apila; las sesiones del detalle
+   como tarjeta de app (fecha | textos y abajo el botón y los datos en renglones); botones del pie lado a lado. */
+@media (max-width: 1024px) {
+  html body .pagina-publica .evento-principal { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  html body .pagina-publica .evento-principal .noticia-principal { flex-direction: column; align-items: stretch; height: auto; }
+  html body .pagina-publica .evento-principal .noticia-principal__imagen { width: 100%; height: 200px; }
+  html body .pagina-publica .evento-calendario { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  html body .pagina-publica .evento-calendario__lateral { contain: none; }
+}
+@media (max-width: 600px) {
+  html body .pagina-publica .evento-principal .noticia-principal { gap: 14px; padding: 14px; }
+  html body .pagina-publica .evento-principal .noticia-principal__imagen { height: 180px; }
+  html body .pagina-publica .evento-principal .noticia-principal__titulo { font-size: 22px; line-height: 28px; }
+  html body .pagina-publica .evento-participa { min-height: 0; padding: 20px 18px; }
+  html body .pagina-publica .evento-participa--horizontal { flex-direction: column; align-items: stretch; text-align: left; gap: 12px; }
+  html body .pagina-publica .evento-participa__acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+  html body .pagina-publica .evento-participa__acciones > * { width: auto; min-width: 0; margin: 0; padding: 0 10px; font-size: 14px; }
+
+  /* «Más actividades» y «Ver todas las actividades» en un renglón que cabe */
+  html body .pagina-publica .evento-mas__encabezado { flex-wrap: wrap; gap: 10px; }
+  html body .pagina-publica .evento-mas__encabezado > .perfil-boton { flex: 1 1 100%; justify-content: center; }
+
+  /* Calendario: celdas más chicas para que el mes quepa completo */
+  html body .pagina-publica .evento-calendario__mes-tarjeta { padding: 14px 10px; }
+  html body .pagina-publica .calendario-agenda__tabla { table-layout: fixed; width: 100%; }
+  html body .pagina-publica .calendario-agenda__tabla :is(th, td) { padding: 2px; font-size: 12.5px; }
+
+  /* Detalle: sesiones */
+  html body .pagina-publica .evento-sesion__fila { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: start; }
+  html body .pagina-publica .evento-sesion__cabeza { flex-direction: column; align-items: flex-start; gap: 8px; }
+  html body .pagina-publica .evento-sesion__cabeza .perfil-boton { width: 100%; justify-content: center; }
+  html body .pagina-publica .evento-sesion__datos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  html body .pagina-publica .evento-sesion__datos > * { min-width: 0; }
+  html body .pagina-publica .evento-sesion__datos :is(dd, span) { overflow-wrap: anywhere; }
+}
+@media (max-width: 600px) {
+  /* Calendario: el nombre del mes arriba y «Mes anterior · Mes siguiente» abajo, lado a lado */
+  html body .pagina-publica .evento-calendario__mes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  html body .pagina-publica .evento-calendario__mes > :not(button) { grid-column: 1 / -1; grid-row: 1; text-align: center; }
+  html body .pagina-publica .evento-calendario__mes > button { width: 100%; min-width: 0; padding: 0 8px; font-size: 13.5px; }
+  html body .pagina-publica .evento-calendario__mes h2 { font-size: 20px; line-height: 26px; }
+  /* Detalle del evento: «Ver en el calendario» y «Volver a Eventos» uno debajo del otro, completos */
+  html body .pagina-publica .detalle-evento .detalle-lateral__botones { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- Eventos: «Participa con tu cuenta» / «¿Tienes una idea…?» arriba y compacta (SOLO tableta y teléfono,
+   23 nov 2026, Aldahir) ----------
+   Va hasta arriba de la página (antes de la barra «Tipo · Ver como»), como un aviso corto: ícono chico | título y
+   texto en dos líneas, y los dos botones lado a lado más bajos. En escritorio no cambia. */
+@media (max-width: 1024px) {
+  html body .pagina-publica .eventos-pagina .noticias-contenedor { display: flex; flex-direction: column; }
+  html body .pagina-publica .eventos-pagina .evento-principal { display: contents; }
+  html body .pagina-publica .eventos-pagina .evento-participa { order: -1; }
+
+  html body .pagina-publica .eventos-pagina .evento-participa,
+  html body .pagina-publica .eventos-pagina .evento-participa--horizontal {
+    display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center; gap: 4px 12px;
+    min-height: 0; height: auto; padding: 14px 16px; border-radius: 20px; text-align: left;
+  }
+  html body .pagina-publica .eventos-pagina .evento-participa__insignia { width: 38px; height: 38px; margin: 0; }
+  html body .pagina-publica .eventos-pagina .evento-participa__insignia img { width: 18px; height: 18px; }
+  html body .pagina-publica .eventos-pagina .evento-participa__textos { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  html body .pagina-publica .eventos-pagina .evento-participa h2 { margin: 0; font-size: 15.5px; line-height: 20px; }
+  html body .pagina-publica .eventos-pagina .evento-participa p {
+    display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; margin: 0; font-size: 12.5px; line-height: 17px;
+  }
+  html body .pagina-publica .eventos-pagina .evento-participa__acciones {
+    grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; margin-top: 8px;
+  }
+  html body .pagina-publica .eventos-pagina .evento-participa__acciones > * { width: auto; min-width: 0; height: 40px; min-height: 40px; margin: 0; padding: 0 10px; font-size: 13.5px; }
+}
+
+/* ---------- Desbordes en tableta y teléfono (23 nov 2026) ----------
+   Contacto: los cuatro datos iban en una fila de 4 columnas y la página medía 559 px (2 × 2 en tableta, uno por renglón
+   en teléfono). Acerca de: el texto de las pestañas («Misión y visión», «Rol de la biblioteca») no cabía en 126 px.
+   Inicio: el botón de Cultura Nayarit no cabía en su tarjeta. */
+@media (max-width: 1024px) {
+  html body .pagina-publica .contacto-datos .tarjeta-datos__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html body .pagina-publica .contacto-datos .tarjeta-datos__lista > li { min-width: 0; }
+  html body .pagina-publica .contacto-datos .tarjeta-datos__textos { min-width: 0; }
+  html body .pagina-publica .contacto-datos .tarjeta-datos__valor { overflow-wrap: anywhere; }
+  /* Pestañas de Acerca de en una línea; en el menú de Mi perfil el texto puede ir en dos renglones */
+  html body .pagina-publica .acerca-menu .perfil-menu__texto { max-width: none; white-space: nowrap; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) .perfil-menu__texto { max-width: none; white-space: normal; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) .perfil-menu__opcion { min-width: 0; height: auto; white-space: normal; }
+
+  /* Notificaciones: la lista arriba y «Cómo te avisamos» y «Tus trámites» abajo (lado a lado se encimaban) */
+  html body .pagina-publica .notif-cuerpo { grid-template-columns: minmax(0, 1fr); height: auto; }
+  html body .pagina-publica :is(.notif-principal, .notif-lateral) { height: auto; min-height: 0; }
+  html body .pagina-publica .notif-lateral { position: static; overflow: visible; }
+
+  /* Avisos que recibo: los cuatro canales en dos columnas */
+  html body .pagina-publica .perfil-opciones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* Mi perfil · Seguridad: «Este navegador» con el estado y «Cerrar sesión» abajo cuando no caben */
+  html body .pagina-publica .perfil-panel .perfil-solicitud { flex-wrap: wrap; }
+  html body .pagina-publica .perfil-panel .perfil-solicitud__textos { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+
+  /* Botones de una sola acción que no caben (p. ej. «Cambios y cancelaciones de mis actividades») */
+  html body .pagina-publica .perfil-acciones > .perfil-boton { max-width: 100%; height: auto; min-height: 44px; white-space: normal; text-align: center; }
+  html body .pagina-publica .noticia-cultural__enlace { min-width: 0; height: auto; min-height: 42px; padding-inline: 12px; white-space: normal; }
+}
+@media (max-width: 600px) {
+  html body .pagina-publica .contacto-datos .tarjeta-datos__lista { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  /* Mi perfil · resumen: «3 de 6 asistencias…» a lo ancho y «Ver mi progreso» abajo */
+  html body .pagina-publica .perfil-progreso__cabecera { flex-direction: column; align-items: stretch; gap: 12px; }
+  html body .pagina-publica .perfil-progreso__cabecera > .perfil-boton { width: 100%; justify-content: center; }
+  html body .pagina-publica .perfil-acciones > .perfil-boton { width: 100%; }
+}
+
+/* ---------- Eventos con sesión: botones de proponer (solo tableta y teléfono, 23 nov 2026) ----------
+   «Proponer una actividad» no cabía en su mitad de la tarjeta «¿Tienes una idea…?» (agenda y calendario) y, en
+   «Todas las actividades», el aviso de proponer iba en una fila y sus botones se salían 44 px de la pantalla.
+   Ahora el texto arriba y «Mis propuestas · Proponer» abajo, lado a lado; el texto de los botones puede ir en dos
+   renglones si no cabe. */
+@media (max-width: 1024px) {
+  html body .pagina-publica .evento-participa__acciones > * { height: auto; min-height: 40px; padding: 6px 10px; line-height: 17px; white-space: normal; text-align: center; }
+  html body .pagina-publica .evento-proponer { flex-direction: column; align-items: stretch; gap: 12px; }
+  html body .pagina-publica .evento-proponer .perfil-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; margin: 0; }
+  html body .pagina-publica .evento-proponer .perfil-acciones > .perfil-boton { width: auto; min-width: 0; height: auto; min-height: 40px; padding: 6px 8px; font-size: 14px; line-height: 17px; white-space: normal; text-align: center; }
+}
+
+/* ---------- Paginación numerada en todos los anchos: «Anterior · 1 2 3 … · Siguiente» (PaginasNumeradas.tsx) ---------- */
+html body .paginas-num { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 18px; font-family: 'Noto Sans', sans-serif; }
+html body .paginas-num__numeros { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+html body :is(.paginas-num__numero, .paginas-num__paso) {
+  display: grid; place-items: center; min-width: 38px; height: 38px; padding: 0 10px; box-sizing: border-box;
+  border: 1px solid #e2ded5; border-radius: 999px; background: #fff; color: #164f44; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+html body .paginas-num__numero { padding: 0; }
+html body .paginas-num__numero--actual { border-color: #164f44; background: #164f44; color: #fff; box-shadow: 0 4px 10px rgba(22, 79, 68, 0.22); }
+html body .paginas-num__paso:disabled { opacity: 0.45; cursor: default; }
+html body :is(.paginas-num__numero, .paginas-num__paso):focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+html body .paginas-num { margin-top: 28px; }
+@media (max-width: 1024px) { html body .paginas-num { margin-top: 18px; } }
+@media (max-width: 600px) {
+  /* En teléfono los números van en su renglón y «Anterior · Siguiente» debajo, a lo ancho */
+  html body .paginas-num { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html body .paginas-num__numeros { grid-column: 1 / -1; grid-row: 1; justify-content: center; flex-wrap: wrap; }
+  html body .paginas-num__numero { min-width: 36px; height: 36px; }
+  html body .paginas-num__paso { width: 100%; }
+}
+
+/* ---------- Lecturas y reseñas · Memoria pública en teléfono (23 nov 2026) ----------
+   Reseñas como renglón de app (portada de 96 px a la izquierda; tipo, título, autoría y «Leer reseña» a la derecha):
+   antes cada una medía ~430 px y la lista ~8400 px. Memoria pública: la destacada con la foto arriba y los textos
+   abajo (lado a lado el título salía de una palabra por renglón) y «Más registros» como renglones con foto a la
+   izquierda (en tres columnas los títulos se cortaban). Las pestañas y el buscador ya venían bien. */
+@media (max-width: 600px) {
+  html body .pagina-publica .rejilla-resenas,
+  html body .pagina-publica .rejilla-lecturas { display: flex; flex-direction: column; gap: 10px; }
+  html body .pagina-publica :is(.rejilla-resenas, .rejilla-lecturas) > .tarjeta-lectura { flex-direction: row; align-items: stretch; min-height: 0; border-radius: 18px; }
+  html body .pagina-publica .tarjeta-lectura .tarjeta-lectura__portada { flex: none; width: 96px; height: auto; min-height: 136px; }
+  html body .pagina-publica .tarjeta-lectura .tarjeta-lectura__portada .portada-lectura { width: 100%; height: 100%; padding: 8px; box-sizing: border-box; }
+  html body .pagina-publica .tarjeta-lectura .tarjeta-lectura__portada img { width: 100%; height: 100%; object-fit: contain; }
+  html body .pagina-publica .rejilla-lecturas .tarjeta-memoria__imagen { flex: none; width: 104px; height: auto; min-height: 112px; }
+  html body .pagina-publica .tarjeta-lectura :is(.tarjeta-lectura__contenido, .tarjeta-memoria__contenido) { flex: 1; min-width: 0; gap: 4px; padding: 12px 14px; }
+  html body .pagina-publica .tarjeta-lectura :is(h2, h3) { margin: 0; font-size: 15.5px; line-height: 20px; overflow-wrap: anywhere; }
+  html body .pagina-publica .tarjeta-lectura :is(.tarjeta-resena__autoria, .tarjeta-resena__fecha) { margin: 0; font-size: 12.5px; }
+  html body .pagina-publica .tarjeta-lectura .tarjeta-lectura__accion { margin-top: auto; font-size: 13.5px; }
+
+  html body .pagina-publica .memoria-destacada { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  html body .pagina-publica .memoria-destacada__foto { height: 200px; }
+  html body .pagina-publica .memoria-destacada__contenido { gap: 8px; padding: 18px 18px 20px; }
+  html body .pagina-publica .memoria-destacada h2 { font-size: 22px; line-height: 28px; }
+  html body .pagina-publica .memoria-destacada__texto { font-size: 14px; line-height: 21px; -webkit-line-clamp: 3; }
+}
+@media (max-width: 600px) {
+  /* Detalle de una reseña y de un registro de memoria: «Buscar en el catálogo» / «Ver toda la memoria» y «Volver a
+     Lecturas» no cabían lado a lado: uno debajo del otro, a todo lo ancho */
+  html body .pagina-publica .detalle-lectura .detalle-lateral__botones { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  html body .pagina-publica .detalle-lectura .detalle-lateral__botones > * { width: 100%; min-width: 0; white-space: normal; text-align: center; }
+}
+
+/* ---------- Credencial en teléfono, como app (23 nov 2026, Aldahir) ----------
+   Información, solicitud y seguimiento: franja más baja, los tres pasos en un renglón, los datos del trámite en
+   mosaico de 2 × 2, el estado compacto con los botones lado a lado y «Cómo funciona» como línea de tiempo. */
+@media (max-width: 600px) {
+  html body .pagina-publica:has(.cred-pagina) .encabezado-publico { padding: 18px 16px 22px; gap: 8px; }
+  html body .pagina-publica:has(.cred-pagina) .encabezado-publico h1 { font-size: 27px; line-height: 32px; }
+  html body .pagina-publica:has(.cred-pagina) .encabezado-publico p { font-size: 14px; line-height: 20px; }
+  html body .pagina-publica .cred-pagina { padding: 14px 12px 28px; }
+  html body .pagina-publica .cred-pagina .contacto-pila { gap: 14px; }
+
+  /* Pasos: tres segmentos iguales en un renglón */
+  html body .pagina-publica .cred-pasos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  html body .pagina-publica .cred-paso { justify-content: flex-start; gap: 6px; min-width: 0; min-height: 42px; padding: 5px 8px; font-size: 12px; line-height: 14px; white-space: normal; text-align: left; }
+  html body .pagina-publica .cred-paso__numero { flex: none; width: 22px; height: 22px; font-size: 12px; }
+
+  /* Datos del trámite en mosaico de 2 × 2 */
+  html body .pagina-publica .cred-pagina .tarjeta-datos__lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px; }
+  html body .pagina-publica .cred-pagina .tarjeta-datos__fila { flex-direction: column; align-items: flex-start; gap: 8px; min-height: 0; padding: 12px; border-radius: 18px; }
+  html body .pagina-publica .cred-pagina .tarjeta-datos__icono { width: 34px; height: 34px; flex: 0 0 auto; }
+  html body .pagina-publica .cred-pagina .tarjeta-datos__icono img { width: 18px; height: 18px; }
+  html body .pagina-publica .cred-pagina .tarjeta-datos__titulo { font-size: 12px; }
+  html body .pagina-publica .cred-pagina .tarjeta-datos__valor { font-size: 14px; line-height: 19px; }
+
+  /* Estado: la credencial (o su lugar punteado) más baja y los botones lado a lado */
+  html body .pagina-publica .perfil-credencial-estado { gap: 14px; padding: 16px 14px; border-radius: 22px; }
+  html body .pagina-publica .perfil-credencial-estado__visual { width: 100%; }
+  html body .pagina-publica .perfil-credencial-vacia { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; justify-items: start; aspect-ratio: auto; min-height: 0; padding: 14px; gap: 2px 12px; text-align: left; }
+  html body .pagina-publica .perfil-credencial-vacia__icono { grid-row: 1 / span 2; }
+  /* El ícono no se pega al nombre: 18 px entre ellos */
+  html body .pagina-publica .perfil-credencial-vacia { grid-template-columns: 44px minmax(0, 1fr); column-gap: 18px !important; padding: 16px 18px; }
+  html body .pagina-publica .perfil-credencial-vacia__icono { margin: 0 !important; }
+  html body .pagina-publica .perfil-credencial-vacia > :not(.perfil-credencial-vacia__icono) { margin: 0; }
+  html body .pagina-publica .perfil-credencial-vacia__icono { flex: 0 0 auto; width: 40px; height: 40px; aspect-ratio: 1 / 1; }
+  html body .pagina-publica .perfil-credencial-estado__textos h2 { font-size: 21px; line-height: 27px; }
+  html body .pagina-publica .perfil-credencial-estado__textos p { font-size: 14.5px; line-height: 21px; }
+  html body .pagina-publica .perfil-credencial-estado .perfil-acciones { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+  html body .pagina-publica .perfil-credencial-estado .perfil-acciones > :is(.perfil-boton, a, button) { width: 100%; min-width: 0; padding-inline: 10px; }
+  html body .pagina-publica .perfil-credencial-estado .perfil-acciones > :only-child { grid-column: 1 / -1; }
+
+  /* Cómo funciona: línea de tiempo (número a la izquierda unido por una línea, quién, título, texto y su estado) */
+  html body .pagina-publica .cred-pagina .perfil-tarjeta { padding: 16px 14px; border-radius: 22px; }
+  html body .pagina-publica .cred-ruta { display: flex !important; flex-direction: column; gap: 0; grid-template-columns: none !important; }
+  html body .pagina-publica .cred-ruta .perfil-nivel {
+    position: relative; display: grid !important; grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: none !important; grid-row: auto !important;
+    align-items: start; column-gap: 12px; row-gap: 1px; padding: 0 0 16px; border: 0; background: none; box-shadow: none; text-align: left;
+  }
+  html body .pagina-publica .cred-ruta .perfil-nivel:not(:last-child)::after {
+    content: ""; position: absolute; top: 34px; bottom: 2px; left: 15px; width: 2px; border-radius: 2px; background: linear-gradient(#c9a24a, #9cc3b7);
+  }
+  html body .pagina-publica .cred-ruta .perfil-nivel::before, html body .pagina-publica .cred-ruta::before, html body .pagina-publica .cred-ruta::after { display: none; }
+  html body .pagina-publica .cred-ruta .perfil-nivel__numero { grid-column: 1; grid-row: 1 / span 4; width: 32px; height: 32px; margin: 0; font-size: 14px; }
+  html body .pagina-publica .cred-ruta .perfil-nivel > :not(.perfil-nivel__numero) { grid-column: 2; margin: 0; justify-self: start; }
+  html body .pagina-publica .cred-ruta .perfil-nivel p { font-size: 12px; }
+  html body .pagina-publica .cred-ruta .perfil-nivel strong { font-size: 15px; line-height: 20px; }
+  html body .pagina-publica .cred-ruta .cred-ruta__texto { font-size: 13.5px; line-height: 19px; }
+  html body .pagina-publica .cred-ruta .perfil-nivel .cred-chip { margin-top: 4px; }
+
+  /* Solicitud: «Primera vez» y «Renovar» una debajo de la otra (lado a lado quedaban en una tira) */
+  html body .pagina-publica .cred-opciones-tipo { grid-template-columns: minmax(0, 1fr) !important; gap: 8px; }
+  /* Seguimiento: Folio, Trámite y Enviada en un renglón de tres fichas chicas */
+  html body .pagina-publica .perfil-credencial-estado .perfil-datos--tres { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px; }
+  html body .pagina-publica .perfil-credencial-estado .perfil-datos--tres .perfil-dato { min-width: 0; padding: 8px 10px; }
+  html body .pagina-publica .perfil-credencial-estado .perfil-datos--tres dt { font-size: 11.5px; }
+  html body .pagina-publica .perfil-credencial-estado .perfil-datos--tres dd { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Preguntas frecuentes y ayuda, más compactas */
+  html body .pagina-publica .cred-pagina .preguntas-tarjeta { padding: 16px 14px; border-radius: 22px; }
+  html body .pagina-publica .cred-pagina .contacto-seguimiento { padding: 18px 16px; border-radius: 22px; }
+}
+@media (max-width: 1024px) {
+  /* «Vista de ejemplo de estados» de la credencial (solo en desarrollo): al ancho de la página, sin salirse */
+  html body .pagina-publica .cred-ejemplos { box-sizing: border-box; width: 100%; max-width: 100%; margin-inline: 0; }
+  html body .pagina-publica .cred-ejemplos > div { flex-wrap: wrap; }
+}
+@media (min-width: 601px) and (max-width: 1024px) {
+  /* Credencial en tableta: la credencial (o su lugar punteado) a la izquierda en 260 px y el estado a su lado;
+     a todo lo ancho conservaba su proporción y medía unos 470 px de alto */
+  html body .pagina-publica .perfil-credencial-estado { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: start; gap: 20px; }
+  html body .pagina-publica .perfil-credencial-estado__visual { width: 260px; }
+  html body .pagina-publica .perfil-credencial-estado__visual > * { width: 100%; }
+  html body .pagina-publica .perfil-credencial-estado { display: grid !important; grid-template-columns: 260px minmax(0, 1fr) !important; grid-template-areas: none !important; }
+  html body .pagina-publica .perfil-credencial-estado > .perfil-credencial-estado__visual { grid-column: 1 !important; grid-row: 1 !important; }
+  html body .pagina-publica .perfil-credencial-estado > .perfil-credencial-estado__textos { grid-column: 2 !important; grid-row: 1 !important; min-width: 0; }
+}
+
+/* ---------- Espacios en teléfono (23 nov 2026, Aldahir) ----------
+   Mapa con más ancho (la tarjeta le quitaba margen) y, en la solicitud, el espacio elegido arriba del formulario como
+   resumen compacto: foto baja, nombre, capacidad y planta (lo de «Ideal para» y «Ten en cuenta» ya se vio al elegirlo). */
+@media (max-width: 600px) {
+  html body .pagina-publica .esp-pagina .esp-mapa { padding: 14px 10px 12px; border-radius: 22px; }
+  html body .pagina-publica .esp-pagina .esp-mapa__lienzo { margin-inline: -2px; }
+  html body .pagina-publica .esp-pagina .contacto-columnas:has(form) { display: flex; flex-direction: column; }
+  html body .pagina-publica .esp-pagina .contacto-columnas:has(form) > .contacto-lateral { order: -1; display: contents; }
+  html body .pagina-publica .esp-pagina .contacto-columnas:has(form) .esp-tarjeta { order: -1; }
+  html body .pagina-publica .esp-pagina .contacto-columnas:has(form) .esp-tarjeta .esp-detalle__portada { height: 130px; }
+  html body .pagina-publica .esp-pagina .contacto-columnas:has(form) .esp-tarjeta .esp-detalle__bloque { display: none; }
+  html body .pagina-publica .esp-pagina .contacto-columnas:has(form) > .contacto-lateral > :not(.esp-tarjeta) { order: 2; }
+}
+@media (max-width: 600px) {
+  /* Seguimiento de un espacio: foto arriba y el estado debajo (en dos columnas el texto se salía de la pantalla) */
+  html body .pagina-publica .esp-estado { display: flex !important; flex-direction: column; gap: 14px; padding: 16px 14px; }
+  html body .pagina-publica .esp-estado__visual { width: 100%; }
+  html body .pagina-publica .esp-estado__visual img { width: 100%; height: 170px; object-fit: cover; }
+  html body .pagina-publica .esp-estado__textos { width: 100%; min-width: 0; }
+  html body .pagina-publica .esp-estado__textos h2 { font-size: 21px; line-height: 27px; }
+  html body .pagina-publica .esp-estado .perfil-datos--tres { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px; }
+  html body .pagina-publica .esp-estado .perfil-datos--tres .perfil-dato { min-width: 0; padding: 8px 10px; }
+  html body .pagina-publica .esp-estado .perfil-datos--tres dd { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+  html body .pagina-publica .esp-estado .perfil-acciones > * { width: 100%; }
+  /* Corregir mi solicitud: campos a una columna y botones a lo ancho */
+  html body .pagina-publica .esp-corregir { padding: 16px 14px; border-radius: 22px; }
+  html body .pagina-publica .esp-corregir .tramites-campos { grid-template-columns: minmax(0, 1fr); }
+  html body .pagina-publica .esp-corregir > .perfil-boton, html body .pagina-publica .esp-corregir__botones > * { width: 100%; align-self: stretch; }
+  html body .pagina-publica .esp-corregir { flex: none !important; height: auto; min-height: 0; align-self: stretch; }
+  html body .pagina-publica .esp-pagina .cred-principal { height: auto !important; min-height: 0 !important; }
+  html body .pagina-publica .esp-pagina .perfil-acciones > .perfil-boton { width: 100% !important; }
+  /* En el seguimiento, la tarjeta del espacio al final repetía la foto y el nombre que ya van arriba */
+  html body .pagina-publica .esp-pagina:has(.esp-estado) .contacto-lateral .esp-tarjeta { display: none; }
+  html body .pagina-publica .esp-estado .perfil-boton { width: 100%; }
+}
+@media (max-width: 1024px) {
+  /* Seguimiento de un espacio: «Corregir mi solicitud» mide lo que su contenido (heredaba flex: 1 y dejaba un hueco) */
+  html body .pagina-publica .esp-corregir { flex: none !important; height: auto; min-height: 0; }
+  html body .pagina-publica .esp-pagina .cred-principal { height: auto !important; min-height: 0 !important; }
+}
+
+/* ---------- Contacto en teléfono, como app (23 nov 2026, Aldahir) ----------
+   Franja más baja; los cuatro datos como una lista compacta (ícono | etiqueta y valor) en una sola tarjeta;
+   el selector Contacto o Sugerencia a lo ancho con su descripción abajo (a un lado quedaba una palabra por renglón);
+   la nota del cupo sin los puntos de la derecha y «Enviar mensaje» a lo ancho. */
+@media (max-width: 600px) {
+  html body .pagina-publica:has(.contacto-pagina) .encabezado-publico { padding: 18px 16px 22px; gap: 8px; }
+  html body .pagina-publica:has(.contacto-pagina) .encabezado-publico h1 { font-size: 27px; line-height: 32px; }
+  html body .pagina-publica:has(.contacto-pagina) .encabezado-publico p { font-size: 14px; line-height: 20px; }
+  html body .pagina-publica .contacto-pagina { padding: 14px 12px 28px; }
+  html body .pagina-publica .contacto-pagina .contacto-pila { gap: 14px; }
+
+  /* Datos: una tarjeta con renglones separados por una línea */
+  html body .pagina-publica .contacto-pagina .tarjeta-datos__lista {
+    display: flex !important; flex-direction: column; gap: 0; overflow: hidden; border: 1px solid #e2ded5; border-radius: 22px; background: #fff;
+    box-shadow: 0 10px 22px rgba(22, 79, 68, 0.07);
+  }
+  html body .pagina-publica .contacto-pagina .tarjeta-datos__fila {
+    flex-direction: row; align-items: center; gap: 12px; min-height: 0; padding: 12px 14px; border: 0; border-radius: 0; box-shadow: none; background: none;
+  }
+  html body .pagina-publica .contacto-pagina .tarjeta-datos__fila + .tarjeta-datos__fila { border-top: 1px solid #efebe2; }
+  html body .pagina-publica .contacto-pagina .tarjeta-datos__fila::before { display: none; }
+  html body .pagina-publica .contacto-pagina .tarjeta-datos__icono { flex: 0 0 auto; width: 36px; height: 36px; aspect-ratio: 1 / 1; }
+  html body .pagina-publica .contacto-pagina .tarjeta-datos__icono img { width: 18px; height: 18px; }
+  html body .pagina-publica .contacto-pagina .tarjeta-datos__titulo { font-size: 12px; }
+  html body .pagina-publica .contacto-pagina .tarjeta-datos__valor { font-size: 14px; line-height: 19px; }
+
+  /* Formulario */
+  html body .pagina-publica .formulario-contacto { padding: 18px 14px; border-radius: 22px; }
+  html body .pagina-publica .formulario-contacto__titulo { font-size: 21px; line-height: 27px; }
+  html body .pagina-publica .formulario-contacto__tipo { flex-direction: column; flex-wrap: wrap !important; align-items: stretch; gap: 8px; }
+  html body .pagina-publica .formulario-contacto__tipo .selector-contacto { width: 100%; }
+  html body .pagina-publica .formulario-contacto__tipo .selector-contacto > * { flex: 1; }
+  html body .pagina-publica .formulario-contacto__descripcion { flex: none; width: 100%; font-size: 13.5px; line-height: 19px; }
+  html body .pagina-publica .formulario-contacto__cupo { grid-template-columns: 40px minmax(0, 1fr); gap: 10px; padding: 12px; }
+  html body .pagina-publica .formulario-contacto__cupo-puntos { display: none; }
+  html body .pagina-publica .formulario-contacto .boton-contacto--grande { width: 100%; justify-content: center; }
+  html body .pagina-publica .contacto-pagina :is(.preguntas-tarjeta, .contacto-seguimiento) { padding: 16px 14px; border-radius: 22px; }
+}
+
+/* ---------- Desplegables de «Mi perfil» y de notificaciones (23 nov 2026, Aldahir) ----------
+   Hasta 1100 px la campana y el avatar van a la izquierda de la barra: los paneles se abren hacia la derecha
+   (alineados a la derecha se salían de la pantalla). En teléfono salen como hoja desde abajo, como en una app:
+   a lo ancho, con la página oscurecida detrás, un asa arriba, entrada que sube y el contenido que se desplaza. */
+@media (max-width: 1100px) {
+  html body .pagina-publica .menu-cuenta :is(.panel-notif, .menu-cuenta__panel) { left: 0; right: auto; }
+}
+@media (max-width: 600px) {
+  html body .pagina-publica .menu-cuenta :is(.panel-notif, .menu-cuenta__panel) {
+    position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 90; width: 100% !important; max-width: none; max-height: 82vh; max-height: 82dvh;
+    box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain; border: 0; border-radius: 26px 26px 0 0;
+    box-shadow: 0 -10px 30px rgba(22, 79, 68, 0.18), 0 0 0 100vmax rgba(15, 33, 29, 0.45);
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); animation: hoja-sube 0.28s ease-out;
+  }
+  /* Asa para indicar que es una hoja */
+  html body .pagina-publica .menu-cuenta :is(.panel-notif, .menu-cuenta__panel)::after {
+    content: ""; position: absolute; top: 9px; left: 50%; width: 42px; height: 4px; border-radius: 999px; background: #d6d1c6; transform: translateX(-50%);
+  }
+  html body .pagina-publica .menu-cuenta .menu-cuenta__panel { padding: 26px 14px 14px; }
+  html body .pagina-publica .menu-cuenta .panel-notif__cabecera { padding-top: 26px; }
+  html body .pagina-publica .menu-cuenta .panel-notif > p, html body .pagina-publica .menu-cuenta .panel-notif__vacio { margin: 0; padding: 18px; text-align: center; }
+  html body .pagina-publica .menu-cuenta .panel-notif__pie { position: sticky; bottom: 0; padding: 12px 14px 4px; background: inherit; }
+  /* Opciones de la cuenta un poco más compactas */
+  html body .pagina-publica .menu-cuenta .menu-cuenta__panel :is(a, button):not(.menu-desplegable__cerrar) { min-height: 52px; }
+}
+@media (max-width: 600px) {
+  /* Velo que oscurece la página mientras la hoja está abierta, y el asistente se oculta para no taparla */
+  html body .pagina-publica .menu-cuenta__velo { display: block; position: fixed; inset: 0; z-index: 85; background: rgba(15, 33, 29, 0.5); animation: velo-aparece 0.2s ease-out; }
+  html body .pagina-publica .menu-cuenta :is(.panel-notif, .menu-cuenta__panel) { box-shadow: 0 -10px 30px rgba(22, 79, 68, 0.22); }
+  html body:has(.menu-cuenta :is(.panel-notif, .menu-cuenta__panel)) .asistente { display: none; }
+}
+@keyframes velo-aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hoja-sube { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { html body .pagina-publica .menu-cuenta :is(.panel-notif, .menu-cuenta__panel) { animation: none; } }
+
+/* ---------- Mi perfil en teléfono, como app (23 nov 2026, Aldahir) ----------
+   Encabezado compacto; las secciones son pestañas pegadas bajo la barra (sin tarjeta ni etiqueta; «Cerrar sesión»
+   ya está en la hoja de «Mi perfil» de la barra); el resumen de credencial, actividades y asistencias como renglones. */
+@media (max-width: 600px) {
+  html body .pagina-publica .perfil-encabezado { padding: 18px 16px 20px; }
+  html body .pagina-publica .perfil-encabezado__contenido { gap: 14px; align-items: center; }
+  html body .pagina-publica .perfil-encabezado__avatar { flex: 0 0 auto; width: 58px; height: 58px; aspect-ratio: 1 / 1; }
+  html body .pagina-publica .perfil-encabezado__avatar img { width: 28px; height: 28px; }
+  html body .pagina-publica .perfil-encabezado h1 { font-size: 23px; line-height: 28px; }
+  html body .pagina-publica .perfil-encabezado__textos p { font-size: 13.5px; overflow-wrap: anywhere; }
+
+  html body .pagina-publica .perfil-cuerpo:not(.acerca-cuerpo) { gap: 14px; padding: 0 12px 32px !important; }
+  html body .pagina-publica .perfil-cuerpo:not(.acerca-cuerpo) > .perfil-menu {
+    position: sticky !important; top: 64px; z-index: 30; margin: 0 -12px; padding: 10px 12px; border: 0; border-radius: 0;
+    background: rgba(247, 245, 240, 0.96); box-shadow: 0 6px 12px rgba(22, 79, 68, 0.06); backdrop-filter: blur(6px);
+  }
+  html body .pagina-publica .perfil-cuerpo:not(.acerca-cuerpo) > .perfil-menu::before { display: none; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) > .perfil-etiqueta, html body .pagina-publica .perfil-menu:not(.acerca-menu) .perfil-menu__salir { display: none; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) ul { display: flex; flex-wrap: nowrap; gap: 8px; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) ul::-webkit-scrollbar { display: none; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) li { flex: none; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) .perfil-menu__opcion { min-height: 40px; padding: 6px 14px; border: 1px solid #e2ded5; border-radius: 999px; background: #fff; font-size: 14px; white-space: nowrap; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) .perfil-menu__texto { white-space: nowrap; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) .perfil-menu__opcion--activa { border-color: #164f44; background: #164f44; color: #fff; }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) .perfil-menu__opcion--activa img { filter: brightness(0) invert(1); }
+  html body .pagina-publica .perfil-menu:not(.acerca-menu) .perfil-menu__opcion--activa::after { display: none; }
+
+  /* Resumen: credencial, próximas actividades y asistencias en renglones (ícono | título y texto) */
+  html body .pagina-publica .perfil-seccion .perfil-accesos { display: flex; flex-direction: column; gap: 8px; }
+  html body .pagina-publica .perfil-seccion .tarjeta-acceso {
+    display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 2px; height: auto; min-height: 0;
+    padding: 12px 14px; border-radius: 18px; text-align: left;
+  }
+  html body .pagina-publica .perfil-seccion .tarjeta-acceso__icono { grid-row: 1 / span 2; width: 44px; height: 44px; margin: 0; aspect-ratio: 1 / 1; }
+  html body .pagina-publica .perfil-seccion .tarjeta-acceso :is(h3, strong) { grid-column: 2; margin: 0; font-size: 15px; line-height: 20px; }
+  html body .pagina-publica .perfil-seccion .tarjeta-acceso p { grid-column: 2; margin: 0; font-size: 13px; line-height: 18px; }
+  html body .pagina-publica .perfil-seccion .tarjeta-acceso::after { display: none; }
+  html body .pagina-publica .perfil-seccion :is(.perfil-bienvenida, .perfil-progreso) { padding: 18px 16px; border-radius: 22px; }
+}
+@media (max-width: 600px) {
+  /* Mis datos: los datos cortos de dos en dos; los anchos (correo, teléfono, domicilio) a lo ancho */
+  html body .pagina-publica .perfil-seccion .perfil-datos:not(.perfil-datos--tres) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px; }
+  html body .pagina-publica .perfil-seccion .perfil-datos:not(.perfil-datos--tres) > :is(.perfil-dato--ancho-2, .perfil-dato--ancho-4) { grid-column: 1 / -1; }
+  html body .pagina-publica .perfil-seccion .perfil-dato { min-width: 0; padding: 10px 12px; }
+  html body .pagina-publica .perfil-seccion .perfil-dato dd { overflow-wrap: anywhere; font-size: 14.5px; }
+  /* Encabezado de cada sección más compacto */
+  html body .pagina-publica .perfil-seccion .perfil-seccion__encabezado h2, html body .pagina-publica .perfil-seccion > header h2 { font-size: 22px; line-height: 27px; }
+  /* Niveles de Mi progreso como línea de tiempo (número a la izquierda unido por una línea), como Credencial */
+  html body .pagina-publica .perfil-seccion .perfil-niveles--ruta { display: flex !important; flex-direction: column; gap: 0; grid-template-columns: none !important; }
+  html body .pagina-publica .perfil-seccion .perfil-niveles--ruta::before, html body .pagina-publica .perfil-seccion .perfil-niveles--ruta::after,
+  html body .pagina-publica .perfil-seccion .perfil-niveles--ruta .perfil-nivel::before { display: none; }
+  html body .pagina-publica .perfil-seccion .perfil-niveles--ruta .perfil-nivel {
+    position: relative; display: grid !important; grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: none !important; grid-row: auto !important;
+    align-items: start; column-gap: 12px; row-gap: 1px; padding: 0 0 16px; border: 0; background: none; box-shadow: none; text-align: left;
+  }
+  html body .pagina-publica .perfil-seccion .perfil-niveles--ruta .perfil-nivel:not(:last-child)::after {
+    content: ""; position: absolute; top: 34px; bottom: 2px; left: 15px; width: 2px; border-radius: 2px; background: linear-gradient(#c9a24a, #9cc3b7);
+  }
+  html body .pagina-publica .perfil-seccion .perfil-niveles--ruta .perfil-nivel__numero { grid-column: 1; grid-row: 1 / span 4; width: 32px; height: 32px; margin: 0; font-size: 14px; }
+  html body .pagina-publica .perfil-seccion .perfil-niveles--ruta .perfil-nivel > :not(.perfil-nivel__numero) { grid-column: 2; margin: 0; justify-self: start; }
+  html body .pagina-publica .perfil-seccion .perfil-niveles--ruta .perfil-nivel strong { font-size: 15px; line-height: 20px; }
+}
+@media (max-width: 600px) {
+  /* Mis insignias: dos columnas, medalla arriba y textos centrados (una por renglón alargaba mucho la página) */
+  html body .pagina-publica .perfil-seccion .insignias__lista { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; grid-auto-rows: 1fr; gap: 8px; }
+  html body .pagina-publica .perfil-seccion .insignia { flex-direction: column; align-items: center; gap: 6px; min-height: 0; padding: 12px 10px; text-align: center; }
+  html body .pagina-publica .perfil-seccion .insignia-medalla { width: 46px; height: 53px; }
+  html body .pagina-publica .perfil-seccion .insignia__textos { align-items: center; width: 100%; }
+  html body .pagina-publica .perfil-seccion .insignia__textos strong { font-size: 13.5px; line-height: 17px; }
+  html body .pagina-publica .perfil-seccion .insignia__textos > span:not(.insignia__avance) { min-height: 0; font-size: 12px; line-height: 16px; }
+  html body .pagina-publica .perfil-seccion .insignia__avance { width: 100%; margin-top: 6px; }
+  html body .pagina-publica .perfil-seccion .insignia__avance small { left: 0; right: 0; text-align: center; }
+}
+@media (max-width: 600px) {
+  /* Al cerrar la hoja: baja y se desvanece, y el velo se aclara al mismo paso */
+  html body .pagina-publica .menu-cuenta :is(.panel-notif, .menu-cuenta__panel).menu-desplegable--saliendo { animation: hoja-baja 0.22s ease-in forwards; }
+  html body .pagina-publica .menu-cuenta__velo.menu-desplegable--saliendo { animation: velo-desaparece 0.22s ease-in forwards; }
+}
+@keyframes hoja-baja { from { transform: none; opacity: 1; } to { transform: translateY(60px); opacity: 0; } }
+@keyframes velo-desaparece { from { opacity: 1; } to { opacity: 0; } }
+@media (max-width: 1100px) {
+  /* «Mi perfil» en tableta y teléfono: siempre un círculo (avatar de 40 px con aro dorado), nunca una pastilla ovalada;
+     el texto «Mi perfil · Sesión activa» queda solo para lectores de pantalla */
+  html body .pagina-publica .menu-cuenta__boton {
+    flex: 0 0 auto; width: 44px; height: 44px; min-width: 0; aspect-ratio: 1 / 1; gap: 0; padding: 0; border: 0; border-radius: 50%;
+    background: none; box-shadow: none; display: grid; place-items: center;
+  }
+  html body .pagina-publica .menu-cuenta__boton > span {
+    position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  html body .pagina-publica .menu-cuenta__boton > img {
+    flex: none; width: 40px; height: 40px; aspect-ratio: 1 / 1; border-radius: 50%; object-fit: cover;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #e6d194, 0 4px 10px rgba(22, 79, 68, 0.18);
+  }
+  html body .pagina-publica .menu-cuenta__boton:is(:hover, [aria-expanded="true"]) { box-shadow: none; border: 0; }
+  html body .pagina-publica .menu-cuenta__boton[aria-expanded="true"] > img { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #164f44; }
+  html body .pagina-publica .menu-cuenta__campana { flex: 0 0 auto; width: 44px; height: 44px; aspect-ratio: 1 / 1; border-radius: 50%; }
+}
+
+/* ---------- Listas del perfil en teléfono, como app (Mis eventos, Mis propuestas, Mis espacios, Mis mensajes y avisos) ----------
+   Cada fila (`FilaPerfil`): fecha o ícono a la izquierda; al lado el título en hasta dos renglones y el detalle completo;
+   abajo, en el mismo renglón, el estado a la izquierda y la acción a la derecha. Antes el título se cortaba en una
+   columna angosta, el chip caía bajo la fecha y el botón quedaba suelto con un hueco en medio (23 nov 2026, Aldahir). */
+@media (max-width: 600px) {
+  html body .perfil-listas .pl-fila {
+    display: grid !important; grid-template-columns: 48px minmax(0, 1fr) auto; grid-template-rows: auto auto;
+    align-items: center; column-gap: 12px; row-gap: 10px; padding: 12px 14px; border-radius: 18px;
+  }
+  html body .perfil-listas .pl-fila > :is(.pz-fecha, .pz-fila__icono) { grid-column: 1; grid-row: 1; align-self: start; width: 48px; height: 50px; margin: 0; }
+  html body .perfil-listas .pl-fila > .pz-fila__icono { height: 48px; border-radius: 50%; }
+  html body .perfil-listas .pl-fila > .pz-fila__textos { grid-column: 2 / -1; grid-row: 1; min-width: 0; }
+  html body .perfil-listas .pl-fila .pz-fila__titulo {
+    display: -webkit-box; overflow: hidden; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 15px; line-height: 20px;
+  }
+  html body .perfil-listas .pl-fila .pz-fila__detalle { display: flex; flex-wrap: wrap; gap: 2px 10px; overflow: visible; white-space: normal; font-size: 13px; line-height: 18px; }
+  html body .perfil-listas .pl-fila > .pz-chip { grid-column: 1 / 3; grid-row: 2; justify-self: start; width: auto !important; min-width: 0 !important; margin: 0; }
+  html body .perfil-listas .pl-fila > .pz-fila__acciones { grid-column: 3; grid-row: 2; justify-self: end; display: flex; gap: 6px; margin: 0; }
+  html body .perfil-listas .pl-fila > .pz-fila__acciones .pz-boton { min-width: 0 !important; min-height: 38px; padding-inline: 16px; }
+  html body .perfil-listas .pl-fila > .pz-fila__acciones:empty { display: none; }
+  html body .perfil-listas .pl-fila > .pl-panel { grid-column: 1 / -1; grid-row: 3; }
+}
+@media (max-width: 600px) {
+  /* Cabecera de las listas del perfil y de Notificaciones: ícono y título arriba; las acciones (Marcar todas como
+     leídas, Eliminar las leídas) debajo a lo ancho, en un renglón que se desliza (a un lado dejaban el texto en una tira) */
+  html body .perfil-listas .pz-tarjeta__cabecera { flex-wrap: wrap; row-gap: 10px; }
+  html body .perfil-listas .pz-tarjeta__titulos { flex: 1 1 calc(100% - 60px); min-width: 0; }
+  html body .perfil-listas .pz-tarjeta__accion { flex: 1 1 100%; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0; }
+  html body .perfil-listas .pz-tarjeta__accion::-webkit-scrollbar { display: none; }
+  html body .perfil-listas .pz-tarjeta__accion > * { flex: none; }
+}
+
+/* La X de los desplegables siempre redonda: tamaño fijo, sin heredar altos ni rellenos de los botones del panel */
+html body .pagina-publica .menu-cuenta .menu-desplegable__cerrar {
+  flex: none; box-sizing: border-box; width: 34px; height: 34px; min-width: 34px; min-height: 34px; max-height: 34px; aspect-ratio: 1 / 1;
+  padding: 0; border-radius: 50%; line-height: 1;
+}
+@media (max-width: 1024px) {
+  html body .pagina-publica .menu-cuenta .menu-desplegable__cerrar { width: 40px; height: 40px; min-width: 40px; min-height: 40px; max-height: 40px; }
+}
+@media (max-width: 1024px) {
+  /* Detalle de un evento › «Dónde es»: el recuadro del mapa medía 230 px fijos (el alto del lateral de escritorio) y
+     a lo ancho de la tableta el plano mide ~510 px, así que se recortaba a la mitad; ahora toma el alto del plano */
+  html body .pagina-publica .detalle-evento__mapa { height: auto !important; max-height: none; overflow: visible; }
+  html body .pagina-publica .detalle-evento__donde { height: auto !important; }
+  html body .pagina-publica .detalle-evento__mapa .esp-mapa__lienzo { position: relative !important; inset: auto !important; width: 100%; }
+}
+@media (max-width: 600px) {
+  /* «Dónde es» en teléfono: el recuadro con la proporción del plano (sin franjas vacías arriba y abajo) y más ancho */
+  html body .pagina-publica .detalle-evento__donde { padding-inline: 10px; }
+  html body .pagina-publica .detalle-evento__mapa .esp-mapa__lienzo,
+  html body .pagina-publica .detalle-evento__mapa .esp-mapa__svg { height: auto !important; aspect-ratio: 700 / 508; }
+}
+
+/* ---------- Franja verde de título en tableta (23 nov 2026) ----------
+   Como en teléfono: el ícono arriba y centrado (a un lado del título se veía flotando), el título y el texto centrados
+   con renglones parejos (sin una palabra sola en el último renglón). */
+@media (min-width: 601px) and (max-width: 1024px) {
+  html body .pagina-publica .encabezado-publico__titular { flex-direction: column; align-items: center; gap: 12px; }
+  html body .pagina-publica .encabezado-publico .encabezado-publico__insignia { position: relative; width: 48px; height: 48px; }
+  html body .pagina-publica .encabezado-publico .encabezado-publico__insignia::after { inset: 12px; }
+}
+@media (max-width: 1024px) {
+  html body .pagina-publica .encabezado-publico { text-align: center; align-items: center; }
+  html body .pagina-publica .encabezado-publico :is(h1, p) { max-width: 640px; margin-inline: auto; text-wrap: balance; }
+}
+
+/* ---------- Inicio en tableta: Noticias y Cultura Nayarit al tamaño de los demás bloques (23 nov 2026) ----------
+   Cultura Nayarit: el carrusel guardaba 64 px a cada lado para unas flechas que en tableta van abajo, así que las
+   tarjetas medían la mitad del recuadro y el botón se partía en dos renglones; ahora ocupan todo el ancho (dos por
+   vista) con la foto más baja. Noticias: el bloque medía ~1450 px (el doble que los demás); la destacada lleva la foto
+   más baja y las otras cuatro van en 2 × 2, compactas (miniatura, fecha y título). */
+@media (min-width: 601px) and (max-width: 1024px) {
+  html body .pagina-publica .noticias-culturales .carrusel { padding-inline: 0; }
+  html body .pagina-publica .noticias-culturales__tarjetas { gap: 20px; }
+  html body .pagina-publica .noticias-culturales__tarjetas > .noticia-cultural { flex: 0 0 calc((100% - 20px) / 2); }
+  html body .pagina-publica .noticia-cultural__imagen { aspect-ratio: 16 / 10; }
+  html body .pagina-publica .noticia-cultural__contenido { gap: 12px; padding: 20px; }
+  html body .pagina-publica .noticia-cultural__contenido > p { -webkit-line-clamp: 4; min-height: 6em; }
+  html body .pagina-publica .noticia-cultural__enlace { white-space: nowrap; }
+
+  html body .pagina-publica .noticia-destacada__imagen { height: 200px; }
+  html body .pagina-publica .otras-noticias { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  html body .pagina-publica .otras-noticias > * { min-width: 0; margin: 0; }
+  html body .pagina-publica .otras-noticias .noticia-mini { height: 100%; }
+  html body .pagina-publica .otras-noticias .noticia-mini__resumen { display: none; }
+  html body .pagina-publica .otras-noticias .noticia-mini__miniatura { width: 64px; height: 64px; flex: none; }
+  html body .pagina-publica .otras-noticias .noticia-mini__titulo { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 3; -webkit-box-orient: vertical; font-size: 15px; line-height: 20px; }
+}
+@media (min-width: 601px) and (max-width: 1024px) {
+  /* En la rejilla 2 × 2 solo la fecha arriba del título: la categoría y «Viendo» se encimaban en el espacio angosto */
+  html body .pagina-publica .otras-noticias .noticia-mini__meta > :first-child,
+  html body .pagina-publica .otras-noticias .noticia-mini__viendo { display: none; }
+  html body .pagina-publica .otras-noticias .noticia-mini__meta { white-space: nowrap; font-size: 13px; }
+  html body .pagina-publica .otras-noticias .noticia-mini::before { display: none; }
+}
+@media (hover: hover) and (pointer: fine) {
+  html body :is(.paginas-num__numero, .paginas-num__paso):not(:disabled):not(.paginas-num__numero--actual):hover { border-color: #164f44; background: #eef5f2; }
 }

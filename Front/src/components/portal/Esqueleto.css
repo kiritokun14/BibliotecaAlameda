@@ -165,3 +165,33 @@
 .proponer-esqueleto { max-width: 1000px; margin: 0 auto; padding: 40px 24px 72px; }
 /* Bloques del contenido del armazón del panel en azul claro (los del menú siguen translúcidos) */
 .esqueleto-panel__contenido .esqueleto__bloque { background: #dce8f0; }
+
+/* Letrero visible de carga (23 nov 2026): «Cargando reseñas…» con un aro que gira, a todo lo ancho del esqueleto,
+   para que la sección no se vea vacía ni encogida mientras llegan los datos */
+.esqueleto__aviso {
+  display: flex; flex-basis: 100%; grid-column: 1 / -1; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; margin: 0; padding: 4px 0; box-sizing: border-box; color: #164f44; font-family: 'Noto Sans', sans-serif;
+  font-size: 14.5px; font-weight: 700; text-align: center;
+}
+.esqueleto__girando {
+  flex: none; width: 18px; height: 18px; box-sizing: border-box; border: 2.5px solid #d9e6e1; border-top-color: #164f44;
+  border-radius: 50%; animation: esqueleto-gira 0.8s linear infinite;
+}
+@keyframes esqueleto-gira { to { transform: rotate(360deg); } }
+.esqueleto-destacada { flex-wrap: wrap; }
+.esqueleto-destacada > .esqueleto__aviso { color: #f2e3b8; }
+.esqueleto-destacada > .esqueleto__aviso .esqueleto__girando { border-color: rgba(255, 255, 255, 0.25); border-top-color: #e6d194; }
+.esqueleto-detalle > .esqueleto__aviso { grid-column: 1 / -1; }
+/* El aro sigue girando con «reducir animaciones» (es el ícono de carga, AGENTS §3) */
+@media (prefers-reduced-motion: reduce) { .esqueleto__girando { animation-duration: 0.8s !important; animation-iteration-count: infinite !important; } }
+
+/* Secciones del inicio mientras cargan (Lecturas y Noticias): mismo marco que la sección final, con su título */
+.seccion-carga { display: flex; flex-direction: column; align-items: center; gap: 20px; width: min(1100px, calc(100% - 48px)); margin: 0 auto; padding: 48px 0; }
+.seccion-carga > h2 { margin: 0; color: #161a1d; font-family: 'Noto Sans', sans-serif; font-size: 32px; line-height: 38px; text-align: center; }
+.seccion-carga > :not(h2) { width: 100%; }
+.seccion-carga__mensaje { padding: 28px 24px; border: 1px solid #e2ded5; border-radius: 24px; background: #fff; color: #4d4d4d; font-size: 15px; text-align: center; }
+@media (max-width: 600px) {
+  .seccion-carga { width: calc(100% - 32px); padding: 28px 0; }
+  .seccion-carga > h2 { font-size: 24px; line-height: 30px; }
+  .esqueleto-cuadricula { grid-template-columns: minmax(0, 1fr); }
+}

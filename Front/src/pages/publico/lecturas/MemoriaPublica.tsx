@@ -1,4 +1,5 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
+import PaginasNumeradas from "../../../components/portal/PaginasNumeradas";
 import { useLecturasPublicadas } from "./publicados";
 import BarraFiltros from "../../../components/portal/BarraFiltros";
 import { EsqueletoTarjetas } from "../../../components/portal/Esqueleto";
@@ -33,6 +34,16 @@ function MemoriaPublica() {
     const hayFiltros = Boolean(anio || tema || q || orden !== "recientes");
     const destacado = !hayFiltros ? registros[0] : undefined;
     const resto = destacado ? registros.slice(1) : registros;
+    // Tableta y teléfono: 10 registros por página con números (en escritorio, todos como antes); la destacada solo en
+    // la primera página. La página vuelve a 1 cuando cambian la búsqueda o los filtros.
+    const claveFiltros = parametros.toString();
+    const [paginaEn, setPaginaEn] = useState({ clave: claveFiltros, pagina: 1 });
+    const pagina = paginaEn.clave === claveFiltros ? paginaEn.pagina : 1;
+    const porPagina = 6; // 6 en todos los anchos (dos renglones de 3 en escritorio)
+    const totalPaginas = Math.max(1, Math.ceil(resto.length / porPagina));
+    const restoVisible = resto.slice((pagina - 1) * porPagina, pagina * porPagina);
+    const inicioLista = useRef<HTMLParagraphElement>(null);
+    const irAPagina = (p: number) => { setPaginaEn({ clave: claveFiltros, pagina: p }); inicioLista.current?.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
     // Opciones con registros (o la elegida), con cuántos hay en cada una
     const porAnio = (a: number) => filtrar(a, tema).length;
@@ -101,20 +112,21 @@ function MemoriaPublica() {
                     />
                     {error ? <EstadoLecturas tipo="error" /> : !datos ? <EsqueletoTarjetas cantidad={3} texto="Cargando memoria pública…" /> : (
                         <>
-                            <p className="solo-lectores" role="status">{resumen}</p>
+                            <p className="solo-lectores" role="status" ref={inicioLista}>{resumen}</p>
                             {registros.length === 0 ? (
                                 <EstadoLecturas tipo="sin-resultados" alLimpiar={limpiar} />
                             ) : (
                                 <>
-                                    {destacado && <MemoriaDestacada memoria={destacado} />}
+                                    {destacado && pagina === 1 && <MemoriaDestacada memoria={destacado} />}
                                     {resto.length > 0 && (
                                         <section className="lecturas-grupo" aria-labelledby="titulo-mas-registros">
                                             <div className="lecturas-grupo__encabezado">
                                                 <EtiquetaPerfil id="titulo-mas-registros" icono={iconoLibro}>{titulo}</EtiquetaPerfil>
                                             </div>
-                                            <ul className="rejilla-lecturas">
-                                                {resto.map((m: Memoria) => <TarjetaMemoria key={m.id} memoria={m} />)}
+                                            <ul className="rejilla-lecturas pagina-nueva" key={pagina}>
+                                                {restoVisible.map((m: Memoria) => <TarjetaMemoria key={m.id} memoria={m} />)}
                                             </ul>
+                                            <PaginasNumeradas pagina={pagina} total={totalPaginas} alCambiar={irAPagina} etiqueta="Páginas de la memoria pública" />
                                         </section>
                                     )}
                                 </>

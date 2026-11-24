@@ -115,7 +115,7 @@ export function cancelarCambioCorreo() { correoPendiente = null; }
 // TODO backend: inscripciones y progreso de la cuenta (la credencial sale de credencial/datos.ts; los avisos, de notificaciones/datos.ts).
 export const resumenEjemplo = {
     actividades: { titulo: "Próximas actividades", texto: "2 inscripciones: Taller de escritura creativa y 1 más." },
-    asistencias: { titulo: "Asistencias verificadas", texto: "3 de 6 para el siguiente nivel (ejemplo)." },
+    asistencias: { titulo: "Asistencias verificadas", texto: "3 de 6 para el siguiente nivel." },
     progreso: { actuales: 3, meta: 6 },
 };
 

@@ -15,7 +15,7 @@ const iconoArea: Record<Area, string> = {
     actividades: iconosSeccion.eventos, avisos: iconosSeccion.avisos,
 };
 
-export default function PanelNotificaciones({ id, alCerrar }: { id: string; alCerrar: () => void }) {
+export default function PanelNotificaciones({ id, alCerrar, saliendo = false }: { id: string; alCerrar: () => void; saliendo?: boolean }) {
     const navegar = useNavigate();
     const lista = useNotificaciones();
     const pendientes = sinLeer(lista);
@@ -49,8 +49,11 @@ export default function PanelNotificaciones({ id, alCerrar }: { id: string; alCe
         navegar(ruta ?? "/notificaciones");
     }
     return (
-        <div id={id} className="panel-notif" role="region" aria-label="Notificaciones"
+        <div id={id} className={`panel-notif${saliendo ? " menu-desplegable--saliendo" : ""}`} role="region" aria-label="Notificaciones"
             style={{ "--icono-seccion": `url("${iconosSeccion.avisos}")` } as CSSProperties}>
+            <button type="button" className="menu-desplegable__cerrar" aria-label="Cerrar las notificaciones" onClick={alCerrar}>
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /></svg>
+            </button>
             <div className="panel-notif__cabecera">
                 <p className="panel-notif__titulo">Notificaciones</p>
                 {sesionSimulada && pendientes > 0 && <span className="panel-notif__cuenta">{pendientes} sin leer</span>}

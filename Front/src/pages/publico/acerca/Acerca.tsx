@@ -1,6 +1,6 @@
 import { usePublicados } from "../../../servicios/usarPublicados.ts";
 import { EsqueletoArticulo } from "../../../components/portal/Esqueleto";
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { Link, Navigate, NavLink, useParams } from "react-router";
 import PaginaPublica, { EncabezadoPublico } from "../../../components/portal/PaginaPublica";
 import EstadoPagina from "../../../components/portal/EstadoPagina";
@@ -74,6 +74,15 @@ function esSeccion(valor: string | undefined): valor is SeccionAcerca {
 function Acerca() {
     const { seccion } = useParams();
     const { datos, error } = usePublicados("acerca");
+    // En teléfono el menú es un renglón de pastillas que se desliza de lado: la sección actual queda a la vista (centrada)
+    const menu = useRef<HTMLUListElement>(null);
+    useEffect(() => {
+        const lista = menu.current;
+        const activa = lista?.querySelector<HTMLElement>(".perfil-menu__opcion--activa");
+        if (!lista || !activa || lista.scrollWidth <= lista.clientWidth) return;
+        const r = activa.getBoundingClientRect(), l = lista.getBoundingClientRect();
+        lista.scrollLeft += r.left - l.left - (l.width - r.width) / 2;
+    }, [seccion]);
     // /acerca o una pestaña que no existe → Historia
     if (!esSeccion(seccion)) return <Navigate to="/acerca/historia" replace />;
 
@@ -102,7 +111,7 @@ function Acerca() {
                 <div className="perfil-cuerpo acerca-cuerpo">
                     <nav className="perfil-menu acerca-menu" aria-label="Secciones de Acerca de">
                         <EtiquetaPerfil icono={iconoAccesos}>Secciones</EtiquetaPerfil>
-                        <ul>
+                        <ul ref={menu}>
                             {(Object.keys(secciones) as SeccionAcerca[]).map((clave) => (
                                 <li key={clave}>
                                     <NavLink to={`/acerca/${clave}`}

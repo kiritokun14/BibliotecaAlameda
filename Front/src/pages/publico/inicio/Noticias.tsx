@@ -35,7 +35,7 @@ function Noticias() {
     const destacada = noticias[activa] ?? noticias[0];
     const total = noticias.length;
 
-    if (!destacada) return <section className="seccion-inicio"><h2>Noticias</h2>{!error && !datos ? <EsqueletoTarjetas cantidad={3} texto="Cargando noticias…" /> : <p role={error ? "alert" : "status"}>{error ?? "Todavía no hay noticias publicadas."}</p>}</section>;
+    if (!destacada) return <section className="seccion-inicio"><div className="seccion-carga"><h2>Noticias</h2>{!error && !datos ? <EsqueletoTarjetas cantidad={3} texto="Cargando noticias…" /> : <p className="seccion-carga__mensaje" role={error ? "alert" : "status"}>{error ?? "Todavía no hay noticias publicadas."}</p>}</div></section>;
     return (
         <section className="seccion-inicio seccion-inicio--blanca">
             <Bloque tema="verde" circulos={[circulo1, circulo2]} textura={{ src: rama, ancho: 380, alto: 380 }}>

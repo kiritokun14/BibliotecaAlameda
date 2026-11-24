@@ -1,5 +1,6 @@
 // Esqueletos de carga: la forma gris de lo que va a aparecer, con un brillo que la recorre,
-// mientras llegan los datos. Para lectores de pantalla solo se anuncia «Cargando…».
+// mientras llegan los datos, con un letrero visible de qué se está cargando (23 nov 2026: antes solo lo anunciaba
+// a lectores de pantalla y la sección se veía vacía).
 import "./Esqueleto.css";
 
 export function Bloque({ clase = "", ancho }: { clase?: string; ancho?: string }) {
@@ -7,7 +8,7 @@ export function Bloque({ clase = "", ancho }: { clase?: string; ancho?: string }
 }
 
 function Anuncio({ texto }: { texto: string }) {
-    return <span className="solo-lectores">{texto}</span>;
+    return <p className="esqueleto__aviso"><span className="esqueleto__girando" aria-hidden="true" />{texto}</p>;
 }
 
 // Tarjeta con imagen arriba (noticias, actividades, reseñas): mismas medidas que .tarjeta-listado
@@ -71,7 +72,7 @@ export function EsqueletoPagina() {
     const panel = typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
     return (
         <div className={`esqueleto-pagina${panel ? " esqueleto-pagina--panel" : ""}`} role="status">
-            <Anuncio texto="Cargando página…" />
+            <span className="solo-lectores">Cargando página…</span>
             {!panel && (
                 <div aria-hidden="true">
                     <div className="esqueleto-pagina__franja" />
@@ -94,7 +95,7 @@ export function EsqueletoPagina() {
 export function EsqueletoPanel() {
     return (
         <div className="esqueleto-panel" role="status">
-            <Anuncio texto="Comprobando acceso al panel…" />
+            <span className="solo-lectores">Comprobando acceso al panel…</span>
             {/* Rendimiento (21 nov): el nombre del panel se ve desde el primer instante, mientras se comprueba el acceso */}
             <div className="esqueleto-pagina__franja esqueleto-panel__franja" aria-hidden="true"><span>Biblioteca Solón Argüello</span><strong>Panel de administración</strong></div>
             <div className="esqueleto-panel__cuerpo" aria-hidden="true">

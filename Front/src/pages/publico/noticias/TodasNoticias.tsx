@@ -1,6 +1,8 @@
 import { useCallback, useRef } from "react";
 import { useSearchParams } from "react-router";
 import PaginaPublica from "../../../components/portal/PaginaPublica";
+import PaginasNumeradas from "../../../components/portal/PaginasNumeradas";
+import { useResponsivo } from "../../../components/portal/responsivo";
 import "./Noticias.css";
 import BarraFiltros from "../../../components/portal/BarraFiltros";
 import {
@@ -15,7 +17,7 @@ import {
 } from "./datos";
 import iconoNoticias from "../../../assets/inicio/noticias-periodico.svg";
 import { EtiquetaPerfil } from "../perfil/piezas";
-import { CargandoNoticias, EncabezadoNoticias, EstadoNoticias, Paginacion, TarjetaArchivo } from "./piezas";
+import { CargandoNoticias, EncabezadoNoticias, EstadoNoticias, TarjetaArchivo } from "./piezas";
 import { useNoticias } from "./useNoticias";
 import cuadriculaBlanca from "../../../assets/noticias/vista-cuadricula-blanca.svg";
 import cuadriculaVerde from "../../../assets/noticias/vista-cuadricula-verde.svg";
@@ -51,7 +53,7 @@ function TodasNoticias() {
                 titulo={<>Todas las <span>noticias</span></>}
                 texto="Encuentra cualquier noticia por tema, categoría o fecha."
             />
-            <section className="noticias-seccion noticias-seccion--archivo noticias-pagina">
+            <section className="noticias-seccion noticias-seccion--archivo noticias-pagina noticias-usuario">
                 <div className="noticias-contenedor">
                     {carga.estado === "cargando" && <CargandoNoticias destacada={false} />}
                     {carga.estado === "error" && <EstadoNoticias tipo="error" alAccionar={reintentar} />}
@@ -70,7 +72,9 @@ function Archivo({ noticias }: { noticias: Noticia[] }) {
     const tituloResultados = useRef<HTMLDivElement>(null);
 
     const resultados = filtrarNoticias(noticias, filtros);
-    const { elementos, pagina, totalPaginas } = paginar(resultados, filtros.pagina, POR_PAGINA[filtros.vista]);
+    // Tableta y teléfono: 5 noticias por página con números (con 6 casi nunca pasaba de una página)
+    const responsivo = useResponsivo();
+    const { elementos, pagina, totalPaginas } = paginar(resultados, filtros.pagina, responsivo ? 5 : POR_PAGINA[filtros.vista]);
     const busquedaActual = parametros.toString();
 
     // Cambia parámetros de la dirección; los vacíos se quitan. Cualquier filtro nuevo regresa a la página 1.
@@ -163,7 +167,7 @@ function Archivo({ noticias }: { noticias: Noticia[] }) {
                             </li>
                         ))}
                     </ul>
-                    <Paginacion pagina={pagina} totalPaginas={totalPaginas} alCambiar={cambiarPagina} />
+                    <PaginasNumeradas pagina={pagina} total={totalPaginas} alCambiar={cambiarPagina} etiqueta="Páginas de noticias" />
                     {hayFiltros && (
                         <p className="noticias-nota">¿Buscabas otra noticia? Prueba con otra fecha, cambia la categoría o limpia los filtros.</p>
                     )}

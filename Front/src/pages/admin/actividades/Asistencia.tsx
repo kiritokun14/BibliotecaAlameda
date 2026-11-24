@@ -1,10 +1,12 @@
+// Actividades › Asistencia (HU-20, datos reales: asistenciaReal.ts; con ?simular=sesion, los de ejemplo de asistencia.ts).
+// 23 nov 2026 (Aldahir): la integración la había dejado con el diseño viejo (tema «contenidos»); vuelve a la paleta del
+// panel y a las piezas (Encabezado con cifras, lista | lateral, FiltrosAvanzados, Ventana), conectada a los datos reales.
 import { useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import PanelLayout from '../PanelLayout';
-import { AvisoResultado, Chip, EncabezadoPagina, EstadoVacio, Migas } from '../componentes';
+import { Migas } from '../componentes';
 import { Ventana } from '../Ventana';
-import { IconoAviso, IconoBandera, IconoLista, IconoReloj } from '../contenidos/piezas';
-import { paginar } from '../contenidoDemo/utiles';
+import { Aviso, Buscador, Chip, Cifra, Encabezado, FiltrosAvanzados, Icono, LineaHistorial, Plegable, Tarjeta, Vacio } from '../piezasPanel';
 import { ContextoPanel } from '../../../servicios/accesoPanel';
 import { mensajeError } from '../../../servicios/api';
 import { ahoraTepic } from '../../../servicios/vigenciaActividades';
@@ -21,19 +23,13 @@ import {
     type PersonaAsistencia, type SesionAsistencia,
 } from './asistenciaReal';
 import { BASE_ASISTENCIA } from './utiles';
-import {
-    AccesosRapidos, CargandoFilas, CeldaDoble, ControlesLista, CuerpoLista,
-    FILAS_POR_PAGINA, PieLista, SeccionLista, TablaLista,
-} from './PiezasLista';
-import vacioCheck from '../../../assets/admin/vacio-check.svg';
-import vacioBuscar from '../../../assets/admin/vacio-search.svg';
+import { CargandoFilas } from './PiezasLista';
 import modalCheck from '../../../assets/admin/modal-check.svg';
 import modalInfo from '../../../assets/admin/modal-info.svg';
 import modalLista from '../../../assets/admin/modal-list.svg';
 
 const TONOS = { presente: 'verde', ausente: 'guinda', sin: 'gris' } as const;
 const MARCAS = ['presente', 'ausente'] as const;
-const POR_PAGINA = 10;
 const porcentaje = (p: number, total: number) => total ? Math.round(p * 100 / total) : 0;
 const horario = (s: SesionAsistencia) => ahoraTepic(new Date(s.inicio));
 const rutaLista = (sesion: SesionAsistencia, consulta: string) => `${BASE_ASISTENCIA}/${sesion.id}${consulta}`;
@@ -67,8 +63,8 @@ function useLectura<T>(leer: () => Promise<T>) {
 }
 
 function ErrorCarga({ error, reintentar }: { error: string; reintentar: () => void }) {
-    return <EstadoVacio icono={vacioBuscar} titulo="No pudimos cargar la asistencia" texto={error}
-        accion={{ texto: 'Reintentar', alPresionar: reintentar }} />;
+    return <Vacio icono="alerta" titulo="No pudimos cargar la asistencia" texto={error}
+        accion={<button type="button" className="pz-boton pz-boton--chico" onClick={reintentar}>Reintentar</button>} />;
 }
 
 function sesionDemo(a: Actividad, listas: Lista[]): SesionAsistencia {
@@ -108,14 +104,16 @@ function CargarSesiones({ mostrar }: MostrarSesiones) {
 }
 
 export default function Asistencia() {
-    const { search } = useLocation();
-    return <PanelLayout titulo="Actividades" tema="contenidos">
+    return <PanelLayout titulo="Actividades" tema="contenidos paleta">
         <Migas raiz="Actividades" pasos={[['Asistencia']]} />
-        <EncabezadoPagina titulo="Asistencia" texto="Elige una sesión para registrar quién asistió."
-            accion={<Link className="contenidos-boton contenidos-boton--contorno" to={`${BASE_ASISTENCIA}/resumen${search}`}>Resumen del mes</Link>} />
-        <CargarSesiones mostrar={sesiones => <BandejaSesiones sesiones={sesiones} />} />
+        <div className="pz-pagina">
+            <CargarSesiones mostrar={sesiones => <BandejaSesiones sesiones={sesiones} />} />
+        </div>
     </PanelLayout>;
 }
+
+const partesFecha = (fecha: string) => { const [d, m] = fechaCorta(fecha).split(' '); return [d, (m ?? '').replace('.', '')]; };
+const tonoPct = (p: number) => (p >= 70 ? 'verde' : p >= 40 ? 'dorado' : 'guinda');
 
 function BandejaSesiones({ sesiones }: { sesiones: SesionAsistencia[] }) {
     const navigate = useNavigate();
@@ -123,9 +121,8 @@ function BandejaSesiones({ sesiones }: { sesiones: SesionAsistencia[] }) {
     const [params, setParams] = useSearchParams();
     const [busqueda, setBusqueda] = useState('');
     const [filtro, setFiltro] = useState('');
-    const [pagina, setPagina] = useState(0);
     const periodoParam = params.get('ver');
-    const periodo = periodoParam === 'semana' || periodoParam === 'anteriores' ? periodoParam : 'hoy';
+    const periodo: Periodo = periodoParam === 'semana' || periodoParam === 'anteriores' ? periodoParam : 'hoy';
     const hoy = ahoraTepic().fecha;
     const [lunes] = semanaDe(hoy);
     const domingo = sumarDias(lunes, 6);
@@ -138,55 +135,108 @@ function BandejaSesiones({ sesiones }: { sesiones: SesionAsistencia[] }) {
     const texto = busqueda.trim().toLowerCase();
     const filtradas = grupos[periodo].filter(f => f.sesion.nombre.toLowerCase().includes(texto) && (!filtro || f.estado.clave === filtro));
     filtradas.sort((a, b) => (periodo === 'anteriores' ? -1 : 1) * (Date.parse(a.sesion.inicio) - Date.parse(b.sesion.inicio)));
-    const { paginas, actual, visibles } = paginar(filtradas, pagina, FILAS_POR_PAGINA);
     const elegir = (p: Periodo) => {
-        setPagina(0);
         const nuevos = new URLSearchParams(params);
-        if (p === 'hoy') nuevos.delete('ver');
-        else nuevos.set('ver', p);
+        if (p === 'hoy') nuevos.delete('ver'); else nuevos.set('ver', p);
         setParams(nuevos);
     };
     const limpiar = () => { setBusqueda(''); setFiltro(''); elegir('hoy'); };
-    const cerradas = sesiones.filter(s => s.cerrada);
-    const asistentes = cerradas.reduce((n, s) => n + s.presentes, 0);
-    const total = cerradas.reduce((n, s) => n + s.total, 0);
+    const porPasar = filas.filter(f => f.estado.clave === 'pendiente');
+    const cerradas = filas.filter(f => f.sesion.cerrada);
+    const asistentes = cerradas.reduce((n, f) => n + f.sesion.presentes, 0);
+    const total = cerradas.reduce((n, f) => n + f.sesion.total, 0);
+    const ultimas = [...cerradas].sort((a, b) => Date.parse(b.sesion.inicio) - Date.parse(a.sesion.inicio)).slice(0, 4);
+    const proximas = filas.filter(f => f.fecha >= hoy && f.estado.clave === 'futura').sort((a, b) => Date.parse(a.sesion.inicio) - Date.parse(b.sesion.inicio)).slice(0, 3);
+    const resumen = `${BASE_ASISTENCIA}/resumen${search}`;
 
     return <>
-        <AccesosRapidos accesos={[
-            { clave: 'hoy', icono: <IconoBandera />, cifra: grupos.hoy.length, titulo: 'Sesiones de hoy', texto: diaLargo(hoy), enlace: 'Ver hoy', tono: 'azul', activo: periodo === 'hoy', alPresionar: () => elegir('hoy') },
-            { clave: 'pendientes', icono: <IconoReloj />, cifra: filas.filter(f => f.estado.clave === 'pendiente').length, titulo: 'Por pasar lista', texto: 'Sesiones que ya iniciaron.', enlace: 'Ver anteriores', tono: 'guinda', activo: periodo === 'anteriores', alPresionar: () => elegir('anteriores') },
-            { clave: 'promedio', icono: <IconoLista />, cifra: `${porcentaje(asistentes, total)}%`, titulo: 'Asistencia promedio', texto: `${cerradas.length} listas cerradas`, enlace: 'Ver resumen', tono: 'gris', alPresionar: () => navigate(`${BASE_ASISTENCIA}/resumen${search}`) },
-        ]} />
-        <ControlesLista etiqueta="Filtros de asistencia"
-            chips={{ etiqueta: 'Periodo', activa: periodo, alElegir: elegir, opciones: [
-                { valor: 'hoy', texto: `Hoy (${grupos.hoy.length})` },
-                { valor: 'semana', texto: `Esta semana (${grupos.semana.length})` },
-                { valor: 'anteriores', texto: `Anteriores (${grupos.anteriores.length})` },
-            ] }}
-            busqueda={{ etiqueta: 'Buscar actividad', marcador: 'Nombre de la actividad…', texto: busqueda, alBuscar: v => { setBusqueda(v); setPagina(0); } }}
-            grupos={[{ etiqueta: 'Estado de la lista', opciones: [{ valor: '', texto: 'Todas' }, { valor: 'pendiente', texto: 'Por pasar lista' }, { valor: 'cerrada', texto: 'Lista cerrada' }, { valor: 'futura', texto: 'Aún no empieza' }, { valor: 'cancelada', texto: 'Cancelada' }], activa: filtro, alElegir: v => { setFiltro(v); setPagina(0); } }]}
-            alLimpiar={limpiar}
-        />
-        <SeccionLista id="asistencia-lista" icono={<IconoLista />} titulo={TITULOS[periodo]}>
-            <CuerpoLista>
+        <Encabezado titulo="Asistencia" texto="Pasa lista a las personas inscritas el día de la actividad y cierra la lista al terminar.">
+            <Cifra icono="hoy" valor={grupos.hoy.length} texto={grupos.hoy.length === 1 ? 'sesión hoy' : 'sesiones hoy'} activa={periodo === 'hoy' && !filtro} alPresionar={() => { setFiltro(''); elegir('hoy'); }} />
+            <Cifra icono="reloj" tono="vino" valor={porPasar.length} texto="por pasar lista" activa={filtro === 'pendiente'}
+                alPresionar={() => { setFiltro(filtro === 'pendiente' ? '' : 'pendiente'); if (periodo !== 'anteriores') elegir('anteriores'); }} />
+            <Cifra icono="estadisticas" valor={`${porcentaje(asistentes, total)}%`} texto="asistencia promedio" alPresionar={() => navigate(resumen)} />
+        </Encabezado>
+
+        <div className="pz-columnas">
+            <Tarjeta icono="asistencia" id="asistencia-lista" titulo={TITULOS[periodo]} texto="Abre una sesión para marcar quién asistió" className="pz-pendientes">
+                <Buscador etiqueta="Buscar actividad" placeholder="Nombre de la actividad" valor={busqueda} alCambiar={setBusqueda}>
+                    <FiltrosAvanzados activos={(periodo !== 'hoy' ? 1 : 0) + (filtro ? 1 : 0)} alQuitar={() => { setFiltro(''); elegir('hoy'); }} grupos={[
+                        { titulo: 'Periodo', valor: periodo, alCambiar: v => elegir(v as Periodo), opciones: [
+                            { valor: 'hoy', texto: 'Hoy', cantidad: grupos.hoy.length },
+                            { valor: 'semana', texto: 'Esta semana', cantidad: grupos.semana.length },
+                            { valor: 'anteriores', texto: 'Anteriores', cantidad: grupos.anteriores.length }] },
+                        { titulo: 'Estado de la lista', valor: filtro, alCambiar: setFiltro, opciones: [
+                            { valor: '', texto: 'Todas' }, { valor: 'pendiente', texto: 'Por pasar lista', cantidad: porPasar.length },
+                            { valor: 'cerrada', texto: 'Lista cerrada', cantidad: cerradas.length },
+                            { valor: 'futura', texto: 'Aún no empieza' }, { valor: 'cancelada', texto: 'Cancelada' }] },
+                    ]} />
+                </Buscador>
                 {filtradas.length === 0 ? (
-                    <EstadoVacio icono={vacioBuscar} titulo="No hay sesiones para mostrar"
-                        texto={texto || filtro ? 'Prueba con otra búsqueda, estado o periodo.' : 'Consulta otro periodo para pasar lista o corregir una marca.'}
-                        accion={texto || filtro ? { texto: 'Quitar filtros', alPresionar: limpiar }
-                            : periodo !== 'anteriores' ? { texto: 'Ver anteriores', alPresionar: () => elegir('anteriores') } : undefined} />
+                    texto || filtro
+                        ? <Vacio icono="buscarCuenta" titulo={texto ? `Sin resultados para ${busqueda.trim()}` : 'No hay sesiones con este estado'} texto="Prueba con otra palabra, otro estado o cambia el periodo."
+                            accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={limpiar}>Quitar filtros</button>} />
+                        : <Vacio icono="asistencia" titulo={periodo === 'hoy' ? 'No hay sesiones hoy' : 'No hay sesiones en este periodo'} texto="Revisa las anteriores para pasar o corregir listas."
+                            accion={periodo !== 'anteriores' ? <button type="button" className="pz-boton pz-boton--chico" onClick={() => elegir('anteriores')}>Ver anteriores</button> : undefined} />
                 ) : (
-                    <ul className="pz-filas" aria-label={TITULOS[periodo]}>{visibles.map(f => <li key={f.sesion.id}>
-                        <article className={`pz-fila${f.estado.clave === 'pendiente' ? ' pz-fila--espera' : ''}`}>
-                            <span className="pz-fecha" aria-hidden="true"><strong>{fechaCorta(f.fecha).split(' ')[0]}</strong><span>{fechaCorta(f.fecha).split(' ')[1]}</span></span>
-                            <div className="pz-fila__textos"><h4 className="pz-fila__titulo">{f.sesion.nombre}</h4>
-                                <p className="pz-fila__detalle"><span>{f.sesion.folio}</span><span>{f.hora}</span><span>{f.sesion.espacio}</span><span>{f.sesion.inscritos} inscritos</span></p></div>
-                            <Chip tono={f.estado.tono}>{f.estado.texto}</Chip>
-                            <Link to={rutaLista(f.sesion, search)} className="pz-boton pz-boton--chico">{f.estado.clave === 'pendiente' ? 'Pasar lista' : 'Ver lista'}<span className="tr-oculto"> {f.sesion.nombre}</span></Link>
-                        </article></li>)}</ul>
+                    <div className="pz-grupos" tabIndex={0} role="region" aria-label={TITULOS[periodo]}>
+                        <ul className="pz-filas">{filtradas.map(f => {
+                            const [d, m] = partesFecha(f.fecha);
+                            const e = f.estado;
+                            return <li key={f.sesion.id}>
+                                <article className={`pz-fila${e.clave === 'pendiente' ? ' pz-fila--espera' : ''}`}>
+                                    <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{m}</span></span>
+                                    <div className="pz-fila__textos">
+                                        <h4 className="pz-fila__titulo">{f.sesion.nombre}</h4>
+                                        <p className="pz-fila__detalle"><span className="pz-fila__folio">{f.sesion.folio}</span><span>{f.hora} h</span><span>{f.sesion.espacio}</span>
+                                            <span>{f.sesion.cerrada ? `${f.sesion.presentes} de ${f.sesion.total} asistieron` : `${f.sesion.inscritos} inscritos`}</span></p>
+                                    </div>
+                                    <Chip tono={e.tono}>{e.texto}</Chip>
+                                    {e.clave === 'cancelada' ? <span className="as-sin-lista">Sin lista</span>
+                                        : <Link to={rutaLista(f.sesion, search)} className={`pz-boton pz-boton--chico${e.clave === 'pendiente' ? '' : ' pz-boton--contorno'}`}>
+                                            {e.clave === 'cerrada' ? 'Ver lista' : e.clave === 'pendiente' ? 'Pasar lista' : 'Ver inscritos'}<span className="solo-lectores"> {f.sesion.nombre}</span></Link>}
+                                </article>
+                            </li>;
+                        })}</ul>
+                    </div>
                 )}
-            </CuerpoLista>
-            {filtradas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${filtradas.length} sesiones`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
-        </SeccionLista>
+                <div className="pz-tarjeta__pie"><p aria-live="polite">{filtradas.length} {filtradas.length === 1 ? 'sesión' : 'sesiones'}</p></div>
+            </Tarjeta>
+            <aside className="pz-lateral" aria-label="Próximas y últimas listas">
+                <Tarjeta icono="hoy" id="asistencia-proximas" titulo="Próximas listas" texto={proximas.length ? 'Las siguientes sesiones con inscripción' : 'Nada programado'}>
+                    {proximas.length ? <ul className="pz-actividades">{proximas.map(f => {
+                        const [d, m] = partesFecha(f.fecha);
+                        return <li key={f.sesion.id}>
+                            <span className="pz-actividades__hora"><strong>{d}</strong><span>{m}</span></span>
+                            <div className="pz-actividades__textos">
+                                <Link to={rutaLista(f.sesion, search)} className="pz-actividades__titulo pz-enlace-fila">{f.sesion.nombre}</Link>
+                                <p className="pz-actividades__detalle">{f.hora} h, {f.sesion.espacio}. {f.sesion.inscritos} inscritos</p>
+                            </div>
+                        </li>;
+                    })}</ul> : <p className="pz-acciones__nota">Cuando se programe una sesión con inscripción, su lista aparecerá aquí.</p>}
+                </Tarjeta>
+                <Tarjeta icono="estadisticas" id="asistencia-ultimas" titulo="Últimas listas cerradas" texto={`${cerradas.length} ${cerradas.length === 1 ? 'lista cerrada' : 'listas cerradas'} en total`} className="pz-tarjeta--actividades">
+                    {ultimas.length ? <ol className="pz-ranking">{ultimas.map(f => {
+                        const p = porcentaje(f.sesion.presentes, f.sesion.total);
+                        return <li key={f.sesion.id}>
+                            <span className="pz-ranking__lugar" aria-hidden="true"><Icono nombre="asistencia" /></span>
+                            <div className="pz-ranking__textos">
+                                <Link to={rutaLista(f.sesion, search)} className="pz-ranking__nombre pz-enlace-fila">{f.sesion.nombre}</Link>
+                                <span className={`pz-ranking__barra as-barra--${tonoPct(p)}`} aria-hidden="true"><span style={{ width: `${p}%` }} /></span>
+                            </div>
+                            <p className="pz-ranking__valor"><strong>{p}%</strong><span>{fechaCorta(f.fecha)}</span></p>
+                        </li>;
+                    })}</ol> : <Vacio icono="asistencia" titulo="Aún no hay listas cerradas" texto="Al cerrar una lista verás aquí su asistencia." />}
+                    <Link to={resumen} className="pz-boton pz-boton--contorno pz-boton--chico cal-ver-dia">Resumen del mes</Link>
+                </Tarjeta>
+                <Plegable titulo="Cómo se pasa lista">
+                    <ul>
+                        <li>El día de la sesión abre su lista y marca a cada persona como presente o ausente.</li>
+                        <li>Puedes guardar y seguir después; al terminar, cierra la lista.</li>
+                        <li>Ya cerrada, un cambio es una corrección con motivo y queda en el historial.</li>
+                    </ul>
+                </Plegable>
+            </aside>
+        </div>
     </>;
 }
 
@@ -203,10 +253,12 @@ function DetalleAsistencia({ mostrarCierre = false }: { mostrarCierre?: boolean 
     const { search } = useLocation();
     const identidad = useContext(ContextoPanel);
     const demo = useDemostracion();
-    return <PanelLayout titulo="Actividades" tema="contenidos">
-        <Migas raiz="Actividades" pasos={[[ 'Asistencia', BASE_ASISTENCIA + search ], [mostrarCierre ? 'Lista cerrada' : 'Lista de la sesión']]} />
-        {demo ? <DetalleDemo key={folio} folio={folio} mostrarCierre={mostrarCierre} />
-            : <DetalleReal key={`${identidad?.acceso.usuarioId}:${folio}`} id={folio} mostrarCierre={mostrarCierre} />}
+    return <PanelLayout titulo="Actividades" tema="contenidos paleta">
+        <Migas raiz="Actividades" pasos={[['Asistencia', BASE_ASISTENCIA + search], [mostrarCierre ? 'Lista cerrada' : 'Pasar lista']]} />
+        <div className="pz-pagina">
+            {demo ? <DetalleDemo key={folio} folio={folio} mostrarCierre={mostrarCierre} />
+                : <DetalleReal key={`${identidad?.acceso.usuarioId}:${folio}`} id={folio} mostrarCierre={mostrarCierre} />}
+        </div>
     </PanelLayout>;
 }
 
@@ -272,14 +324,22 @@ function DetalleDemo({ folio, mostrarCierre }: { folio: string; mostrarCierre: b
 function ConfirmacionCierre({ sesion }: { sesion: SesionAsistencia }) {
     const { search } = useLocation();
     if (!sesion.cerrada) return <Navigate to={rutaLista(sesion, search)} replace />;
+    const { fecha, hora } = horario(sesion);
+    const p = porcentaje(sesion.presentes, sesion.total);
     return <>
-        <EncabezadoPagina titulo="Lista cerrada" texto={sesion.nombre} />
-        <AvisoResultado tono="exito" titulo="Asistencia guardada"
-            texto={`${sesion.presentes} presentes y ${sesion.ausentes} ausentes`} chip="Lista cerrada" />
-        <div className="tr-acciones">
-            <Link to={BASE_ASISTENCIA + search} className="contenidos-boton contenidos-boton--oscuro">Volver a Asistencia</Link>
-            <Link to={rutaLista(sesion, search)} className="contenidos-boton contenidos-boton--contorno">Ver la lista</Link>
-        </div>
+        <Encabezado titulo="Lista cerrada" texto="La asistencia quedó registrada.">
+            <Link to={BASE_ASISTENCIA + search} className="pz-boton">Volver a Asistencia</Link>
+        </Encabezado>
+        <Tarjeta icono="check" id="lista-cerrada" titulo={sesion.nombre} texto={`${diaLargo(fecha)}, ${hora} h`} accion={<Chip tono="verde">Lista cerrada</Chip>}>
+            <div className="pz-envio-ok" role="status">
+                <span className="pz-envio-ok__insignia" aria-hidden="true"><Icono nombre="check" /></span>
+                <p><strong>{sesion.presentes} presentes y {sesion.ausentes} ausentes.</strong> {p}% de asistencia.</p>
+            </div>
+            <div className="pz-acciones pz-acciones--fila">
+                <Link to={rutaLista(sesion, search)} className="pz-boton pz-boton--contorno pz-boton--chico">Ver la lista</Link>
+                <Link to={`${BASE_ASISTENCIA}/resumen${search}`} className="pz-boton pz-boton--contorno pz-boton--chico">Resumen del mes</Link>
+            </div>
+        </Tarjeta>
     </>;
 }
 
@@ -296,20 +356,26 @@ function EditarLista({ lista, guardar, guardarCambio, actualizar, demo = false }
     const { sesion, personas, correcciones } = lista;
     const navigate = useNavigate();
     const { search } = useLocation();
-    const [pagina, setPagina] = useState(0);
     const [borrador, setBorrador] = useState<Record<string, EstatusAsistencia>>({});
     const [ventana, setVentana] = useState<'cerrar' | 'agregar' | PersonaEditable | null>(null);
     const [motivo, setMotivo] = useState('');
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
     const [guardado, setGuardado] = useState('');
+    const [verMarca, setVerMarca] = useState<'todas' | 'sin' | EstatusAsistencia>('todas');
+    const [buscarPersona, setBuscarPersona] = useState('');
     const estado = estadoLista(sesion);
     const lectura = estado.clave === 'futura' || estado.clave === 'cancelada';
+    const cerrada = !!sesion.cerrada;
     const { fecha, hora } = horario(sesion);
-    const { paginas, actual, visibles } = paginar(personas, pagina, POR_PAGINA);
     const cambios = Object.entries(borrador).map(([usuarioId, estatus]) => ({ usuarioId, estatus }));
+    const marcaDe = (p: PersonaEditable) => borrador[p.usuarioId] ?? p.marca ?? 'sin';
     const sinMarcar = personas.filter(p => p.confirmada && !p.marca && !borrador[p.usuarioId]);
     const avance = porcentaje(sesion.presentes + sesion.ausentes, sesion.total);
+    const asistencia = porcentaje(sesion.presentes, sesion.total);
+    const textoPersona = buscarPersona.trim().toLowerCase();
+    const cuenta = (m: 'sin' | EstatusAsistencia) => personas.filter(p => marcaDe(p) === m).length;
+    const visibles = personas.filter(p => (verMarca === 'todas' || marcaDe(p) === verMarca) && (!textoPersona || p.nombre.toLowerCase().includes(textoPersona)));
 
     function cambiarMarca(p: PersonaEditable, marca: EstatusAsistencia) {
         setGuardado('');
@@ -320,38 +386,22 @@ function EditarLista({ lista, guardar, guardarCambio, actualizar, demo = false }
             return siguiente;
         });
     }
-
-    function abrir(accion: typeof ventana) {
-        setMotivo('');
-        setError('');
-        setVentana(accion);
-    }
-
-    function marcarPendientes() {
+    function abrir(accion: typeof ventana) { setMotivo(''); setError(''); setVentana(accion); }
+    function marcarPendientes(marca: EstatusAsistencia) {
         setGuardado('');
         setBorrador(previo => {
             const siguiente = { ...previo };
-            for (const p of sinMarcar) siguiente[p.usuarioId] = 'presente';
+            for (const p of sinMarcar) siguiente[p.usuarioId] = marca;
             return siguiente;
         });
     }
-
     async function ejecutar(accion: () => Promise<void>, mensaje: string) {
         if (guardando) return;
-        setError('');
-        setGuardado('');
-        setGuardando(true);
-        try {
-            await accion();
-            setGuardado(mensaje);
-            setVentana(null);
-        } catch (e) {
-            setError(mensajeError(e));
-        } finally {
-            setGuardando(false);
-        }
+        setError(''); setGuardado(''); setGuardando(true);
+        try { await accion(); setGuardado(mensaje); setVentana(null); }
+        catch (e) { setError(mensajeError(e)); }
+        finally { setGuardando(false); }
     }
-
     function guardarMarcas(cerrar: boolean) {
         void ejecutar(async () => {
             await guardar(cambios, cerrar);
@@ -359,7 +409,6 @@ function EditarLista({ lista, guardar, guardarCambio, actualizar, demo = false }
             if (cerrar) navigate(`${BASE_ASISTENCIA}/${sesion.id}/cerrada${search}`);
         }, 'Asistencia guardada');
     }
-
     function corregirMarca(p: PersonaEditable) {
         if (!motivo.trim()) { setError('Escribe el motivo de la corrección.'); return; }
         if (p.version === null) return;
@@ -368,95 +417,102 @@ function EditarLista({ lista, guardar, guardarCambio, actualizar, demo = false }
     }
 
     return <>
-        <EncabezadoPagina volver={{ texto: 'Volver a Asistencia', ruta: BASE_ASISTENCIA + search }}
-            titulo={sesion.nombre} texto={`Sesión del ${fechaCorta(fecha)} a las ${hora} en ${sesion.espacio}`}
-            accion={<Chip tono={estado.tono}>{estado.clave === 'pendiente' ? 'Lista abierta' : estado.texto}</Chip>} />
-        {error && !ventana && <AvisoResultado tono="error" titulo="No se pudo guardar la asistencia" texto={error} chip="Sin guardar" />}
-        {guardado && <AvisoResultado tono="exito" titulo={guardado} texto="El cambio quedó registrado en esta sesión." chip="Guardada" />}
-        <section className="ac-cupo-sesion" aria-label="Asistencia guardada">
-            <div className="ac-cupo-sesion__cifras">
-                <div><span>Presentes</span><strong>{sesion.presentes}</strong></div>
-                <div><span>Ausentes</span><strong>{sesion.ausentes}</strong></div>
-                <div><span>Sin marcar</span><strong>{sesion.sinMarcar}</strong></div>
-                <div><span>Inscritos confirmados</span><strong>{sesion.inscritos}</strong></div>
-            </div>
-            <div className="ac-cupo">
-                <span className="ac-cupo__barra"><span className={`ac-cupo__relleno ac-cupo__relleno--${avance === 100 ? 'verde' : 'dorado'}`} style={{ width: `${avance}%` }} /></span>
-                <span>{sesion.cerrada ? `Cerró ${sesion.cerrada.quien} el ${fechaCorta(ahoraTepic(new Date(sesion.cerrada.fecha)).fecha)}.` : `${avance}% de la lista guardada`}</span>
-            </div>
-        </section>
-        <SeccionLista id="asistencia-personas" icono={<IconoLista />} titulo="Personas en la lista"
-            extra={<>
-                {!lectura && !sesion.cerrada && sinMarcar.length > 0 && <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico"
-                    disabled={guardando} onClick={marcarPendientes}>Marcar pendientes como presentes</button>}
-                {actualizar && <button type="button" className="contenidos-boton contenidos-boton--contorno contenidos-boton--chico"
-                    disabled={guardando} onClick={actualizar}>{cambios.length ? 'Descartar cambios y actualizar' : 'Actualizar lista'}</button>}
-            </>}>
-            {personas.length === 0 ? <EstadoVacio icono={vacioCheck} titulo="No hay personas inscritas"
-                texto="Aquí aparecerán las inscripciones confirmadas para esta sesión." /> : (
-                <ul className="ac-inscritos">
-                    {visibles.map(p => {
-                        const marca = borrador[p.usuarioId] ?? p.marca ?? 'sin';
-                        const editable = !lectura && !sesion.cerrada && p.confirmada && (!p.marca || demo);
-                        return <li key={p.usuarioId} className="ac-inscrito">
-                            <div className="ac-inscrito__fila ac-inscrito__fila--lista">
-                                <span className="ac-inscrito__textos"><strong>{p.nombre}</strong>
-                                    {!p.confirmada && <small>{p.extra ? 'Llegó sin inscripción' : 'Asistencia registrada'}</small>}
-                                    {p.motivoAnterior && <small>Motivo de corrección anterior · {p.motivoAnterior}</small>}
-                                </span>
-                                {demo && editable && <input className="tr-entrada ac-nota" placeholder="Nota opcional"
-                                    aria-label={`Nota de ${p.nombre}`} value={p.nota}
-                                    onChange={e => anotar(sesion.id, p.usuarioId, e.target.value)} />}
-                                <Chip tono={TONOS[marca]}>{NOMBRE_MARCA[marca]}</Chip>
-                                {editable && <span className="contenidos-filtros ac-marcar" role="group" aria-label={`Asistencia de ${p.nombre}`}>
-                                    {MARCAS.map(op => <button key={op} type="button" disabled={guardando} aria-pressed={marca === op}
-                                        className={`contenidos-filtro ac-marcar__${op}${marca === op ? ' contenidos-filtro--activo' : ''}`}
-                                        onClick={() => cambiarMarca(p, op)}>{NOMBRE_MARCA[op]}</button>)}
-                                </span>}
-                                {!lectura && p.marca && !editable && !p.extra && <button type="button" disabled={guardando}
-                                    className="contenidos-tabla__accion ac-boton-texto" onClick={() => abrir(p)}>Corregir<span className="tr-oculto"> {p.nombre}</span></button>}
-                            </div>
-                        </li>;
-                    })}
-                </ul>
-            )}
-            {personas.length > 0 && <PieLista texto={`Mostrando ${visibles.length} de ${personas.length} personas`} pagina={actual} paginas={paginas} alCambiar={setPagina} />}
-            {correcciones.length > 0 && <div className="tr-datos__bloque">
-                <h3 className="at-subtitulo">Correcciones registradas</h3>
-                <ol className="tr-eventos">{correcciones.map(c => <li key={c.id} className="tr-eventos--hecho">
-                    <strong>{c.persona} · {NOMBRE_MARCA[c.anterior]} → {NOMBRE_MARCA[c.nuevo]}</strong>
-                    <small>{c.quien} · {new Date(c.fecha).toLocaleString('es-MX', { timeZone: 'America/Mazatlan', dateStyle: 'medium', timeStyle: 'short' })}</small>
-                    <small>{c.motivo}</small>
-                </li>)}</ol>
-            </div>}
-        </SeccionLista>
+        <Encabezado titulo={sesion.nombre} texto={`${diaLargo(fecha)}, ${hora} h, ${sesion.espacio}. ${sesion.inscritos} inscritos.`}>
+            <Cifra icono="check" valor={sesion.presentes} texto="presentes" />
+            <Cifra icono="alerta" tono="vino" valor={sesion.ausentes} texto="ausentes" />
+            <Cifra icono="reloj" valor={sesion.sinMarcar} texto="sin marcar" />
+        </Encabezado>
+        {error && !ventana && <Aviso tono="error" titulo="No se pudo guardar la asistencia." texto={`${error} Tus marcas siguen en pantalla; inténtalo de nuevo.`} />}
+        {guardado && <Aviso titulo={`${guardado}.`} texto="Puedes seguir marcando o cerrar la lista cuando termines." />}
 
-        {!lectura && !sesion.cerrada && <div className="ac-barra-acciones">
-            {demo && <button type="button" className="contenidos-boton contenidos-boton--contorno" onClick={() => abrir('agregar')}>Agregar persona sin inscripción</button>}
-            <span className="ac-barra-acciones__derecha">
-                {cambios.length > 0 && <span role="status">Tienes marcas sin guardar</span>}
-                <button type="button" className="contenidos-boton contenidos-boton--contorno" disabled={guardando || cambios.length === 0}
-                    onClick={() => guardarMarcas(false)}>Guardar y seguir</button>
-                <button type="button" className="contenidos-boton contenidos-boton--oscuro" disabled={guardando} onClick={() => abrir('cerrar')}>Cerrar lista</button>
-            </span>
-        </div>}
+        <div className="pz-columnas">
+            <Tarjeta icono="grupo" id="pasar-lista" titulo={cerrada ? 'Registro de asistencia' : 'Personas inscritas'} className="pz-pendientes"
+                texto={cerrada ? 'Para cambiar una marca, usa Corregir: queda en el historial' : lectura ? 'La lista se abre cuando empieza la sesión' : 'Marca a cada persona; puedes guardar y seguir después'}
+                accion={!lectura && !cerrada && sinMarcar.length > 0 ? <div className="pz-acciones pz-acciones--fila">
+                    <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={guardando} onClick={() => marcarPendientes('presente')}>Pendientes a presentes</button>
+                    <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={guardando} onClick={() => marcarPendientes('ausente')}>Pendientes a ausentes</button>
+                </div> : undefined}>
+                {personas.length > 0 && <Buscador etiqueta="Buscar persona" placeholder="Nombre de la persona" valor={buscarPersona} alCambiar={setBuscarPersona}>
+                    <FiltrosAvanzados activos={verMarca !== 'todas' ? 1 : 0} alQuitar={() => setVerMarca('todas')} grupos={[
+                        { titulo: 'Marca', valor: verMarca, alCambiar: v => setVerMarca(v as typeof verMarca), opciones: [
+                            { valor: 'todas', texto: 'Todas', cantidad: personas.length },
+                            ...(cerrada ? [] : [{ valor: 'sin', texto: 'Sin marcar', cantidad: cuenta('sin') }]),
+                            { valor: 'presente', texto: 'Presentes', cantidad: cuenta('presente') },
+                            { valor: 'ausente', texto: 'Ausentes', cantidad: cuenta('ausente') }] },
+                    ]} />
+                </Buscador>}
+                {personas.length === 0 ? <Vacio icono="grupo" titulo="No hay personas inscritas" texto="Aquí aparecerán las inscripciones confirmadas para esta sesión." />
+                    : visibles.length === 0 ? <Vacio icono="buscarCuenta" titulo="Nadie con ese filtro" texto="Prueba con otra marca u otro nombre."
+                        accion={<button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" onClick={() => { setVerMarca('todas'); setBuscarPersona(''); }}>Ver a todas</button>} /> : (
+                    <div className="pz-grupos" tabIndex={0} role="region" aria-label="Lista de asistencia">
+                        <ul className="pz-filas">{visibles.map(p => {
+                            const m = marcaDe(p);
+                            const n = personas.indexOf(p);
+                            const editable = !lectura && !cerrada && p.confirmada && (!p.marca || demo);
+                            const corregible = !lectura && !!p.marca && !editable && !p.extra;
+                            return <li key={p.usuarioId}>
+                                <article className={`pz-fila as-fila as-fila--${m}`}>
+                                    <span className="as-numero" aria-hidden="true">{String(n + 1).padStart(2, '0')}</span>
+                                    <div className="pz-fila__textos">
+                                        <h4 className="pz-fila__titulo">{p.nombre}</h4>
+                                        {p.extra ? <p className="pz-fila__detalle"><span>Llegó sin inscripción</span></p>
+                                            : p.motivoAnterior ? <p className="pz-fila__detalle"><span>Corregida: {p.motivoAnterior}</span></p>
+                                            : demo && editable ? <input className="as-nota" placeholder="Nota (opcional)" aria-label={`Nota de ${p.nombre}`} value={p.nota ?? ''} onChange={e => anotar(sesion.id, p.usuarioId, e.target.value)} />
+                                            : null}
+                                    </div>
+                                    {editable ? (
+                                        <div className="pz-segmentado as-marcar" role="group" aria-label={`Asistencia de ${p.nombre}`}>
+                                            {MARCAS.map(op => <button key={op} type="button" disabled={guardando} aria-pressed={m === op}
+                                                className={`pz-opcion as-marcar__${op}${m === op ? ' pz-opcion--activa' : ''}`} onClick={() => cambiarMarca(p, op)}>{NOMBRE_MARCA[op]}</button>)}
+                                        </div>
+                                    ) : <Chip tono={TONOS[m]}>{NOMBRE_MARCA[m]}</Chip>}
+                                    {corregible ? <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={guardando} onClick={() => abrir(p)}>Corregir<span className="solo-lectores"> {p.nombre}</span></button>
+                                        : <span aria-hidden="true" />}
+                                </article>
+                            </li>;
+                        })}</ul>
+                    </div>
+                )}
+                <div className="pz-tarjeta__pie"><p aria-live="polite">{visibles.length} de {personas.length} {personas.length === 1 ? 'persona' : 'personas'}</p></div>
+            </Tarjeta>
+
+            <aside className="pz-lateral" aria-label="Avance de la lista">
+                <Tarjeta icono="asistencia" id="as-avance" titulo={cerrada ? 'Lista cerrada' : lectura ? 'Lista aún cerrada' : 'Avance de la lista'} className="pz-tarjeta--actividades"
+                    texto={cerrada ? `Cerró ${sesion.cerrada!.quien} el ${fechaCorta(ahoraTepic(new Date(sesion.cerrada!.fecha)).fecha)}` : `${avance}% guardada`}
+                    accion={<Chip tono={cerrada ? 'verde' : estado.tono}>{cerrada ? 'Cerrada' : estado.clave === 'pendiente' ? 'Abierta' : estado.texto}</Chip>}>
+                    <div className={`ins-medidor ins-medidor--${cerrada ? tonoPct(asistencia) : avance === 100 ? 'verde' : 'dorado'}`} style={{ ['--p' as string]: `${cerrada ? asistencia : avance}%` }} role="img"
+                        aria-label={cerrada ? `${asistencia}% de asistencia` : `${avance}% de la lista guardada`}>
+                        <span className="ins-medidor__centro"><strong>{cerrada ? asistencia : avance}%</strong><small>{cerrada ? 'asistencia' : 'guardada'}</small></span>
+                    </div>
+                    {cambios.length > 0 && <p className="pz-acciones__nota" role="status">Tienes {cambios.length} {cambios.length === 1 ? 'marca' : 'marcas'} sin guardar.</p>}
+                    {correcciones.length > 0 && <LineaHistorial etiqueta="Correcciones de la lista" movimientos={[...correcciones].reverse().map(x => ({
+                        titulo: `${x.persona}: de ${NOMBRE_MARCA[x.anterior].toLowerCase()} a ${NOMBRE_MARCA[x.nuevo].toLowerCase()}`, tono: 'dorado' as const, icono: 'revision' as const, detalle: x.quien, nota: x.motivo,
+                    }))} />}
+                    {!lectura && !cerrada && <div className="pz-acciones">
+                        <button type="button" className="pz-boton" disabled={guardando} onClick={() => abrir('cerrar')}>Cerrar lista</button>
+                        <button type="button" className="pz-boton pz-boton--contorno" disabled={guardando || cambios.length === 0} onClick={() => guardarMarcas(false)}>{guardando ? 'Guardando…' : 'Guardar y seguir'}</button>
+                        {demo && <button type="button" className="pz-boton pz-boton--contorno" onClick={() => abrir('agregar')}>Agregar persona sin inscripción</button>}
+                    </div>}
+                    {actualizar && <button type="button" className="pz-boton pz-boton--contorno pz-boton--chico" disabled={guardando} onClick={actualizar}>{cambios.length ? 'Descartar cambios y actualizar' : 'Actualizar lista'}</button>}
+                    <Link to={BASE_ASISTENCIA + search} className="pz-enlace">Volver a Asistencia</Link>
+                </Tarjeta>
+            </aside>
+        </div>
 
         {ventana === 'cerrar' && <Ventana tono="verde" icono={modalCheck} angosta titulo="¿Cerrar la lista de asistencia?"
-            texto={sinMarcar.length ? `Se guardarán tus marcas y se registrarán ${sinMarcar.length} ausencias por las personas sin marcar.`
-                : 'Se guardarán tus marcas. La lista seguirá disponible para consultar y corregir.'}
+            texto={sinMarcar.length ? `Quedan ${sinMarcar.length} sin marcar: se registrarán como ausentes. Después, los cambios requieren una corrección con motivo.`
+                : 'Se guardarán tus marcas. Después, los cambios requieren una corrección con motivo.'}
             textoConfirmar="Cerrar lista" textoCancelar="Seguir editando" ocupada={guardando} error={error}
             alConfirmar={() => guardarMarcas(true)} alCerrar={() => { if (!guardando) abrir(null); }} />}
         {ventana === 'agregar' && <DemoExtras folio={sesion.id} alCerrar={() => abrir(null)} />}
         {ventana && typeof ventana === 'object' && <Ventana tono="dorado" icono={modalInfo}
             titulo={`Corregir asistencia de ${ventana.nombre}`}
-            texto={`Se cambiará de ${ventana.marca === 'presente' ? 'presente a ausente' : 'ausente a presente'}. El historial guardará tu nombre y el motivo.`}
+            texto={`Se cambiará de ${ventana.marca === 'presente' ? 'presente a ausente' : 'ausente a presente'}. El historial guardará tu nombre, la fecha y el motivo.`}
             textoConfirmar="Guardar corrección" ocupada={guardando} error={error}
             alConfirmar={() => corregirMarca(ventana)} alCerrar={() => { if (!guardando) abrir(null); }}>
-            <div className="contenidos-campo">
-                <label htmlFor="as-motivo">Motivo de la corrección</label>
-                <textarea id="as-motivo" rows={3} required maxLength={500} value={motivo} disabled={guardando}
-                    onChange={e => { setMotivo(e.target.value); setError(''); }} />
-            </div>
+            <label className="pz-campo pz-campo--lleno"><span>Motivo de la corrección <span className="contenidos-campo__obligatorio">*</span></span>
+                <textarea rows={3} required maxLength={500} placeholder="Ej.: sí asistió, se marcó por error." value={motivo} disabled={guardando}
+                    onChange={e => { setMotivo(e.target.value); setError(''); }} /></label>
         </Ventana>}
     </>;
 }
@@ -464,45 +520,56 @@ function EditarLista({ lista, guardar, guardarCambio, actualizar, demo = false }
 export function ResumenAsistencia() {
     const { search } = useLocation();
     const hoy = ahoraTepic().fecha;
-    const [anio, mes] = hoy.split('-').map(Number);
-    const nombre = new Date(anio, mes - 1, 1).toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
-    return <PanelLayout titulo="Actividades" tema="contenidos">
-        <Migas raiz="Actividades" pasos={[[ 'Asistencia', BASE_ASISTENCIA + search ], ['Resumen del mes']]} />
-        <EncabezadoPagina volver={{ texto: 'Volver a Asistencia', ruta: BASE_ASISTENCIA + search }}
-            titulo={`Resumen de ${nombre}`} texto="Asistencia registrada en las sesiones de este mes." />
-        <CargarSesiones mostrar={sesiones => <CifrasDelMes sesiones={sesiones.filter(s => {
-            const fecha = horario(s).fecha;
-            return fecha.slice(0, 7) === hoy.slice(0, 7) && fecha <= hoy;
-        })} />} />
+    return <PanelLayout titulo="Actividades" tema="contenidos paleta">
+        <Migas raiz="Actividades" pasos={[['Asistencia', BASE_ASISTENCIA + search], ['Resumen del mes']]} />
+        <div className="pz-pagina">
+            <CargarSesiones mostrar={sesiones => <CifrasDelMes sesiones={sesiones.filter(s => {
+                const fecha = horario(s).fecha;
+                return fecha.slice(0, 7) === hoy.slice(0, 7) && fecha <= hoy;
+            })} />} />
+        </div>
     </PanelLayout>;
 }
 
 function CifrasDelMes({ sesiones }: { sesiones: SesionAsistencia[] }) {
     const { search } = useLocation();
+    const hoy = ahoraTepic().fecha;
+    const [anio, mes] = hoy.split('-').map(Number);
+    const nombreMes = new Date(anio, mes - 1, 1).toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
+    const ordenadas = [...sesiones].sort((a, b) => Date.parse(b.inicio) - Date.parse(a.inicio));
     const cerradas = sesiones.filter(s => s.cerrada);
     const asistentes = cerradas.reduce((n, s) => n + s.presentes, 0);
     const total = cerradas.reduce((n, s) => n + s.total, 0);
     const pendientes = sesiones.filter(s => estadoLista(s).clave === 'pendiente').length;
     return <>
-        <AccesosRapidos titulo="Cifras del mes" accesos={[
-            { clave: 'promedio', icono: <IconoBandera />, cifra: `${porcentaje(asistentes, total)}%`, titulo: 'Asistencia promedio', texto: 'De las listas cerradas.', tono: 'azul' },
-            { clave: 'asistentes', icono: <IconoLista />, cifra: asistentes, titulo: 'Presencias registradas', texto: `En ${cerradas.length} listas cerradas.`, tono: 'gris' },
-            { clave: 'pendientes', icono: <IconoAviso />, cifra: pendientes, titulo: 'Listas sin cerrar', texto: 'Sesiones que ya iniciaron.', tono: 'guinda' },
-        ]} />
-        <SeccionLista id="resumen-por-sesion" icono={<IconoLista />} titulo="Asistencia por sesión"
-            texto="El promedio se calcula con las listas cerradas.">
-            {sesiones.length === 0 ? <EstadoVacio icono={vacioCheck} titulo="No hay sesiones este mes"
-                texto="Aquí podrás consultar el registro de cada sesión." /> : (
-                <TablaLista clase="ac-tabla--resumen" etiqueta="Asistencia por sesión" filas={sesiones} clave={s => s.id}
-                    columnas={[
-                        { titulo: 'Folio', folio: true, celda: s => <Link to={rutaLista(s, search)} className="contenidos-tabla__accion">{s.folio}<span className="tr-oculto"> {horario(s).fecha} a las {horario(s).hora}</span></Link> },
-                        { titulo: 'Sesión', celda: s => <CeldaDoble arriba={s.nombre} abajo={`${fechaCorta(horario(s).fecha)} a las ${horario(s).hora}`} /> },
-                        { titulo: 'Inscritos', celda: s => s.inscritos },
-                        { titulo: 'Presentes', celda: s => s.presentes },
-                        { titulo: 'Asistencia', celda: s => s.cerrada ? `${porcentaje(s.presentes, s.total)}%` : '—' },
-                        { titulo: 'Lista', celda: s => { const estado = estadoLista(s); return <Chip tono={estado.tono}>{estado.texto}</Chip>; } },
-                    ]} />
+        <Encabezado titulo={`Resumen de ${nombreMes}`} texto="Cómo ha ido la asistencia en las sesiones ya realizadas. Las listas sin cerrar no cuentan en el promedio.">
+            <Cifra icono="estadisticas" valor={`${porcentaje(asistentes, total)}%`} texto="asistencia promedio" />
+            <Cifra icono="grupo" valor={asistentes} texto="asistentes" />
+            <Cifra icono="reloj" tono="vino" valor={pendientes} texto={pendientes === 1 ? 'lista sin cerrar' : 'listas sin cerrar'} />
+        </Encabezado>
+        <Tarjeta icono="asistencia" id="resumen-por-sesion" titulo="Por sesión" texto="De la más reciente a la más antigua"
+            accion={<Link to={BASE_ASISTENCIA + search} className="pz-boton pz-boton--contorno pz-boton--chico">Volver a Asistencia</Link>}>
+            {ordenadas.length === 0 ? <Vacio icono="asistencia" titulo="Todavía no hay sesiones realizadas este mes" texto="Cuando se cierre una lista, aparecerá aquí." /> : (
+                <ul className="pz-filas">{ordenadas.map(s => {
+                    const e = estadoLista(s);
+                    const { fecha } = horario(s);
+                    const p = porcentaje(s.presentes, s.total);
+                    const [d, m] = partesFecha(fecha);
+                    return <li key={s.id}>
+                        <article className="pz-fila as-resumen">
+                            <span className="pz-fecha" aria-hidden="true"><strong>{d}</strong><span>{m}</span></span>
+                            <div className="pz-fila__textos">
+                                <h4 className="pz-fila__titulo"><Link to={rutaLista(s, search)} className="pz-enlace-fila">{s.nombre}</Link></h4>
+                                <p className="pz-fila__detalle"><span className="pz-fila__folio">{s.folio}</span><span>{s.inscritos} inscritos</span>{s.cerrada && <span>{s.presentes} presentes</span>}</p>
+                            </div>
+                            {s.cerrada ? <span className="ins-cupo"><span className="ins-cupo__texto"><strong>{p}%</strong><small>asistencia</small></span>
+                                <span className="pz-ocupacion" aria-hidden="true"><span className={`pz-ocupacion__relleno pz-ocupacion__relleno--${tonoPct(p)}`} style={{ width: `${p}%` }} /></span></span>
+                                : <span className="pz-acciones__nota">Sin cerrar</span>}
+                            <Chip tono={e.tono}>{e.clave === 'cerrada' ? 'Cerrada' : e.texto}</Chip>
+                        </article>
+                    </li>;
+                })}</ul>
             )}
-        </SeccionLista>
+        </Tarjeta>
     </>;
 }

@@ -3909,3 +3909,167 @@
   .pagina-publica .portada__insignia { top: 2%; left: auto; right: 0; width: 88px; height: 88px; font-size: 11px; }
   .pagina-publica .portada__insignia strong { font-size: 20px; }
 }
+/* ==========================================================================
+   RESPONSIVO · ACERCA DE (22 nov 2026, Aldahir): Historia, Misión y visión, Solón Argüello y Rol de la biblioteca.
+   Tableta (≤ 1024 px): una columna; el menú de secciones pasa arriba como barra de pastillas con «¿Tienes dudas?»
+   compacto al lado (las posiciones pegajosas de escritorio se apagan: en tableta y teléfono se enciman).
+   Teléfono (≤ 600 px): pastillas que se deslizan de lado, contacto en un renglón, todo el contenido a una columna.
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .pagina-publica .acerca-cuerpo { display: flex !important; flex-direction: column; gap: 18px; width: 100%; max-width: none; padding: 24px 24px 48px !important; box-sizing: border-box; }
+  .pagina-publica .perfil-cuerpo > .acerca-menu {
+    position: static !important; top: auto; height: auto !important; max-height: none; width: 100%; box-sizing: border-box;
+    display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 10px; padding: 14px 16px; overflow: visible;
+  }
+  .pagina-publica .acerca-menu > .perfil-etiqueta { grid-column: 1 / -1; position: static !important; justify-self: start; }
+  .pagina-publica .acerca-menu > ul {
+    position: static !important; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; overflow: visible;
+  }
+  .pagina-publica .acerca-menu .perfil-menu__opcion {
+    min-height: 40px; padding: 8px 14px; border: 1px solid #e2ded5; border-radius: 999px; background: #fff; white-space: nowrap;
+  }
+  .pagina-publica .acerca-menu .perfil-menu__opcion--activa { border-color: #164f44; background: #164f44; color: #fff; }
+  .pagina-publica .acerca-menu .perfil-menu__opcion--activa img { filter: brightness(0) invert(1); }
+  .pagina-publica .acerca-menu .perfil-menu__opcion--activa::after { display: none; }
+  .pagina-publica .acerca-menu .perfil-menu__opcion br { display: none; }
+  .pagina-publica .acerca-menu__contacto {
+    position: static !important; margin: 0 !important; display: flex; flex-direction: row; align-items: center; gap: 4px 12px;
+    padding: 10px 12px 10px 16px; box-shadow: none; text-align: left;
+  }
+  .pagina-publica .acerca-menu__contacto span { flex: 1; min-width: 0; }
+  .pagina-publica .acerca-menu__contacto .perfil-boton { flex: none; width: auto; margin: 0; }
+  .pagina-publica .acerca-cuerpo > .perfil-seccion { width: 100%; min-width: 0; }
+  /* Las plantas de los costados no caben junto al contenido */
+  .pagina-publica .acerca-cuerpo::before, .pagina-publica .acerca-cuerpo::after,
+  .pagina-publica .acerca-cuerpo > .perfil-seccion::before, .pagina-publica .acerca-cuerpo > .perfil-seccion::after { content: none !important; }
+}
+@media (max-width: 600px) {
+  .pagina-publica .acerca-cuerpo { padding: 16px 16px 40px !important; gap: 14px; }
+  .pagina-publica .perfil-cuerpo > .acerca-menu { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+  /* Pastillas en un renglón que se desliza de lado, con la elegida a la vista */
+  .pagina-publica .acerca-menu > ul { flex-wrap: nowrap; overflow-x: auto; margin: 0 -12px; padding: 2px 12px 6px; scroll-snap-type: x proximity; scrollbar-width: none; }
+  .pagina-publica .acerca-menu > ul::-webkit-scrollbar { display: none; }
+  .pagina-publica .acerca-menu > ul > li { flex: none; scroll-snap-align: center; }
+  .pagina-publica .acerca-menu .perfil-menu__opcion { min-height: 44px; }
+  .pagina-publica .acerca-menu__contacto { flex-wrap: wrap; }
+  .pagina-publica .acerca-menu__contacto strong { flex: 1 1 100%; }
+  .pagina-publica .acerca-menu__contacto span { flex: 1 1 140px; font-size: 13px; }
+  /* Contenido a una columna */
+  .pagina-publica :is(.acerca-dos, .acerca-valores, .mision-vision, .dos-columnas, .tres-columnas, .cuatro-columnas) { grid-template-columns: minmax(0, 1fr) !important; }
+  .pagina-publica .acerca-obras, .pagina-publica .galeria-acerca { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .pagina-publica .acerca-cuerpo .historia-galeria { grid-template-columns: minmax(0, 1fr) !important; }
+  .pagina-publica .acerca-cuerpo .historia-galeria .historia-foto img { height: 190px; }
+  .pagina-publica .acerca-cuerpo .perfil-tarjeta { padding: 18px 16px; }
+  .pagina-publica .acerca-cuerpo .perfil-datos { grid-template-columns: minmax(0, 1fr); }
+  /* Etapas de Historia y trayectoria de Solón: número | título y texto, con la fecha debajo (al lado dejaba el texto en una tira) */
+  .pagina-publica .acerca-cuerpo .historia-etapa__boton { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: start; gap: 6px 12px; padding: 14px; }
+  .pagina-publica .acerca-cuerpo .historia-etapa__numero { grid-row: 1 / span 2; }
+  .pagina-publica .acerca-cuerpo .historia-etapa__boton > .perfil-solicitud__textos { grid-column: 2; }
+  .pagina-publica .acerca-cuerpo .historia-etapa__fecha { grid-column: 2; grid-row: 2; justify-self: start; }
+  .pagina-publica .acerca-cuerpo .historia-etapa__flecha { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+}
+/* Acerca de en teléfono, como app (Aldahir, 22 nov: «que parezca en verdad teléfono"):
+   franja compacta con el ícono junto al título; las secciones son pestañas pegadas bajo la barra (sin tarjeta ni
+   etiqueta) y «¿Tienes dudas?» baja al final; tarjetas más compactas; fotos en carrusel que se desliza con el dedo. */
+@media (max-width: 600px) {
+  .pagina-publica:has(.acerca-cuerpo) .encabezado-publico { gap: 8px; padding: 18px 16px 22px; }
+  .pagina-publica:has(.acerca-cuerpo) .encabezado-publico .etiqueta-inicio { padding: 4px 12px; font-size: 12px; }
+  .pagina-publica:has(.acerca-cuerpo) .encabezado-publico__titular { position: static; justify-content: center; gap: 10px; }
+  .pagina-publica:has(.acerca-cuerpo) .encabezado-publico__insignia { position: static; flex: none; width: 36px; height: 36px; transform: none; }
+  .pagina-publica:has(.acerca-cuerpo) .encabezado-publico h1 { font-size: 26px; line-height: 31px; letter-spacing: -0.3px; }
+  .pagina-publica:has(.acerca-cuerpo) .encabezado-publico p { font-size: 14px; line-height: 20px; }
+  .pagina-publica:has(.acerca-cuerpo) .encabezado-publico__circulo { display: none; }
+
+  /* Menú: sus partes pasan a ser parte de la página (display: contents) para ordenarlas */
+  .pagina-publica .acerca-cuerpo { gap: 14px; padding: 0 12px 32px !important; }
+  .pagina-publica .perfil-cuerpo > .acerca-menu { display: contents; }
+  .pagina-publica .acerca-menu > .perfil-etiqueta { display: none; }
+  .pagina-publica .acerca-menu > ul {
+    order: 0; position: sticky !important; top: 64px; z-index: 30; margin: 0 -12px !important; padding: 10px 12px !important;
+    background: rgba(247, 245, 240, 0.96); box-shadow: 0 6px 12px rgba(22, 79, 68, 0.06); backdrop-filter: blur(6px);
+  }
+  .pagina-publica .acerca-menu .perfil-menu__opcion { min-height: 40px; padding: 6px 14px; font-size: 14px; }
+  .pagina-publica .acerca-menu .perfil-menu__opcion img { width: 18px; height: 18px; }
+  .pagina-publica .acerca-cuerpo > .perfil-seccion { order: 1; gap: 14px; }
+  .pagina-publica .acerca-menu__contacto { order: 2; border-radius: 18px; padding: 12px 14px; }
+
+  /* Tarjetas más compactas, como las de una app */
+  .pagina-publica .acerca-cuerpo .perfil-tarjeta { gap: 12px; padding: 16px 14px; border-radius: 20px; }
+  .pagina-publica .acerca-cuerpo .perfil-tarjeta__cabecera { gap: 10px; padding-bottom: 12px; }
+  .pagina-publica .acerca-cuerpo .perfil-tarjeta__icono { width: 38px; height: 38px; flex: none; }
+  .pagina-publica .acerca-cuerpo .perfil-tarjeta__cabecera h2, .pagina-publica .acerca-cuerpo .perfil-tarjeta__cabecera h3 { font-size: 18px; line-height: 23px; }
+  .pagina-publica .acerca-cuerpo .perfil-tarjeta__cabecera p { font-size: 13.5px; line-height: 19px; }
+  .pagina-publica .acerca-cuerpo :is(.acerca-parrafo, .acerca-texto) { font-size: 15px; line-height: 24px; }
+  .pagina-publica .acerca-cuerpo .perfil-panel { padding: 14px 12px; border-radius: 20px; }
+
+  /* Historia: la foto arriba y los datos abajo, a lo ancho */
+  .pagina-publica .historia-intro2 { grid-template-columns: minmax(0, 1fr); }
+  .pagina-publica .historia-intro2 > :last-child { order: -1; }
+  .pagina-publica .historia-intro2 .historia-foto img { height: 190px; }
+
+  /* Fotos en carrusel: una y un poco de la siguiente, se desliza de lado y se acomoda sola */
+  .pagina-publica .acerca-cuerpo :is(.historia-galeria, .historia-solon, .acerca-obras) {
+    display: grid !important; grid-auto-flow: column; grid-template-columns: none !important; grid-auto-columns: 78%;
+    gap: 12px; margin: 0 -14px; padding: 0 14px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  .pagina-publica .acerca-cuerpo .acerca-obras { grid-auto-columns: 46%; }
+  .pagina-publica .acerca-cuerpo :is(.historia-galeria, .historia-solon, .acerca-obras)::-webkit-scrollbar { display: none; }
+  .pagina-publica .acerca-cuerpo :is(.historia-galeria, .historia-solon, .acerca-obras) > * { scroll-snap-align: start; }
+  .pagina-publica .acerca-cuerpo :is(.historia-galeria, .historia-solon) .historia-foto img { height: 200px; }
+}
+
+/* ---------- ESPACIOS · Corregir mi solicitud (componente de boba, T-094) con las piezas del portal ---------- */
+.pagina-publica .esp-corregir { display: flex; flex-direction: column; gap: 12px; padding: 22px 24px; }
+.pagina-publica .esp-corregir h2 { margin: 0; color: #161a1d; font-size: 20px; line-height: 26px; }
+.pagina-publica .esp-corregir > p { margin: 0; color: #4d4a44; font-size: 14.5px; line-height: 21px; }
+.pagina-publica .esp-corregir > .perfil-boton { align-self: flex-start; }
+.pagina-publica .esp-corregir .tramites-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.pagina-publica .esp-corregir .tramites-campos > label { display: flex; flex-direction: column; gap: 6px; color: #164f44; font-size: 13px; font-weight: 700; }
+.pagina-publica .esp-corregir .tramites-campos > label:has(textarea), .pagina-publica .esp-corregir .tramites-campos > label:has(select) { grid-column: 1 / -1; }
+.pagina-publica .esp-corregir .tramites-campos :is(input, select, textarea) {
+  box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid #b9b3a5; border-radius: 12px; background: #fff;
+  color: #161a1d; font: inherit; font-size: 15px; font-weight: 400; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-publica .esp-corregir .tramites-campos textarea { min-height: 88px; resize: vertical; }
+.pagina-publica .esp-corregir .tramites-campos :is(input, select, textarea):focus { border-color: #164f44; outline: none; box-shadow: 0 0 0 3px #f2e3b8; }
+.pagina-publica .esp-corregir__botones { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- Desplegables de la barra: botón para cerrar (X) en la esquina superior derecha (23 nov, Aldahir) ----------
+   El velo (`menu-cuenta__velo`) solo se ve en teléfono (Responsivo.css); en escritorio no existe a la vista. */
+.menu-cuenta__velo { display: none; }
+.menu-cuenta :is(.panel-notif, .menu-cuenta__panel) { position: absolute; }
+.menu-desplegable__cerrar {
+  position: absolute; top: 12px; right: 12px; z-index: 2; display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
+  border: 1px solid #e2ded5; border-radius: 50%; background: #fff; color: #164f44; cursor: pointer; transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.menu-desplegable__cerrar:hover { border-color: #164f44; transform: translateY(-2px); }
+.menu-desplegable__cerrar:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.menu-cuenta .panel-notif__cabecera, .menu-cuenta .menu-cuenta__persona { padding-right: 46px; }
+@media (prefers-reduced-motion: reduce) { .menu-desplegable__cerrar, .menu-desplegable__cerrar:hover { transition: none; transform: none; } }
+/* Al cerrar: el desplegable sube 6 px y se desvanece (0.22 s), el mismo camino de su entrada al revés */
+.menu-cuenta :is(.panel-notif, .menu-cuenta__panel).menu-desplegable--saliendo { animation: desplegable-sale 0.22s ease-in forwards; pointer-events: none; }
+@keyframes desplegable-sale { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .menu-cuenta :is(.panel-notif, .menu-cuenta__panel).menu-desplegable--saliendo { animation: none; } }
+/* Mientras cargan los avisos, el texto con el mismo aire que la lista */
+.menu-cuenta .panel-notif > p { margin: 0; padding: 14px 18px; color: #4d4a44; font-size: 14px; }
+
+/* ESPACIOS · Corregir mi solicitud (23 nov): cabecera de tarjeta como las demás; abierta, los campos con scroll propio
+   (máx. 420 px) y los botones fijos abajo, para que la tarjeta no crezca ni estire «Cómo avanza tu solicitud» */
+.pagina-publica .esp-pagina .cred-principal > * { flex: none; }
+.pagina-publica .esp-corregir { gap: 16px; }
+.pagina-publica .esp-corregir .perfil-tarjeta__cabecera { margin: 0; }
+.pagina-publica .esp-corregir > .perfil-boton { align-self: flex-start; }
+.pagina-publica .esp-corregir__formulario { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.pagina-publica .esp-corregir__formulario > .tramites-campos {
+  max-height: 420px; overflow-y: auto; overscroll-behavior: contain; padding: 4px 6px 8px 2px;
+  scrollbar-width: thin; scrollbar-color: #c9a24a transparent;
+}
+.pagina-publica .esp-corregir__botones { padding-top: 12px; border-top: 1px solid #ece4d0; }
+/* Seguimiento de la solicitud: el lateral (tu espacio) no se estira al alto de la columna principal; sigue al scroll */
+@media (min-width: 1025px) {
+  .pagina-publica .esp-pagina .contacto-columnas--nuevo { align-items: flex-start; }
+  /* contain: none: con «contain: size» (regla de Espacios) el lateral medía 0 px, el sticky nunca topaba con el final de la
+     columna y la tarjeta se metía bajo el pie; con su alto real se detiene al terminar la columna principal */
+  .pagina-publica .esp-pagina .contacto-columnas--nuevo > .contacto-lateral { align-self: flex-start; position: sticky; top: 96px; height: auto; contain: none; }
+  .pagina-publica .esp-pagina .contacto-columnas--nuevo > .contacto-lateral > * { flex: none; height: auto; }
+}

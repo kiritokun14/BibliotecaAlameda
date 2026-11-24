@@ -26,7 +26,7 @@ function Noticias() {
                 texto="Avisos, actividades y novedades de la comunidad, en un solo lugar."
             />
 
-            <section className="noticias-seccion noticias-pagina">
+            <section className="noticias-seccion noticias-pagina noticias-usuario">
                 <div className="noticias-contenedor">
 
                     {carga.estado === "cargando" && <CargandoNoticias />}

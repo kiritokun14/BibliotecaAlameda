@@ -109,8 +109,13 @@ export default function CalendarioActividades() {
                                         </ul>
                                     </> : <>
                                         <p className="evento-calendario__semana">{nombreMes(mes.mes)}</p>
-                                        <h3>{filtro === "todas" ? "Sin actividades este mes" : "Sin actividades de este tipo"}</h3>
-                                        <p className="evento-calendario__lugar">{filtro === "todas" ? "Cambia de mes para ver otras fechas." : "Elige otro tipo o cambia de mes."}</p>
+                                        {cargando ? <>
+                                            <h3>Buscando actividades…</h3>
+                                            <p className="evento-calendario__lugar">En un momento verás las fechas con actividades.</p>
+                                        </> : <>
+                                            <h3>{filtro === "todas" ? "Sin actividades este mes" : "Sin actividades de este tipo"}</h3>
+                                            <p className="evento-calendario__lugar">{filtro === "todas" ? "Cambia de mes para ver otras fechas." : "Elige otro tipo o cambia de mes."}</p>
+                                        </>}
                                     </>}
                                 </aside>
                             </div>

@@ -55,7 +55,7 @@ function DetalleNoticia() {
         return (
             <PaginaPublica>
                 <EncabezadoNoticias icono={iconoNoticias} compacto etiqueta="Noticia" titulo="Noticias de la biblioteca" texto="Avisos, actividades y novedades de la comunidad." />
-                <section className="noticias-seccion noticias-pagina">
+                <section className="noticias-seccion noticias-pagina noticias-usuario">
                     <div className="noticias-contenedor">
                         {carga.estado === "cargando" && <EsqueletoArticulo texto="Cargando la noticia…" />}
                         {carga.estado === "error" && <EstadoNoticias tipo="error" alAccionar={() => setIntento((n) => n + 1)} />}
@@ -70,7 +70,7 @@ function DetalleNoticia() {
 
     return (
         <PaginaPublica>
-            <article>
+            <article className="noticia-detalle">
                 <header className="detalle-noticia__encabezado detalle-noticia__encabezado--compacto">
                     <img className="encabezado-publico__circulo encabezado-publico__circulo--1" src={circulo1} alt="" />
                     <img className="encabezado-publico__circulo detalle-noticia__circulo--2" src={circulo2} alt="" />

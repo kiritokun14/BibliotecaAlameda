@@ -119,6 +119,99 @@ button.espacios-area:hover, .cred-opcion:hover { box-shadow: 0 10px 20px rgba(22
 .redes img { transition: transform 0.2s ease; }
 .redes li:hover img { transform: translateY(-3px) scale(1.08); }
 
+/* =========================================================
+   SEGUNDA CAPA (23 nov 2026, Aldahir: «animaciones perronas y fluidas»), normalizada:
+   las mismas tres velocidades y dos curvas en todo el sistema (variables --mov-*), solo transform y opacity,
+   una sola animación por elemento al pasar el mouse y todo se apaga con «reducir animaciones».
+   ========================================================= */
+:root {
+  --mov-rapido: 0.2s;   /* pasar el mouse, presionar, cambiar de color */
+  --mov-medio: 0.35s;   /* abrir, cambiar de página, menús */
+  --mov-lento: 0.5s;    /* entrada de tarjetas y bloques */
+  --mov-curva: cubic-bezier(0.2, 0.8, 0.2, 1);       /* entra rápido y se asienta */
+  --mov-rebote: cubic-bezier(0.34, 1.56, 0.64, 1);   /* pulso corto al elegir */
+}
+/* El medidor (asistencia, cupo) anima su porcentaje: --p registrado como porcentaje */
+@property --p { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+@keyframes mov-derecha { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes mov-pulso { 0% { transform: scale(0.94); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+@keyframes mov-revela { from { opacity: 0; transform: translateY(22px) scale(0.985); } to { opacity: 1; transform: none; } }
+
+/* Desplazamiento suave al saltar dentro de una página (paginación, «Saltar al contenido») */
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* ---------- Portal: cada página entra con un desvanecido suave (sin mover el bloque: no afecta a lo pegajoso) ---------- */
+.pagina-publica main > * { animation: mov-aparece var(--mov-lento) var(--mov-curva) both; }
+
+/* ---------- Contenido largo: cada tarjeta aparece subiendo al entrar en pantalla ----------
+   Con animation-timeline: view() (sin soporte, se ve quieta). Listas, rejillas y tarjetas del portal. */
+@supports (animation-timeline: view()) {
+  :is(.rejilla-resenas, .rejilla-lecturas, .noticias-fila, .noticias-archivo, .servicios-rejilla, .agenda-tarjetas, .rejilla-temas) > li,
+  :is(.servicio-tarjeta, .noticia-cultural, .historia-etapa, .evento-sesion, .mc-sesion, .tarjeta-acceso, .perfil-tarjeta, .acerca-cuerpo .perfil-panel, .pie-portal__columnas > *) {
+    animation: mov-revela linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+}
+
+/* ---------- Tarjetas clicables del portal: se elevan 4 px con sombra ---------- */
+:is(.tarjeta-lectura, .tarjeta-noticia, .noticia-cultural, .tarjeta-evento) {
+  transition: transform var(--mov-rapido) ease, box-shadow var(--mov-rapido) ease;
+}
+:is(.tarjeta-lectura, .tarjeta-noticia, .noticia-cultural, .tarjeta-evento):hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px rgba(22, 79, 68, 0.14);
+}
+
+/* ---------- Menú de hamburguesa: los enlaces entran uno tras otro desde la derecha ---------- */
+.navegacion__desplegable--abierto :is(.navegacion__lateral-cabeza, .navegacion__enlaces > li, .navegacion__lateral-pie) {
+  animation: mov-derecha var(--mov-medio) var(--mov-curva) both;
+}
+.navegacion__desplegable--abierto .navegacion__enlaces > li:nth-child(1) { animation-delay: 40ms; }
+.navegacion__desplegable--abierto .navegacion__enlaces > li:nth-child(2) { animation-delay: 70ms; }
+.navegacion__desplegable--abierto .navegacion__enlaces > li:nth-child(3) { animation-delay: 100ms; }
+.navegacion__desplegable--abierto .navegacion__enlaces > li:nth-child(4) { animation-delay: 130ms; }
+.navegacion__desplegable--abierto .navegacion__enlaces > li:nth-child(5) { animation-delay: 160ms; }
+.navegacion__desplegable--abierto .navegacion__enlaces > li:nth-child(n+6) { animation-delay: 190ms; }
+.navegacion__desplegable--abierto .navegacion__lateral-pie { animation-delay: 220ms; }
+.navegacion__icono { transition: transform var(--mov-rapido) ease, background-color var(--mov-rapido) ease; }
+.navegacion__enlace:hover .navegacion__icono { transform: scale(1.08); }
+
+/* ---------- Listas con piezas (perfil, notificaciones, panel): la fila abierta y los filtros ---------- */
+.pz-fila { transition: transform var(--mov-rapido) ease, box-shadow var(--mov-rapido) ease, border-color var(--mov-rapido) ease; }
+.pz-opcion--activa, .pz-pastilla--activa, .paginas-num__numero--actual, .perfil-filtro--activo, .chip-filtro--activa { animation: mov-pulso var(--mov-medio) var(--mov-rebote); }
+:is(.barra-filtros__abrir, .pz-filtros-av__boton) { transition: transform var(--mov-rapido) ease, box-shadow var(--mov-rapido) ease, background-color var(--mov-rapido) ease; }
+:is(.barra-filtros__abrir, .pz-filtros-av__boton):hover { transform: translateY(-2px); }
+
+/* ---------- Paginación numerada: los números se elevan y la página nueva entra ---------- */
+:is(.paginas-num__numero, .paginas-num__paso) { transition: transform var(--mov-rapido) ease, background-color var(--mov-rapido) ease, color var(--mov-rapido) ease, box-shadow var(--mov-rapido) ease; }
+:is(.paginas-num__numero, .paginas-num__paso):not(:disabled):hover { transform: translateY(-2px); }
+.pagina-nueva > li { animation: mov-sube var(--mov-medio) var(--mov-curva) both; }
+.pagina-nueva > li:nth-child(2) { animation-delay: 30ms; }
+.pagina-nueva > li:nth-child(3) { animation-delay: 60ms; }
+.pagina-nueva > li:nth-child(4) { animation-delay: 90ms; }
+.pagina-nueva > li:nth-child(n+5) { animation-delay: 120ms; }
+
+/* ---------- Asistencia: marcar presente o ausente da un pulso; el medidor se llena suave ---------- */
+.as-marcar .pz-opcion--activa { animation: mov-pulso var(--mov-medio) var(--mov-rebote); }
+.as-fila { transition: background-color var(--mov-medio) ease, border-color var(--mov-medio) ease; }
+.ins-medidor { transition: --p var(--mov-lento) var(--mov-curva); }
+
+/* ---------- Mis cambios: la sesión marcada se resalta y su nueva programación baja ---------- */
+.mc-sesion { transition: transform var(--mov-rapido) ease, border-color var(--mov-rapido) ease, background-color var(--mov-rapido) ease; }
+.mc-sesion:hover { transform: translateY(-2px); }
+.mc-sesion__nueva { animation: mov-sube var(--mov-medio) var(--mov-curva) both; }
+.mc-lista li::before { transition: background-color var(--mov-rapido) ease, border-color var(--mov-rapido) ease; }
+.mc-lista li.mc-lista--listo::before { animation: mov-pulso var(--mov-medio) var(--mov-rebote); }
+
+/* ---------- Avisos y globitos: la cuenta de la campana late una vez; los avisos bajan ---------- */
+.menu-cuenta__insignia, .barra-filtros__cuenta, .pz-opcion__cantidad { animation: mov-pulso 0.45s var(--mov-rebote) 0.25s both; }
+:is(.pz-aviso, .perfil-nota, .mc-nota, .pl-nota, .pl-anuncio) { animation: mov-sube var(--mov-medio) var(--mov-curva) both; }
+
+/* ---------- Encabezados: el ícono de la franja de título aparece con un pulso; las cifras del panel suben ---------- */
+.encabezado-publico__insignia { animation: mov-pulso 0.6s var(--mov-rebote) 0.15s both; }
+.pz-cifra { transition: transform var(--mov-rapido) ease, box-shadow var(--mov-rapido) ease; }
+
 /* ---------- Reducir animaciones ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
