@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="230" viewBox="0 0 150 230" fill="none">
+  <!-- Ramas de romero: tallos verdes con hojas finas y flores lila-guinda pequeñas -->
+  <path d="M70 228 C68 180 62 130 40 70 C34 52 26 34 14 16" stroke="#164f44" stroke-width="3" stroke-linecap="round"/>
+  <path d="M72 228 C76 178 88 128 112 80 C120 64 130 48 142 34" stroke="#1f6b5c" stroke-width="3" stroke-linecap="round"/>
+  <path d="M71 228 C72 190 74 150 72 104" stroke="#164f44" stroke-width="2.5" stroke-linecap="round"/>
+  <g fill="#1f6b5c">
+    <path d="M60 170 C48 166 40 160 34 150 C46 152 54 158 60 170Z"/>
+    <path d="M62 168 C66 156 72 150 82 146 C78 156 72 164 62 168Z"/>
+    <path d="M54 140 C42 136 34 128 30 118 C42 122 50 128 54 140Z"/>
+    <path d="M56 136 C58 124 64 116 74 112 C72 122 66 130 56 136Z"/>
+    <path d="M46 108 C34 104 26 96 22 86 C34 90 42 96 46 108Z"/>
+    <path d="M48 104 C50 92 56 84 66 80 C64 90 58 98 48 104Z"/>
+    <path d="M36 76 C24 72 18 64 14 54 C26 58 32 64 36 76Z"/>
+    <path d="M38 72 C40 60 46 52 56 48 C54 58 48 66 38 72Z"/>
+    <path d="M26 46 C16 42 10 34 8 26 C18 30 24 36 26 46Z"/>
+    <path d="M28 42 C30 32 34 26 42 22 C40 30 36 38 28 42Z"/>
+  </g>
+  <g fill="#164f44">
+    <path d="M86 166 C98 160 104 152 108 142 C96 146 90 154 86 166Z"/>
+    <path d="M84 162 C78 152 70 146 60 144 C66 154 74 160 84 162Z"/>
+    <path d="M98 134 C110 128 116 120 120 110 C108 114 102 122 98 134Z"/>
+    <path d="M96 130 C90 120 84 114 74 112 C80 122 88 128 96 130Z"/>
+    <path d="M112 100 C124 94 130 86 132 76 C122 80 116 88 112 100Z"/>
+    <path d="M110 96 C106 86 100 80 90 78 C94 88 102 94 110 96Z"/>
+    <path d="M128 66 C138 60 142 52 144 44 C134 48 130 56 128 66Z"/>
+    <path d="M126 62 C122 54 116 48 108 46 C112 54 118 60 126 62Z"/>
+  </g>
+  <g fill="#c9a24a">
+    <circle cx="72" cy="100" r="5"/><circle cx="66" cy="92" r="3.5"/><circle cx="78" cy="92" r="3.5"/>
+  </g>
+  <g fill="#9b2247" opacity="0.85">
+    <circle cx="14" cy="16" r="4"/><circle cx="142" cy="34" r="4"/><circle cx="40" cy="62" r="3"/><circle cx="118" cy="70" r="3"/>
+  </g>
+</svg>

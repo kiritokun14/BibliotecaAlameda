@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="240" viewBox="0 0 140 240" fill="none">
+  <!-- Rama de eucalipto con hojas redondas que cuelga (Notificaciones, arriba izquierda). -->
+  <path d="M20 0 C 40 60, 52 120, 70 180 C 78 206, 84 222, 92 236" stroke="#3f7f6e" stroke-width="2.6" stroke-linecap="round"/>
+  <g fill="#7fae9e" stroke="#3f7f6e" stroke-width="1.2">
+    <circle cx="10" cy="26" r="13"/><circle cx="44" cy="40" r="14"/><circle cx="18" cy="74" r="15"/><circle cx="56" cy="88" r="14"/>
+    <circle cx="30" cy="122" r="14"/><circle cx="72" cy="136" r="13"/><circle cx="48" cy="166" r="12"/><circle cx="88" cy="180" r="11"/><circle cx="70" cy="206" r="10"/><circle cx="100" cy="220" r="8"/>
+  </g>
+  <g stroke="#3f7f6e" stroke-width="1.6" stroke-linecap="round"><path d="M25 30 L 12 27"/><path d="M33 44 L 42 41"/><path d="M38 78 L 20 75"/><path d="M45 92 L 55 89"/></g>
+  <g fill="#c9a24a"><circle cx="64" cy="64" r="3"/><circle cx="42" cy="146" r="2.6"/><circle cx="84" cy="160" r="2.6"/></g>
+</svg>

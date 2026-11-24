@@ -1,0 +1,212 @@
+/* Pantallas de paso a pantalla completa (PantallaEstado.tsx). Solo se anima transform y opacity. */
+.pantalla-estado {
+  --pe-tono: #164f44;
+  --pe-tono-suave: #e4efeb;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 48px 24px;
+  overflow: hidden;
+  background:
+    linear-gradient(154deg, rgba(11, 59, 51, 0.94) 0%, rgba(22, 79, 68, 0.88) 55%, rgba(31, 107, 92, 0.86) 100%),
+    url("../../assets/comun/fotos/foto-biblioteca.webp") center / cover;
+  color: #fff;
+  font-family: "Noto Sans", sans-serif;
+}
+
+.pantalla-estado--guinda { --pe-tono: #9b2247; --pe-tono-suave: #f6eaee; }
+.pantalla-estado--dorado { --pe-tono: #8a6414; --pe-tono-suave: #f6eeda; }
+
+/* Círculos de fondo */
+.pantalla-estado__circulo {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.pantalla-estado__circulo--uno {
+  top: -220px;
+  right: -160px;
+  width: 620px;
+  height: 620px;
+  background: radial-gradient(circle, rgba(230, 209, 148, 0.18), rgba(230, 209, 148, 0) 70%);
+  animation: pe-flotar 9s ease-in-out infinite alternate;
+}
+.pantalla-estado__circulo--dos {
+  bottom: -260px;
+  left: -200px;
+  width: 560px;
+  height: 560px;
+  border: 1px solid rgba(230, 209, 148, 0.25);
+  animation: pe-flotar 11s ease-in-out infinite alternate-reverse;
+}
+
+.pantalla-estado__logo { position: relative; flex: none; }
+
+/* Tarjeta */
+.pantalla-estado__tarjeta {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(560px, 100%);
+  box-sizing: border-box;
+  padding: 44px 40px 40px;
+  border-radius: 32px;
+  background: #fff;
+  box-shadow: 0 30px 70px rgba(3, 20, 17, 0.35);
+  overflow: hidden;
+  color: #161a1d;
+  text-align: center;
+  animation: pe-entrar 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.pantalla-estado__tarjeta::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 6px;
+  background: linear-gradient(90deg, var(--pe-tono), #e6d194);
+}
+
+/* Sello: ícono con órbita dorada */
+.pantalla-estado__sello {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  margin-bottom: 6px;
+}
+.pantalla-estado__orbita {
+  position: absolute;
+  inset: 0;
+  border: 2px dashed rgba(201, 162, 74, 0.7);
+  border-radius: 50%;
+  animation: pe-girar 18s linear infinite;
+}
+.pantalla-estado__sello--cargando .pantalla-estado__orbita {
+  border: 3px solid rgba(201, 162, 74, 0.2);
+  border-top-color: #c9a24a;
+  animation-duration: 1s;
+}
+.pantalla-estado__icono {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: var(--pe-tono-suave);
+  color: var(--pe-tono);
+  animation: pe-sello 0.6s 0.15s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.pantalla-estado__sello--cargando .pantalla-estado__icono { animation: pe-latir 1.6s ease-in-out infinite; }
+.pantalla-estado__trazo { stroke-dasharray: 30; stroke-dashoffset: 30; animation: pe-trazo 0.5s 0.45s ease-out forwards; }
+
+.pantalla-estado__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--pe-tono-suave);
+  color: var(--pe-tono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+.pantalla-estado__etiqueta span { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+.pantalla-estado__titulo {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;
+  font-size: 34px;
+  line-height: 1.15;
+  letter-spacing: -0.6px;
+}
+
+.pantalla-estado__texto {
+  max-width: 440px;
+  margin: 0;
+  color: #4d4d4d;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Barra de «te llevamos en unos segundos» */
+.pantalla-estado__progreso {
+  width: min(280px, 100%);
+  height: 6px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #efede7;
+}
+.pantalla-estado__progreso span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--pe-tono), #c9a24a);
+  transform-origin: left;
+  animation: pe-progreso linear both;
+}
+
+.pantalla-estado__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.pantalla-estado__acciones a,
+.pantalla-estado__acciones button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 50px;
+  padding: 0 26px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--pe-tono);
+  border-radius: 999px;
+  background: var(--pe-tono);
+  color: #fff;
+  font: 700 15px "Noto Sans", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pantalla-estado__acciones :is(a, button):hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(22, 79, 68, 0.22); }
+.pantalla-estado__acciones .pantalla-estado__secundario { background: transparent; color: var(--pe-tono); }
+.pantalla-estado__acciones img { width: 18px; height: 18px; }
+.pantalla-estado :focus-visible { outline: 3px solid #e6d194; outline-offset: 3px; }
+
+.pantalla-estado__pie {
+  position: relative;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+@keyframes pe-entrar { from { opacity: 0; transform: translateY(24px) scale(0.97); } }
+@keyframes pe-sello { from { opacity: 0; transform: scale(0.4); } }
+@keyframes pe-girar { to { transform: rotate(360deg); } }
+@keyframes pe-latir { 50% { transform: scale(0.92); } }
+@keyframes pe-trazo { to { stroke-dashoffset: 0; } }
+@keyframes pe-progreso { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes pe-flotar { to { transform: translate(-30px, 30px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pantalla-estado *, .pantalla-estado__circulo { animation: none !important; }
+  .pantalla-estado__trazo { stroke-dashoffset: 0; }
+  .pantalla-estado__sello--cargando .pantalla-estado__orbita { border-top-color: rgba(201, 162, 74, 0.2); }
+}
+
+@media (max-width: 600px) {
+  .pantalla-estado__tarjeta { padding: 36px 22px 28px; border-radius: 24px; }
+  .pantalla-estado__titulo { font-size: 26px; }
+}

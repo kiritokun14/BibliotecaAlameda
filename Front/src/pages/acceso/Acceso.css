@@ -1,0 +1,785 @@
+/* Pantallas de acceso: una sola tarjeta al centro sobre la foto de la biblioteca,
+   con los logos de México, Nayarit y Solón Argüello. Tamaños compactos para que quepa en la pantalla. */
+    .pagina-acceso {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+    }
+
+    .pagina-acceso p,
+    .pagina-acceso h1,
+    .pagina-acceso h2 {
+    margin: 0;
+    }
+
+    .tarjeta {
+    width: 680px;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 44px 48px;
+    border: 1px solid #e2ded5;
+    border-radius: 40px;
+    background: #fff;
+    box-shadow: 0 12px 16px rgba(22, 79, 68, 0.08);
+    }
+
+    .tarjeta__encabezado {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    .tarjeta__encabezado h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 34px;
+    line-height: 37px;
+    letter-spacing: -0.68px;
+    color: #161a1d;
+    }
+
+    .tarjeta__encabezado p {
+    font-size: 17px;
+    line-height: 25px;
+    color: #4d4d4d;
+    }
+
+    .campos {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    }
+
+    .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    .campo__etiqueta {
+    font-size: 15px;
+    font-weight: 700;
+    color: #161a1d;
+    }
+
+    .campo__etiqueta span {
+    margin-left: 2px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #6b675e;
+    }
+
+    .campo__entrada {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 58px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    border: 1.5px solid #b9b3a5;
+    border-radius: 16px;
+    background: #fff;
+    }
+
+    .campo__entrada:focus-within {
+    border-color: #164f44;
+    }
+
+    .campo__entrada input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    font-size: 17px;
+    color: #161a1d;
+    }
+
+    .campo__entrada input::placeholder {
+    color: #6b675e;
+    }
+
+    .campo__ayuda {
+    font-size: 14px;
+    color: #6b675e;
+    }
+
+    .boton-mostrar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px 8px 10px;
+    border: none;
+    border-radius: 999px;
+    background: #e4efeb;
+    color: #164f44;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    }
+
+    .boton-mostrar img {
+    width: 18px;
+    height: 18px;
+    }
+
+    .opciones {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    }
+
+    .casilla {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #161a1d;
+    cursor: pointer;
+    }
+
+    .casilla input {
+    appearance: none;
+    margin: 0;
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid #b9b3a5;
+    border-radius: 7px;
+    background: #fff;
+    cursor: pointer;
+    }
+
+    .casilla input:checked {
+    border-color: #164f44;
+    background: #164f44 url("../../assets/login/icono-palomita.svg") center / 14px no-repeat;
+    }
+
+    .enlace {
+    color: #164f44;
+    font-weight: 700;
+    }
+
+    .boton-principal,
+    .boton-secundario {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    border-radius: 999px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    }
+
+    .boton-principal {
+    height: 58px;
+    border: none;
+    background: #164f44;
+    color: #fff;
+    font-size: 17px;
+    }
+
+    .boton-principal img {
+    width: 20px;
+    height: 20px;
+    }
+
+    .boton-secundario {
+    height: 56px;
+    border: 1.5px solid #164f44;
+    background: #fff;
+    color: #164f44;
+    font-size: 16px;
+    }
+
+    .boton-secundario img {
+    width: 18px;
+    height: 18px;
+    }
+
+    .separador {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+    color: #6b675e;
+    }
+
+    .separador::before,
+    .separador::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2ded5;
+    }
+
+    .tarjeta__pie {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid #e2ded5;
+    text-align: center;
+    font-size: 16px;
+    color: #4d4d4d;
+    }
+
+    .tarjeta__ayuda {
+    font-size: 14px;
+    line-height: 20px;
+    color: #6b675e;
+    }
+
+    /* ---------- Crear cuenta ---------- */
+    .tarjeta--ancha {
+    width: 900px;
+    }
+
+    .seccion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 8px;
+    color: #164f44;
+    font-size: 13px;
+    font-weight: 700;
+    }
+
+    .seccion::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c9a24a;
+    }
+
+    .seccion::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2ded5;
+    }
+
+    .fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+    }
+
+    .casilla {
+    font-size: 15px;
+    }
+
+    .mensaje-error {
+    color: #b3261e;
+    font-size: 15px;
+    font-weight: 700;
+    }
+
+    .tarjeta__pie--sin-linea {
+    margin-top: 0;
+    padding-top: 16px;
+    border-top: none;
+    }
+
+
+    /* ---------- Confirma tu correo ---------- */
+    .icono-circulo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 999px;
+    background: #e4efeb;
+    }
+
+    .icono-circulo img {
+    width: 38px;
+    height: 38px;
+    }
+
+    .enlaces {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    }
+
+    /* ---------- Avisos (error, advertencia, info, éxito) ---------- */
+    .aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid;
+    border-radius: 22px;
+    }
+
+    .aviso--error {
+    background: #f6eaee;
+    border-color: #e7b8c6;
+    }
+
+    .aviso--advertencia {
+    background: #f6eeda;
+    border-color: #e6d194;
+    }
+
+    .aviso--info,
+    .aviso--exito {
+    background: #e4efeb;
+    border-color: #bfd8d0;
+    }
+
+    .aviso__icono {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: #fff;
+    }
+
+    .aviso__icono img {
+    width: 18px;
+    height: 18px;
+    }
+
+    .aviso__textos {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    }
+
+    .aviso__titulo {
+    font-size: 16px;
+    font-weight: 700;
+    color: #161a1d;
+    }
+
+    .aviso__texto {
+    font-size: 14.5px;
+    line-height: 21px;
+    color: #4d4d4d;
+    }
+
+    /* ---------- Campos con error ---------- */
+    .campo__entrada--error,
+    .campo__entrada--error:focus-within {
+    border: 2px solid #9b2247;
+    }
+
+    .campo__error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #9b2247;
+    }
+
+    .campo__error img {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    }
+
+    .casilla-con-error {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    /* ---------- Botones y enlaces sueltos ---------- */
+    a.boton-principal,
+    a.boton-secundario {
+    box-sizing: border-box;
+    text-decoration: none;
+    }
+
+    .boton-principal:disabled,
+    .boton-secundario:disabled {
+    opacity: 0.7;
+    cursor: wait;
+    }
+
+    .enlace--suelto {
+    align-self: flex-start;
+    font-size: 15px;
+    }
+
+    a.icono-circulo {
+    cursor: pointer;
+    }
+
+    .tarjeta__parrafo {
+    font-size: 16px;
+    line-height: 24px;
+    color: #4d4d4d;
+    }
+
+    .asistida {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 18px;
+    font-size: 14.5px;
+    line-height: 21px;
+    color: #4d4d4d;
+    }
+
+    /* ---------- Enviando (botón verde claro con ícono girando) ---------- */
+    .boton-principal:disabled {
+    opacity: 1;
+    background: #2f7d6b;
+    }
+
+    .girando {
+    animation: girar 1s linear infinite;
+    }
+
+    @keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+    }
+
+    .nota-enviando {
+    font-size: 14px;
+    color: #4d4d4d;
+    text-align: center;
+    }
+
+    /* ---------- Lista desplegable y enlaces que son botones ---------- */
+    .campo__entrada select {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    font-size: 17px;
+    color: #161a1d;
+    cursor: pointer;
+    }
+
+    .enlace--boton {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+    }
+
+    /* ---------- Sesión iniciada ---------- */
+    .confirmacion {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 96px 24px 120px;
+    background: #f7f5f0;
+    text-align: center;
+    }
+
+    .confirmacion__anillo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 160px;
+    height: 160px;
+    box-sizing: border-box;
+    border: 2px solid rgba(230, 209, 148, 0.7);
+    border-radius: 999px;
+    }
+
+    .confirmacion__icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 112px;
+    height: 112px;
+    border-radius: 999px;
+    background: #e4efeb;
+    }
+
+    .confirmacion__icono img {
+    width: 48px;
+    height: 48px;
+    }
+
+    .confirmacion__textos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    max-width: 620px;
+    }
+
+    .confirmacion__etiqueta {
+    font-size: 13px;
+    font-weight: 700;
+    color: #9b2247;
+    }
+
+    .confirmacion__textos h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 44px;
+    line-height: 48px;
+    letter-spacing: -0.88px;
+    color: #161a1d;
+    }
+
+    .confirmacion__textos p:last-child {
+    font-size: 19px;
+    line-height: 29px;
+    color: #4d4d4d;
+    }
+
+    .boton-principal--compacto {
+    width: auto;
+    height: 54px;
+    margin-top: 8px;
+    padding: 0 28px;
+    font-size: 16px;
+    }
+
+    .boton-principal--compacto img {
+    width: 18px;
+    height: 18px;
+    }
+
+
+/* ---------- Armazón centrado ---------- */
+.acceso {
+    position: relative;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+    padding: 28px 24px;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(201, 162, 74, .30), transparent 42%),
+        radial-gradient(circle at 85% 88%, rgba(155, 34, 71, .42), transparent 46%),
+        linear-gradient(rgba(11, 59, 51, .80), rgba(11, 59, 51, .90)),
+        url('../../assets/comun/fotos/foto-biblioteca.webp') center / cover;
+}
+.acceso__columna { width: 470px; max-width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.acceso__columna--ancha { width: 680px; }
+.acceso__logos { display: flex; align-items: center; justify-content: center; gap: 14px; } /* los logos institucionales no se animan */
+.acceso__logo { height: 32px; width: auto; object-fit: contain; }
+.acceso__logo--mexico { width: 92px; }
+.acceso__logo--nayarit { width: 96px; }
+.acceso__logo--solon { height: 38px; filter: brightness(0) invert(1); }
+.acceso__separador { width: 1px; height: 28px; background: rgba(255, 255, 255, .45); }
+.acceso__oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.acceso__insignia {
+    display: grid; place-items: center; width: 46px; height: 46px; margin-bottom: 4px; border-radius: 50%;
+    background: #164f44; color: #f2e3b8; box-shadow: 0 0 0 5px #f2e3b8;
+}
+.acceso__insignia svg { width: 22px; height: 22px; }
+
+/* ---------- Tarjeta compacta ---------- */
+.acceso .tarjeta {
+    position: relative; overflow: hidden; width: 100%; gap: 14px; padding: 28px 30px 22px;
+    border: 0; border-radius: 24px; box-shadow: 0 24px 60px rgba(0, 0, 0, .28);
+    animation: acceso-entrada .5s ease-out both;
+}
+.acceso .tarjeta::before { content: ""; position: absolute; inset: 0 0 auto; height: 7px; background: linear-gradient(90deg, #9b2247, #c9a24a 55%, #e6d194); }
+.acceso .tarjeta__encabezado { align-items: center; gap: 4px; text-align: center; }
+.acceso .tarjeta__encabezado h2 { font-size: 24px; line-height: 30px; letter-spacing: -0.4px; }
+.acceso .tarjeta__encabezado p { font-size: 14px; line-height: 20px; }
+.acceso .campos { gap: 12px; }
+.acceso .campo { gap: 5px; }
+.acceso .campo__etiqueta { font-size: 13.5px; }
+.acceso .campo__etiqueta span { font-size: 12.5px; }
+.acceso .campo__entrada { height: 44px; padding: 0 14px; border-radius: 12px; }
+.acceso .campo__entrada input, .acceso .campo__entrada select { font-size: 15px; }
+.acceso .campo__ayuda, .acceso .campo__error { font-size: 12px; }
+.acceso .boton-mostrar { padding: 5px 10px 5px 8px; font-size: 12.5px; }
+.acceso .boton-mostrar img { width: 15px; height: 15px; }
+.acceso .opciones { gap: 32px; font-size: 13.5px; margin-top: 2px; }
+.acceso .opciones > * { white-space: nowrap; }
+.acceso .casilla { font-size: 13.5px; gap: 8px; }
+.acceso .casilla input { width: 18px; height: 18px; border-radius: 5px; }
+.acceso .boton-principal { height: 46px; font-size: 15px; background: linear-gradient(135deg, #1d6354, #123f37); box-shadow: 0 10px 22px rgba(22, 79, 68, .32); transition: transform .15s ease, box-shadow .15s ease; }
+.acceso .boton-principal:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(22, 79, 68, .40); }
+.acceso .boton-principal img { width: 17px; height: 17px; }
+.acceso .boton-secundario { height: 44px; font-size: 14.5px; }
+.acceso .tarjeta__pie { gap: 6px; margin-top: 4px; padding-top: 12px; font-size: 14px; text-align: center; }
+.acceso .tarjeta__ayuda { font-size: 12px; line-height: 17px; }
+.acceso .tarjeta__parrafo { font-size: 14px; line-height: 20px; }
+.acceso .icono-circulo { width: 52px; height: 52px; }
+.acceso .aviso { padding: 12px 14px; }
+.acceso .seccion { padding-top: 2px; font-size: 12px; }
+.acceso .fila { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.acceso .fila > *, .acceso .fila input { min-width: 0; }
+
+@keyframes acceso-entrada { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+    .acceso .tarjeta, .acceso__logos { animation: none; }
+    .acceso .boton-principal { transition: none; }
+}
+.acceso .icono-circulo { align-self: center; }
+.acceso .icono-circulo img { width: 24px; height: 24px; }
+
+/* ---------- Enlaces resaltados (¿Olvidaste tu contraseña?, Crear cuenta, Volver a iniciar sesión…) ---------- */
+/* Enlaces sueltos: verde, sin el subrayado del navegador, con un subrayado dorado grueso */
+.acceso .enlace {
+    color: #164f44; font-weight: 700; text-decoration: underline; text-decoration-color: #c9a24a;
+    text-decoration-thickness: 2px; text-underline-offset: 4px; border-radius: 6px; transition: background .15s ease, color .15s ease;
+}
+.acceso .enlace:hover { color: #0e3a32; background: #f2e3b8; text-decoration-color: #9b2247; }
+.acceso .enlace:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+/* El enlace que lleva a otra pantalla principal (Crear cuenta / Iniciar sesión, al pie): pastilla verde */
+.acceso .tarjeta__pie > p:not(.tarjeta__ayuda) .enlace,
+.acceso .enlaces .enlace:last-child {
+    display: inline-flex; align-items: center; margin-left: 4px; padding: 5px 14px;
+    border: 1.5px solid #164f44; border-radius: 999px; background: #e4efeb; text-decoration: none;
+}
+.acceso .tarjeta__pie > p:not(.tarjeta__ayuda) .enlace:hover,
+.acceso .enlaces .enlace:last-child:hover { background: #164f44; color: #fff; }
+@media (prefers-reduced-motion: reduce) { .acceso .enlace { transition: none; } }
+
+/* ---------- «Volver a iniciar sesión»: solo texto, centrado ---------- */
+.acceso .enlace-volver {
+    display: inline-flex; align-items: center; gap: 8px; align-self: center;
+    color: #164f44; font-size: 14px; font-weight: 700; text-decoration: none;
+}
+.acceso .enlace-volver:hover { text-decoration: underline; text-decoration-color: #c9a24a; text-underline-offset: 4px; }
+.acceso .enlace-volver:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; border-radius: 999px; }
+
+/* ---------- Ayuda de recuperación asistida: cabecera, pasos numerados y botón ---------- */
+.acceso .asistida {
+    flex-direction: column; gap: 12px; padding: 16px 18px;
+    border: 1px solid #e2ded5; border-left: 4px solid #c9a24a; border-radius: 16px; background: #f7f5f0;
+}
+.acceso .asistida__cabecera { display: flex; align-items: center; gap: 12px; }
+.acceso .asistida__cabecera strong { display: block; color: #161a1d; font-size: 14.5px; }
+.acceso .asistida__cabecera p { margin: 0; color: #4d4d4d; font-size: 13px; line-height: 18px; }
+.acceso .asistida__icono { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #164f44; }
+.acceso .asistida__icono img { width: 20px; height: 20px; filter: brightness(0) invert(1); }
+.acceso .asistida__pasos { counter-reset: paso; display: flex; flex-direction: column; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.acceso .asistida__pasos li { counter-increment: paso; display: flex; align-items: flex-start; gap: 10px; color: #161a1d; font-size: 13px; line-height: 19px; }
+.acceso .asistida__pasos li::before {
+    content: counter(paso); flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+    background: #f2e3b8; color: #8a6414; font-size: 11.5px; font-weight: 700;
+}
+.acceso .asistida__boton { height: 40px; font-size: 14px; text-decoration: none; }
+.acceso .asistida__boton:hover { background: #e4efeb; }
+
+/* Crear cuenta: los tres nombres en una sola fila */
+.acceso .fila.fila--tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Crear cuenta: aviso de privacidad en un recuadro con casilla grande */
+.acceso .privacidad-con-error { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.acceso .privacidad {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer;
+    border: 1.5px solid #e2ded5; border-left: 4px solid #c9a24a; border-radius: 14px; background: #f7f5f0;
+    transition: border-color .15s ease, background .15s ease;
+}
+.acceso .privacidad:hover { border-color: #b9b3a5; border-left-color: #c9a24a; }
+.acceso .privacidad input {
+    flex: none; appearance: none; margin: 0; width: 22px; height: 22px; cursor: pointer;
+    border: 1.5px solid #b9b3a5; border-radius: 6px; background: #fff;
+}
+.acceso .privacidad input:checked { border-color: #164f44; background: #164f44 url("../../assets/login/icono-palomita.svg") center / 14px no-repeat; }
+.acceso .privacidad input:focus-visible { outline: 3px solid #c9a24a; outline-offset: 2px; }
+.acceso .privacidad__textos { display: flex; flex-direction: column; gap: 2px; }
+.acceso .privacidad__textos strong { color: #161a1d; font-size: 14px; }
+.acceso .privacidad__textos span { color: #4d4d4d; font-size: 12.5px; line-height: 17px; }
+.acceso .privacidad--aceptada { border-color: #bfd9d0; border-left-color: #164f44; background: #e4efeb; }
+.acceso .privacidad--error { border-color: #e7b9c6; border-left-color: #9b2247; background: #fbf1f4; }
+@media (prefers-reduced-motion: reduce) { .acceso .privacidad { transition: none; } }
+/* Crear cuenta: «¿Ya tienes cuenta?» más pegado al botón */
+.acceso .tarjeta__pie--sin-linea { margin-top: -4px; padding-top: 0; }
+
+/* Crear cuenta · eres menor de 18 años */
+.acceso__insignia img { width: 22px; height: 22px; filter: brightness(0) invert(1); }
+.acceso .menor-pedimos {
+    display: flex; flex-direction: column; gap: 8px; padding: 14px 16px;
+    border: 1px solid #e2ded5; border-left: 4px solid #c9a24a; border-radius: 14px; background: #f7f5f0;
+}
+.acceso .menor-pedimos strong { color: #161a1d; font-size: 14px; }
+.acceso .menor-pedimos ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.acceso .menor-pedimos li { display: flex; align-items: center; gap: 10px; color: #161a1d; font-size: 13.5px; line-height: 19px; }
+.acceso .menor-pedimos li::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: #164f44; }
+.acceso .menor-nota { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 14px; background: #e4efeb; }
+.acceso .menor-nota p { margin: 0; color: #164f44; font-size: 13px; line-height: 19px; }
+.acceso .menor-nota b { font-weight: 700; }
+.acceso .enlaces { align-items: center; }
+
+/* Pantalla de menor: acciones en orden de importancia */
+.acceso .menor-acciones { display: flex; flex-direction: column; gap: 10px; }
+.acceso .menor-acciones__ayuda { margin: 0; color: #6b675e; font-size: 12.5px; line-height: 17px; text-align: center; }
+
+/* Botones de acceso: estados de interacción claros */
+.acceso .boton-secundario { transition: background .15s ease, border-color .15s ease, transform .15s ease; }
+.acceso .boton-secundario:hover:not(:disabled) { background: #e4efeb; }
+.acceso .boton-principal:active:not(:disabled), .acceso .boton-secundario:active:not(:disabled) { transform: translateY(1px) scale(.99); }
+.acceso .boton-principal:focus-visible, .acceso .boton-secundario:focus-visible { outline: 3px solid #c9a24a; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .acceso .boton-secundario { transition: none; } }
+
+/* ================= Responsivo ================= */
+/* Táctil (teléfono y tableta): textos de 16 px en los campos para que iOS no haga zoom, casillas más grandes */
+@media (max-width: 1024px) {
+    .acceso .campo__entrada input, .acceso .campo__entrada select { font-size: 16px; }
+    .acceso .casilla input { width: 22px; height: 22px; }
+    .acceso .campo__entrada { height: 48px; }
+    .acceso .boton-principal { height: 50px; }
+}
+
+/* Tableta (601–1024 px): la tarjeta un poco más grande, centrada */
+@media (min-width: 601px) and (max-width: 1024px) {
+    .acceso { padding: 40px 32px; }
+    .acceso__columna { width: 520px; }
+    .acceso__columna--ancha { width: 720px; }
+    .acceso .tarjeta { padding: 32px 34px 26px; }
+    .acceso__logo { height: 36px; }
+    .acceso__logo--mexico { width: 104px; }
+    .acceso__logo--nayarit { width: 108px; }
+    .acceso__logo--solon { height: 42px; }
+}
+
+/* Teléfono (hasta 600 px): una columna, márgenes de 16 px y la tarjeta casi a lo ancho */
+@media (max-width: 600px) {
+    .acceso { align-items: flex-start; padding: 24px 16px 32px; }
+    .acceso__columna, .acceso__columna--ancha { width: 100%; gap: 14px; margin-block: auto; } /* centrada si cabe; arriba si es larga */
+    .acceso__logos { gap: 10px; }
+    .acceso__logo { height: 28px; }
+    .acceso__logo--mexico { width: 82px; }
+    .acceso__logo--nayarit { width: 86px; }
+    .acceso__logo--solon { height: 34px; }
+    .acceso__separador { height: 24px; }
+    .acceso .tarjeta { gap: 14px; padding: 24px 18px 20px; border-radius: 20px; }
+    .acceso .tarjeta__encabezado h2 { font-size: 22px; line-height: 28px; }
+    .acceso__insignia { width: 42px; height: 42px; box-shadow: 0 0 0 4px #f2e3b8; }
+    .acceso .fila, .acceso .fila.fila--tres { grid-template-columns: minmax(0, 1fr); }
+    /* «Recordarme» y «¿Olvidaste tu contraseña?»: si no caben juntos, el enlace baja alineado a la derecha */
+    .acceso .opciones { flex-wrap: wrap; gap: 10px 12px; }
+    .acceso .opciones > a { margin-left: auto; }
+    .acceso .tarjeta__pie > p:not(.tarjeta__ayuda) { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; }
+    .acceso .tarjeta__pie > p:not(.tarjeta__ayuda) .enlace { margin-left: 0; }
+    .acceso .asistida { padding: 14px; }
+    .acceso .privacidad { padding: 12px 14px; gap: 12px; }
+    .acceso .enlaces { flex-direction: column-reverse; gap: 12px; }
+    .acceso .enlaces .enlace { white-space: nowrap; }
+}

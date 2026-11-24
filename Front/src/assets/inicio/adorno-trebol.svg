@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="130" height="200" viewBox="0 0 130 200" fill="none">
+  <!-- Matita de tréboles: tallos que salen del suelo con hojas de tres corazones y dos flores doradas -->
+  <path d="M60 198 C58 168 44 138 30 112" stroke="#164f44" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M64 198 C68 162 80 128 96 100" stroke="#1f6b5c" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M62 198 C62 176 62 154 60 132" stroke="#164f44" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M66 198 C76 184 92 176 110 170" stroke="#1f6b5c" stroke-width="2.4" stroke-linecap="round"/>
+  <g fill="#1f6b5c">
+    <g transform="translate(30 108)"><path d="M0 0 C-14 -4 -16 -18 -6 -20 C0 -21 2 -14 0 0Z"/><path d="M0 0 C4 -14 16 -18 18 -8 C19 -2 12 2 0 0Z"/><path d="M0 0 C-10 8 -8 20 2 18 C8 16 6 8 0 0Z"/></g>
+    <g transform="translate(96 96)"><path d="M0 0 C-14 -4 -16 -18 -6 -20 C0 -21 2 -14 0 0Z"/><path d="M0 0 C4 -14 16 -18 18 -8 C19 -2 12 2 0 0Z"/><path d="M0 0 C-10 8 -8 20 2 18 C8 16 6 8 0 0Z"/></g>
+    <g transform="translate(110 168) scale(0.8)"><path d="M0 0 C-14 -4 -16 -18 -6 -20 C0 -21 2 -14 0 0Z"/><path d="M0 0 C4 -14 16 -18 18 -8 C19 -2 12 2 0 0Z"/><path d="M0 0 C-10 8 -8 20 2 18 C8 16 6 8 0 0Z"/></g>
+  </g>
+  <g fill="#e4efeb" opacity="0.7"><circle cx="24" cy="100" r="1.5"/><circle cx="90" cy="88" r="1.5"/></g>
+  <g transform="translate(60 126)">
+    <circle cx="0" cy="-8" r="5" fill="#c9a24a"/><circle cx="7" cy="-2" r="5" fill="#e6d194"/><circle cx="-7" cy="-2" r="5" fill="#e6d194"/>
+    <circle cx="4" cy="6" r="5" fill="#c9a24a"/><circle cx="-4" cy="6" r="5" fill="#c9a24a"/><circle cx="0" cy="0" r="3.5" fill="#9b2247"/>
+  </g>
+  <g transform="translate(40 160) scale(0.7)">
+    <circle cx="0" cy="-8" r="5" fill="#e6d194"/><circle cx="7" cy="-2" r="5" fill="#c9a24a"/><circle cx="-7" cy="-2" r="5" fill="#c9a24a"/>
+    <circle cx="4" cy="6" r="5" fill="#e6d194"/><circle cx="-4" cy="6" r="5" fill="#e6d194"/><circle cx="0" cy="0" r="3.5" fill="#611232"/>
+  </g>
+  <path d="M40 160 C42 176 50 188 58 198" stroke="#164f44" stroke-width="2" stroke-linecap="round"/>
+</svg>
