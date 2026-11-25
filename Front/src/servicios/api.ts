@@ -27,19 +27,29 @@ export function pedirApi<T>(ruta: string, opciones: RequestInit = {}): Promise<T
 }
 
 async function pedirApiDirecto<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
+    const respuesta = await solicitarApi(ruta, opciones);
+    return await respuesta.json().catch(() => null) as T;
+}
+
+export async function pedirArchivoApi(ruta: string, opciones: RequestInit = {}): Promise<Blob> {
+    const respuesta = await solicitarApi(ruta, opciones);
+    return respuesta.blob();
+}
+
+async function solicitarApi(ruta: string, opciones: RequestInit): Promise<Response> {
     let respuesta: Response;
     try {
         respuesta = await fetch(`/api${ruta}`, { ...opciones, signal: AbortSignal.timeout(20000),
             headers: { 'Content-Type': 'application/json', ...opciones.headers } });
     } catch { throw new ErrorServicio('No pudimos conectar con el servidor. Comprueba que el backend esté encendido.'); }
-    const datos = await respuesta.json().catch(() => null);
     if (!respuesta.ok) {
         if (respuesta.status === 401 || respuesta.status === 403) invalidarConsultas();
+        const datos = await respuesta.json().catch(() => null);
         const mensaje = typeof datos?.detail === 'string' ? datos.detail
             : respuesta.status === 422 ? 'Revisa los campos y los requisitos del formulario.' : 'No fue posible completar la operación. Intenta más tarde.';
         throw new ErrorServicio(mensaje, respuesta.status);
     }
-    return datos as T;
+    return respuesta;
 }
 
 export function mensajeError(error: unknown): string {

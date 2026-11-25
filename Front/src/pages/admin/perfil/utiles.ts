@@ -1,7 +1,7 @@
 // Mi cuenta (perfil del personal dentro del panel, 22 nov 2026, T3): ayudas que no son componentes.
 // Usa los mismos servicios que el perfil del portal (servicios/perfil.ts y la seguridad de Supabase): no hay backend nuevo.
 import type { AccesoCuenta } from "../../../servicios/auth";
-import { capacidadPanel, permisoGlobal } from "../../../servicios/accesoPanel";
+import { capacidadPanel, permisoPanel } from "../../../servicios/accesoPanel";
 import { SECCIONES_MENU } from "../menu";
 import type { NombreIcono } from "../piezasPanel";
 
@@ -28,7 +28,7 @@ export function accesosPorSeccion(acceso: AccesoCuenta | undefined) {
     return SECCIONES_MENU.map((s) => {
         const puede = s.subitems.filter((sub) => {
             const capacidad = sub.capacidad ?? capacidadPanel(sub.ruta);
-            return !!acceso && !!capacidad && permisoGlobal(acceso, capacidad);
+            return !!acceso && !!capacidad && permisoPanel(acceso, capacidad);
         });
         return { id: s.id, texto: s.texto, icono: ICONO_SECCION[s.id] ?? "lista", total: s.subitems.length, puede: puede.map((p) => p.texto), enlaces: puede.map((p) => ({ texto: p.texto, ruta: p.ruta })) };
     });

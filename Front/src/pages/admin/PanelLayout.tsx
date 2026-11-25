@@ -3,7 +3,7 @@ import { AvisosSistema, LimiteErrorPanel } from "./EstadosPanel";
 import "./PanelSolon.css";
 import { useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router";
-import { ContextoPanel, capacidadPanel, permisoGlobal, type IdentidadPanel } from "../../servicios/accesoPanel";
+import { ContextoPanel, capacidadPanel, permisoGlobal, permisoPanel, type IdentidadPanel } from "../../servicios/accesoPanel";
 import "./Panel.css";
 import "./PanelNormalizado.css";
 import "./PanelNavegacion.css";
@@ -50,7 +50,7 @@ function FranjaGobierno() {
 function estadoSubitem(subitem: SubitemMenu, identidad: IdentidadPanel | null): "enlace" | "pronto" | "oculto" {
     const capacidad = subitem.capacidad ?? capacidadPanel(subitem.ruta);
     if (!capacidad) return "pronto";
-    return identidad && permisoGlobal(identidad.acceso, capacidad) ? "enlace" : "oculto";
+    return identidad && permisoPanel(identidad.acceso, capacidad) ? "enlace" : "oculto";
 }
 
 // El menú plegado se recuerda en este navegador (solo es una preferencia de vista)

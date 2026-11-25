@@ -39,8 +39,15 @@ export function permisoGlobal(acceso: AccesoCuenta, capacidad: string): boolean 
     return acceso.roles.some(rol => rol.capacidades.includes(capacidad)) ||
         acceso.permisosAdicionales.some(p => p.capacidad === capacidad && p.ambito === 'global' && !p.actividadId);
 }
+function tieneEstadisticasAsignadas(acceso: AccesoCuenta): boolean {
+    return acceso.permisosAdicionales.some(p => p.capacidad === 'consultar_estadisticas'
+        && p.ambito === 'actividades_asignadas' && !!p.actividadId);
+}
+export function permisoPanel(acceso: AccesoCuenta, capacidad: string): boolean {
+    return permisoGlobal(acceso, capacidad) || (capacidad === 'consultar_estadisticas' && tieneEstadisticasAsignadas(acceso));
+}
 export function tienePanel(acceso: AccesoCuenta): boolean {
-    return ['registrar_recompensas', 'administrar_cuentas', 'consultar_estadisticas', 'orientar_recuperacion', 'consultar_cuentas_atencion', 'alta_asistida', 'moderar_foro', 'enviar_avisos', 'validar_credenciales', 'registrar_resoluciones_actividades', 'preparar_contenidos', 'publicar_contenidos', 'gestionar_actividades', 'registrar_asistencia', 'confirmar_inscripciones', 'gestionar_evidencias', 'atender_contactos', 'atender_bibliocomunidad', 'gestionar_fuentes_asistente'].some(c => permisoGlobal(acceso, c));
+    return tieneEstadisticasAsignadas(acceso) || ['registrar_recompensas', 'administrar_cuentas', 'consultar_estadisticas', 'orientar_recuperacion', 'consultar_cuentas_atencion', 'alta_asistida', 'moderar_foro', 'enviar_avisos', 'validar_credenciales', 'registrar_resoluciones_actividades', 'preparar_contenidos', 'publicar_contenidos', 'gestionar_actividades', 'registrar_asistencia', 'confirmar_inscripciones', 'gestionar_evidencias', 'atender_contactos', 'atender_bibliocomunidad', 'gestionar_fuentes_asistente'].some(c => permisoGlobal(acceso, c));
 }
 export function nombresRoles(acceso: AccesoCuenta): string {
     const nombres: Record<string,string> = { usuario: 'Usuario / Cliente', editor: 'Editor',

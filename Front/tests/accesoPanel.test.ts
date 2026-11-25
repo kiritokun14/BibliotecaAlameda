@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { capacidadPanel, permisoGlobal, rutaInicialPanel, tienePanel } from '../src/servicios/accesoPanel';
+import { capacidadPanel, permisoGlobal, permisoPanel, rutaInicialPanel, tienePanel } from '../src/servicios/accesoPanel';
 import type { AccesoCuenta } from '../src/servicios/auth';
 const acceso = (capacidad?: string): AccesoCuenta => ({ usuarioId: 'persona',
     roles: [{ rolCodigo: 'administrador', capacidades: ['administrar_cuentas'] }],
@@ -38,6 +38,17 @@ describe('Acceso a las pantallas de atención', () => {
         const cuenta = { ...acceso(), roles: [] };
         cuenta.permisosAdicionales = [{ capacidad: 'registrar_resoluciones_actividades', ambito: 'actividad', actividadId: 'actividad' }];
         expect(tienePanel(cuenta)).toBe(false);
+    });
+    it('un permiso de estadísticas por actividad abre el informe y conserva su alcance', () => {
+        const cuenta: AccesoCuenta = { usuarioId: 'responsable', roles: [], permisosAdicionales: [
+            { capacidad: 'consultar_estadisticas', ambito: 'actividades_asignadas', actividadId: 'actividad' },
+            { capacidad: 'gestionar_actividades', ambito: 'actividades_asignadas', actividadId: 'actividad' },
+        ] };
+        expect(tienePanel(cuenta)).toBe(true);
+        expect(rutaInicialPanel(cuenta)).toBe('/admin/resumen');
+        expect(permisoPanel(cuenta, 'consultar_estadisticas')).toBe(true);
+        expect(permisoGlobal(cuenta, 'consultar_estadisticas')).toBe(false);
+        expect(permisoPanel(cuenta, 'gestionar_actividades')).toBe(false);
     });
     it('un editor no obtiene permisos de publicación ni de actividades', () => {
         const editor = acceso('preparar_contenidos');

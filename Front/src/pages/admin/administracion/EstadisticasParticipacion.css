@@ -1,0 +1,9 @@
+.est-participacion__filtros select { max-width: 265px; }
+.est-participacion__fechas { justify-content: flex-start; align-items: flex-end; }
+.est-participacion__biblioteca { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.est-indicador__valor.est-participacion__sin-cifra { font-size: 18px; }
+.est-tabla-dia .contenidos-tabla__fila { grid-template-columns: 96px repeat(4, minmax(84px, 1fr)); }
+.est-tabla-dia--biblioteca .contenidos-tabla__fila { grid-template-columns: 96px repeat(6, minmax(84px, 1fr)); }
+.est-tabla-dia--captura .contenidos-tabla__fila { grid-template-columns: 96px repeat(6, minmax(84px, 1fr)) 95px; }
+.est-tabla-sesion .contenidos-tabla__fila { grid-template-columns: minmax(200px, 2fr) repeat(5, minmax(85px, 1fr)); }
+.est-tabla-sesion .at-celda-doble { gap: 3px; }

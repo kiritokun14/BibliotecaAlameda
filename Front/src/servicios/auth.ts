@@ -1,5 +1,5 @@
 import { consultasAcceso, invalidarConsultas, olvidarSesion } from './consultas';
-import { ErrorServicio, obtenerSupabase, pedirApi, recordarSesion } from './api';
+import { ErrorServicio, obtenerSupabase, pedirApi, pedirArchivoApi, recordarSesion } from './api';
 
 export interface Domicilio {
     calle: string; numeroExterior: string; numeroInterior?: string; coloniaLocalidad: string;
@@ -40,12 +40,17 @@ export async function consultarMiAcceso(): Promise<AccesoCuenta> {
         headers: { Authorization: `Bearer ${token}` },
     }), 15000);
 }
-export async function pedirAdministracion<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
+async function opcionesAdministracion(opciones: RequestInit = {}): Promise<RequestInit> {
     const { data } = await (await obtenerSupabase()).auth.getSession();
     if (!data.session) throw new ErrorServicio('Inicia sesión para continuar.', 401);
     if (opciones.method && opciones.method !== 'GET') invalidarConsultas();
-    return pedirApi<T>(`/administracion${ruta}`, { ...opciones,
-        headers: { ...opciones.headers, Authorization: `Bearer ${data.session.access_token}` } });
+    return { ...opciones, headers: { ...opciones.headers, Authorization: `Bearer ${data.session.access_token}` } };
+}
+export async function pedirAdministracion<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
+    return pedirApi<T>(`/administracion${ruta}`, await opcionesAdministracion(opciones));
+}
+export async function pedirArchivoAdministracion(ruta: string): Promise<Blob> {
+    return pedirArchivoApi(`/administracion${ruta}`, await opcionesAdministracion());
 }
 export type ResultadoInicioSesion = 'ok' | 'credenciales-incorrectas' | 'cuenta-deshabilitada' | 'correo-pendiente';
 export async function iniciarSesion(correo: string, contrasena: string, recordarme = false): Promise<ResultadoInicioSesion> {

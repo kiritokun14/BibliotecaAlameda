@@ -7,7 +7,7 @@ import { EsqueletoPanel } from '../../components/portal/Esqueleto';
 import PantallaEstado, { IconoCandado } from '../../components/portal/PantallaEstado';
 import { VentanaSesionCaducada } from './EstadosPanel';
 import { precargarPanel } from './precargaPanel';
-import { capacidadPanel, permisoGlobal, rutaInicialPanel, tienePanel, ContextoPanel, type IdentidadPanel } from '../../servicios/accesoPanel';
+import { capacidadPanel, permisoPanel, rutaInicialPanel, tienePanel, ContextoPanel, type IdentidadPanel } from '../../servicios/accesoPanel';
 
 // Solo se descarga si hace falta: el aviso «Sin permiso» dentro del panel (Figma 583:45548)
 const SinPermiso = lazy(() => import('./SinPermiso'));
@@ -81,7 +81,7 @@ export default function AccesoPanel({ children, libre = false }: { children: Rea
     const capacidad = capacidadPanel(pathname);
     // Solo en desarrollo: ?simular=sesion-caducada muestra la ventana para revisarla
     const caducada = resultado.caducada || (import.meta.env.DEV && new URLSearchParams(search).get('simular') === 'sesion-caducada');
-    if (!libre && (!capacidad || !permisoGlobal(identidad.acceso, capacidad))) return (
+    if (!libre && (!capacidad || !permisoPanel(identidad.acceso, capacidad))) return (
         <ContextoPanel.Provider value={identidad}>
             <Suspense fallback={<EsqueletoPanel />}><SinPermiso /></Suspense>
         </ContextoPanel.Provider>

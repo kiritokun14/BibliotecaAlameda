@@ -2,17 +2,19 @@
 // Rediseño (22 nov 2026): barra con sección y periodo, indicadores en tarjetas, gráfica con escala, valores y resumen
 // (total, promedio y el punto más alto) | lo más visto con su barra y qué cuenta cada sección.
 // Solo en desarrollo, ?simular=ejemplo muestra los datos de ejemplo de ./datos.ts para revisar el diseño sin backend.
-import { useEffect, useId, useState } from "react";
+import { useContext, useEffect, useId, useState } from "react";
 import { Ventana } from "../Ventana";
 import { simulacion } from "../../../servicios/simulacion";
 import { estadisticas as ejemplo, porcentaje, type Estadisticas as DatosEstadisticas, type Periodo, type SeccionEstadistica } from "./datos";
 import { consultarEstadisticas } from "../../../servicios/estadisticas";
+import { ContextoPanel, permisoGlobal } from "../../../servicios/accesoPanel";
 import { mensajeError } from "../../../servicios/api";
 import { EsqueletoLista } from "../../../components/portal/Esqueleto";
 import { ErrorCarga, Pantalla } from "./comun";
 import { descargarCsv } from "./utiles";
 import { Aviso, Encabezado, Icono, Plegable, Segmentado, Tarjeta, Vacio, type NombreIcono } from "../piezasPanel";
 import modalInfo from "../../../assets/admin/modal-info.svg";
+import EstadisticasParticipacion from "./EstadisticasParticipacion";
 
 const SECCIONES: { valor: SeccionEstadistica; texto: string }[] = [{ valor: "portal", texto: "Portal" }, { valor: "actividades", texto: "Actividades" }, { valor: "contenidos", texto: "Contenidos" }];
 const PERIODOS: { valor: Periodo; texto: string }[] = [{ valor: "30dias", texto: "Últimos 30 días" }, { valor: "mes", texto: "Este mes" }, { valor: "anio", texto: "Este año" }];
@@ -31,7 +33,10 @@ const miles = (n: number) => n.toLocaleString("es-MX");
 
 export default function Estadisticas() {
     const id = useId();
-    const [seccion, setSeccion] = useState<SeccionEstadistica>("portal");
+    const identidad = useContext(ContextoPanel);
+    const accesoGeneral = !!identidad && permisoGlobal(identidad.acceso, "consultar_estadisticas");
+    const [seccionElegida, setSeccion] = useState<SeccionEstadistica>("actividades");
+    const seccion = accesoGeneral ? seccionElegida : "actividades";
     const [periodo, setPeriodo] = useState<Periodo>("30dias");
     const [exportando, setExportando] = useState(false);
     const [exportado, setExportado] = useState("");
@@ -39,21 +44,20 @@ export default function Estadisticas() {
     const [intento, setIntento] = useState(0);
     const modo = simulacion(); // ?simular=error-exportar | ejemplo (solo desarrollo)
     const deEjemplo = import.meta.env.DEV && modo === "ejemplo";
-    const clave = `${seccion}:${periodo}:${intento}`;
+    const identidadEstadistica = JSON.stringify(identidad?.acceso ?? null);
+    const clave = `${identidadEstadistica}:${seccion}:${periodo}:${intento}`;
     const [resultado, setResultado] = useState<{ clave: string; datos?: DatosEstadisticas; error?: string }>({ clave: "" });
     useEffect(() => {
-        if (deEjemplo) return;
+        if (deEjemplo || seccion === "actividades") return;
         let vigente = true;
         consultarEstadisticas(seccion, periodo)
             .then((datos) => { if (vigente) setResultado({ clave, datos }); })
             .catch((error) => { if (vigente) setResultado({ clave, error: mensajeError(error) }); });
         return () => { vigente = false; };
     }, [clave, seccion, periodo, deEjemplo]);
-    const [ultimos, setUltimos] = useState<DatosEstadisticas>();
-    if (resultado.datos && resultado.datos !== ultimos) setUltimos(resultado.datos);
     const errorCarga = !deEjemplo && resultado.clave === clave ? resultado.error : undefined;
-    const datos = deEjemplo ? ejemplo(seccion, periodo) : (resultado.clave === clave ? resultado.datos : undefined) ?? ultimos ?? VACIO;
-    const cargando = !deEjemplo && !ultimos && !errorCarga;
+    const datos = deEjemplo ? ejemplo(seccion, periodo) : (resultado.clave === clave ? resultado.datos : undefined) ?? VACIO;
+    const cargando = !deEjemplo && resultado.clave !== clave;
     const sinDatos = !cargando && !errorCarga && datos.serie.every((s) => s.valor === 0) && datos.tabla.every((f) => f.valor === 0)
         && datos.indicadores.every((i) => i.valor === "0" || i.valor === "Sin listas");
 
@@ -65,6 +69,18 @@ export default function Estadisticas() {
     const total = datos.serie.reduce((t, s) => t + s.valor, 0);
     const mayor = datos.serie.reduce<{ etiqueta: string; valor: number } | null>((m, s) => (!m || s.valor > m.valor ? s : m), null);
     const totalTabla = datos.tabla.reduce((t, f) => t + f.valor, 0);
+
+    const secciones = accesoGeneral && <div className="est-barra__grupo"><span>Sección</span>
+        <Segmentado<SeccionEstadistica> etiqueta="Sección" valor={seccion} alCambiar={setSeccion} opciones={SECCIONES} />
+    </div>;
+
+    if (seccion === "actividades") return (
+        <Pantalla migas={[["Estadísticas"], [nombreSeccion]]}>
+            <div className="pz-pagina">
+                <EstadisticasParticipacion key={identidadEstadistica} secciones={secciones} />
+            </div>
+        </Pantalla>
+    );
 
     function exportar() {
         setExportando(false); setExportado(""); setErrorExportar(false);
@@ -87,7 +103,7 @@ export default function Estadisticas() {
 
                 <section className="pz-tarjeta cal-barra est-barra" aria-label="Sección y periodo">
                     <div className="cal-barra__fila">
-                        <div className="est-barra__grupo"><span>Sección</span><Segmentado<SeccionEstadistica> etiqueta="Sección" valor={seccion} alCambiar={setSeccion} opciones={SECCIONES} /></div>
+                        {secciones}
                         <div className="est-barra__grupo"><span>Periodo</span><Segmentado<Periodo> etiqueta="Periodo" valor={periodo} alCambiar={setPeriodo} opciones={PERIODOS} /></div>
                     </div>
                 </section>

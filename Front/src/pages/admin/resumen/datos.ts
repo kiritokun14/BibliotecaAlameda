@@ -3,7 +3,7 @@
 // cuenta tiene acceso (folio, asunto, área, responsable, vencimiento y estado), las actividades del día
 // y los indicadores. El frontend solo filtra y busca sobre lo que llegue.
 import type { AccesoCuenta } from "../../../servicios/auth";
-import { capacidadPanel, permisoGlobal } from "../../../servicios/accesoPanel";
+import { capacidadPanel, permisoPanel } from "../../../servicios/accesoPanel";
 import type { NombreIcono } from "./iconos";
 
 export type AreaPendiente = "propuestas" | "visitas" | "inscripciones" | "contactos" | "resenas" | "credenciales" | "administracion";
@@ -227,7 +227,7 @@ export type VistaEnlace = "enlace" | "oculto" | "pronto";
 export function vistaEnlace(ruta: string, acceso: AccesoCuenta | null | undefined): VistaEnlace {
     const capacidad = capacidadPanel(ruta);
     if (!capacidad) return "pronto";
-    return acceso && permisoGlobal(acceso, capacidad) ? "enlace" : "oculto";
+    return acceso && permisoPanel(acceso, capacidad) ? "enlace" : "oculto";
 }
 
 // «Buenos días / tardes / noches» según la hora local

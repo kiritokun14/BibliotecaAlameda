@@ -41,6 +41,7 @@ Ejecuta cada archivo completo, en este orden, desde el SQL Editor de un proyecto
 | 26 | `asistencia_actividades.sql` | Presencia real por sesión y correcciones con historial. Requiere `agenda_actividades.sql` e `inscripciones_responsables.sql` | HU-20 / T-099 |
 | 27 | `cancelacion_inscripciones_cambio_actividad.sql` | Cancela inscripciones activas de sesiones canceladas por acuerdo institucional y registra su historial. Requiere `cambios_actividad.sql` | T-104 |
 | 28 | `progreso_recompensas.sql` | Progreso por participación (una por sesión con asistencia «presente» y credencial vigente ese día), niveles Inicial / Lector activo / Lector constante, ajustes con motivo, y recompensas: asignación con autorización de la Dirección, entrega y cancelación. Requiere `asistencia_actividades.sql` | HU-28 / HU-29 |
+| 29 | `estadisticas_participacion.sql` | Reporte por periodo y ámbito. Captura agregada de visitas generales e incidencias. Requiere `agenda_actividades.sql` y `asistencia_actividades.sql`. | HU-22 / T-116 |
 
 Los pasos 3 a 5 contienen modelos provisionales que el paso 6 sustituye; deben ejecutarse igual,
 porque el 6 parte de ellos.
@@ -81,6 +82,8 @@ En CECANbd ya se aplicaron los pasos 18 a 20; no hace falta repetirlos para ejec
 HU-20 / T-099: `asistencia_actividades.sql` registra asistencia por sesión y sus correcciones con historial; requiere agenda e inscripciones. `pruebas_asistencia_actividades.sql` verifica permisos, sesiones, cierre y correcciones con `ROLLBACK` en una copia de pruebas. Revisa su aplicación antes de utilizar esta función en la base compartida.
 
 HU-28 / HU-29: `progreso_recompensas.sql` calcula el progreso desde la asistencia y registra asignación, entrega y cancelación de recompensas. `pruebas_progreso_recompensas.sql` (con `ROLLBACK`) comprueba niveles, sesiones sin credencial, correcciones, ajustes, existencias, doble asignación y permisos, después del paso 28.
+
+HU-22 / T-116: `pruebas_estadisticas_participacion.sql` verifica fuentes, ámbito, fechas y capturas agregadas después del paso 29. Usa una copia de pruebas. El recorrido se describe en [T-116-INFORME.md](../T-116-INFORME.md).
 
 T-094, complemento de solicitudes: `t094_correcciones_solicitudes.sql` agrega versiones completas, motivo obligatorio, corrección propia y control de concurrencia para propuestas y espacios. Aplicar después de las migraciones vigentes de propuestas y espacios y revisar con el equipo. `pruebas_t094_solicitudes.sql` comprueba los cuatro criterios con ROLLBACK. Ver `../T-094-INFORME.md`; la aplicación en CECANbd y la revisión de Aldahir siguen pendientes.
 

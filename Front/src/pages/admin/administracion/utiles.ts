@@ -21,10 +21,16 @@ export function useCarga<T>(clave: string, pedir: () => Promise<T>) {
 // Descarga un CSV armado en el navegador (exportar estadísticas y bitácora)
 export function descargarCsv(nombre: string, filas: (string | number)[][]) {
     const texto = filas.map((f) => f.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const url = URL.createObjectURL(new Blob(["﻿" + texto], { type: "text/csv;charset=utf-8" }));
+    descargarArchivo(nombre, new Blob(["﻿" + texto], { type: "text/csv;charset=utf-8" }));
+}
+
+export function descargarArchivo(nombre: string, archivo: Blob) {
+    const url = URL.createObjectURL(archivo);
     const enlace = document.createElement("a");
     enlace.href = url;
     enlace.download = nombre;
+    document.body.appendChild(enlace);
     enlace.click();
-    URL.revokeObjectURL(url);
+    enlace.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
