@@ -134,6 +134,11 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
     const [errorEnvio, setErrorEnvio] = useState("");
     const bloqueo = useRef(false);
     const domicilio = domicilioDePerfil(perfil.domicilio);
+    const direccion = [
+        [domicilio.calle, domicilio.numeroExterior, domicilio.numeroInterior && `Int. ${domicilio.numeroInterior}`].filter(Boolean).join(" "),
+        domicilio.colonia, domicilio.codigoPostal && `C. P. ${domicilio.codigoPostal}`,
+        domicilio.municipio, domicilio.estado,
+    ].filter(Boolean).join(", ");
 
     function enviar(e: FormEvent) {
         e.preventDefault();
@@ -180,8 +185,7 @@ function Solicitud({ perfil }: { perfil: PerfilPropio }) {
                         <Dato etiqueta="Fecha de nacimiento" valor={formatearFecha(perfil.fechaNacimiento)} icono={ic.fecha} />
                         <Dato etiqueta="Teléfono" valor={perfil.telefono} icono={ic.telefono} />
                         <Dato etiqueta="Correo electrónico" valor={perfil.correo} icono={ic.correo} ancho={2} />
-                        {perfil.domicilio && <Dato etiqueta="Domicilio" icono={ic.lugar} ancho={2}
-                            valor={[[domicilio.calle, domicilio.numeroExterior].filter(Boolean).join(" "), domicilio.colonia, domicilio.codigoPostal && `C. P. ${domicilio.codigoPostal}`].filter(Boolean).join(", ")} />}
+                        <Dato etiqueta="Domicilio" icono={ic.lugar} ancho={2} valor={direccion || "Domicilio no disponible"} />
                     </dl>
                     <div className="perfil-nota">
                         <img src={notaInfo} alt="" />

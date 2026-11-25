@@ -2708,7 +2708,7 @@
 .pagina-publica .esp-mapa__barra p { margin: 2px 0 0; color: #6b675e; font-size: 13.5px; line-height: 19px; }
 .pagina-publica .esp-mapa__barra .perfil-filtro { padding: 8px 16px; font-size: 13.5px; font-weight: 700; transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
 .pagina-publica .esp-mapa__lienzo {
-  position: relative; flex: 1; min-height: 0; border-radius: 16px;
+  position: relative; flex: 1; min-height: 300px; border-radius: 16px;
   background: #fbf9f4 radial-gradient(#ebe4d6 1px, transparent 1px) 0 0 / 18px 18px;
 }
 /* El lienzo toma el alto que sobra en la tarjeta y el plano se ajusta dentro (sin alto propio: no estira la fila) */

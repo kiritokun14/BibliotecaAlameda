@@ -21,6 +21,15 @@ export function propuestaVacia(responsable = "", telefono = ""): DatosPropuesta 
         espacio: "", material: "", responsable, telefono, acepta: false, abiertaAlPublico: false, sinFinesDeLucro: false };
 }
 
+// Descansos federales de fecha fija o calculable.
+function esFeriadoPropuesta(fecha: string): boolean {
+    const [anio, mes, dia] = fecha.split("-").map(Number);
+    if (["01-01", "05-01", "09-16", "12-25"].includes(fecha.slice(5))) return true;
+    if (mes === 10 && dia === 1 && anio >= 2024 && (anio - 2024) % 6 === 0) return true;
+    const lunes = new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay() === 1;
+    return lunes && ((mes === 2 && dia <= 7) || ([3, 11].includes(mes) && dia >= 15 && dia <= 21));
+}
+
 // La fecha y el horario son opcionales; si se indican, deben caer en el horario de la biblioteca (lunes a viernes,
 // de 8:00 a 19:30 h), igual que las solicitudes de espacio (Aldahir, 20 nov 2026).
 export function validarPropuesta(d: DatosPropuesta, hoy: string): ErroresPropuesta {
@@ -33,6 +42,7 @@ export function validarPropuesta(d: DatosPropuesta, hoy: string): ErroresPropues
     const n = Number(d.participantes);
     if (!d.participantes || !Number.isInteger(n) || n < 1 || n > 500) e.participantes = "Escribe un número entre 1 y 500.";
     if (d.fecha && d.fecha < hoy) e.fecha = "Elige una fecha a partir de hoy.";
+    else if (d.fecha && esFeriadoPropuesta(d.fecha)) e.fecha = "Elige otra fecha. Ese día es feriado.";
     else if (d.fecha && !esDiaHabil(d.fecha)) e.fecha = "La biblioteca abre de lunes a viernes; elige otro día.";
     if (d.horaInicio && d.horaInicio < HORARIO.abre) e.horaInicio = "La biblioteca abre a las 8:00.";
     else if (d.horaInicio && d.horaInicio >= HORARIO.cierra) e.horaInicio = "La biblioteca cierra a las 19:30.";

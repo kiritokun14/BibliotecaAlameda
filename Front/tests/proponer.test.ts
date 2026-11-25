@@ -15,6 +15,11 @@ describe('Proponer una actividad', () => {
         expect(validarPropuesta({ ...completa, fecha: '2026-10-01' }, '2026-11-03').fecha).toBeDefined();
         expect(validarPropuesta({ ...completa, horaInicio: '18:00', horaFin: '17:00' }, '2026-11-03').horaFin).toBeDefined();
     });
+    it('rechaza días festivos y permite un día hábil cercano', () => {
+        expect(validarPropuesta({ ...completa, fecha: '2026-11-16' }, '2026-11-03').fecha).toContain('feriado');
+        expect(validarPropuesta({ ...completa, fecha: '2026-12-25' }, '2026-11-03').fecha).toContain('feriado');
+        expect(validarPropuesta({ ...completa, fecha: '2026-11-17' }, '2026-11-03').fecha).toBeUndefined();
+    });
     it('conserva los campos de la pantalla en el contrato real sin imponer identidad ni estado', () => {
         const entrada = adaptarPropuesta({ ...completa, fecha: '2026-11-12', horaInicio: '13:00', horaFin: '15:00', espacio: 'Sala de lectura', material: 'Libros' });
         expect(entrada).toMatchObject({ tituloPropuesta: 'Club de cómic', diasSolicitados: '2026-11-12', horarioSolicitado: '13:00 a 15:00 (hora de Tepic)', necesidadEspacio: 'Sala de lectura', abiertaAlPublico: true, sinFinesDeLucro: true });

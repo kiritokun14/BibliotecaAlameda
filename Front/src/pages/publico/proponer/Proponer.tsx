@@ -203,7 +203,7 @@ function Formulario({ inicial, anterior }: { inicial: DatosPropuesta; anterior?:
                                 {solicitables.map((a) => <option key={a.id} value={a.nombre}>{a.nombre}</option>)}
                             </select>
                         </div>
-                        <Campo id="pro-material" etiqueta="Material que necesitas" obligatorio={false} valor={datos.material} maximo={300}
+                        <Campo id="pro-material" etiqueta="Requerimientos" obligatorio={false} valor={datos.material} maximo={300}
                             marcador="Proyector, sillas, mesas…" alCambiar={(v) => cambiar("material", v)} />
                     </div>
                 </fieldset>
@@ -218,7 +218,7 @@ function Formulario({ inicial, anterior }: { inicial: DatosPropuesta; anterior?:
                     </div>
                     {casilla("abiertaAlPublico", "La actividad será abierta al público.")}
                     {casilla("sinFinesDeLucro", "La actividad será sin fines de lucro.")}
-                    {casilla("acepta", "Entiendo que enviar la propuesta no la aprueba ni reserva el espacio.")}
+                    {casilla("acepta", "Entiendo que enviar la propuesta no la aprueba ni reserva el espacio y que es mi responsabilidad revisar el seguimiento de mi solicitud.")}
                 </fieldset>
 
                 {errorEnvio && <p className="cred-error-campo" role="alert">{editando ? "No pudimos guardar tus cambios: " : "No pudimos enviar tu propuesta: "}{errorEnvio}</p>}
